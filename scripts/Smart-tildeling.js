@@ -9,12 +9,12 @@
   // GUARD – FORHINDRER DOBBEL INSTALLASJON
   // ============================================================
   if (window.__smartTildelingInstalled) {
-    console.log("✅ Smart-tildeling script er allerede aktiv");
+    console.log("✅ Smart-tildeling-script er allerede aktiv");
     return;
   }
   window.__smartTildelingInstalled = true;
 
-  console.log("🚀 Starter Smart-tildeling script");
+  console.log("🚀 Starter Smart-tildeling-script");
 
   // ============================================================
   // KONSTANTER
@@ -631,6 +631,6 @@
   console.log("⌨️  Smart-tildeling snarveier:");
   console.log("   ALT+S → Smart tildeling (RB/ERS + passasjerregler)");
   console.log("   ALT+T → Tilordningsstøtte 2.0 (individuell tildeling)");
-  console.log("✅ Smart-tildeling script lastet");
+  console.log("✅ Smart-tildeling-script lastet");
 
 })();
