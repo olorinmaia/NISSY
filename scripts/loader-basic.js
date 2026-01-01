@@ -2,7 +2,9 @@
   const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
   
   const scripts = [
-    'NISSY-fiks.js'
+    'NISSY-fiks.js',
+    'Ressursinfo.js',
+    'Rutekalkulering.js'
   ];
 
   console.log('📦 Laster NISSY Basic...');
