@@ -1,15 +1,5 @@
 (async () => {
   const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
-
-  for (const script of scripts) {
-    try {
-      const response = await fetch(BASE + script + `?t=${Date.now()}`);
-      const code = await response.text();
-      eval(code);
-    } catch (err) {
-      console.error(`❌ Feil ved lasting av ${script}:`, err);
-    }
-  }
   
   const scripts = [
     'NISSY-fiks.js',
@@ -24,7 +14,7 @@
   
   for (const script of scripts) {
     try {
-      const response = await fetch(BASE + script);
+      const response = await fetch(BASE + script + `?t=${Date.now()}`);
       const code = await response.text();
       eval(code);
     } catch (err) {
@@ -32,7 +22,7 @@
     }
   }
   
-  console.log('✅ NISSY Expert DEV lastet!');
+  console.log('✅ NISSY Expert DEV lastet!!');
 
   // Vis snarvei-popup
   setTimeout(() => {
