@@ -6,7 +6,7 @@
     'Smart-tildeling.js',
     'Rek-knapper.js',
     'Rutekalkulering.js',
-    'Avbestilling.js'
+    'Ressursinfo.js'
   ];
 
   console.log('📦 Laster NISSY Advanced...');
