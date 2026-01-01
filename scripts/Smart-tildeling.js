@@ -162,14 +162,18 @@
   // HJELPEFUNKSJON: Simuler ESC-tast
   // ============================================================
   function pressEscKey() {
-    document.dispatchEvent(new KeyboardEvent("keydown", {
-      key: "Escape",
-      code: "Escape",
-      keyCode: 27,
-      which: 27,
-      bubbles: true,
-      cancelable: true
-    }));
+    try {
+      document.dispatchEvent(new KeyboardEvent("keydown", {
+        key: "Escape",
+        code: "Escape",
+        keyCode: 27,
+        which: 27,
+        bubbles: true,
+        cancelable: true
+      }));
+    } catch (e) {
+      // Ignorer feil - dialogen var allerede lukket
+    }
   }
 
   // ============================================================
