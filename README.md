@@ -4,12 +4,12 @@ Javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gamm
 
 ## 📦 Innhold
 
-- **Smart Tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling
+- **Smart-tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling
 - **Tilordningsstøtte 2.0** - Forbedret tilordning med popup-visning
 - **Tastatur-snarveier** - Effektiv navigering og kontroll
-- **Reknebutton** - Hurtigknapper for reknearkfunksjoner
-- **Rutekalkulator** - Integrasjon med Google Maps rutekalk
-- **Ressursinfo** - Rask tilgang til ressursinformasjon
+- **Rek-knapper** - Hurtigknapper for rekvisisjoner på ventende/pågående oppdrag
+- **Ruteberegning** - Integrasjon med Google Maps rutekalkulering
+- **Ressursinfo** - Rask tilgang til ressursinformasjon som faktiske tider, posisjoner.
 
 ## 🚀 Installasjon
 
@@ -58,11 +58,12 @@ Last inn hvert script individuelt ved å bruke bokmerker fra [`bookmarklets/`](b
 |---------|----------|
 | `ALT+Q` | Google Maps Rutekalkulator |
 | `ALT+D` | Ressursinfo |
-| `ALT+R` | Rekneknapper |
+| `ALT+R` | Rek-knapper |
+| `ALT+K` | Masse-avbestilling |
 
 ## 🔧 Funksjonalitet
 
-### Smart Tildeling (ALT+S)
+### Smart-Tildeling (ALT+S)
 - **Automatisk RB/ERS-deteksjon**: Tildeler til riktig avtale når RB eller ERS er påkrevd
 - **Passasjertelling**: Teller overlappende passasjerer og velger riktig avtale ved >3 reisende
 - **Ressurs-tildeling**: Støtter direkte tildeling til valgt ressurs
@@ -142,4 +143,4 @@ Se [CHANGELOG.md](docs/CHANGELOG.md) for versjonhistorikk.
 
 ---
 
-**Laget med ❤️ for å gjøre NISSY bedre**
+**❤️ Make NISSY great again!**
