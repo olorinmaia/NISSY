@@ -715,8 +715,14 @@ async function runResourceInfo() {
     function closePopup() {
       const p = document.getElementById("customResourcePopup");
       const o = document.getElementById("customResourceOverlay");
-      if (p) p.remove();
-      if (o) o.remove();
+      
+      if (p && p.parentNode) {
+        p.parentNode.removeChild(p);
+      }
+      if (o && o.parentNode) {
+        o.parentNode.removeChild(o);
+      }
+      
       document.removeEventListener("keydown", escHandler);
     }
 
