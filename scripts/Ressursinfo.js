@@ -1,4 +1,9 @@
-// Kombinert ressursinformasjon (3003 + 4010)
+// ============================================================
+// RESSURSINFO SCRIPT (ALT+D)
+// Henter ut nyttig info fra 3003/4010 XML fra merket ressurs
+// Presenter faktiske tider, koordinater i pop-up
+// ============================================================
+
 (function() {
   // Sjekk om hotkey-listener allerede er installert
   if (window.__ressursInfoHotkeyInstalled) {
