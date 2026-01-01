@@ -2,7 +2,7 @@
 (function() {
   // Sjekk om hotkey-listener allerede er installert
   if (window.__ressursInfoHotkeyInstalled) {
-    console.log('✅ Hotkey Alt+D er allerede installert!');
+    console.log('✅ Ressurinfo (Alt+D) er allerede installert!');
     return;
   }
 
@@ -16,8 +16,6 @@
       runResourceInfo();
     }
   });
-
-  console.log('✅ Ressursinfo hotkey installert: Alt+D');
 
 async function runResourceInfo() {
   // HINDRE FLERE POPUPS SAMTIDIG
