@@ -285,7 +285,11 @@
     const cleanupSnippet = () => {
       if (!window.snippetActive) return;
 
-      document.querySelectorAll('[id^="snippetPopup_"]').forEach((el) => el.remove());
+      document.querySelectorAll('[id^="snippetPopup_"]').forEach((el) => {
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
       window.scrollHandlers?.forEach((handler) => window.removeEventListener("scroll", handler, true));
       window.scrollHandlers?.clear();
       window.activePopups?.clear();
@@ -350,7 +354,10 @@
       
       // Unngå duplikater
       if (window.activePopups.has(popupId)) return;
-      document.getElementById(popupId)?.remove();
+      const existingPopup = document.getElementById(popupId);
+      if (existingPopup && existingPopup.parentNode) {
+        existingPopup.parentNode.removeChild(existingPopup);
+      }
 
       // Sjekk om vi er i ventende oppdrag
       const isVentende = window.isVentendeOppdrag = isInside(row, "ventendeoppdrag");
@@ -517,7 +524,11 @@
       if (!window.snippetActive) return;
 
       // Fjern eksisterende popups
-      document.querySelectorAll('[id^="snippetPopup_"]').forEach((el) => el.remove());
+      document.querySelectorAll('[id^="snippetPopup_"]').forEach((el) => {
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
       window.activePopups.clear();
       window.scrollHandlers?.forEach((handler) => window.removeEventListener("scroll", handler, true));
       window.scrollHandlers?.clear();
