@@ -3,12 +3,12 @@
      GUARD – FORHINDRER DOBBEL INSTALLASJON
      ====================================================== */
   if (window.__nissyMasterScriptInstalled) {
-    console.log("✅ NISSY master-script er allerede aktiv");
+    console.log("✅ NISSY-fiks-script er allerede aktiv");
     return;
   }
   window.__nissyMasterScriptInstalled = true;
 
-  console.log("🚀 Starter NISSY master-script");
+  console.log("🚀 Starter NISSY-fiks-script");
 
   /* ======================================================
      DEL 0: TASTATUR-HÅNDTERING
@@ -339,7 +339,7 @@
      SNARVEI-OVERSIKT
      ====================================================== */
 
-  console.log("⌨️  NISSY Tastatursnarveier:");
+  console.log("⌨️  NISSY-fiks Tastatursnarveier:");
   console.log("   ENTER (i søkefelt) → Søk");
   console.log("   ESC → Nullstill søk + fokus søkefelt");
   console.log("   ALT+F → Fokus søkefelt");
@@ -352,6 +352,6 @@
   console.log("   ALT+B → Blank");
   console.log("   ALT+P → Merk alle ressurser pågående oppdrag");
   console.log("   ALT+V → Merk alle bestillinger ventende oppdrag");
-  console.log("✅ NISSY master-script lastet");
+  console.log("✅ NISSY-fiks-script lastet");
 
 })();
