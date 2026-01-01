@@ -11,6 +11,8 @@
   }
   window.__RuteKalkHotkeyInstalled = true;
 
+  console.log("🚀 Starter Rutekalkulering-script");
+
   // ============================================================
   // GOOGLE MAPS CONSENT-HÅNDTERING
   // Google Maps krever at bruker godtar vilkår første gang
