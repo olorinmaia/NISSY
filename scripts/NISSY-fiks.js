@@ -1,5 +1,4 @@
-(() => { 
-
+(() => {
   /* ======================================================
      GUARD – FORHINDRER DOBBEL INSTALLASJON
      ====================================================== */
@@ -13,18 +12,6 @@
 
   /* ======================================================
      DEL 0: TASTATUR-HÅNDTERING
-     - Enter i søkefelt → Søk
-     - ESC → Nullstill søk + fokus søkefelt (kun hvis verdi)
-     - ALT+F → Fokus søkefelt
-     - F5 → openPopp('-1') - "Åpne alle" refresher all data og åpner alle turer
-     - Ctrl+R / Cmd+R → blokkert
-     - CTRL+1 → Fokus til filter ventende oppdrag
-     - CTRL+2 → Fokus til filter ressurser
-     - ALT+W → Vis i kart
-     - ALT+G → Tildel oppdrag
-     - ALT+B → Blank
-     - ALT+P → Merk alle ressurser pågående oppdrag
-     - ALT+V → Merk alle bestillinger ventende oppdrag
      ====================================================== */
   
   window.addEventListener("keydown", function (e) {
@@ -62,7 +49,7 @@
       if (searchInput) {
         e.preventDefault();
         searchInput.focus();
-        searchInput.select(); // marker eksisterende tekst
+        searchInput.select();
       }
       return;
     }
@@ -88,7 +75,6 @@
   
         cancelButton.click();
   
-        // Sett fokus tilbake til søkefeltet etter nullstilling
         setTimeout(() => {
           searchInput.focus();
           searchInput.select();
@@ -206,13 +192,10 @@
 
     function runSequentially(list) {
       if (list.length === 0) {
-        console.log("✅ Kolonne-endringer ferdig");
         return;
       }
 
       const url = base + list.shift();
-      console.log("📊 Kolonne:", url);
-
       xhrGet(url, () => runSequentially(list));
     }
 
@@ -236,7 +219,6 @@
   XMLHttpRequest.prototype.open = function(method, url, ...rest) {
     this._requestUrl = url;
 
-    // Identify request type based on URL pattern
     if (url.includes('ajax-dispatch?did=all&')) {
       if (url.includes('vfilter=') || url.includes('rfilter=')) {
         this._requestType = 'filter';
@@ -246,10 +228,6 @@
         this._requestType = 'search';
       } else if (url.includes('action=asstrans') || url.includes('action=assresassist')) {
         this._requestType = 'assign';
-      }
-
-      if (this._requestType) {
-        console.log("📤 XHR [" + this._requestType + "]:", url);
       }
     }
 
@@ -261,11 +239,8 @@
       const requestType = this._requestType;
 
       this.addEventListener("load", () => {
-        console.log("📡 XHR ferdig [" + requestType + "]");
-
         const waiter = activeWaiters[requestType];
         if (waiter) {
-          console.log("✅ Kjører callback for [" + requestType + "]");
           clearTimeout(waiter.timeout);
           activeWaiters[requestType] = null;
           waiter.callback();
@@ -276,12 +251,9 @@
   };
 
   function waitForAjaxThen(type, callback) {
-    console.log("➕ Venter på [" + type + "] XHR");
-
     activeWaiters[type] = {
       callback: callback,
       timeout: setTimeout(() => {
-        console.log("⏱️ Timeout [" + type + "]");
         activeWaiters[type] = null;
         callback();
       }, 2000)
@@ -300,7 +272,6 @@
   function clickClearButton() {
     const btn = document.getElementById("buttonClearSelection");
     if (btn) {
-      console.log("🧹 Klikker Blank-knappen");
       btn.click();
     }
   }
@@ -309,12 +280,9 @@
     const select = e.target;
     if (!SELECT_NAMES.includes(select.name)) return;
 
-    console.log("🔽 Filter endret:", select.name);
-
     clickClearButton();
 
     waitForAjaxThen('filter', () => {
-      console.log("📬 Filter ferdig → åpner Popp");
       openPopp("-1");
     });
   }
@@ -328,9 +296,7 @@
   const btnSearch = document.getElementById("buttonSearch");
   if (btnSearch) {
     btnSearch.addEventListener("click", () => {
-      console.log("🔍 Søk");
       waitForAjaxThen('search', () => {
-        console.log("📬 Søk ferdig → åpner Popp");
         openPopp("-1");
       });
     });
@@ -339,29 +305,20 @@
   const btnCancel = document.getElementById("buttonCancelSearch");
   if (btnCancel) {
     btnCancel.addEventListener("click", () => {
-      console.log("🔄 Nullstill");
       waitForAjaxThen('cancel', () => {
-        console.log("📬 Nullstill ferdig → åpner Popp");
         openPopp("-1");
       });
     });
   }
 
   function onAssignClick() {
-    console.log("🚚 Tildel/Tilordne oppdrag");
-
     waitForAjaxThen('assign', () => {
-      console.log("📬 Tildel/Tilordning ferdig → sjekker rader");
-
       setTimeout(() => {
         const selectedRows = document.querySelectorAll(
           'tr[style*="background-color: rgb(148, 169, 220)"]'
         );
 
-        if (selectedRows.length > 0) {
-          console.log("⚠️ " + selectedRows.length + " markerte rader → hopper over openPopp");
-        } else {
-          console.log("✅ Ingen markerte rader → åpner Popp");
+        if (selectedRows.length === 0) {
           openPopp("-1");
         }
       }, 1500);
@@ -377,5 +334,24 @@
       btn.addEventListener("click", onAssignClick);
     }
   });
+
+  /* ======================================================
+     SNARVEI-OVERSIKT
+     ====================================================== */
+
+  console.log("⌨️  NISSY Tastatursnarveier:");
+  console.log("   ENTER (i søkefelt) → Søk");
+  console.log("   ESC → Nullstill søk + fokus søkefelt");
+  console.log("   ALT+F → Fokus søkefelt");
+  console.log("   F5 → Refresh data (openPopp)");
+  console.log("   CTRL/CMD+R → Blokkert");
+  console.log("   CTRL+1 → Fokus filter ventende oppdrag");
+  console.log("   CTRL+2 → Fokus filter ressurser");
+  console.log("   ALT+W → Vis i kart");
+  console.log("   ALT+G → Tildel oppdrag");
+  console.log("   ALT+B → Blank");
+  console.log("   ALT+P → Merk alle ressurser pågående oppdrag");
+  console.log("   ALT+V → Merk alle bestillinger ventende oppdrag");
+  console.log("✅ NISSY master-script lastet");
 
 })();
