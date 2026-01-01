@@ -11,6 +11,8 @@
   }
   window.__rekKnapperHotkeyInstalled = true;
 
+  console.log("🚀 Starter Rek-knapper-script");
+
   // ============================================================
   // HOTKEY REGISTRERING: ALT+R
   // ============================================================
