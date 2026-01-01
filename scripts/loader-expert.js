@@ -116,11 +116,6 @@
       if (typeof openPopp === 'function') {
         openPopp('-1');
         }
-      try {
-          setTimeout(() => pressEscKey(), 100);
-        } catch (e) {
-          // Ignorer
-        }
       };
 
     popup.querySelector('#closeNissyPopup').onclick = closePopup;
