@@ -6,7 +6,7 @@
 
   // Sjekk om scriptet allerede er lastet for å unngå duplikater
   if (window.__rekKnapperHotkeyInstalled) {
-    console.log("✅ Rek-knapper er allerede aktiv");
+    console.log("✅ Rek-knapper-script er allerede aktiv");
     return;
   }
   window.__rekKnapperHotkeyInstalled = true;
