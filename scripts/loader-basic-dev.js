@@ -11,7 +11,7 @@
   
   for (const script of scripts) {
     try {
-      const response = await fetch(BASE + script);
+      const response = await fetch(BASE + script + `?t=${Date.now()}`);
       const code = await response.text();
       eval(code);
     } catch (err) {
