@@ -9,7 +9,7 @@
   // GUARD – FORHINDRER DOBBEL INSTALLASJON
   // ============================================================
   if (window.__smartTildelingInstalled) {
-    console.log("✅ Smart-tildeling er allerede aktiv");
+    console.log("✅ Smart-tildeling script er allerede aktiv");
     return;
   }
   window.__smartTildelingInstalled = true;
