@@ -5,7 +5,7 @@
     'NISSY-fiks.js',
     'Smart-tildeling.js',
     'Rek-knapper.js',
-    'Rutekalkulator.js',
+    'Rutekalkulering.js',
     'Avbestilling.js',
     'Ressursinfo.js'
   ];
