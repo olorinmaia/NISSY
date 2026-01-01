@@ -49,7 +49,7 @@
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
           <strong>📖 Fullstendig dokumentasjon:</strong><br>
-          <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/BASIC.md" 
+          <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/BASIC.md" 
              target="_blank" 
              style="color: #4a90e2; text-decoration: none; font-weight: bold;">
             Åpne BASIC.md →
