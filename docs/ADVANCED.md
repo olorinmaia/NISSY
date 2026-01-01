@@ -2,28 +2,43 @@
 
 ![NISSY Advanced](https://img.shields.io/badge/NISSY-Advanced-orange)
 
-## 🎯 For hvem?
+## ⌨️ Alle tastatursnarveier
 
-NISSY Advanced er for deg som:
-- Har erfaring med NISSY Basic
-- Trenger avansert tildelingsfunksjonalitet
-- Vil spare tid på repetitive oppgaver
-- Håndterer mange bestillinger daglig
+### Søk og navigasjon
 
-## 📦 Hva får du?
+| Snarvei | Funksjon |
+|---------|----------|
+| `ALT+F` | Fokus søkefelt (marker eksisterende tekst) |
+| `ENTER` (i søkefelt) | Utfør søk |
+| `ESC` | Nullstill søk og sett fokus tilbake til søkefelt |
+| `F5` | Refresh all data (openPopp) |
 
-### Alt fra Basic, pluss:
+### Filter
 
-- ✅ **Smart-tildeling.js** - Intelligent tildeling med RB/ERS og passasjerregler
-- ✅ **Rek-knapper.js** - Hurtigknapper for redigering, hendelseslogg, kopiering, m.m.
+| Snarvei | Funksjon |
+|---------|----------|
+| `CTRL+1` | Fokus til filter ventende oppdrag |
+| `CTRL+2` | Fokus til filter ressurser |
 
-### Nye snarveier:
+### Oppdragshåndtering
+
+| Snarvei | Funksjon |
+|---------|----------|
+| `ALT+W` | Vis i kart |
+| `ALT+G` | Tildel oppdrag (åpner tildelingsdialogg) |
+| `ALT+B` | Blank (fjern alle markeringer) |
+| `ALT+P` | Merk alle ressurser i pågående oppdrag |
+| `ALT+V` | Merk alle bestillinger i ventende oppdrag |
+
+### Verktøy
 
 | Snarvei | Funksjon |
 |---------|----------|
 | `ALT+S` | Smart tildeling (RB/ERS + passasjerregler) |
 | `ALT+T` | Tilordningsstøtte 2.0 (individuell tildeling) |
 | `ALT+R` | Rek-knapper (H, S, K, T, R) |
+| `ALT+Q` | Åpne rutekalkulator i Google Maps |
+| `ALT+D` | Vis ressursinfo popup |
 
 ## 📥 Installasjon
 
@@ -34,9 +49,45 @@ Kopier og lim inn som URL:
 javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-advanced.js');eval(await s.text());})();
 ```
 
-Navn: `NISSY Advanced`
+Navn: `NISSY-Avansert`
 
-## 🚀 Nye funksjoner
+## 📖 Detaljert brukerveiledning
+
+### Rutekalkulator (ALT+Q)
+
+1. Merk én eller flere bestillinger (klikk på radene)
+2. Trykk `ALT+Q`
+3. Første gang: Godta Google Maps vilkår, lukk vinduet, trykk `ALT+Q` igjen
+4. Google Maps åpnes med rute for alle merkede bestillinger
+
+**Tips:**
+- Fungerer både for ventende og pågående oppdrag
+- Filtrerer automatisk ut stopp som er markert som "Framme"
+- Optimaliserer rekkefølgen for logisk flyt
+
+### Ressursinfo (ALT+D)
+
+1. Merk én ressurs
+2. Trykk `ALT+D`
+3. Popup viser:
+   - Faktiske tider og koordinater på hver hendelse
+   - Tidspunkt for mottak av 3003 XML
+   - Link til NISSY admin for bestilling og tur
+   - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
+
+### Automatiske kolonnejusteringer
+
+Scriptet justerer automatisk kolonnevisning:
+
+**Skjuler:**
+- Ledig kapasitet (pågående oppdrag)
+- Transporttype (ventende oppdrag)
+
+**Viser:**
+- Behandlingsdato (pågående oppdrag)
+- Ledsagere (pågående oppdrag)
+- Spesielle krav (pågående oppdrag)
+- Pasientnavn (pågående oppdrag)
 
 ### Smart Tildeling (ALT+S)
 
@@ -54,26 +105,6 @@ Intelligent tildeling som automatisk:
    - Sjekker om RB/ERS er påkrevd
    - Velger riktig avtale automatisk
    - Viser resultat i toast-melding
-
-**Avtale-regler:**
-
-**RB/ERS-regler** (når RB eller ERS finnes):
-```
-4116→4120, 8942→9041, 8918→9035, 8948→9043, 8950→9043,
-8922→9034, 8932→9039, 8946→9114, 8920→9035, 8928→9038,
-8914→9031, 8934→9040, 8936→9040, 8954→9045, 8958→9046,
-8940→9041, 8952→9044, 8956→9045, 8930→9037, 8938→9039,
-8926→9038, 8916→9032, 8960→9046, 8924→9036, 8944→9042
-```
-
-**Flere reisende-regler** (når >3 samtidig reisende, UTEN RB/ERS):
-```
-8942→8943, 8918→8919, 8948→8949, 8950→8951, 8922→8923,
-8932→8933, 8946→8947, 8920→8921, 8928→8929, 8914→8915,
-8934→8935, 8936→8937, 8954→8955, 8958→8959, 8940→8941,
-8952→8953, 8956→8957, 8930→8931, 8938→8939, 8926→8927,
-8916→8917, 8960→8961, 8924→8925, 8944→8945
-```
 
 **Tildeling til ressurs:**
 - Merk også en ressurs → tildeles direkte til ressursen
@@ -115,55 +146,6 @@ Viser hurtigknapper på merkede rader.
 - Knappene følger med ved scrolling
 - Automatisk høydetilpasning til rad-bilder
 
-## ⌨️ Komplette snarveier
-
-### Fra NISSY Basic:
-
-Se [BASIC.md](BASIC.md) for alle grunnleggende snarveier.
-
-### Nye i Advanced:
-
-| Snarvei | Funksjon | Beskrivelse |
-|---------|----------|-------------|
-| `ALT+S` | Smart tildeling | RB/ERS og passasjerregler |
-| `ALT+T` | Tilordningsstøtte 2.0 | Individuell tildeling |
-| `ALT+R` | Rek-knapper | H, S, K, T, R knapper |
-
-## 💡 Arbeidsflyt-eksempler
-
-### Scenario 1: Mange bestillinger med RB
-
-1. `ALT+V` - Merk alle ventende bestillinger
-2. `ALT+S` - Smart tildeling (velger automatisk RB-avtale)
-3. Ferdig!
-
-### Scenario 2: Individuell tildeling
-
-1. Merk bestillinger som skal ha egen avtale
-2. `ALT+T` - Tilordningsstøtte 2.0
-3. Se resultat i popup
-
-### Scenario 3: Rask redigering
-
-1. Merk bestillinger som skal redigeres
-2. `ALT+R` - Vis rek-knapper
-3. Klikk `R` på hver rad for å redigere
-4. ESC for å lukke
-
-### Scenario 4: Retur-turer
-
-1. Merk bestilling
-2. `ALT+R` - Vis rek-knapper
-3. Klikk `T` - Lag retur og link sammen
-4. Modal åpnes med returbestilling
-
-## 🆙 Oppgradering til Expert
-
-NISSY Expert legger til:
-- Avbestilling (ALT+K) - Masseavbestill turer
-
-[Se EXPERT.md](EXPERT.md)
-
 ## ❓ Feilsøking
 
 ### Smart tildeling velger feil avtale
@@ -186,10 +168,9 @@ NISSY Expert legger til:
 
 ## 💪 Pro-tips
 
-1. **Kombiner snarveier**: `ALT+V` → `ALT+S` (merk alle → smart tildel)
+1. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle → tilordningsstøtte 2.0 (ingen begrensning på antall bestillinger))
 2. **Rek-knapper + Smart tildeling**: Rediger først, tildel etterpå
-3. **Bruk ALT+T for komplekse situasjoner**: Når hver bestilling trenger egen bil
-4. **ESC lukker alt**: Rek-knapper, modaler, popups
+3. **ESC lukker alt**: Rek-knapper, modaler, popups
 
 ## 📞 Support
 
@@ -198,4 +179,4 @@ Fant du en bug eller har forslag?
 
 ---
 
-**Laget med ❤️ for å gjøre NISSY bedre**
+**❤️ Make NISSY great again!**
