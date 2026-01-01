@@ -117,6 +117,9 @@
         overlay.parentNode.removeChild(overlay);
       }
       
+      // Fjern ESC-listener
+      document.removeEventListener('keydown', escHandler);
+      
       // Refresh data når popup lukkes
       if (typeof openPopp === 'function') {
         openPopp('-1');
@@ -130,7 +133,6 @@
     const escHandler = (e) => {
       if (e.key === 'Escape') {
         closePopup();
-        document.removeEventListener('keydown', escHandler);
       }
     };
     document.addEventListener('keydown', escHandler);
