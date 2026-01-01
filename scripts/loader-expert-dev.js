@@ -32,7 +32,7 @@
     }
   }
   
-  console.log('✅ NISSY Expert lastet!');
+  console.log('✅ NISSY Expert DEV lastet!');
 
   // Vis snarvei-popup
   setTimeout(() => {
