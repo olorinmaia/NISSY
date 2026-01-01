@@ -8,6 +8,8 @@
 
   // Installer hotkey-listener
   window.__ressursInfoHotkeyInstalled = true;
+
+  console.log("🚀 Starter Ressursinfo-script");
   
   document.addEventListener('keydown', function(e) {
     // Alt+D (keyCode 68 = D)
