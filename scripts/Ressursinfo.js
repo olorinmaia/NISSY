@@ -732,7 +732,8 @@ async function runResourceInfo() {
 
 } // End runResourceInfo
 
+  console.log("⌨️  Ressursinfo snarveier:");
   console.log("   ALT+D → Ressursinfo pop-up");
   console.log("✅ Ressursinfo-script lastet");
-
+   
 })(); // End wrapper
