@@ -42,7 +42,7 @@
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
           • ALT+Q → Rutekalkulator (Google Maps)<br>
-          • ALT+D → Ressursinfo<br>
+          • ALT+D → Ressursinfo pop-up<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -101,11 +101,17 @@
     const closePopup = () => {
       popup.remove();
       overlay.remove();
+      
+      // Refresh data når popup lukkes
+      if (typeof openPopp === 'function') {
+        openPopp('-1');
+      }
     };
 
     popup.querySelector('#closeNissyPopup').onclick = closePopup;
     overlay.onclick = closePopup;
 
+    // Lukk med ESC og refresh
     const escHandler = (e) => {
       if (e.key === 'Escape') {
         closePopup();
