@@ -318,11 +318,14 @@ ${listAssigned || "Ingen"}
     // LUKK POPUP FUNKSJON
     // ============================================================
     function closePopup() {
-      popup.remove();
-      overlay.remove();
+      if (popup && popup.parentNode) {
+        popup.parentNode.removeChild(popup);
+      }
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
       
-      // Refresh data
-      if (typeof openPopp === "function") {
+      if (typeof openPopp === 'function') {
         openPopp('-1');
       }
     }

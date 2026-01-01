@@ -1,20 +1,19 @@
 (async () => {
-  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
   
   const scripts = [
     'NISSY-fiks.js',
     'Smart-tildeling.js',
     'Rek-knapper.js',
     'Rutekalkulering.js',
-    'Avbestilling.js',
     'Ressursinfo.js'
   ];
   
-  console.log('📦 Laster NISSY Expert (alle features)...');
+  console.log('📦 Laster NISSY Advanced DEV...');
   
   for (const script of scripts) {
     try {
-      const response = await fetch(BASE + script);
+      const response = await fetch(BASE + script + `?t=${Date.now()}`);
       const code = await response.text();
       eval(code);
     } catch (err) {
@@ -22,15 +21,17 @@
     }
   }
   
-  console.log('✅ NISSY Expert lastet!');
+  console.log('✅ NISSY Advanced DEV lastet!');
 
   // Vis snarvei-popup
   setTimeout(() => {
     const popup = document.createElement('div');
     popup.innerHTML = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2 style="margin: 0 0 15px 0; color: #333;">🎉 NISSY Expert Lastet!</h2>
-        
+        <h2 style="margin: 0 0 15px 0; color: #333;">🎉 NISSY Advanced Lastet!</h2>
+        <p style="background: #fff3cd; padding: 8px; border-radius: 4px; color: #856404; font-weight: bold; margin: 0 0 15px 0;">
+          ⚠️ DEV VERSION - Test branch
+        </p>
         <h3 style="margin: 15px 0 8px 0; color: #555;">⌨️ Tastatursnarveier:</h3>
         <div style="font-size: 13px; color: #666;">
           <strong>Grunnleggende:</strong><br>
@@ -51,16 +52,15 @@
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+R → Rek-knapper<br>
           • ALT+Q → Rutekalkulator (Google Maps)<br>
-          • ALT+K → Avbestilling (masseavbestill turer)<br>
           • ALT+D → Ressursinfo pop-up<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
           <strong>📖 Fullstendig dokumentasjon:</strong><br>
-          <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/EXPERT.md" 
+          <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/ADVANCED.md" 
              target="_blank" 
              style="color: #4a90e2; text-decoration: none; font-weight: bold;">
-            Åpne EXPERT.md →
+            Åpne ADVANCED.md →
           </a>
         </div>
 

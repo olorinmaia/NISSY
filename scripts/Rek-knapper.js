@@ -282,7 +282,7 @@
     };
 
     // Cleanup: Fjern alle popups og lyttere
-    const cleanupSnippet = () => {
+    function cleanupSnippet() {
       if (!window.snippetActive) return;
 
       document.querySelectorAll('[id^="snippetPopup_"]').forEach((el) => el.remove());
