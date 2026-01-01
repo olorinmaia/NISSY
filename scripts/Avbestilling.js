@@ -6,12 +6,12 @@
 
   // Sjekk om scriptet allerede er lastet for å unngå duplikater
   if (window.__avbestillingHotkeyInstalled) {
-    console.log("✅ Avbestill-script er allerede aktiv");
+    console.log("✅ Avbestilling-script er allerede aktiv");
     return;
   }
   window.__avbestillingHotkeyInstalled = true;
 
-  console.log("🚀 Starter Avbestill-script");
+  console.log("🚀 Starter Avbestilling-script");
 
   // ============================================================
   // HOTKEY REGISTRERING: ALT+K
@@ -22,8 +22,6 @@
       initializeAvbestilling();
     }
   });
-
-  console.log("✅ Alt+K avbestilling aktivert");
 
   // ============================================================
   // HOVEDFUNKSJON: Initialiserer avbestilling når ALT+K trykkes
@@ -355,8 +353,8 @@ ${listAssigned || "Ingen"}
   // ============================================================
   // SNARVEI-OVERSIKT
   // ============================================================
-  console.log("⌨️  Avbestill snarveier:");
+  console.log("⌨️  Avbestilling snarveier:");
   console.log("   ALT+K → Åpner pop-up for masseavbestilling av merkede turer)");
-  console.log("✅ Avbestill-script lastet");
+  console.log("✅ Avbestilling-script lastet");
   
 })();
