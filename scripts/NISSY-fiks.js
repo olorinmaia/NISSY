@@ -1,4 +1,10 @@
 (() => {
+  // ============================================================
+  // NISSY-fiks SCRIPT
+  // Fikser en rekke bugs i NISSY
+  // Legger på snarveier og forbedrer allerede eksisterende funksjoner
+  // ============================================================
+  
   /* ======================================================
      GUARD – FORHINDRER DOBBEL INSTALLASJON
      ====================================================== */
