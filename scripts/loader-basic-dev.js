@@ -101,8 +101,13 @@
     document.body.appendChild(popup);
 
     const closePopup = () => {
-      popup.remove();
-      overlay.remove();
+      // Bruk removeChild i stedet for .remove() for å unngå Rico-konflikt
+      if (popup && popup.parentNode) {
+        popup.parentNode.removeChild(popup);
+      }
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
       
       // Refresh data når popup lukkes
       if (typeof openPopp === 'function') {
