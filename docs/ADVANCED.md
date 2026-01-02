@@ -1,6 +1,13 @@
-# NISSY Advanced - Avansert brukerveiledning
+# NISSY Advanced - Brukerveiledning
 
 ![NISSY Advanced](https://img.shields.io/badge/NISSY-Advanced-orange)
+
+### Inkluderte scripts:
+- ✅ **NISSY-fiks.js** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
+- ✅ **Ressursinfo.js** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
+- ✅ **Rutekalkulering.js** - (Alt+Q) Åpne rute i Google Maps
+- ✅ **Smart-tildeling.js** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
+- ✅ **Rek-knapper.js** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag
 
 ## ⌨️ Alle tastatursnarveier
 
@@ -53,7 +60,7 @@ Navn: `NISSY-Avansert`
 
 ## 📖 Detaljert brukerveiledning
 
-### Rutekalkulering (ALT+Q)
+### 🗺 Rutekalkulering (ALT+Q)
 
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+Q`
@@ -65,7 +72,8 @@ Navn: `NISSY-Avansert`
 - Filtrerer automatisk ut stopp som er markert som "Framme"
 - Optimaliserer rekkefølgen for logisk flyt
 
-### Ressursinfo (ALT+D)
+
+### 🚕 Ressursinfo (ALT+D)
 
 1. Merk én ressurs
 2. Trykk `ALT+D`
@@ -76,21 +84,23 @@ Navn: `NISSY-Avansert`
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
    - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
 
-### Automatiske kolonnejusteringer
 
-Scriptet justerer automatisk kolonnevisning:
+### ⌛ NISSY-fiks
+
+Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og justerer automatisk kolonnevisning:
 
 **Skjuler:**
 - Ledig kapasitet (pågående oppdrag)
 - Transporttype (ventende oppdrag)
 
 **Viser:**
-- Behandlingsdato (pågående oppdrag)
+- Oppmøtetidspunkt (pågående oppdrag)
 - Ledsagere (pågående oppdrag)
 - Spesielle krav (pågående oppdrag)
 - Pasientnavn (pågående oppdrag)
+  
 
-### Smart Tildeling (ALT+S)
+### 📆 Smart Tildeling (ALT+S)
 
 Intelligent tildeling som automatisk:
 - Detekterer RB/ERS i bestillinger
@@ -110,22 +120,13 @@ Intelligent tildeling som automatisk:
 **Tildeling til ressurs:**
 - Merk også en ressurs → tildeles direkte til ressursen
 
-### Tilordningsstøtte 2.0 (ALT+T)
 
-Tildeler hver bestilling til sin egen avtale (individuelt).
+### 📆 Tilordningsstøtte 2.0 (ALT+T)
 
-**Bruk:**
-1. Merk flere bestillinger
-2. Trykk `ALT+T`
-3. Hver bestilling får sin egen avtale
-4. Resultat vises med detaljer for hver bestilling
+Tildeler hver bestilling til sin egen avtale (individuelt). Ingen begrensning på antall bestillinger som kan merkes.
 
-**Perfekt for:**
-- Ulike pasienter/destinasjoner
-- Hver bestilling krever egen bil
-- Maksimal fleksibilitet
 
-### Rek-knapper (ALT+R)
+### 🔠 Rek-knapper (ALT+R)
 
 Viser hurtigknapper på merkede rader.
 
@@ -147,19 +148,39 @@ Viser hurtigknapper på merkede rader.
 - Knappene følger med ved scrolling
 - Automatisk høydetilpasning til rad-bilder
 
+## 🆙 Oppgradering
+
+Klar for mer funksjonalitet?
+
+### NISSY Expert
+Alt! Alle features + fremtidige oppdateringer.
+
+[Se EXPERT.md](EXPERT.md)
+
 ## ❓ Feilsøking
 
+### Bokmerket gjør ingenting
+
+- Sjekk at du har limt inn hele koden (skal starte med `javascript:`)
+- Prøv å oppdatere siden og klikk bokmerket igjen
+- Åpne utviklerkonsollen (F12) og se etter feilmeldinger
+
+### Snarveier virker ikke
+
+- Bekreft at scriptet er lastet (åpne konsoll, skal se "✅ NISSY Basic lastet!")
+- Prøv å laste siden på nytt / restart nettleser
+- Klikk bokmerket igjen
+
+### Google Maps åpner ikke
+
+- Sjekk at popup ikke er blokkert av nettleseren
+- Godta Google Maps vilkår første gang
+  
 ### Smart tildeling velger feil avtale
 
 - Sjekk at RB/ERS-reglene stemmer med ditt oppsett
 - Verifiser antall samtidig reisende i toast-meldingen
-- Kontakt admin hvis regler må oppdateres
-
-### Rek-knapper vises ikke
-
-- Bekreft at rader er markert (blå bakgrunn)
-- Kun ventende og pågående oppdrag støttes
-- Ressurs-rader støttes ikke
+- Kontakt @olorinmaia hvis regler må oppdateres
 
 ### Tilordningsstøtte 2.0 feiler
 
@@ -177,6 +198,7 @@ Viser hurtigknapper på merkede rader.
 
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
+- Se [hovedoversikt](../README.md) for mer informasjon
 
 ---
 
