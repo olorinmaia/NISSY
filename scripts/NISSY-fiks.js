@@ -92,9 +92,14 @@
   
     /* ---------- ALT + W : Vis i kart ---------- */
     if (e.altKey && e.key.toLowerCase() === "w") {
-      const btn = document.getElementById("buttonShowMap");
-      if (!btn || btn.disabled) return;
-      btn.click();
+      e.preventDefault(); // Forhindre standard nettleser-oppførsel
+      
+      // Sjekk at funksjonen eksisterer før vi kaller den
+      if (typeof showMapForSelectedItems === 'function') {
+        showMapForSelectedItems(null);
+      } else {
+        console.error('showMapForSelectedItems er ikke tilgjengelig');
+      }
       return;
     }
   
