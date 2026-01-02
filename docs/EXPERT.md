@@ -222,6 +222,4 @@ Del bokmerke-lenken - alt er open source!
 
 ---
 
-**Du er nå en NISSY Expert! 🎉**
-
-*Laget med ❤️ for å gjøre NISSY bedre*
+**❤️ Make NISSY great again!**
