@@ -326,7 +326,7 @@ ${listAssigned || "Ingen"}
       }
       
       // Fjern ESC-listener
-      document.removeEventListener('keydown', escHandler);
+      document.removeEventListener('keydown', escapeHandler);
 
       if (typeof openPopp === 'function') {
         openPopp('-1');
