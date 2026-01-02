@@ -71,9 +71,9 @@ Masseavbestill merkede ressurser eller alle med status "Tildelt".
 
 | Snarvei | Funksjon |
 |---------|----------|
+| `ALT+F` | Fokus søkefelt |
 | `ENTER` | Søk (i søkefelt) |
 | `ESC` | Nullstill søk + fokus |
-| `ALT+F` | Fokus søkefelt |
 | `F5` | Refresh data |
 | `CTRL+1` | Fokus filter ventende oppdrag |
 | `CTRL+2` | Fokus filter ressurser |
@@ -95,7 +95,7 @@ Masseavbestill merkede ressurser eller alle med status "Tildelt".
 
 | Snarvei | Funksjon |
 |---------|----------|
-| `ALT+Q` | Rutekalkulator (Google Maps) |
+| `ALT+Q` | Rutekalkulering (Google Maps) |
 | `ALT+D` | Ressursinfo |
 
 ### Expert-eksklusiv

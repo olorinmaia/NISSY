@@ -1,13 +1,12 @@
-# NISSY Basic - Nybegynnerveiledning
+# NISSY Basic - Veiledning
 
 ![NISSY Basic](https://img.shields.io/badge/NISSY-Basic-blue)
 
 ## 🎯 For hvem?
 
 NISSY Basic er perfekt for deg som:
-- Er ny i NISSY
 - Vil ha grunnleggende tastatursnarveier
-- Trenger rutekalkulator og ressursinfo
+- Trenger rutekalkulering og ressursinfo
 - Ikke trenger avansert tildelingsfunksjonalitet
 
 ## 📦 Hva får du?
@@ -45,9 +44,9 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 | Snarvei | Funksjon |
 |---------|----------|
+| `ALT+F` | Fokus søkefelt (marker eksisterende tekst) |
 | `ENTER` (i søkefelt) | Utfør søk |
 | `ESC` | Nullstill søk og sett fokus tilbake til søkefelt |
-| `ALT+F` | Fokus søkefelt (marker eksisterende tekst) |
 | `F5` | Refresh all data (openPopp) |
 | `CTRL/CMD+R` | **Blokkert** (bruk F5 i stedet) |
 
@@ -72,7 +71,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 | Snarvei | Funksjon |
 |---------|----------|
-| `ALT+Q` | Åpne rutekalkulator i Google Maps |
+| `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 
 ## 📖 Detaljert brukerveiledning
@@ -165,4 +164,4 @@ Fant du en bug eller har forslag?
 
 ---
 
-**Laget med ❤️ for å gjøre NISSY bedre**
+**❤️ Make NISSY great again!**

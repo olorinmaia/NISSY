@@ -346,9 +346,9 @@
      ====================================================== */
 
   console.log("⌨️  NISSY-fiks Tastatursnarveier:");
+  console.log("   ALT+F → Fokus søkefelt");
   console.log("   ENTER (i søkefelt) → Søk");
   console.log("   ESC → Nullstill søk + fokus søkefelt");
-  console.log("   ALT+F → Fokus søkefelt");
   console.log("   F5 → Refresh data (openPopp)");
   console.log("   CTRL/CMD+R → Blokkert");
   console.log("   CTRL+1 → Fokus filter ventende oppdrag");

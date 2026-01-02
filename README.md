@@ -4,12 +4,14 @@ Javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gamm
 
 ## 📦 Innhold
 
-- **Smart-tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling
-- **Tilordningsstøtte 2.0** - Forbedret tilordning med toast-visning
-- **Tastatur-snarveier** - Effektiv navigering og kontroll
-- **Rek-knapper** - Hurtigknapper for rekvisisjoner på ventende/pågående oppdrag
-- **Rutekalkulering** - Integrasjon med Google Maps rutekalkulering
-- **Ressursinfo** - Rask tilgang til ressursinformasjon som faktiske tider, posisjoner.
+- **NISSY-fiks** - Masse bugfix, snarveier og forbedringer. Setter automatisk standard-kolonner.
+- **Smart-tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling.
+- **Tilordningsstøtte 2.0** - Forbedret tilordning med toast-visning, uendelig antall bestillinger kan merkes og tilordnes.
+- **Tastatur-snarveier** - Effektiv navigering og kontroll.
+- **Rek-knapper** - Hurtigknapper for bestillinger på ventende/pågående oppdrag.
+- **Rutekalkulering** - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
+- **Ressursinfo** - Rask tilgang til ressursinformasjon som faktiske tider, posisjoner, telefonnummer til sjåfør.
+- **Avbestilling** - Kan masse-avbestille merkede turer eller alle med status tildelt. OBS! Kun tilgjengelig på EXPERT. Brukes på eget ansvar!
 
 ## 🚀 Installasjon
 
