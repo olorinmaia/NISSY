@@ -76,7 +76,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 ## 📖 Detaljert brukerveiledning
 
-### Rutekalkulator (ALT+Q)
+### 🗺 Rutekalkulering (ALT+Q)
 
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+Q`
@@ -88,26 +88,29 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 - Filtrerer automatisk ut stopp som er markert som "Framme"
 - Optimaliserer rekkefølgen for logisk flyt
 
-### Ressursinfo (ALT+D)
 
-1. Merk én eller flere ressurser
+### 🚕 Ressursinfo (ALT+D)
+
+1. Merk én ressurs
 2. Trykk `ALT+D`
 3. Popup viser:
-   - Ressursnavn og kapasitet
-   - Alle turer (pågående og ventende)
-   - Tidsplan
-   - Spesielle krav
+   - Faktiske tider og koordinater for hver hendelse
+   - Tidspunkt for mottak av 3003 XML
+   - Link til NISSY admin for bestilling og tur
+   - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
+   - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
 
-### Automatiske kolonnejusteringer
 
-NISSY Basic justerer automatisk kolonnevisning:
+### ⌛ NISSY-fiks
+
+Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og justerer automatisk kolonnevisning:
 
 **Skjuler:**
 - Ledig kapasitet (pågående oppdrag)
 - Transporttype (ventende oppdrag)
 
 **Viser:**
-- Behandlingsdato (pågående oppdrag)
+- Oppmøtetidspunkt (pågående oppdrag)
 - Ledsagere (pågående oppdrag)
 - Spesielle krav (pågående oppdrag)
 - Pasientnavn (pågående oppdrag)
@@ -153,7 +156,7 @@ Alt! Alle features + fremtidige oppdateringer.
 
 1. **Lagre bokmerket i bokmerkeslinjen** for rask tilgang
 2. **Bruk F5** i stedet for Ctrl+R for å refreshe (Ctrl+R er blokkert)
-3. **Kombiner snarveier**: `ALT+V` → `ALT+Q` (merk alle ventende → åpne i kart)
+3. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle ventende → tilordningsstøtte 2.0)
 4. **ESC er din venn**: Nullstiller søk og setter fokus tilbake
 
 ## 📞 Support
