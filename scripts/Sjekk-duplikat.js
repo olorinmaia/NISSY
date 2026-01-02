@@ -291,6 +291,18 @@
   function searchInPlanning(navn) {
     closeModal();
     
+    // ============================================================
+    // SETT SØKETYPE TIL "NAVN"
+    // Sikrer at søket gjøres på navn, ikke bookingnummer/personnummer
+    // ============================================================
+    const searchTypeSelect = document.getElementById('searchType');
+    if (searchTypeSelect) {
+      searchTypeSelect.value = 'name';
+    }
+    
+    // ============================================================
+    // UTFØR SØK
+    // ============================================================
     const searchInput = document.getElementById('searchPhrase');
     if (searchInput) {
       searchInput.value = navn;
