@@ -159,6 +159,23 @@ Alt! Alle features + fremtidige oppdateringer.
 
 ## ❓ Feilsøking
 
+### Bokmerket gjør ingenting
+
+- Sjekk at du har limt inn hele koden (skal starte med `javascript:`)
+- Prøv å oppdatere siden og klikk bokmerket igjen
+- Åpne utviklerkonsollen (F12) og se etter feilmeldinger
+
+### Snarveier virker ikke
+
+- Bekreft at scriptet er lastet (åpne konsoll, skal se "✅ NISSY Basic lastet!")
+- Prøv å laste siden på nytt / restart nettleser
+- Klikk bokmerket igjen
+
+### Google Maps åpner ikke
+
+- Sjekk at popup ikke er blokkert av nettleseren
+- Godta Google Maps vilkår første gang
+  
 ### Smart tildeling velger feil avtale
 
 - Sjekk at RB/ERS-reglene stemmer med ditt oppsett
@@ -181,6 +198,7 @@ Alt! Alle features + fremtidige oppdateringer.
 
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
+- Se [hovedoversikt](../README.md) for mer informasjon
 
 ---
 
