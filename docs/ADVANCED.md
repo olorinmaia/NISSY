@@ -37,7 +37,7 @@
 | `ALT+S` | Smart tildeling (RB/ERS + passasjerregler) |
 | `ALT+T` | Tilordningsstøtte 2.0 (individuell tildeling) |
 | `ALT+R` | Rek-knapper (H, S, K, T, R) |
-| `ALT+Q` | Åpne rutekalkulator i Google Maps |
+| `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 
 ## 📥 Installasjon
@@ -53,7 +53,7 @@ Navn: `NISSY-Avansert`
 
 ## 📖 Detaljert brukerveiledning
 
-### Rutekalkulator (ALT+Q)
+### Rutekalkulering (ALT+Q)
 
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+Q`
@@ -70,10 +70,11 @@ Navn: `NISSY-Avansert`
 1. Merk én ressurs
 2. Trykk `ALT+D`
 3. Popup viser:
-   - Faktiske tider og koordinater på hver hendelse
+   - Faktiske tider og koordinater for hver hendelse
    - Tidspunkt for mottak av 3003 XML
    - Link til NISSY admin for bestilling og tur
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
+   - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
 
 ### Automatiske kolonnejusteringer
 

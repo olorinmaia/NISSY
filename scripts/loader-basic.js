@@ -30,9 +30,10 @@
         
         <h3 style="margin: 15px 0 8px 0; color: #555;">⌨️ Tastatursnarveier:</h3>
         <div style="font-size: 13px; color: #666;">
+          <strong>Grunnleggende:</strong><br>
+          • ALT+F → Fokus søkefelt<br>
           • ENTER (i søkefelt) → Søk<br>
           • ESC → Nullstill søk + fokus søkefelt<br>
-          • ALT+F → Fokus søkefelt<br>
           • F5 → Refresh data<br>
           • CTRL+1 → Fokus filter ventende oppdrag<br>
           • CTRL+2 → Fokus filter ressurser<br>
@@ -41,7 +42,9 @@
           • ALT+B → Blank<br>
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
-          • ALT+Q → Rutekalkulator (Google Maps)<br>
+          <br>
+          <strong>Avanserte funksjoner:</strong><br>
+          • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+D → Ressursinfo pop-up<br>
         </div>
 

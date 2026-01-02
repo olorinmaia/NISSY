@@ -49,7 +49,7 @@
           • ALT+S → Smart tildeling (RB/ERS + passasjerregler)<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+R → Rek-knapper<br>
-          • ALT+Q → Rutekalkulator (Google Maps)<br>
+          • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+D → Ressursinfo pop-up<br>
         </div>
 
