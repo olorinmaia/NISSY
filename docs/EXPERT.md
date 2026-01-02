@@ -222,4 +222,4 @@ Del bokmerke-lenken - alt er open source!
 
 ---
 
-**❤️ Make NISSY great again!**
+**❤️ Make NISSY great again!? 🤓**
