@@ -127,4 +127,4 @@ Alle viktige endringer i NISSY-scriptet vil bli dokumentert i denne filen.
 
 ---
 
-** ❤️ Make NISSY great again **
+**❤️ Make NISSY great again!**
