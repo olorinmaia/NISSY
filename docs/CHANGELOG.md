@@ -88,10 +88,10 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Tidsplan og kapasitetsoversikt
   - Spesielle krav og ledsagere
 
-- **Loader-system** - Modulært lastesystem
-  - loader-basic.js → Nybegynnerpakke
-  - loader-advanced.js → Avansert pakke
-  - loader-expert.js → Full funksjonalitet
+- **Loader-system** - Script-pakker med ulik innhold avhengig av arbeidsoppgaver
+  - loader-basic.js → Inneholder basis-scriptene
+  - loader-advanced.js → Inneholder nesten alle script
+  - loader-expert.js → Full funksjonalitet - også script under utvikling
   - loader-*-dev.js → Utviklingsversjoner
   - Velkomst-popup med snarvei-oversikt
   - Automatisk refresh ved lukking
@@ -132,4 +132,4 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-**❤️ Make NISSY great again!**
+**❤️ Make NISSY great again!? 🤓**

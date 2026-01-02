@@ -154,4 +154,4 @@ Se [CHANGELOG.md](docs/CHANGELOG.md) for versjonhistorikk.
 
 ---
 
-**❤️ Make NISSY great again!**
+**❤️ Make NISSY great again!? 🤓**
