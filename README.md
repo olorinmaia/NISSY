@@ -1,33 +1,77 @@
 # NISSY V13.37
 
-Javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system som ikke oppdateres mer.
+Javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system som ikke vil bli fikset noe særlig mer på.
+Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mye mer nyttig informasjon til planleggingen ved få tastetrykk.
 
 ## 📦 Innhold
 
-- **NISSY-fiks** - Masse bugfix, snarveier og forbedringer. Setter automatisk standard-kolonner.
-- **Smart-tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling.
+- **NISSY-fiks** - Masse bugfix, tastatursnarveier og forbedringer. Setter automatisk standard-kolonner.
+- **Smart-tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
 - **Tilordningsstøtte 2.0** - Forbedret tilordning med toast-visning, uendelig antall bestillinger kan merkes og tilordnes.
-- **Tastatur-snarveier** - Effektiv navigering og kontroll.
 - **Rek-knapper** - Hurtigknapper for bestillinger på ventende/pågående oppdrag.
 - **Rutekalkulering** - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
 - **Ressursinfo** - Rask tilgang til ressursinformasjon som faktiske tider, posisjoner, telefonnummer til sjåfør.
-- **Avbestilling** - Kan masse-avbestille merkede turer eller alle med status tildelt. OBS! Kun tilgjengelig på EXPERT. Brukes på eget ansvar!
+- **Avbestilling** - Kan masse-avbestille merkede turer eller alle med status tildelt. **OBS! Kun tilgjengelig på EXPERT. Brukes på eget ansvar!**
+- **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
+- **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+- **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
+- **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister.
+
+## 📊 Oversikt alle features i script-pakker
+Scriptene under har mye automatikk og dedikerte snarveier. Disse har blitt plassert i script-pakker og trenger kun aktiveres en gang. 
+Hvis du hard-refresher siden eller lukker nettleser må du aktivere script-pakken på nytt.
+Under er en oversikt over de features som følger med i hver pakke.
+
+| Features | Basic | Advanced | Expert |
+|---------|-------|----------|--------|
+| NISSY-fiks | ✅ | ✅ | ✅ |
+| Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
+| Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
+| Smart-tildeling (ALT+S) | ❌ | ✅ | ✅ |
+| Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ | ✅ |
+| Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |
+| Avbestilling (ALT+K) | ❌ | ❌ | ✅ |
 
 ## 🚀 Installasjon
 
-### Metode 1: Direkte fra GitHub (Anbefalt)
+### Script-pakker 
+Velg mellom **Basic**, **Advanced** eller **Expert**
+
 1. Opprett et nytt bokmerke i nettleseren din
 2. Lim inn følgende kode som URL:
+
+**Basic**
+```javascript
+javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js');eval(await s.text());})();
+```
+
+**Advanced**
 ```javascript
 javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-advanced.js');eval(await s.text());})();
 ```
-3. Gi bokmerket et navn (f.eks. "NISSY-script Advanced")
-4. Klikk på bokmerket når du er inne i NISSY
 
-### Metode 2: Individuelle Scripts
-Last inn hvert script individuelt ved å bruke bokmerker fra [`bookmarklets/`](bookmarklets/) mappen.
+**Expert**
+```javascript
+javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-expert.js');eval(await s.text());})();
+```
+
+3. Gi bokmerket et navn (f.eks. "NISSY-Advanced")
+4. Klikk på bokmerket når du er inne i NISSY. Dette aktiverer all automatikk og snarveier.
+
+### Individuelle Scripts
+Følgende script må lastes inn manuelt og ha sitt eget bokmerke:
+
+- **Alenebil** 
+- **Auto-Bestill** 
+- **Sjekk-Duplikat** 
+- **Sjekk-Telefon** 
+- **Trøndertaxi-løyve**
+
+Opprett bokmerke som beskrevet tidligere og bruk URL fra scriptene som ligger i [`bookmarklets/`](bookmarklets/) mappen.
 
 ## ⌨️ Tastatursnarveier
+Snarveiene hører til de ulike script-pakkene.
 
 ### Del 0: Grunnleggende Navigasjon
 | Snarvei | Funksjon |
