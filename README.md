@@ -5,9 +5,14 @@ Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mye mer nyttig i
 
 ## 📦 Innhold
 
-- **NISSY-fiks** - Masse bugfix, tastatursnarveier og forbedringer. Setter automatisk standard-kolonner.
+- **NISSY-fiks** - Inneholder bugfikser, tastatursnarveier og forbedringer.
+  - Automatisk kolonnejustering (skjuler/viser relevante kolonner)
+  - Fikser bug med at filter ikke oppdaterer seg
+  - Åpner alle turer ved bytting av filter automatisk
+  - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
 - **Smart-tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
-- **Tilordningsstøtte 2.0** - Forbedret tilordning med toast-visning, uendelig antall bestillinger kan merkes og tilordnes.
+  - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
+- **Tilordningsstøtte 2.0** - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
 - **Rek-knapper** - Hurtigknapper for bestillinger på ventende/pågående oppdrag.
 - **Rutekalkulering** - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
 - **Ressursinfo** - Rask tilgang til ressursinformasjon som faktiske tider, posisjoner, telefonnummer til sjåfør.
