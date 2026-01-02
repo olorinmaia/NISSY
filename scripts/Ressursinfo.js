@@ -481,7 +481,7 @@ async function runResourceInfo() {
       
       html += `
         <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
-          <span style="font-weight: bold; color: #856404;">🚗 Oppdrag bekreftet: ${timeOnly}</span>
+          <span style="font-weight: bold; color: #856404;" title="Når 3003 XML ble mottatt">🚗 Oppdrag bekreftet: ${timeOnly}</span>
           ${!phoneNumber ? '<span style="margin-left: 10px; color: #d32f2f;">⚠️ Fant ikke telefonnummer</span>' : ''}
         </div>
       `;
