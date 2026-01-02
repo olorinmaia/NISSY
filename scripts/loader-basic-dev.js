@@ -46,7 +46,7 @@
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
-          • ALT+Q → Rutekalkulator (Google Maps)<br>
+          • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+D → Ressursinfo pop-up<br>
         </div>
 
