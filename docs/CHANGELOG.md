@@ -1,6 +1,6 @@
-# Changelog
+# Endringslogg
 
-Alle viktige endringer i NISSY-scriptet vil bli dokumentert i denne filen.
+Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## [Unreleased]
 
@@ -10,12 +10,27 @@ Alle viktige endringer i NISSY-scriptet vil bli dokumentert i denne filen.
 - Flere tilpasbare innstillinger
 
 ---
+## [1.1.0] - 02-01-2026
+
+### 🎉 Utvidelse med 6 individuelle script!
+
+#### Hva er nytt?
+- **Alenebil.js** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
+- **Auto-Bestill.js** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+- **Sjekk-Duplikat.js** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
+- **Sjekk-Telefon.js** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+- **Trøndertaxi-løyve.js** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister.
+- **NISSY-fiks.js** - Har endret slik at Alt+W (Vis i kart) støtter uendelig antall bestillinger.
+
+#### Dokumentasjon
+- Oppdatert README.md iht. nye script som er lagt til samt installasjonsveiledning.
 
 ## [1.0.0] - 01-01-2026
 
 ### 🎉 Første offisielle release!
 
-#### Added
+#### Hva er nytt?
 - **NISSY-fiks.js** - Grunnleggende tastatursnarveier og kolonnejusteringer
   - ENTER i søkefelt → Søk
   - ESC → Nullstill søk + fokus søkefelt
@@ -82,13 +97,13 @@ Alle viktige endringer i NISSY-scriptet vil bli dokumentert i denne filen.
   - Automatisk refresh ved lukking
   - Lenke til dokumentasjon
 
-#### Documentation
+#### Dokumentasjon
 - Komplett README.md med installasjonsveiledning
-- BASIC.md - Nybegynnerdokumentasjon
-- ADVANCED.md - Avansert brukerveiledning
-- EXPERT.md - Full funksjonsoversikt
+- BASIC.md - Brukerveiledning for BASIC
+- ADVANCED.md - Brukerveiledning for ADVANCED
+- EXPERT.md - Brukerveiledning for EXPERT
 
-#### Fixed
+#### Feilrettinger
 - Rico-bibliotek `.remove()` konflikt → bruker `removeChild()` i alle scripts
 - ESC-handler ikke fjernet ved lukking av loader-popup
 - `cleanupSnippet` hoisting-feil i Rek-knapper.js
@@ -98,27 +113,14 @@ Alle viktige endringer i NISSY-scriptet vil bli dokumentert i denne filen.
 
 ## [0.9.0] - 30.12.2025 (Beta)
 
-### Added
+### Hva er nytt?
 - Grunnleggende script-funksjonalitet
 - GitHub repository opprettet
 - Utviklings-branch (dev) etablert
 
-### Changed
+### Endring
 - Migrert fra Gist til GitHub repository
 - Strukturert mappeorganisering
-
----
-
-## Versjonsforklaring
-
-### Kategorier
-
-- **Added** - Nye features
-- **Changed** - Endringer i eksisterende funksjonalitet
-- **Deprecated** - Features som snart fjernes
-- **Removed** - Fjernede features
-- **Fixed** - Bugfixes
-- **Security** - Sikkerhetsfikser
 
 ---
 
