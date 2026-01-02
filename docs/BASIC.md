@@ -167,4 +167,4 @@ Fant du en bug eller har forslag?
 
 ---
 
-**❤️ Make NISSY great again!**
+**❤️ Make NISSY great again!? 🤓**
