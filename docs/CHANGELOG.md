@@ -30,6 +30,9 @@ Alle viktige endringer i NISSY-scriptet vil bli dokumentert i denne filen.
   - ALT+P → Merk alle ressurser pågående oppdrag
   - ALT+V → Merk alle bestillinger ventende oppdrag
   - Automatisk kolonnejustering (skjuler/viser relevante kolonner)
+  - Fikser bug med at filter ikke oppdaterer seg
+  - Åpner alle turer ved bytting av filter automatisk
+  - m.m..
 
 - **Smart-tildeling.js** - Intelligent tildeling med RB/ERS og passasjerregler
   - ALT+S → Smart tildeling (batch med regler)
