@@ -325,6 +325,9 @@ ${listAssigned || "Ingen"}
         overlay.parentNode.removeChild(overlay);
       }
       
+      // Fjern ESC-listener
+      document.removeEventListener('keydown', escapeHandler);
+
       if (typeof openPopp === 'function') {
         openPopp('-1');
       }
@@ -347,7 +350,6 @@ ${listAssigned || "Ingen"}
     const escapeHandler = (e) => {
       if (e.key === "Escape") {
         closePopup();
-        document.removeEventListener("keydown", escapeHandler);
       }
     };
     document.addEventListener("keydown", escapeHandler);

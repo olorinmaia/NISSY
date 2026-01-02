@@ -1,4 +1,4 @@
-# NISSY - JavaScript Automatisering & Snarveier
+# NISSY - JavaScript Bugfixes, Automatisering & Snarveier
 
 Javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system som ikke oppdateres mer.
 
