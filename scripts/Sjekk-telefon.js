@@ -359,19 +359,30 @@
                     this.style.transform = 'translateY(0)';
                 };
                 searchButton.onclick = async function() {
-                    // Lukk modal og fjern kolonner
-                    overlay.remove();
-                    await togglePhoneColumns(false);
-                    
-                    // Sett søkefrase og kjør søk
-                    var searchInput = document.getElementById('searchPhrase');
-                    if (searchInput) {
-                        searchInput.value = result.name;
-                        var searchBtn = document.getElementById('buttonSearch');
-                        if (searchBtn) {
-                            searchBtn.click();
-                        }
+                  // Lukk modal og fjern kolonner
+                  overlay.remove();
+                  await togglePhoneColumns(false);
+                  
+                  // ============================================================
+                  // SETT SØKETYPE TIL "NAVN"
+                  // Sikrer at søket gjøres på navn, ikke andre kriterier
+                  // ============================================================
+                  const searchTypeSelect = document.getElementById('searchType');
+                  if (searchTypeSelect) {
+                    searchTypeSelect.value = 'name';
+                  }
+                  
+                  // ============================================================
+                  // UTFØR SØK
+                  // ============================================================
+                  const searchInput = document.getElementById('searchPhrase');
+                  if (searchInput) {
+                    searchInput.value = result.name;
+                    const searchBtn = document.getElementById('buttonSearch');
+                    if (searchBtn) {
+                      searchBtn.click();
                     }
+                  }
                 };
 
                 item.appendChild(textContainer);
