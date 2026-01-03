@@ -1,7 +1,8 @@
-# NISSY V13.37
+# NISSY V13.37 🚀
 
-Javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system som ikke vil bli fikset noe særlig mer på.
-Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mye mer nyttig informasjon til planleggingen ved få tastetrykk.
+Her ligger en rekke javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system der utviklingen har stagnert i påvente av erstattersystem.
+Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mer nyttig informasjon til planleggingen ved få tastetrykk. 
+Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakkene ved hjelp av bokmerke, og legge til de andre individiuelle scriptene som egne bokmerker etter ønske.
 
 ## 📦 Innhold
 
@@ -14,9 +15,12 @@ Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mye mer nyttig i
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
 - **Tilordningsstøtte 2.0** - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
 - **Rek-knapper** - Hurtigknapper for bestillinger på ventende/pågående oppdrag.
+  - Merk at det ikke er noen begrensninger på status. Bestillinger som endres på en ressurs etter 3003 XML vil ikke generere 2000-XML!
+  - Dette er uansett svært nyttig for å rette opp feil adresse, tidspunkt, egenandel på planlagte/utføre bestillinger på pågående oppdrag.
 - **Rutekalkulering** - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
 - **Ressursinfo** - Rask tilgang til ressursinformasjon som faktiske tider, posisjoner, telefonnummer til sjåfør.
-- **Avbestilling** - Kan masse-avbestille merkede turer eller alle med status tildelt. **OBS! Kun tilgjengelig på EXPERT. Brukes på eget ansvar!**
+- **Avbestilling** - Kan masse-avbestille merkede turer eller alle med status tildelt.
+  - **OBS! Kun tilgjengelig på EXPERT. Brukes på eget ansvar!**
 - **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
@@ -25,7 +29,7 @@ Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mye mer nyttig i
 - **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister.
 
 ## 📊 Oversikt alle features i script-pakker
-Scriptene under har mye automatikk og dedikerte snarveier. Disse har blitt plassert i script-pakker og trenger kun aktiveres en gang. 
+Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 
 Hvis du hard-refresher siden eller lukker nettleser må du aktivere script-pakken på nytt.
 Under er en oversikt over de features som følger med i hver pakke.
 
@@ -79,13 +83,13 @@ Opprett bokmerke som beskrevet tidligere og bruk URL fra scriptene som ligger i 
 ## ⌨️ Tastatursnarveier
 Snarveiene hører til de ulike script-pakkene.
 
-### Del 0: Grunnleggende Navigasjon
+### Del 0: Grunnleggende
 | Snarvei | Funksjon |
 |---------|----------|
 | `ALT+F` | Fokus søkefelt |
 | `Enter` (i søkefelt) | Utfør søk |
 | `ESC` | Nullstill søk + fokus søkefelt |
-| `F5` | openPopp('-1') - Refresher all data og åpner alle turer |
+| `F5` | Refresher all data og åpner alle turer |
 | `CTRL+1` | Fokus til filter ventende oppdrag |
 | `CTRL+2` | Fokus til filter ressurser |
 | `CTRL+R` / `CMD+R` | Blokkert (unngå utilsiktet refresh) |
@@ -99,7 +103,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+P` | Merk alle ressurser pågående oppdrag |
 | `ALT+V` | Merk alle bestillinger ventende oppdrag |
 
-### Del 2: Smart Tildeling
+### Del 2: Smart-tildeling
 | Snarvei | Funksjon |
 |---------|----------|
 | `ALT+S` | Smart-tildel (med RB/ERS og passasjerregler) |
@@ -116,7 +120,7 @@ Snarveiene hører til de ulike script-pakkene.
 ## 🔧 Funksjonalitet
 
 ### Smart-Tildeling (ALT+S)
-- **Automatisk RB/ERS-deteksjon**: Tildeler til riktig avtale når RB eller ERS er påkrevd
+- **Automatisk RB/ERS-deteksjon**: Tildeler til riktig avtale når RB eller ERS er påkrevd selv om første reisende ikke har RB/ERS-behov
 - **Passasjertelling**: Teller overlappende passasjerer og velger riktig avtale ved >3 reisende
 - **Ressurs-tildeling**: Støtter direkte tildeling til valgt ressurs
 - **Visuell feedback**: Grå-markering av bestillinger under planlegging
