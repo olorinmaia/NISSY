@@ -18,7 +18,7 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
   - Merk at det ikke er noen begrensninger på status. Bestillinger som endres på en ressurs etter 3003 XML vil ikke generere 2000-XML!
   - Dette er uansett svært nyttig for å rette opp feil adresse, tidspunkt, egenandel på planlagte/utføre bestillinger på pågående oppdrag.
 - **Rutekalkulering** - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
-- **Ressursinfo** - Rask tilgang til ressursinformasjon som faktiske tider, posisjoner, telefonnummer til sjåfør.
+- **Ressursinfo** - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
 - **Avbestilling** - Kan masse-avbestille merkede turer eller alle med status tildelt.
   - **OBS! Kun tilgjengelig på EXPERT. Brukes på eget ansvar!**
 - **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
