@@ -1,7 +1,7 @@
 // ============================================================
 // RESSURSINFO SCRIPT (ALT+D)
-// Henter ut nyttig info fra 3003/4010 XML fra merket ressurs
-// Presenter faktiske tider, koordinater i pop-up
+// Henter ut nyttig info fra 2000/3003/4010 XML fra merket ressurs
+// Presenter faktiske tider, koordinater, adresser i pop-up
 // ============================================================
 
 (function() {
@@ -143,8 +143,9 @@ async function runResourceInfo() {
       return;
     }
 
-    // Hent både 3003 og 4010 XML-lenker + tidspunkt for 3003
+    // Hent 2000, 3003 og 4010 XML-lenker + tidspunkt for 3003
     // Filtrer på turId (4. <td> fra venstre) for å unngå unødvendig XML-parsing
+    const xml2000Links = [];
     const xml3003Links = [];
     const xml4010Links = [];
     let time3003 = null;
@@ -153,9 +154,6 @@ async function runResourceInfo() {
     const rows = detailHtml.split('<tr');
     
     for (const row of rows) {
-      // Kun se på rader med SutiMsgReceived
-      if (!row.includes('SutiMsgReceived')) continue;
-      
       // Sjekk om raden inneholder riktig turId i 4. <td>
       // Regex for å finne alle <td> celler og sjekke 4. celle
       const tdMatches = row.match(/<td[^>]*>.*?<\/td>/g);
@@ -168,7 +166,9 @@ async function runResourceInfo() {
       // Hopp over hvis turId ikke matcher
       if (!turIdMatch || turIdMatch[1] !== turId) continue;
       
-      // SUTI-koden (3003 eller 4010) står i en <td valign="top">
+      // SUTI-koden (2000, 3003 eller 4010) står i en <td valign="top">
+      // For 2000: <td valign="top">2000
+      // For 3003/4010 (SutiMsgReceived): <td valign="top">3003 eller 4010
       const sutiTdMatch = row.match(/<td\s+valign="top">(\d+)/);
       if (!sutiTdMatch) continue;
       
@@ -179,7 +179,9 @@ async function runResourceInfo() {
       if (xmlLinkMatch) {
         const url = xmlLinkMatch[1];
         
-        if (sutiCode === '3003') {
+        if (sutiCode === '2000') {
+          xml2000Links.push(url);
+        } else if (sutiCode === '3003') {
           xml3003Links.push(url);
           
           // Hent tidspunktet fra 2. <td> (indeks 1)
@@ -197,8 +199,9 @@ async function runResourceInfo() {
     }
 
     // Parse data
+    const orderData = await extractOrderData(xml2000Links);
     const phoneNumber = await extractPhoneNumber(xml3003Links);
-    const eventData = await extractEventData(xml4010Links);
+    const eventData = await extractEventData(xml4010Links, orderData);
 
     // Vis popup
     showCombinedPopup(phoneNumber, eventData, turId, time3003);
@@ -210,12 +213,91 @@ async function runResourceInfo() {
   async function unescapeHtml(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
-    return txt.value;
+    let decoded = txt.value;
+    
+    // Fiks vanlige HTML-entities for norske tegn
+    decoded = decoded
+      .replace(/&oslash;/g, 'ø')
+      .replace(/&Oslash;/g, 'Ø')
+      .replace(/&aring;/g, 'å')
+      .replace(/&Aring;/g, 'Å')
+      .replace(/&aelig;/g, 'æ')
+      .replace(/&AElig;/g, 'Æ');
+    
+    // Prøv å fikse mojibake hvis vi finner replacement character (�)
+    if (decoded.includes('�')) {
+      // Dette skjer når ISO-8859-1 bytes blir lest som UTF-8
+      // Vi må re-encode til latin1 bytes, deretter decode som UTF-8
+      try {
+        // Encode hver karakter tilbake til sin byte-verdi
+        const bytes = [];
+        for (let i = 0; i < decoded.length; i++) {
+          const char = decoded.charCodeAt(i);
+          // Replacement character (�) har charCode 65533
+          if (char === 65533) {
+            // Dette var sannsynligvis en norsk karakter
+            // Vi kan ikke gjette hva det var, så la den stå
+            bytes.push(char);
+          } else if (char < 256) {
+            bytes.push(char);
+          } else {
+            bytes.push(char);
+          }
+        }
+        
+        // Prøv å decode som ISO-8859-1 først, deretter som UTF-8
+        const latin1Decoder = new TextDecoder('iso-8859-1');
+        const utf8Decoder = new TextDecoder('utf-8');
+        
+        // Konverter tilbake til bytes
+        const uint8array = new Uint8Array(bytes);
+        const latin1Text = latin1Decoder.decode(uint8array);
+        
+        // Sjekk om det hjelper
+        if (!latin1Text.includes('�') || latin1Text.includes('æ') || latin1Text.includes('ø') || latin1Text.includes('å')) {
+          decoded = latin1Text;
+        }
+      } catch (e) {
+        console.log('Kunne ikke fikse charset:', e);
+      }
+    }
+    
+    // Siste forsøk: Erstatt alle � med tomme strenger hvis de fortsatt finnes
+    // Dette er ikke ideelt, men bedre enn å vise �
+    if (decoded.includes('�')) {
+      console.warn('Fant uleselige tegn (�) i XML - disse fjernes');
+      decoded = decoded.replace(/�/g, '');
+    }
+      
+    return decoded;
   }
 
   async function fetchAndParseXML(url) {
     const resp = await fetch(url);
-    const htmlText = await resp.text();
+    
+    // Prøv først å lese som ISO-8859-1 (Windows-1252) siden serveren ser ut til å sende det
+    let htmlText;
+    try {
+      const buffer = await resp.arrayBuffer();
+      
+      // Prøv ISO-8859-1 først
+      let decoder = new TextDecoder('iso-8859-1');
+      htmlText = decoder.decode(buffer);
+      
+      // Hvis vi fortsatt har problemer, prøv UTF-8
+      if (htmlText.includes('�') || !htmlText.includes('charset=UTF-8')) {
+        decoder = new TextDecoder('utf-8', { fatal: false });
+        const utf8Text = decoder.decode(buffer);
+        
+        // Bruk UTF-8 hvis det ser bedre ut
+        if (!utf8Text.includes('�') || utf8Text.length > htmlText.length) {
+          htmlText = utf8Text;
+        }
+      }
+    } catch (e) {
+      // Fallback til vanlig text()
+      htmlText = await resp.text();
+    }
 
     const preMatch = htmlText.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
     if (!preMatch) throw new Error("Fant ikke <pre>-tagg i XML-siden.");
@@ -224,11 +306,116 @@ async function runResourceInfo() {
     const xmlString = await unescapeHtml(xmlStringEscaped.trim());
 
     const parser = new DOMParser();
-    return parser.parseFromString(xmlString, "text/xml");
+    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    
+    // Sjekk for parsing-feil
+    const parseError = xmlDoc.querySelector('parsererror');
+    if (parseError) {
+      console.error("XML parsing error:", parseError.textContent);
+    }
+    
+    return xmlDoc;
   }
 
   /* ==========================
-     6. Hent telefonnummer (3003)
+     6. Hent bestillingsdata (2000)
+     ========================== */
+  async function extractOrderData(xmlUrls) {
+    const orderMap = new Map(); // "bookingId-nodeType" -> { address, estimatedTime, name }
+
+    for (const url of xmlUrls) {
+      try {
+        const xmlDoc = await fetchAndParseXML(url);
+
+        // Hent alle noder
+        const nodes = xmlDoc.querySelectorAll('route > node');
+        
+        for (const node of nodes) {
+          const nodeType = node.getAttribute('nodeType');
+          
+          // Kun hentenoder (1803) og leveringsnoder (1804)
+          if (nodeType !== '1803' && nodeType !== '1804') continue;
+
+          // Hent content node for å få bookingId og navn
+          const contentNode = node.querySelector('contents > content[contentType="1001"]');
+          if (!contentNode) continue;
+          
+          // Hent bookingId fra subOrderContent
+          const idOrderNode = contentNode.querySelector('subOrderContent > idOrder');
+          if (!idOrderNode) continue;
+          
+          const bookingId = idOrderNode.getAttribute('id');
+          if (!bookingId) continue;
+
+          // Hent navn fra content node (her er charset riktig!)
+          const name = contentNode.getAttribute('name') || 'Ukjent';
+
+          // Hent adresse
+          const addressNode = node.querySelector('addressNode');
+          let address = 'Ukjent adresse';
+          
+          if (addressNode) {
+            const addressName = addressNode.getAttribute('addressName') || '';
+            const street = addressNode.getAttribute('street') || '';
+            const streetNo = addressNode.getAttribute('streetNo') || '';
+            const streetNoLetter = addressNode.getAttribute('streetNoLetter') || '';
+            const postalNo = addressNode.getAttribute('postalNo') || '';
+            const location = addressNode.getAttribute('location') || '';
+            
+            // Formater: "addressName/street streetNo, postalNo location"
+            const parts = [];
+            
+            // Bruk addressName hvis tilgjengelig, ellers street + streetNo
+            if (addressName) {
+              parts.push(addressName);
+            } else if (street) {
+              const streetPart = [street, streetNo, streetNoLetter].filter(Boolean).join(' ');
+              parts.push(streetPart);
+            }
+            
+            if (postalNo || location) {
+              parts.push([postalNo, location].filter(Boolean).join(' '));
+            }
+            
+            if (parts.length > 0) {
+              address = parts.join(', ');
+            }
+          }
+
+          // Hent beregnet tid
+          const timeNode = node.querySelector('timesNode > time');
+          let estimatedTime = 'Ukjent';
+          
+          if (timeNode) {
+            const timeStr = timeNode.getAttribute('time');
+            if (timeStr) {
+              // Format: "2026-01-03T14:00:00" -> "14:00"
+              const timePart = timeStr.split('T')[1];
+              if (timePart) {
+                estimatedTime = timePart.substring(0, 5);
+              }
+            }
+          }
+
+          // Bruk bookingId+nodeType som nøkkel
+          const key = `${bookingId}-${nodeType}`;
+          orderMap.set(key, {
+            address,
+            estimatedTime,
+            name  // ← Nytt: Legg til navn fra 2000 XML
+          });
+        }
+
+      } catch (e) {
+        console.error("Feil ved parsing av 2000 XML:", e);
+      }
+    }
+
+    return orderMap;
+  }
+
+  /* ==========================
+     7. Hent telefonnummer (3003)
      ========================== */
   async function extractPhoneNumber(xmlUrls) {
     let foundPhone = null;
@@ -290,9 +477,9 @@ async function runResourceInfo() {
   }
 
   /* ==========================
-     7. Hent hendelser (4010)
+     8. Hent hendelser (4010)
      ========================== */
-  async function extractEventData(xmlUrls) {
+  async function extractEventData(xmlUrls, orderMap) {
     const results = [];
     let routeCoords = [];
     let firstBookingId = null;
@@ -319,6 +506,7 @@ async function runResourceInfo() {
         const node = pickup.querySelector("nodeConfirmed");
         if (!node) continue;
 
+        const nodeType = node.getAttribute("nodeType");
         const timeNode = node.querySelector("timesNode > time");
         const timestamp = timeNode?.getAttribute("time") || "Ukjent";
 
@@ -330,7 +518,21 @@ async function runResourceInfo() {
         const bookingId = idOrderNode?.getAttribute("id") || "Ukjent";
 
         const contentNode = node.querySelector("contents > content[contentType='1001']");
-        const name = contentNode?.getAttribute("name") || "Ukjent";
+        const name4010 = contentNode?.getAttribute("name") || "Ukjent";
+
+        // Hent adresse, beregnet tid og navn fra 2000 XML
+        let address = "Ikke funnet";
+        let estimatedTime = "Ikke funnet";
+        let name = name4010; // Fallback til 4010-navn hvis 2000 ikke finnes
+        
+        // Bruk bookingId+nodeType som nøkkel
+        const key = `${bookingId}-${nodeType}`;
+        if (orderMap.has(key)) {
+          const orderInfo = orderMap.get(key);
+          address = orderInfo.address;
+          estimatedTime = orderInfo.estimatedTime;
+          name = orderInfo.name; // ← Bruk navn fra 2000 XML (riktig charset!)
+        }
 
         results.push({
           bookingId,
@@ -338,7 +540,9 @@ async function runResourceInfo() {
           timestamp,
           lat,
           lon,
-          name
+          name,
+          address,
+          estimatedTime
         });
 
         // Samle ALLE koordinater først (inkludert 1709)
@@ -422,7 +626,7 @@ async function runResourceInfo() {
   }
 
   /* ==========================
-     8. VIS KOMBINERT POPUP
+     9. VIS KOMBINERT POPUP
      ========================== */
   function showCombinedPopup(phoneNumber, eventData, turId, time3003) {
     const rowRect = row.getBoundingClientRect();
@@ -481,7 +685,8 @@ async function runResourceInfo() {
       
       html += `
         <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
-          <span style="font-weight: bold; color: #856404;" title="Når 3003 XML ble mottatt">🚗 Oppdrag bekreftet: ${timeOnly}</span>
+          <span style="font-weight: bold;" title="Når 3003 XML ble mottatt">🚕 Oppdrag bekreftet: </span>
+          <span style="font-weight: bold; color: #856404;">${timeOnly}</span>
           ${!phoneNumber ? '<span style="margin-left: 10px; color: #d32f2f;">⚠️ Fant ikke telefonnummer</span>' : ''}
         </div>
       `;
@@ -490,13 +695,11 @@ async function runResourceInfo() {
     // TELEFONNUMMER SEKSJON
     if (phoneNumber) {
       html += `
-        <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-weight: bold; margin-bottom: 5px;">📞 Telefonnummer sjåfør:</div>
-            <div style="font-size: 18px; font-weight: bold; color: #2e7d32;">
-              ${phoneNumber}
-            </div>
-          </div>
+        <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #2e7d32;">
+        <div>
+          <span style="font-weight: bold;">📞 Telefonnummer sjåfør: </span>
+          <span style="font-size: 15px; font-weight: bold; color: #2e7d32;">${phoneNumber}</span>
+        </div>
           <div>
             <button id="copyPhoneBtn" style="
               background: #4caf50;
@@ -524,9 +727,9 @@ async function runResourceInfo() {
     if (eventData.events.length > 0) {
       html += `
         <div style="margin-bottom: 15px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" title="Hendelser basert informasjon i 2000 og 4010 XML">
             <h3 style="margin: 0; font-size: 16px; color: #333;">
-              SUTI 4010-hendelser
+              Vognløpshendelser
             </h3>
             <label style="font-size: 13px; cursor: pointer;">
               <input type="checkbox" id="toggle1709" checked>
@@ -539,9 +742,11 @@ async function runResourceInfo() {
               <tr style="background: linear-gradient(to bottom, #f8f9fa, #e9ecef); border-bottom: 2px solid #dee2e6;">
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Bestilling</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Navn</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Type</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Tidspunkt</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Koordinater</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Hendelse</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt tidspunkt fra NISSY">Planlagt🕒</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Faktisk tid når hendelsen ble utført på taksameter av sjåfør">Faktisk🕒</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt adresse sendt fra NISSY">Adresse</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Faktisk koordinat</th>
               </tr>
             </thead>
             <tbody>
@@ -549,7 +754,7 @@ async function runResourceInfo() {
 
       for (const r of eventData.events) {
         const { icon, title } = getIconAndTitle(r.eventType);
-        const coordText = `Åpne i kart`;
+        const coordText = `Åpne kart`;
         const gmapsUrl = `https://www.google.no/maps/search/?api=1&query=${r.lat},${r.lon}`;
         const formattedTime = formatTimestamp(r.timestamp);
         const rowClass = r.eventType === "1709" ? "row1709" : "";
@@ -559,17 +764,19 @@ async function runResourceInfo() {
             <td style="padding: 10px 8px;">
               <a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}" 
                  style="color: #1976d2; text-decoration: none; font-weight: 500;"
-                 title="Åpne bestilling">
-                ${r.bookingId}
+                 title="Åpne bestilling ${r.bookingId} i NISSY admin">
+                🧾 Åpne
               </a>
             </td>
-            <td style="padding: 10px 8px; color: #495057;">${r.name}</td>
+            <td style="padding: 10px 8px; color: #495057; font-size: 12px;">${r.name}</td>
             <td style="padding: 10px 8px;" title="${title}">
               <span style="display: inline-block; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
                 ${r.eventType} ${icon}
               </span>
             </td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace;">${formattedTime}</td>
+            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Planlagt tidspunkt fra NISSY">${r.estimatedTime}</td>
+            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Faktisk tid når hendelsen ble utført på taksameter av sjåfør">${formattedTime}</td>            
+            <td style="padding: 10px 8px; color: #495057; font-size: 12px;" title="Planlagt adresse sendt fra NISSY">${r.address}</td>
             <td style="padding: 10px 8px;">
               <a href="${gmapsUrl}" 
                  style="color: #1976d2; text-decoration: none;"
@@ -586,43 +793,44 @@ async function runResourceInfo() {
           </table>
       `;
 
-      if (eventData.routeUrl) {
-        html += `
-          <a href="${eventData.routeUrl}" 
-             style="
-               display: inline-block;
-               margin-top: 12px;
-               padding: 10px 16px;
-               background: #1976d2;
-               color: white;
-               text-decoration: none;
-               border-radius: 6px;
-               font-size: 14px;
-             ">
-            🗺️ Bilens faktiske kjørerute (åpne i kart)
-          </a>
-        `;
-      }
-
-      html += `</div>`;
+    html += `</div>`;
     } else if (!phoneNumber) {
       html += `<p style="color: #666;">Ingen data funnet.</p>`;
     }
-
+    
+    // BUNNSEKSJON MED KNAPPER
     html += `
-      <button id="closePopup" style="
-        margin-top: 15px;
-        padding: 10px 20px;
-        background: #666;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-      ">
-        Lukk (ESC)
-      </button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+        <button id="closePopup" style="
+          padding: 10px 20px;
+          background: #666;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+        ">
+          Lukk (ESC)
+        </button>
     `;
+    
+    if (eventData.routeUrl) {
+      html += `
+        <a href="${eventData.routeUrl}" 
+           style="
+             padding: 10px 16px;
+             background: #1976d2;
+             color: white;
+             text-decoration: none;
+             border-radius: 6px;
+             font-size: 14px;
+           ">
+          🗺️ Bilens faktiske kjørerute (åpne kart)
+        </a>
+      `;
+    }
+    
+    html += `</div>`;
 
     popup.innerHTML = html;
 
