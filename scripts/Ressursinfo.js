@@ -768,7 +768,17 @@ async function runResourceInfo() {
                 🧾 Åpne
               </a>
             </td>
-            <td style="padding: 10px 8px; color: #495057; font-size: 12px;">${r.name}</td>
+            <td style="
+              padding: 10px 8px; 
+              color: #495057; 
+              font-size: 12px;
+              max-width: 150px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            " title="${r.name}">
+              ${r.name}
+            </td>
             <td style="padding: 10px 8px;" title="${title}">
               <span style="display: inline-block; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
                 ${r.eventType} ${icon}
@@ -776,7 +786,17 @@ async function runResourceInfo() {
             </td>
             <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Planlagt tidspunkt fra NISSY">${r.estimatedTime}</td>
             <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>            
-            <td style="padding: 10px 8px; color: #495057; font-size: 12px;" title="Planlagt adresse fra NISSY">${r.address}</td>
+            <td style="
+              padding: 10px 8px; 
+              color: #495057; 
+              font-size: 12px;
+              max-width: 250px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            " title="${r.address}">
+              ${r.address}
+            </td>
             <td style="padding: 10px 8px;">
               <a href="${gmapsUrl}" 
                  style="color: #1976d2; text-decoration: none;"
