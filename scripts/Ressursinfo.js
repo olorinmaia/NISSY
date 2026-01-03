@@ -674,7 +674,7 @@ async function runResourceInfo() {
       <h2 style="margin: 0 0 15px; font-size: 18px; color: #333;">
         Ressursinformasjon: <a href="/administrasjon/admin/searchStatus?id=${turId}" 
                                 style="color: #1976d2; text-decoration: none;"
-                                title="Åpne tur ${turId}">${licensePlate}</a>
+                                title="Åpne turnummer ${turId} i NISSY admin">${licensePlate}</a>
       </h2>
     `;
 
@@ -744,9 +744,9 @@ async function runResourceInfo() {
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Navn</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Hendelse</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt tidspunkt fra NISSY">Planlagt🕒</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Faktisk tid når hendelsen ble utført på taksameter av sjåfør">Faktisk🕒</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt adresse sendt fra NISSY">Adresse</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Faktisk koordinat</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Faktisk tid når hendelsen ble utført på taksameter">Faktisk🕒</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt adresse fra NISSY">Adresse</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Koordinat til der hendelsen ble utført på taksameter">Faktisk koordinat</th>
               </tr>
             </thead>
             <tbody>
@@ -775,8 +775,8 @@ async function runResourceInfo() {
               </span>
             </td>
             <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Planlagt tidspunkt fra NISSY">${r.estimatedTime}</td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Faktisk tid når hendelsen ble utført på taksameter av sjåfør">${formattedTime}</td>            
-            <td style="padding: 10px 8px; color: #495057; font-size: 12px;" title="Planlagt adresse sendt fra NISSY">${r.address}</td>
+            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>            
+            <td style="padding: 10px 8px; color: #495057; font-size: 12px;" title="Planlagt adresse fra NISSY">${r.address}</td>
             <td style="padding: 10px 8px;">
               <a href="${gmapsUrl}" 
                  style="color: #1976d2; text-decoration: none;"
