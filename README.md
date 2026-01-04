@@ -22,6 +22,7 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
 - **Rutekalkulering** - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
 - **Ressursinfo** - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
 - **Bestillingsmodul** - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen. Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
+- **Avbestilling.js** - Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML. 
 
 ### Individuelle script
 - **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
@@ -42,6 +43,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | Rutekalkulering (ALT+Q) | ✅ | ✅ |
 | Ressursinfo (ALT+D) | ✅ | ✅ |
 | Bestillingsmodul (ALT+N) | ✅ | ✅ |
+| Avbestill (ALT+K) | ❌ | ✅ |
 | Smart-tildeling (ALT+S) | ❌ | ✅ |
 | Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
 | Rek-knapper (ALT+R) | ❌ | ✅ |
@@ -128,6 +130,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+D` | Ressursinfo |
 | `ALT+R` | Rek-knapper |
 | `ALT+N` | Bestillingsmodul |
+| `ALT+K` | Avbestilling av turer |
 
 ## 🔧 Funksjonalitet
 
