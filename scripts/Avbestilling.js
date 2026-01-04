@@ -14,6 +14,12 @@
   console.log("🚀 Starter Avbestilling-script");
 
   // ============================================================
+  // KONFIGURASJON: Minimum antall siffer etter siste "-"
+  // For å unngå at turer etter 3003 men før 4010-1701 avbestilles
+  // ============================================================
+  const MIN_DIGITS_AFTER_DASH = 5;
+
+  // ============================================================
   // HOTKEY REGISTRERING: ALT+K
   // ============================================================
   document.addEventListener("keydown", (e) => {
@@ -22,6 +28,26 @@
       initializeAvbestilling();
     }
   });
+
+  // ============================================================
+  // HJELPEFUNKSJON: Valider ressursnavn
+  // ============================================================
+  function isValidResourceName(name) {
+    if (!name) return false;
+    
+    // Finn siste "-" i navnet
+    const lastDashIndex = name.lastIndexOf("-");
+    if (lastDashIndex === -1) return false; // Ingen "-" funnet
+    
+    // Hent tekst etter siste "-"
+    const afterDash = name.substring(lastDashIndex + 1);
+    
+    // Sjekk om det er kun siffer og minst MIN_DIGITS_AFTER_DASH siffer
+    const digitsOnly = afterDash.match(/^\d+$/);
+    if (!digitsOnly) return false;
+    
+    return afterDash.length >= MIN_DIGITS_AFTER_DASH;
+  }
 
   // ============================================================
   // HOVEDFUNKSJON: Initialiserer avbestilling når ALT+K trykkes
@@ -59,6 +85,14 @@
       // Hent avtale-navn
       let avtale = row.querySelector("td[id*='Rxxxloyve']")
         ?.textContent.trim() ?? "(ukjent)";
+      
+      // ============================================================
+      // VALIDERING: Sjekk om ressursnavnet er gyldig
+      // ============================================================
+      if (!isValidResourceName(avtale)) {
+        //console.log(`⚠️  Ignorerer ressurs med ugyldig navn: ${avtale}`);
+        return null;
+      }
       
       // Hent status
       let status = row.querySelector("td[id*='Rxxxstatusxxx']")
