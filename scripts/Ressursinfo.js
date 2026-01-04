@@ -272,7 +272,7 @@ async function runResourceInfo() {
     return decoded;
   }
 
-  async function fetchAndParseXML(url) {
+    async function fetchAndParseXML(url) {
     const resp = await fetch(url);
     
     // Prøv først å lese som ISO-8859-1 (Windows-1252) siden serveren ser ut til å sende det
@@ -298,20 +298,34 @@ async function runResourceInfo() {
       // Fallback til vanlig text()
       htmlText = await resp.text();
     }
-
+  
     const preMatch = htmlText.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
     if (!preMatch) throw new Error("Fant ikke <pre>-tagg i XML-siden.");
-
+  
     const xmlStringEscaped = preMatch[1];
     const xmlString = await unescapeHtml(xmlStringEscaped.trim());
-
+  
+    // NYTT: Forsøk å fikse vanlige XML parsing-problemer
+    let cleanedXml = xmlString
+      // Fiks uescapede & tegn (men ikke &amp;, &lt;, &gt;, etc)
+      .replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
+  
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    const xmlDoc = parser.parseFromString(cleanedXml, "text/xml");
     
     // Sjekk for parsing-feil
     const parseError = xmlDoc.querySelector('parsererror');
     if (parseError) {
       console.error("XML parsing error:", parseError.textContent);
+      console.error("Problematic XML snippet:", cleanedXml.substring(0, 500));
+      
+      // Prøv å parse som HTML i stedet (mer tolerant)
+      const htmlDoc = parser.parseFromString(cleanedXml, "text/html");
+      const sutiElement = htmlDoc.querySelector('SUTI');
+      if (sutiElement) {
+        console.warn("Bruker HTML parser i stedet for XML parser");
+        return htmlDoc;
+      }
     }
     
     return xmlDoc;
@@ -340,8 +354,8 @@ async function runResourceInfo() {
           const contentNode = node.querySelector('contents > content[contentType="1001"]');
           if (!contentNode) continue;
           
-          // Hent bookingId fra subOrderContent
-          const idOrderNode = contentNode.querySelector('subOrderContent > idOrder');
+          // Hent bookingId fra subOrderContent (bruk descendants, ikke direct child)
+          const idOrderNode = contentNode.querySelector('idOrder');
           if (!idOrderNode) continue;
           
           const bookingId = idOrderNode.getAttribute('id');

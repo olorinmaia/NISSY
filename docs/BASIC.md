@@ -63,7 +63,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | Snarvei | Funksjon |
 |---------|----------|
 | `ALT+W` | Vis i kart |
-| `ALT+G` | Tildel oppdrag (åpner tildelingsdialogg) |
+| `ALT+G` | Tildel oppdrag |
 | `ALT+B` | Blank (fjern alle markeringer) |
 | `ALT+P` | Merk alle ressurser i pågående oppdrag |
 | `ALT+V` | Merk alle bestillinger i ventende oppdrag |
