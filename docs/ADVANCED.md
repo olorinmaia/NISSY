@@ -9,6 +9,7 @@
 - ✅ **Smart-tildeling.js** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
 - ✅ **Rek-knapper.js** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag
 - ✅ **Bestillingsmodul.js** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
+- ✅ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML. 
 
 ## ⌨️ Alle tastatursnarveier
 
@@ -20,11 +21,6 @@
 | `ENTER` (i søkefelt) | Utfør søk |
 | `ESC` | Nullstill søk og sett fokus tilbake til søkefelt |
 | `F5` | Refresh all data (openPopp) |
-
-### Filter
-
-| Snarvei | Funksjon |
-|---------|----------|
 | `CTRL+1` | Fokus til filter ventende oppdrag |
 | `CTRL+2` | Fokus til filter ressurser |
 
@@ -48,6 +44,7 @@
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+N` | Bestillingsmodul |
+| `ALT+K` | Avbestilling av merkede turer |
 
 ## 📥 Installasjon
 
@@ -150,6 +147,19 @@ Viser hurtigknapper på merkede rader.
 - Klikk ESC for å lukke alle rek-knapper
 - Knappene følger med ved scrolling
 - Automatisk høydetilpasning til rad-bilder
+
+### 📃 Bestillingsmodul (ALT+N)
+
+Trykk på Alt+N for å få første pop-up med valg om foretrukket bestillingsmodul. Deretter åpnes enten 4-stegs eller ensides i en iframe modal.
+Dette lagres i sesjonen, nullstilles når nettleser lukkes helt.
+
+### ❌ Avbestilling (ALT+K)
+
+Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en.
+**Sikkerhetsjekk:**
+- Filtrer bort turer med statuser som "Startet", "Fremme", "Ikke møtt" osv.
+- Filtrerer bort status "Akseptert" hvis ressursnavn ikke slutter på minst 5 siffer etter siste "-" for å unngå avbestilling av tur etter 3003 men før 4010-1701.
+- Advarsel før du avbestiller og en liste over hvilke ressurser som vil bli avbestilt.
 
 ## ❓ Feilsøking
 

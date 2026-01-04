@@ -49,12 +49,6 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | `ENTER` (i søkefelt) | Utfør søk |
 | `ESC` | Nullstill søk og sett fokus tilbake til søkefelt |
 | `F5` | Refresh all data (openPopp) |
-| `CTRL/CMD+R` | **Blokkert** (bruk F5 i stedet) |
-
-### Filter
-
-| Snarvei | Funksjon |
-|---------|----------|
 | `CTRL+1` | Fokus til filter ventende oppdrag |
 | `CTRL+2` | Fokus til filter ressurser |
 
@@ -118,6 +112,11 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Spesielle krav (pågående oppdrag)
 - Pasientnavn (pågående oppdrag)
 
+### 📃 Bestillingsmodul (ALT+N)
+
+Trykk på Alt+N for å få første pop-up med valg om foretrukket bestillingsmodul. Deretter åpnes enten 4-stegs eller ensides i en iframe modal.
+Dette lagres i sesjonen, nullstilles når nettleser lukkes helt.
+
 ## 🆙 Oppgradering
 
 Klar for mer funksjonalitet?
@@ -127,6 +126,7 @@ Legger til:
 - Smart tildeling (ALT+S)
 - Tilordningsstøtte 2.0 (ALT+T)
 - Rek-knapper (ALT+R)
+- Avbestilling (ALT+K)
 
 [Se ADVANCED.md](ADVANCED.md)
 

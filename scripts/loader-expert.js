@@ -52,7 +52,7 @@
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+R → Rek-knapper<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
-          • ALT+K → Avbestilling (masseavbestill turer)<br>
+          • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
           • <b>ALT+N → Bestillingsmodul (NYTT SCRIPT 🚀)</b><br>
         </div>

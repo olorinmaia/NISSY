@@ -99,12 +99,7 @@ Masseavbestill merkede ressurser eller alle med status "Tildelt".
 | `ALT+Q` | Rutekalkulering (Google Maps) |
 | `ALT+D` | Ressursinfo |
 | `ALT+N` | Bestillingsmodul |
-
-### Expert-eksklusiv
-
-| Snarvei | Funksjon |
-|---------|----------|
-| `ALT+K` | **Avbestilling** |
+| `ALT+K` | Avbestilling av merkede turer |
 
 ## 💡 Avanserte arbeidsflyter
 

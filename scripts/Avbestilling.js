@@ -1,7 +1,7 @@
 (() => {
   // ============================================================
   // AVBESTILLING AV TURER SCRIPT (ALT+K)
-  // Avbestiller merkede ressurser eller alle med status "Tildelt"
+  // Avbestiller kun merkede ressurser (krever aktiv merking)
   // ============================================================
 
   // Sjekk om scriptet allerede er lastet for å unngå duplikater
@@ -90,7 +90,7 @@
       // VALIDERING: Sjekk om ressursnavnet er gyldig
       // ============================================================
       if (!isValidResourceName(avtale)) {
-        //console.log(`⚠️  Ignorerer ressurs med ugyldig navn: ${avtale}`);
+        console.log(`⚠️  Ignorerer ressurs med ugyldig navn: ${avtale}`);
         return null;
       }
       
@@ -115,22 +115,15 @@
         .filter(item => !["Framme", "Startet", "Bomtur"].includes(item.status));
     }
 
-    // ============================================================
-    // HJELPEFUNKSJON: Finn alle ressurser med status "Tildelt"
-    // ============================================================
-    function extractAssigned() {
-      const tildeltRows = Array.from(document.querySelectorAll("td[id*='Rxxxstatusxxx']"))
-        .filter(td => td.textContent.trim() === "Tildelt")
-        .map(td => td.closest("tr"))
-        .map(parseRow)
-        .filter(Boolean);
-      
-      // Fjern duplikater basert på rid
-      return Array.from(new Map(tildeltRows.map(item => [item.rid, item])).values());
-    }
-
     const selectedItems = extractSelected();
-    const assignedItems = extractAssigned();
+
+    // ============================================================
+    // FEILHÅNDTERING: Ingen merkede turer
+    // ============================================================
+    if (selectedItems.length === 0) {
+      showErrorPopup("Ingen turer er merket");
+      return;
+    }
 
     // ============================================================
     // OPPRETT POPUP OVERLAY
@@ -186,105 +179,86 @@
     const listBoxStyle = `
       text-align:left;
       font-size:13px;
-      max-height:220px;
+      max-height:300px;
       overflow:auto;
       border:1px solid #ddd;
       padding:10px;
       border-radius:6px;
       background:#fafafa;
+      margin-bottom:20px;
     `;
 
     const listSelected = selectedItems
       .map(item => `• Ressurs: ${item.avtale}`)
       .join("\n");
-    
-    const listAssigned = assignedItems
-      .map(item => `• Ressurs: ${item.avtale}`)
-      .join("\n");
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
-        Avbestilling av turer
+        ⚠️ Avbestill merkede turer
       </h2>
       
-      <p style="margin:8px 0; font-weight:600; color:#555;">
-        Valgte (markerte): ${selectedItems.length}
+      <p style="margin:8px 0 4px; font-weight:600; color:#555; font-size:15px;">
+        Du er i ferd med å avbestille ${selectedItems.length} ${selectedItems.length === 1 ? 'tur' : 'turer'}:
       </p>
       
       <pre style="${listBoxStyle}">
-${listSelected || "Ingen"}
+${listSelected}
       </pre>
       
-      <button 
-        id="startSelected" 
-        style="
-          margin:12px 0 24px;
-          padding:10px 20px;
-          background:#e74c3c;
-          color:#fff;
-          border:none;
-          border-radius:6px;
-          font-size:14px;
-          cursor:pointer;
-          font-weight:600;
-        "
-      >
-        Avbestill valgte
-      </button>
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
+        <p style="margin:0; font-size:13px; color:#856404;">
+          <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
+        </p>
+      </div>
       
-      <p style="margin:8px 0; font-weight:600; color:#555;">
-        Status = Tildelt: ${assignedItems.length}
-      </p>
-      
-      <pre style="${listBoxStyle}">
-${listAssigned || "Ingen"}
-      </pre>
-      
-      <button 
-        id="startAssigned" 
-        style="
-          margin:12px 0 24px;
-          padding:10px 20px;
-          background:#e67e22;
-          color:#fff;
-          border:none;
-          border-radius:6px;
-          font-size:14px;
-          cursor:pointer;
-          font-weight:600;
-        "
-      >
-        Avbestill tildelte
-      </button>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button 
+          id="confirmRemove" 
+          style="
+            padding:10px 24px;
+            background:#e74c3c;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Ja, avbestill
+        </button>
+        
+        <button 
+          id="cancelRemove" 
+          style="
+            padding:10px 24px;
+            background:#95a5a6;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avbryt
+        </button>
+      </div>
       
       <div 
         id="removeStatus" 
         style="
-          margin:16px 0;
+          margin:16px 0 0;
           padding:12px;
           background:#ecf0f1;
           border-radius:6px;
           font-size:13px;
           color:#555;
           min-height:24px;
+          display:none;
         "
       >
       </div>
-      
-      <button 
-        id="closeRemove" 
-        style="
-          padding:8px 24px;
-          background:#95a5a6;
-          color:#fff;
-          border:none;
-          border-radius:6px;
-          font-size:13px;
-          cursor:pointer;
-        "
-      >
-        Lukk
-      </button>
     `;
 
     document.body.appendChild(popup);
@@ -315,16 +289,13 @@ ${listAssigned || "Ingen"}
     // ============================================================
     // AVBESTILLINGSFUNKSJON: Sender parallelle XHR requests
     // ============================================================
-    async function removeItems(items, button) {
-      if (items.length === 0) {
-        statusBox.textContent = "Ingen turer å avbestille.";
-        return;
-      }
-
-      // Deaktiver knapp mens prosessering pågår
-      button.disabled = true;
-      button.style.opacity = "0.6";
-      button.style.cursor = "not-allowed";
+    async function removeItems(items) {
+      // Vis statusboks
+      statusBox.style.display = "block";
+      
+      // Skjul knapper
+      popup.querySelector("#confirmRemove").style.display = "none";
+      popup.querySelector("#cancelRemove").style.display = "none";
 
       let completed = 0;
       statusBox.textContent = `Sender 0 av ${items.length} avbestillinger...`;
@@ -340,12 +311,19 @@ ${listAssigned || "Ingen"}
         })
       ));
 
-      statusBox.textContent = "Ferdig! Alle avbestillinger er sendt.";
+      statusBox.style.background = "#d4edda";
+      statusBox.style.color = "#155724";
+      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er sendt.";
       
       // Refresh data
       if (typeof openPopp === "function") {
         openPopp('-1');
       }
+
+      // Auto-lukk etter 3 sekunder
+      setTimeout(() => {
+        closePopup();
+      }, 3000);
     }
 
     // ============================================================
@@ -370,12 +348,8 @@ ${listAssigned || "Ingen"}
     // ============================================================
     // EVENT LISTENERS
     // ============================================================
-    const btnSelected = popup.querySelector("#startSelected");
-    const btnAssigned = popup.querySelector("#startAssigned");
-
-    btnSelected.onclick = () => removeItems(selectedItems, btnSelected);
-    btnAssigned.onclick = () => removeItems(assignedItems, btnAssigned);
-    popup.querySelector("#closeRemove").onclick = closePopup;
+    popup.querySelector("#confirmRemove").onclick = () => removeItems(selectedItems);
+    popup.querySelector("#cancelRemove").onclick = closePopup;
 
     // Lukk ved klikk utenfor popup
     overlay.onclick = closePopup;
@@ -388,12 +362,119 @@ ${listAssigned || "Ingen"}
     };
     document.addEventListener("keydown", escapeHandler);
   }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Vis feilmelding
+  // ============================================================
+  function showErrorPopup(message) {
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+      position: "fixed",
+      zIndex: "999998",
+      top: "0",
+      left: "0",
+      width: "100vw",
+      height: "100vh",
+      background: "transparent"
+    });
+    document.body.appendChild(overlay);
+
+    const popup = document.createElement("div");
+    Object.assign(popup.style, {
+      position: "fixed",
+      zIndex: "999999",
+      background: "#ffffff",
+      padding: "24px 28px",
+      borderRadius: "10px",
+      boxShadow: "0 8px 30px rgba(0, 0, 0, 0.25)",
+      fontFamily: "Segoe UI, Arial, sans-serif",
+      textAlign: "center",
+      maxWidth: "450px"
+    });
+
+    // Posisjonér popup mot col2
+    const col2 = document.getElementById("col2");
+    if (col2) {
+      const rect = col2.getBoundingClientRect();
+      popup.style.top = `${rect.top}px`;
+      popup.style.right = `${window.innerWidth - rect.left + 5}px`;
+      popup.style.left = "auto";
+      popup.style.transform = "none";
+    } else {
+      popup.style.top = "50%";
+      popup.style.left = "33%";
+      popup.style.transform = "translate(-50%, -50%)";
+    }
+
+    popup.innerHTML = `
+      <div style="
+        background:#f8d7da;
+        border:1px solid #f5c6cb;
+        padding:16px;
+        border-radius:6px;
+        margin-bottom:20px;
+      ">
+        <h3 style="margin:0 0 8px; font-size:18px; color:#721c24;">
+          ⚠️ Feil
+        </h3>
+        <p style="margin:0; font-size:14px; color:#721c24;">
+          ${message}
+        </p>
+      </div>
+      
+      <p style="margin:0 0 20px; font-size:13px; color:#555;">
+        Vennligst merk turene du ønsker å avbestille og prøv igjen.
+      </p>
+      
+      <button 
+        id="closeError" 
+        style="
+          padding:10px 24px;
+          background:#95a5a6;
+          color:#fff;
+          border:none;
+          border-radius:6px;
+          font-size:14px;
+          cursor:pointer;
+          font-weight:600;
+        "
+      >
+        OK
+      </button>
+    `;
+
+    document.body.appendChild(popup);
+
+    function closeErrorPopup() {
+      if (popup && popup.parentNode) {
+        popup.parentNode.removeChild(popup);
+      }
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+      document.removeEventListener('keydown', errorEscHandler);
+    }
+
+    popup.querySelector("#closeError").onclick = closeErrorPopup;
+    overlay.onclick = closeErrorPopup;
+
+    const errorEscHandler = (e) => {
+      if (e.key === "Escape") {
+        closeErrorPopup();
+      }
+    };
+    document.addEventListener("keydown", errorEscHandler);
+
+    // Auto-lukk etter 4 sekunder
+    setTimeout(closeErrorPopup, 4000);
+  }
   
   // ============================================================
   // SNARVEI-OVERSIKT
   // ============================================================
-  console.log("⌨️  Avbestilling snarveier:");
-  console.log("   ALT+K → Åpner pop-up for masseavbestilling av merkede turer)");
+  console.log("⌨️  Avbestilling snarveier");
+  console.log("   ALT+K → Avbestill merkede turer");
+  //console.log(`   Validering: Ressursnavn må slutte med minst ${MIN_DIGITS_AFTER_DASH} siffer etter siste "-"`);
   console.log("✅ Avbestilling-script lastet");
   
 })();
