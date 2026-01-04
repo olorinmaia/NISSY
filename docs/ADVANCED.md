@@ -158,7 +158,7 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt.
 Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en.
 
 **Sikkerhetsjekk:**
-- Filtrer bort turer med statuser som "Startet", "Fremme", "Ikke møtt" osv.
+- Filtrerer bort turer med statuser som "Startet", "Fremme", "Ikke møtt" osv.
 - Filtrerer bort status "Akseptert" hvis ressursnavn ikke slutter på minst 5 siffer etter siste "-" for å unngå avbestilling av tur etter 3003 men før 4010-1701.
 - Advarsel før du avbestiller og en liste over hvilke ressurser som vil bli avbestilt.
 
