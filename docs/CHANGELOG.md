@@ -16,7 +16,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 #### Hva er nytt?
 - **Ressursinfo.js** - Parser 2000 XML og henter ut navn, adresse, planlagt tid med korrekt æøå-formatering. Forbedret UI-visning.
-- **Bestillingsmodul.js** - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen. Ligger i alle script-pakkene.
+- **Bestillingsmodul.js** - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen. Åpner bestillingsmodul i pop-up/iframe over Planlegging. Vedlagt alle script-pakkene.
 
 ## [1.1.0] - 02.01.2026
 

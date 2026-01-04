@@ -23,6 +23,7 @@ NISSY Expert er for deg som:
 4. Rutekalkulering.js
 5. Ressursinfo.js
 6. Avbestilling.js
+7. Bestillingsmodul.js
 
 ## 📥 Installasjon
 

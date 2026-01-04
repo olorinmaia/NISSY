@@ -97,6 +97,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 2. Trykk `ALT+D`
 3. Popup viser:
    - Faktiske tider og koordinater for hver hendelse
+   - Planlagte tider, navn og adresser for hver hendelse
    - Tidspunkt for mottak av 3003 XML
    - Link til NISSY admin for bestilling og tur
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
@@ -128,11 +129,6 @@ Legger til:
 - Rek-knapper (ALT+R)
 
 [Se ADVANCED.md](ADVANCED.md)
-
-### NISSY Expert
-Alt! Alle features + fremtidige oppdateringer.
-
-[Se EXPERT.md](EXPERT.md)
 
 ## ❓ Feilsøking
 
@@ -169,4 +165,4 @@ Fant du en bug eller har forslag?
 
 ---
 
-**❤️ Make NISSY great again!? 🤓**
+**❤️ Make NISSY great 🤓**
