@@ -14,8 +14,10 @@
  * - Trykk ALT+N for å åpne
  * - Første gang: Velg foretrukket modul (lagres i session)
  * - Neste gang: Åpner direkte til valgt modul
- * - For å nullstille valg: window.Bestillingsmodul.clearPreferred() eller lukk nettleser helt
+ * - For å nullstille valg: window.Bestillingsmodul.clearPreferred()
  * 
+ * @author Claude AI
+ * @version 3.0
  */
 
 (function() {
@@ -60,6 +62,7 @@
             
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
+                    console.log('Bestillingsmodul reset successfully');
                     resolve(xhr.response);
                 } else {
                     reject(new Error(`Reset failed with status: ${xhr.status}`));
@@ -264,36 +267,52 @@
     }
 
     /**
-     * Blokkerer F5 globalt
+     * Håndterer F5 - refresher iframe i stedet for hele siden
      */
-    let f5Blocked = false;
+    let f5Handler = null;
+    let currentIframe = null;
     
-    function blockF5(e) {
-        // Blokkerer kun hvis det faktisk er F5
+    function handleF5(e) {
         const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
         
         if (isF5) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
+            
+            // Refresh iframe hvis det finnes en aktiv
+            if (currentIframe) {
+                try {
+                    // Prøv å refreshe gjeldende side i iframe
+                    currentIframe.contentWindow.location.reload();
+                } catch (e) {
+                    // Fallback: refresh iframe src
+                    currentIframe.src = currentIframe.src;
+                }
+            }
+            
             return false;
         }
     }
 
-    function enableF5Block() {
-        if (f5Blocked) return;
-        f5Blocked = true;
+    function enableF5Handler(iframe) {
+        currentIframe = iframe;
         
-        window.addEventListener('keydown', blockF5, true);
-        document.addEventListener('keydown', blockF5, true);
+        if (f5Handler) return;
+        
+        f5Handler = handleF5;
+        window.addEventListener('keydown', f5Handler, true);
+        document.addEventListener('keydown', f5Handler, true);
     }
 
-    function disableF5Block() {
-        if (!f5Blocked) return;
-        f5Blocked = false;
+    function disableF5Handler() {
+        currentIframe = null;
         
-        window.removeEventListener('keydown', blockF5, true);
-        document.removeEventListener('keydown', blockF5, true);
+        if (!f5Handler) return;
+        
+        window.removeEventListener('keydown', f5Handler, true);
+        document.removeEventListener('keydown', f5Handler, true);
+        f5Handler = null;
     }
 
     /**
@@ -317,21 +336,21 @@
             </button>
             <div class="bestillingsmodul-header">
                 <h2 class="bestillingsmodul-title">Velg bestillingsmodul</h2>
-                <p class="bestillingsmodul-subtitle">Velg foretrukket bestillingsmodul</p>
+                <p class="bestillingsmodul-subtitle">Valget lagres i sesjonen. Lukk nettleser helt for å nullstille.</p>
             </div>
             <div class="bestillingsmodul-content">
                 <div class="bestillingsmodul-option selected" data-module="fourStep" tabindex="0">
                     <div class="bestillingsmodul-option-radio"></div>
                     <div class="bestillingsmodul-option-content">
-                        <p class="bestillingsmodul-option-label">${CONFIG.modules.fourStep.label}</p>
-                        <p class="bestillingsmodul-option-shortcut">Enter / Piltaster</p>
+                        <p class="bestillingsmodul-option-label">⚡ ${CONFIG.modules.fourStep.label}</p>
+                        <p class="bestillingsmodul-option-shortcut">Raske snarveier for effektive tastaturbrukere</p>
                     </div>
                 </div>
                 <div class="bestillingsmodul-option" data-module="onePage" tabindex="0">
                     <div class="bestillingsmodul-option-radio"></div>
                     <div class="bestillingsmodul-option-content">
-                        <p class="bestillingsmodul-option-label">${CONFIG.modules.onePage.label}</p>
-                        <p class="bestillingsmodul-option-shortcut">Enter / Piltaster</p>
+                        <p class="bestillingsmodul-option-label">🐌 ${CONFIG.modules.onePage.label}</p>
+                        <p class="bestillingsmodul-option-shortcut">Alt på én side. Scroll din vei til suksess</p>
                     </div>
                 </div>
             </div>
@@ -369,19 +388,35 @@
         document.body.appendChild(fourStepModal);
         document.body.appendChild(onePageModal);
 
-        // Legg til F5-blokkering på iframe-modaler og prøv å blokkere inne i iframe-innholdet
+        // Legg til F5-håndtering direkte på iframe-modaler og inne i iframe-innholdet
         [fourStepModal, onePageModal].forEach(modal => {
-            modal.addEventListener('keydown', blockF5, true);
-            
             const iframe = modal.querySelector('iframe');
+            
+            // Håndter F5 på modal-nivå
+            modal.addEventListener('keydown', handleF5, true);
+            
+            // Prøv å håndtere F5 inne i iframe når det laster
             iframe.addEventListener('load', function() {
                 try {
                     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                     const iframeWin = iframe.contentWindow;
                     
                     if (iframeDoc && iframeWin) {
-                        iframeDoc.addEventListener('keydown', blockF5, true);
-                        iframeWin.addEventListener('keydown', blockF5, true);
+                        // Håndter F5 inne i iframe
+                        const iframeF5Handler = (e) => {
+                            const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+                            if (isF5) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                // Refresh gjeldende side i iframe
+                                iframeWin.location.reload();
+                                return false;
+                            }
+                        };
+                        
+                        iframeDoc.addEventListener('keydown', iframeF5Handler, true);
+                        iframeWin.addEventListener('keydown', iframeF5Handler, true);
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -397,14 +432,21 @@
     /**
      * Lukker alle modaler
      */
-    function closeAll() {
+    async function closeAll() {
         if (activeOverlay) {
             activeOverlay.remove();
             activeOverlay = null;
         }
         activeModals.forEach(modal => modal.remove());
         activeModals = [];
-        disableF5Block();
+        disableF5Handler();
+        
+        // Nullstill bestillingsmodul når modal lukkes
+        try {
+            await resetModule();
+        } catch (error) {
+            console.error('Error resetting module on close:', error);
+        }
     }
 
     /**
@@ -416,11 +458,15 @@
         // Skjul valgmodal
         selectionModal.style.display = 'none';
         
-        // Vis riktig iframe-modal
+        // Vis riktig iframe-modal og aktiver F5-håndtering
         if (moduleKey === 'fourStep') {
             fourStepModal.classList.add('active');
+            const iframe = fourStepModal.querySelector('iframe');
+            enableF5Handler(iframe);
         } else {
             onePageModal.classList.add('active');
+            const iframe = onePageModal.querySelector('iframe');
+            enableF5Handler(iframe);
         }
     }
 
@@ -524,23 +570,20 @@
             // Steg 1: Nullstill modul
             await resetModule();
             
-            // Steg 2: Aktiver F5-blokkering
-            enableF5Block();
-            
-            // Steg 3: Injiser stiler
+            // Steg 2: Injiser stiler
             injectStyles();
             
-            // Steg 4: Opprett modaler
+            // Steg 3: Opprett modaler
             const modals = createModals();
             
-            // Steg 5: Sjekk for foretrukket modul
+            // Steg 4: Sjekk for foretrukket modul
             const preferred = getPreferredModule();
             if (preferred && CONFIG.modules[preferred]) {
-                // Vis iframe-modal direkte
+                // Vis iframe-modal direkte (F5-håndtering aktiveres i showIframeModal)
                 showIframeModal(preferred, modals);
             }
             
-            // Steg 6: Sett opp handlers
+            // Steg 5: Sett opp handlers
             setupHandlers(modals);
             
         } catch (error) {
