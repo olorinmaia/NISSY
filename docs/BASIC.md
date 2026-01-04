@@ -13,8 +13,9 @@ NISSY Basic er perfekt for deg som:
 
 ### Inkluderte scripts:
 - ✅ **NISSY-fiks.js** - Grunnleggende tastatursnarveier og kolonnejusteringer
-- ✅ **Ressursinfo.js** - Vis detaljert ressursinformasjon
-- ✅ **Rutekalkulering.js** - Åpne rute i Google Maps
+- ✅ **Ressursinfo.js** - (Alt+D) Vis detaljert ressursinformasjon
+- ✅ **Rutekalkulering.js** - (Alt+Q) Åpne rute i Google Maps
+- ✅ **Bestillingsmodul.js** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
 
 ## 📥 Installasjon
 
@@ -73,6 +74,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 |---------|----------|
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
+| `ALT+N` | Bestillingsmodul |
 
 ## 📖 Detaljert brukerveiledning
 

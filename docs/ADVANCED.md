@@ -8,6 +8,7 @@
 - ✅ **Rutekalkulering.js** - (Alt+Q) Åpne rute i Google Maps
 - ✅ **Smart-tildeling.js** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
 - ✅ **Rek-knapper.js** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag
+- ✅ **Bestillingsmodul.js** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
 
 ## ⌨️ Alle tastatursnarveier
 
@@ -46,6 +47,7 @@
 | `ALT+R` | Rek-knapper (H, S, K, T, R) |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
+| `ALT+N` | Bestillingsmodul |
 
 ## 📥 Installasjon
 

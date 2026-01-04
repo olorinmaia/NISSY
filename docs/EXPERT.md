@@ -97,6 +97,7 @@ Masseavbestill merkede ressurser eller alle med status "Tildelt".
 |---------|----------|
 | `ALT+Q` | Rutekalkulering (Google Maps) |
 | `ALT+D` | Ressursinfo |
+| `ALT+N` | Bestillingsmodul |
 
 ### Expert-eksklusiv
 
@@ -195,6 +196,7 @@ Masseavbestill merkede ressurser eller alle med status "Tildelt".
 | Kolonnejusteringer | ✅ | ✅ | ✅ |
 | Rutekalkulator (ALT+Q) | ✅ | ✅ | ✅ |
 | Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
+| Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
 | Smart tildeling (ALT+S) | ❌ | ✅ | ✅ |
 | Tilordning 2.0 (ALT+T) | ❌ | ✅ | ✅ |
 | Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |

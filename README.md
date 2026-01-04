@@ -27,6 +27,7 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
 - **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
 - **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
 - **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister.
+- **Bestillingsmodul** - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
 
 ## 📊 Oversikt alle features i script-pakker
 Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 
@@ -38,6 +39,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | NISSY-fiks | ✅ | ✅ | ✅ |
 | Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
 | Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
+| Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
 | Smart-tildeling (ALT+S) | ❌ | ✅ | ✅ |
 | Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ | ✅ |
 | Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |
@@ -115,6 +117,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+Q` | Google Maps Rutekalkulering |
 | `ALT+D` | Ressursinfo |
 | `ALT+R` | Rek-knapper |
+| `ALT+N` | Bestillingsmodul |
 | `ALT+K` | Masse-avbestilling |
 
 ## 🔧 Funksjonalitet
