@@ -746,7 +746,7 @@ async function runResourceInfo() {
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Faktisk tid når hendelsen ble utført på taksameter">Faktisk🕒</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Hendelse</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt adresse fra NISSY">Adresse</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Koordinat til der hendelsen ble utført på taksameter">Faktisk koordinat</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Koordinat til der hendelsen ble utført på taksameter">Koordinat</th>
               </tr>
             </thead>
             <tbody>
@@ -754,7 +754,7 @@ async function runResourceInfo() {
 
       for (const r of eventData.events) {
         const { icon, title } = getIconAndTitle(r.eventType);
-        const coordText = `Åpne kart`;
+        const coordText = `Vis i kart`;
         const gmapsUrl = `https://www.google.no/maps/search/?api=1&query=${r.lat},${r.lon}`;
         const formattedTime = formatTimestamp(r.timestamp);
         const rowClass = r.eventType === "1709" ? "row1709" : "";
@@ -781,7 +781,7 @@ async function runResourceInfo() {
             </td>
             <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">${r.estimatedTime}</td>
             <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>            
-            <td style="padding: 10px 8px; text-align: right;" title="${title}">
+            <td style="padding: 10px 8px; text-align: right;" title="${title} (${r.eventType})">
               <span style="display: inline-block; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
               ${icon}
               </span>
