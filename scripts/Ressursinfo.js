@@ -686,7 +686,7 @@ async function runResourceInfo() {
       html += `
         <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
           <span style="font-weight: bold;" title="Når 3003 XML ble mottatt">🚕 Oppdrag bekreftet: </span>
-          <span style="font-weight: bold; color: #856404;">${timeOnly}</span>
+          <span style="font-size: 15px; font-weight: bold; color: #856404;">${timeOnly}</span>
           ${!phoneNumber ? '<span style="margin-left: 10px; color: #d32f2f;">⚠️ Fant ikke telefonnummer</span>' : ''}
         </div>
       `;
@@ -743,7 +743,7 @@ async function runResourceInfo() {
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Bestilling</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Navn</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Hendelse</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt tidspunkt fra NISSY">Planlagt🕒</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">Planlagt🕒</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Faktisk tid når hendelsen ble utført på taksameter">Faktisk🕒</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt adresse fra NISSY">Adresse</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Koordinat til der hendelsen ble utført på taksameter">Faktisk koordinat</th>
@@ -784,7 +784,7 @@ async function runResourceInfo() {
                 ${r.eventType} ${icon}
               </span>
             </td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Planlagt tidspunkt fra NISSY">${r.estimatedTime}</td>
+            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">${r.estimatedTime}</td>
             <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>            
             <td style="
               padding: 10px 8px; 
