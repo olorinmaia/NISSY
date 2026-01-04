@@ -10,7 +10,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Flere tilpasbare innstillinger
 
 ---
-## [1.1.0] - 02-01-2026
+## [1.2.0] - 04.01.2026
+
+### 🎉 Utvidelse med nytt script Bestillingsmodul.js og 🚕 Ressursinfo forbedret!
+
+#### Hva er nytt?
+- **Ressursinfo.js** - Parser 2000 XML og henter ut navn, adresse, planlagt tid med korrekt æøå-formatering. Forbedret UI-visning.
+- **Bestillingsmodul.js** - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen. Åpner bestillingsmodul i pop-up/iframe over Planlegging. Vedlagt alle script-pakkene.
+
+## [1.1.0] - 02.01.2026
 
 ### 🎉 Utvidelse med 6 individuelle script!
 
@@ -26,7 +34,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 #### Dokumentasjon
 - Oppdatert README.md iht. nye script som er lagt til samt installasjonsveiledning.
 
-## [1.0.0] - 01-01-2026
+## [1.0.0] - 01.01.2026
 
 ### 🎉 Første offisielle release!
 

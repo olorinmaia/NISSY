@@ -6,6 +6,7 @@
     'Smart-tildeling.js',
     'Rek-knapper.js',
     'Rutekalkulering.js',
+    'Bestillingsmodul.js',
     'Ressursinfo.js'
   ];
   
@@ -51,6 +52,7 @@
           • ALT+R → Rek-knapper<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+D → Ressursinfo pop-up<br>
+          • <b>ALT+N → Bestillingsmodul (NYTT SCRIPT 🚀)</b><br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">

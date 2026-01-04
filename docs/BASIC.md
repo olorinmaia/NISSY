@@ -13,8 +13,9 @@ NISSY Basic er perfekt for deg som:
 
 ### Inkluderte scripts:
 - ✅ **NISSY-fiks.js** - Grunnleggende tastatursnarveier og kolonnejusteringer
-- ✅ **Ressursinfo.js** - Vis detaljert ressursinformasjon
-- ✅ **Rutekalkulering.js** - Åpne rute i Google Maps
+- ✅ **Ressursinfo.js** - (Alt+D) Vis detaljert ressursinformasjon
+- ✅ **Rutekalkulering.js** - (Alt+Q) Åpne rute i Google Maps
+- ✅ **Bestillingsmodul.js** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
 
 ## 📥 Installasjon
 
@@ -73,6 +74,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 |---------|----------|
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
+| `ALT+N` | Bestillingsmodul |
 
 ## 📖 Detaljert brukerveiledning
 
@@ -95,6 +97,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 2. Trykk `ALT+D`
 3. Popup viser:
    - Faktiske tider og koordinater for hver hendelse
+   - Planlagte tider, navn og adresser for hver hendelse
    - Tidspunkt for mottak av 3003 XML
    - Link til NISSY admin for bestilling og tur
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
@@ -126,11 +129,6 @@ Legger til:
 - Rek-knapper (ALT+R)
 
 [Se ADVANCED.md](ADVANCED.md)
-
-### NISSY Expert
-Alt! Alle features + fremtidige oppdateringer.
-
-[Se EXPERT.md](EXPERT.md)
 
 ## ❓ Feilsøking
 
@@ -167,4 +165,4 @@ Fant du en bug eller har forslag?
 
 ---
 
-**❤️ Make NISSY great again!? 🤓**
+**❤️ Make NISSY great 🤓**

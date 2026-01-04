@@ -8,6 +8,7 @@
 - ✅ **Rutekalkulering.js** - (Alt+Q) Åpne rute i Google Maps
 - ✅ **Smart-tildeling.js** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
 - ✅ **Rek-knapper.js** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag
+- ✅ **Bestillingsmodul.js** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
 
 ## ⌨️ Alle tastatursnarveier
 
@@ -46,6 +47,7 @@
 | `ALT+R` | Rek-knapper (H, S, K, T, R) |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
+| `ALT+N` | Bestillingsmodul |
 
 ## 📥 Installasjon
 
@@ -79,6 +81,7 @@ Navn: `NISSY-Avansert`
 2. Trykk `ALT+D`
 3. Popup viser:
    - Faktiske tider og koordinater for hver hendelse
+   - Planlagte tider, navn og adresser for hver hendelse
    - Tidspunkt for mottak av 3003 XML
    - Link til NISSY admin for bestilling og tur
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
@@ -148,15 +151,6 @@ Viser hurtigknapper på merkede rader.
 - Knappene følger med ved scrolling
 - Automatisk høydetilpasning til rad-bilder
 
-## 🆙 Oppgradering
-
-Klar for mer funksjonalitet?
-
-### NISSY Expert
-Alt! Alle features + fremtidige oppdateringer.
-
-[Se EXPERT.md](EXPERT.md)
-
 ## ❓ Feilsøking
 
 ### Bokmerket gjør ingenting
@@ -202,4 +196,4 @@ Fant du en bug eller har forslag?
 
 ---
 
-**❤️ Make NISSY great again!? 🤓**
+**❤️ Make NISSY great 🤓**

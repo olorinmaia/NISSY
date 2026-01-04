@@ -4,6 +4,7 @@
   const scripts = [
     'NISSY-fiks.js',
     'Ressursinfo.js',
+    'Bestillingsmodul.js',
     'Rutekalkulering.js'
   ];
   
@@ -46,6 +47,7 @@
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+D → Ressursinfo pop-up<br>
+          • <b>ALT+N → Bestillingsmodul (NYTT SCRIPT 🚀)</b><br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">

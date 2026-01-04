@@ -23,6 +23,7 @@ NISSY Expert er for deg som:
 4. Rutekalkulering.js
 5. Ressursinfo.js
 6. Avbestilling.js
+7. Bestillingsmodul.js
 
 ## 📥 Installasjon
 
@@ -97,6 +98,7 @@ Masseavbestill merkede ressurser eller alle med status "Tildelt".
 |---------|----------|
 | `ALT+Q` | Rutekalkulering (Google Maps) |
 | `ALT+D` | Ressursinfo |
+| `ALT+N` | Bestillingsmodul |
 
 ### Expert-eksklusiv
 
@@ -195,6 +197,7 @@ Masseavbestill merkede ressurser eller alle med status "Tildelt".
 | Kolonnejusteringer | ✅ | ✅ | ✅ |
 | Rutekalkulator (ALT+Q) | ✅ | ✅ | ✅ |
 | Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
+| Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
 | Smart tildeling (ALT+S) | ❌ | ✅ | ✅ |
 | Tilordning 2.0 (ALT+T) | ❌ | ✅ | ✅ |
 | Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |
