@@ -62,7 +62,7 @@
             
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    console.log('Bestillingsmodul reset successfully');
+                    //console.log('Bestillingsmodul reset successfully');
                     resolve(xhr.response);
                 } else {
                     reject(new Error(`Reset failed with status: ${xhr.status}`));

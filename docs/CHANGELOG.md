@@ -12,11 +12,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## [1.2.0] - 04.01.2026
 
-### 🎉 Utvidelse med nytt script Bestillingsmodul.js og 🚕 Ressursinfo forbedret!
+### 🎉 Utvidelse med 2 nye script Bestillingsmodul.js og Avbestilling.js og 🚕 Ressursinfo forbedret!
 
 #### Hva er nytt?
 - **Ressursinfo.js** - Parser 2000 XML og henter ut navn, adresse, planlagt tid med korrekt æøå-formatering. Forbedret UI-visning.
 - **Bestillingsmodul.js** - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen. Åpner bestillingsmodul i pop-up/iframe over Planlegging. Vedlagt alle script-pakkene.
+- **Avbestilling.js** - Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en.
 
 ## [1.1.0] - 02.01.2026
 
