@@ -727,13 +727,13 @@ async function runResourceInfo() {
     if (eventData.events.length > 0) {
       html += `
         <div style="margin-bottom: 15px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" title="Hendelser basert informasjon i 2000 og 4010 XML">
-            <h3 style="margin: 0; font-size: 16px; color: #333;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 16px; color: #333;" title="Hendelser basert informasjon i 2000 og 4010 XML">
               Vognløpshendelser
             </h3>
-            <label style="font-size: 13px; cursor: pointer;">
+            <label style="font-size: 13px; cursor: pointer;" title="Vis/skjul 4010-1709 XML i Vognløpshendelser">
               <input type="checkbox" id="toggle1709" checked>
-              Vis 1709 (Bil ved node)
+              Vis📍(Bil ved node)
             </label>
           </div>
           
@@ -742,9 +742,9 @@ async function runResourceInfo() {
               <tr style="background: linear-gradient(to bottom, #f8f9fa, #e9ecef); border-bottom: 2px solid #dee2e6;">
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Bestilling</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Navn</th>
-                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Hendelse</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">Planlagt🕒</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Faktisk tid når hendelsen ble utført på taksameter">Faktisk🕒</th>
+                <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;">Hendelse</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Planlagt adresse fra NISSY">Adresse</th>
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Koordinat til der hendelsen ble utført på taksameter">Faktisk koordinat</th>
               </tr>
@@ -779,13 +779,13 @@ async function runResourceInfo() {
             " title="${r.name}">
               ${r.name}
             </td>
-            <td style="padding: 10px 8px;" title="${title}">
+            <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">${r.estimatedTime}</td>
+            <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>            
+            <td style="padding: 10px 8px; text-align: right;" title="${title}">
               <span style="display: inline-block; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
-                ${r.eventType} ${icon}
+              ${icon}
               </span>
             </td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">${r.estimatedTime}</td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace;"" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>            
             <td style="
               padding: 10px 8px; 
               color: #495057; 
@@ -830,7 +830,7 @@ async function runResourceInfo() {
           cursor: pointer;
           font-size: 14px;
         ">
-          Lukk (ESC)
+          Lukk
         </button>
     `;
     
@@ -844,8 +844,8 @@ async function runResourceInfo() {
              text-decoration: none;
              border-radius: 6px;
              font-size: 14px;
-           ">
-          🗺️ Bilens faktiske kjørerute (åpne kart)
+           " title="Åpner kjørerute basert på faktiske koordinater fra taksameter i Google Maps">
+          🗺️ Bilens faktiske kjørerute
         </a>
       `;
     }
