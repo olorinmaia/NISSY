@@ -684,8 +684,8 @@ async function runResourceInfo() {
       const timeOnly = time3003.split(' ')[1]?.substring(0, 5) || time3003;
       
       html += `
-        <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
-          <span style="font-weight: bold;" title="Når 3003 XML ble mottatt">🚕 Oppdrag bekreftet: </span>
+        <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800;" title="Når 3003 XML ble mottatt">
+          <span style="font-weight: bold;">🚕 Oppdrag bekreftet: </span>
           <span style="font-size: 15px; font-weight: bold; color: #856404;">${timeOnly}</span>
           ${!phoneNumber ? '<span style="margin-left: 10px; color: #d32f2f;">⚠️ Fant ikke telefonnummer</span>' : ''}
         </div>
