@@ -15,9 +15,7 @@
  * - Første gang: Velg foretrukket modul (lagres i session)
  * - Neste gang: Åpner direkte til valgt modul
  * - For å nullstille valg: window.Bestillingsmodul.clearPreferred()
- * 
- * @author Claude AI
- * @version 3.0
+ *
  */
 
 (function() {
@@ -51,6 +49,7 @@
 
     let activeOverlay = null;
     let activeModals = [];
+    let activeKeyboardListener = null; // Ny variabel for å holde referanse til keyboard listener
 
     /**
      * Nullstiller bestillingsmodulen via XHR
@@ -62,7 +61,6 @@
             
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    //console.log('Bestillingsmodul reset successfully');
                     resolve(xhr.response);
                 } else {
                     reject(new Error(`Reset failed with status: ${xhr.status}`));
@@ -339,18 +337,18 @@
                 <p class="bestillingsmodul-subtitle">Valget lagres i sesjonen. Lukk nettleser helt for å nullstille.</p>
             </div>
             <div class="bestillingsmodul-content">
-                <div class="bestillingsmodul-option selected" data-module="fourStep" tabindex="0">
-                    <div class="bestillingsmodul-option-radio"></div>
-                    <div class="bestillingsmodul-option-content">
-                        <p class="bestillingsmodul-option-label">⚡ ${CONFIG.modules.fourStep.label}</p>
-                        <p class="bestillingsmodul-option-shortcut">Raske snarveier for effektive tastaturbrukere</p>
-                    </div>
-                </div>
-                <div class="bestillingsmodul-option" data-module="onePage" tabindex="0">
+                <div class="bestillingsmodul-option selected" data-module="onePage" tabindex="0">
                     <div class="bestillingsmodul-option-radio"></div>
                     <div class="bestillingsmodul-option-content">
                         <p class="bestillingsmodul-option-label">🐌 ${CONFIG.modules.onePage.label}</p>
                         <p class="bestillingsmodul-option-shortcut">Alt på én side. Scroll din vei til suksess</p>
+                    </div>
+                </div>
+                <div class="bestillingsmodul-option" data-module="fourStep" tabindex="0">
+                    <div class="bestillingsmodul-option-radio"></div>
+                    <div class="bestillingsmodul-option-content">
+                        <p class="bestillingsmodul-option-label">⚡ ${CONFIG.modules.fourStep.label}</p>
+                        <p class="bestillingsmodul-option-shortcut">Raske snarveier for effektive tastaturbrukere</p>
                     </div>
                 </div>
             </div>
@@ -433,11 +431,22 @@
      * Lukker alle modaler
      */
     async function closeAll() {
+        // Fjern keyboard listener hvis den eksisterer
+        if (activeKeyboardListener) {
+            document.removeEventListener('keydown', activeKeyboardListener);
+            activeKeyboardListener = null;
+        }
+        
         if (activeOverlay) {
             activeOverlay.remove();
             activeOverlay = null;
         }
-        activeModals.forEach(modal => modal.remove());
+        // Sjekk om modal finnes i DOM før vi prøver å fjerne den
+        activeModals.forEach(modal => {
+            if (modal && modal.parentNode) {
+                modal.remove();
+            }
+        });
         activeModals = [];
         disableF5Handler();
         
@@ -455,18 +464,42 @@
     function showIframeModal(moduleKey, modals) {
         const { selectionModal, fourStepModal, onePageModal } = modals;
         
-        // Skjul valgmodal
-        selectionModal.style.display = 'none';
+        // Fjern valgmodal helt hvis den fortsatt eksisterer i DOM
+        if (selectionModal && selectionModal.parentNode) {
+            selectionModal.remove();
+        }
         
         // Vis riktig iframe-modal og aktiver F5-håndtering
         if (moduleKey === 'fourStep') {
             fourStepModal.classList.add('active');
             const iframe = fourStepModal.querySelector('iframe');
             enableF5Handler(iframe);
+            // Sett fokus på iframe når det er lastet
+            iframe.addEventListener('load', function focusOnLoad() {
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow.focus();
+                    } catch (e) {
+                        // Kan ikke fokusere (CORS)
+                    }
+                }, 100);
+                iframe.removeEventListener('load', focusOnLoad);
+            });
         } else {
             onePageModal.classList.add('active');
             const iframe = onePageModal.querySelector('iframe');
             enableF5Handler(iframe);
+            // Sett fokus på iframe når det er lastet
+            iframe.addEventListener('load', function focusOnLoad() {
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow.focus();
+                    } catch (e) {
+                        // Kan ikke fokusere (CORS)
+                    }
+                }, 100);
+                iframe.removeEventListener('load', focusOnLoad);
+            });
         }
     }
 
@@ -491,9 +524,15 @@
         const { overlay, selectionModal, fourStepModal, onePageModal } = modals;
         const options = selectionModal.querySelectorAll('.bestillingsmodul-option');
         let selectedIndex = 0;
+        let keyboardListenerActive = true;
 
         // Funksjon for å velge og åpne modul
         function selectModule(moduleKey) {
+            // Fjern keyboard listener hvis den fortsatt er aktiv
+            if (keyboardListenerActive) {
+                document.removeEventListener('keydown', selectionKeyHandler);
+                keyboardListenerActive = false;
+            }
             savePreferredModule(moduleKey);
             showIframeModal(moduleKey, modals);
         }
@@ -540,6 +579,9 @@
                 selectModule(moduleKey);
             }
         };
+        
+        // Lagre referanse og legg til listener
+        activeKeyboardListener = selectionKeyHandler;
         document.addEventListener('keydown', selectionKeyHandler);
 
         // Lukkeknapp-handlers for alle modaler
