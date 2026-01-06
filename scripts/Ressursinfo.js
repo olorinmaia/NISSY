@@ -199,12 +199,12 @@ async function runResourceInfo() {
     }
 
     // Parse data
-    const orderData = await extractOrderData(xml2000Links);
+    const { orderMap, agreementInfo } = await extractOrderData(xml2000Links);
     const phoneNumber = await extractPhoneNumber(xml3003Links);
-    const eventData = await extractEventData(xml4010Links, orderData);
+    const eventData = await extractEventData(xml4010Links, orderMap);
 
     // Vis popup
-    showCombinedPopup(phoneNumber, eventData, turId, time3003);
+    showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo);
   }
 
   /* ==========================
@@ -272,7 +272,7 @@ async function runResourceInfo() {
     return decoded;
   }
 
-    async function fetchAndParseXML(url) {
+  async function fetchAndParseXML(url) {
     const resp = await fetch(url);
     
     // Prøv først å lese som ISO-8859-1 (Windows-1252) siden serveren ser ut til å sende det
@@ -298,18 +298,18 @@ async function runResourceInfo() {
       // Fallback til vanlig text()
       htmlText = await resp.text();
     }
-  
+
     const preMatch = htmlText.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
     if (!preMatch) throw new Error("Fant ikke <pre>-tagg i XML-siden.");
-  
+
     const xmlStringEscaped = preMatch[1];
     const xmlString = await unescapeHtml(xmlStringEscaped.trim());
-  
-    // NYTT: Forsøk å fikse vanlige XML parsing-problemer
+
+    // Forsøk å fikse vanlige XML parsing-problemer
     let cleanedXml = xmlString
       // Fiks uescapede & tegn (men ikke &amp;, &lt;, &gt;, etc)
       .replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
-  
+
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(cleanedXml, "text/xml");
     
@@ -331,15 +331,39 @@ async function runResourceInfo() {
     return xmlDoc;
   }
 
+  function formatBookingId(id) {
+    // Hvis ID er kortere enn 10 tegn, vis hele
+    if (id.length <= 10) return id;
+    
+    // Ellers vis første 6 + siste 4
+    //return `${id.slice(0, 6)}...${id.slice(-4)}`;
+    // Ellers vis ... + siste 3
+    return `...${id.slice(-3)}`;
+  }
+
   /* ==========================
      6. Hent bestillingsdata (2000)
      ========================== */
   async function extractOrderData(xmlUrls) {
     const orderMap = new Map(); // "bookingId-nodeType" -> { address, estimatedTime, name }
+    let agreementInfo = null; // Avtale-info fra første 2000 XML
 
     for (const url of xmlUrls) {
       try {
         const xmlDoc = await fetchAndParseXML(url);
+
+        // Hent avtale-info fra første 2000 XML (kun én gang)
+        if (!agreementInfo) {
+          const orgReceiver = xmlDoc.querySelector('orgReceiver');
+          const idAgreement = xmlDoc.querySelector('agreement > idAgreement');
+          
+          if (orgReceiver || idAgreement) {
+            agreementInfo = {
+              avtaleNavn: orgReceiver?.getAttribute('name') || 'Ukjent',
+              avtaleKode: idAgreement?.getAttribute('id') || 'Ukjent'
+            };
+          }
+        }
 
         // Hent alle noder
         const nodes = xmlDoc.querySelectorAll('route > node');
@@ -416,7 +440,7 @@ async function runResourceInfo() {
           orderMap.set(key, {
             address,
             estimatedTime,
-            name  // ← Nytt: Legg til navn fra 2000 XML
+            name
           });
         }
 
@@ -425,7 +449,7 @@ async function runResourceInfo() {
       }
     }
 
-    return orderMap;
+    return { orderMap, agreementInfo };
   }
 
   /* ==========================
@@ -545,7 +569,7 @@ async function runResourceInfo() {
           const orderInfo = orderMap.get(key);
           address = orderInfo.address;
           estimatedTime = orderInfo.estimatedTime;
-          name = orderInfo.name; // ← Bruk navn fra 2000 XML (riktig charset!)
+          name = orderInfo.name;
         }
 
         results.push({
@@ -642,7 +666,7 @@ async function runResourceInfo() {
   /* ==========================
      9. VIS KOMBINERT POPUP
      ========================== */
-  function showCombinedPopup(phoneNumber, eventData, turId, time3003) {
+  function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo) {
     const rowRect = row.getBoundingClientRect();
 
     // Overlay
@@ -685,12 +709,24 @@ async function runResourceInfo() {
           background-color: #f1f3f5 !important;
         }
       </style>
-      <h2 style="margin: 0 0 15px; font-size: 18px; color: #333;">
-        Ressursinformasjon: <a href="/administrasjon/admin/searchStatus?id=${turId}" 
-                                style="color: #1976d2; text-decoration: none;"
-                                title="Åpne turnummer ${turId} i NISSY admin">${licensePlate}</a>
-      </h2>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+        <h2 style="margin: 0; font-size: 18px; color: #333;">
+          Ressursinformasjon: <a href="/administrasjon/admin/searchStatus?id=${turId}" 
+                                  style="color: #1976d2; text-decoration: none;"
+                                  title="Åpne turnummer ${turId} i NISSY admin">${licensePlate}</a>
+        </h2>
     `;
+
+    // Avtale-info til høyre
+    if (agreementInfo) {
+      html += `
+        <div style="text-align: right; font-size: 13px; color: #666; max-width: 250px;" title="Områdekode: ${agreementInfo.avtaleKode}">
+          <span style="font-weight: 500;"><b>Avtale:</b></span> ${agreementInfo.avtaleNavn}
+        </div>
+      `;
+    }
+
+    html += `</div>`;
 
     // VIS 3003 TIDSPUNKT (når ressurs bekreftet)
     if (time3003) {
@@ -779,7 +815,7 @@ async function runResourceInfo() {
               <a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}" 
                  style="color: #1976d2; text-decoration: none; font-weight: 500;"
                  title="Åpne bestilling ${r.bookingId} i NISSY admin">
-                 🧾...${r.bookingId.slice(-3)}
+                🧾${formatBookingId(r.bookingId)}
               </a>
             </td>
             <td style="
