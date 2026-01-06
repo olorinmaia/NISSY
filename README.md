@@ -89,6 +89,10 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 ```javascript
 javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Sjekk-telefon.js');eval(await s.text());})();
 ```
+**Statistikk** 
+```javascript
+javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Statistikk.js');eval(await s.text());})();
+```
 **Trøndertaxi-løyve**
 ```javascript
 javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Trøndertaxi-løyve.js');eval(await s.text());})();
