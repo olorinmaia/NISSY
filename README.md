@@ -7,30 +7,50 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
 ## 📦 Innhold
 
 ### Script med snarveier som ligger i pakker
-- **NISSY-fiks** - Inneholder bugfikser, tastatursnarveier og forbedringer.
+- ⌛ **NISSY-fiks**
+  - Inneholder bugfikser, masse tastatursnarveier og forbedringer.
   - Automatisk kolonnejustering (skjuler/viser relevante kolonner)
   - Fikser bug med at filter ikke oppdaterer seg
   - Åpner alle turer ved bytting av filter automatisk
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
-- **Smart-tildeling** - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
+- 📆 **Smart-tildeling (Alt+S)**
+  - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
-- **Tilordningsstøtte 2.0** - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
-- **Rek-knapper** - Hurtigknapper for bestillinger på ventende/pågående oppdrag.
+- 📆 **Tilordningsstøtte 2.0 (Alt+T)**
+  - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
+- 🔠 **Rek-knapper (Alt+R)**
+  - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
+  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
-  - Merk at det ikke er noen begrensninger på bestillingens status. Planlagte bestillinger som endres på en status "Startet" ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
+  - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
-- **Rutekalkulering** - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
-- **Ressursinfo** - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
-- **Bestillingsmodul** - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen. Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
-- **Avbestilling.js** - Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML. 
+  - WIP: [M] Møteplass
+- 🗺 **Rutekalkulering (Alt+Q)**
+  - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
+- 🚕 **Ressursinfo (Alt+D)**
+  - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
+  - WIP: Når NISSY kan ta imot 5021 XML (bilens nåværende posisjon) kan dette vises i samme bilde.
+- 📃 **Bestillingsmodul (Alt+N)**
+  - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
+  - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
+  - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
+- ❌ **Avbestilling (Alt+K).**
+  - Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
+  - WIP: Masseavbestilling av bestillinger
 
 ### Individuelle script
-- **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
-- **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
-- **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
-- **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
-- **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
-- **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister.
+- **Alenebil**
+  - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
+- **Auto-Bestill**
+  - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+- **Sjekk-Duplikat**
+  - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
+- **Sjekk-Telefon**
+  - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- **Statistikk**
+  - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+- **Trøndertaxi-løyve**
+  - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister.
 
 ## 📊 Oversikt alle features i script-pakker
 Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 
