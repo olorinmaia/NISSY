@@ -779,7 +779,7 @@ async function runResourceInfo() {
               <a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}" 
                  style="color: #1976d2; text-decoration: none; font-weight: 500;"
                  title="Åpne bestilling ${r.bookingId} i NISSY admin">
-                🧾 Åpne
+                 🧾...${r.bookingId.slice(-3)}
               </a>
             </td>
             <td style="
