@@ -408,11 +408,11 @@ async function runResourceInfo() {
   }
 
   function formatBookingId(id) {
-    // Hvis ID er kortere enn 10 tegn, vis hele
-    if (id.length <= 10) return id;
+    // Hvis ID er kortere enn 7 tegn, vis hele
+    if (id.length <= 7) return id;
     
-    // Ellers vis ... + siste 3
-    return `...${id.slice(-3)}`;
+    // Ellers vis ... + siste 4
+    return `...${id.slice(-4)}`;
   }
 
   /* ==========================
