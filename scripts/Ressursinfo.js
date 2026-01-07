@@ -1,7 +1,7 @@
 // ============================================================
 // RESSURSINFO SCRIPT (ALT+D)
 // Henter ut nyttig info fra 2000/3003/4010 XML fra merket ressurs
-// Presenter faktiske tider, koordinater, adresser i pop-up
+// Presenter planlagte/faktiske tider, koordinater, adresser, avtaleinfo i pop-up
 // ============================================================
 
 (function() {
@@ -210,6 +210,51 @@ async function runResourceInfo() {
   /* ==========================
      HJELPEFUNKSJONER
      ========================== */
+  
+  // ============================================================
+  // GOOGLE MAPS CONSENT-HÅNDTERING
+  // Google Maps krever at bruker godtar vilkår første gang
+  // ============================================================
+  function ensureGoogleConsent(callback) {
+    // Sjekk om bruker allerede har godtatt vilkår (lagret i sessionStorage)
+    if (sessionStorage.getItem("gmapsConsentOK") === "1") {
+      callback(true);
+      return;
+    }
+  
+    // Vis instruksjon til bruker
+    alert(
+      "Google Maps må åpnes én gang for å godta vilkår.\n\n" +
+      "Godta vilkår, lukk vinduet – prøv å åpne kjøreruten på nytt."
+    );
+    
+    // Åpne Google Maps i nytt vindu
+    const googleMapsWindow = window.open(
+      "https://www.google.no/maps",
+      "_blank",
+      "width=800,height=600"
+    );
+  
+    // Sjekk om popup ble blokkert
+    if (!googleMapsWindow) {
+      alert("Popup blokkert – tillat popup og prøv igjen.");
+      callback(false);
+      return;
+    }
+  
+    // Poll for å sjekke om vinduet er lukket
+    const checkInterval = setInterval(() => {
+      if (googleMapsWindow.closed) {
+        clearInterval(checkInterval);
+        // Marker at bruker har godtatt vilkår
+        sessionStorage.setItem("gmapsConsentOK", "1");
+      }
+    }, 500);
+    
+    // Returner false siden bruker må godta først
+    callback(false);
+  }
+
   async function unescapeHtml(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -335,8 +380,6 @@ async function runResourceInfo() {
     // Hvis ID er kortere enn 10 tegn, vis hele
     if (id.length <= 10) return id;
     
-    // Ellers vis første 6 + siste 4
-    //return `${id.slice(0, 6)}...${id.slice(-4)}`;
     // Ellers vis ... + siste 3
     return `...${id.slice(-3)}`;
   }
@@ -964,13 +1007,22 @@ async function runResourceInfo() {
 
     // Åpne lenker i nytt vindu
     function openPopupWindow(url) {
-      const width = Math.floor(window.innerWidth / 2);
-      const height = Math.floor(window.innerHeight * 0.9);
-      window.open(
-        url,
-        "_blank",
-        `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
-      );
+      // Sjekk Google Maps consent først
+      ensureGoogleConsent((consentOK) => {
+        if (!consentOK) {
+          // Bruker må godta vilkår først
+          return;
+        }
+        
+        // Åpne vindu etter consent er godkjent
+        const width = Math.floor(window.innerWidth / 2);
+        const height = Math.floor(window.innerHeight * 0.9);
+        window.open(
+          url,
+          "_blank",
+          `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+        );
+      });
     }
 
     const coordLinks = popup.querySelectorAll("a[href^='https://www.google.no/maps']");
