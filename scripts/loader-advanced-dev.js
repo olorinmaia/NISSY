@@ -10,6 +10,18 @@
     'Avbestilling.js',
     'Ressursinfo.js'
   ];
+
+  // ============================================================
+  // ANONYM BRUKSSTATISTIKK
+  // Logger at loader ble brukt (ingen persondata)
+  // ============================================================
+  try {
+    fetch('https://api.countapi.xyz/hit/nissy-stats/loader-advanced-dev', { 
+      method: 'GET' 
+    }).catch(() => {}); // Silent fail hvis CountAPI er nede
+  } catch (e) {
+    // Ignorer feil - statistikk skal ikke påvirke funksjonalitet
+  }
   
   console.log('📦 Laster NISSY Advanced DEV...');
   
