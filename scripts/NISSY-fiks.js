@@ -452,7 +452,7 @@
           button.textContent = '⏳ Laster...';
           
           try {
-            const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
+            const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
             let scriptFile = '';
             
             // Map script navn til filnavn
