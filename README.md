@@ -29,6 +29,7 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
   - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
 - 🚕 **Ressursinfo (Alt+D)**
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
+  - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
   - WIP: Når NISSY kan ta imot 5021 XML (bilens nåværende posisjon) kan dette vises i samme bilde.
 - 📃 **Bestillingsmodul (Alt+N)**
   - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
@@ -50,7 +51,7 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
 - **Statistikk**
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
 - **Trøndertaxi-løyve**
-  - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister.
+  - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 
 ## 📊 Oversikt alle features i script-pakker
 Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 

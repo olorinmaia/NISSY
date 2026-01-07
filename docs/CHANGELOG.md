@@ -10,6 +10,19 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Flere tilpasbare innstillinger
 
 ---
+## [1.3.0] - 07.01.2026
+
+### 🚕 Ressursinfo og Trøndertaxi-løyve forbedret!
+
+#### Hva er nytt?
+- **Ressursinfo.js**
+  - Hvis transportør er Trøndertaxi vises en knapp øverst med "Løyveregister" som tar deg til Trøndertaxi sitt register og viser info om bilen.
+  - Øverst til høyre ser du nå informasjon avtalenavn og områdekode (ved å holde musen over)
+- **Trøndertaxi-løyve.js** - Sender deg nå direkte til løyveregisteret og åpner opp all info om valgt bil.
+
+#### Feilrettinger
+- Problem med at Tab-knapp ikke virket pga feil i koden til Bestillingsmodul.js er rettet.
+
 ## [1.2.0] - 04.01.2026
 
 ### 🎉 Utvidelse med 2 nye script Bestillingsmodul.js og Avbestilling.js og 🚕 Ressursinfo forbedret!

@@ -101,7 +101,7 @@
   // ÅPNE TRØNDERTAXI SITT LØYVEREGISTER I NYTT VINDU
   // Åpner pasientreiser.tronder.taxi/Loyver/Oversikt
   // ============================================================
-  const url = "https://pasientreiser.tronder.taxi/Loyver/Oversikt";
+  const url = `https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=${encodeURIComponent(loyvenummer)}`;
   
   // Beregn vindus-dimensjoner (halvparten av bredde, 90% av høyde)
   const width = Math.floor(window.innerWidth / 2);

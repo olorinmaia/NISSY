@@ -1,7 +1,8 @@
 // ============================================================
 // RESSURSINFO SCRIPT (ALT+D)
 // Henter ut nyttig info fra 2000/3003/4010 XML fra merket ressurs
-// Presenter planlagte/faktiske tider, koordinater, adresser, avtaleinfo i pop-up
+// Presenter planlagte/faktiske tider, koordinater, adresser, navn, avtale, områdekode i pop-up
+// Hvis transportør er Trøndertaxi vises link til løyveregister
 // ============================================================
 
 (function() {
@@ -200,11 +201,11 @@ async function runResourceInfo() {
 
     // Parse data
     const { orderMap, agreementInfo } = await extractOrderData(xml2000Links);
-    const phoneNumber = await extractPhoneNumber(xml3003Links);
+    const { phoneNumber, senderIdOrg, licensePlate: licensePlate3003 } = await extractPhoneNumber(xml3003Links);
     const eventData = await extractEventData(xml4010Links, orderMap);
 
     // Vis popup
-    showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo);
+    showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003);
   }
 
   /* ==========================
@@ -500,16 +501,31 @@ async function runResourceInfo() {
      ========================== */
   async function extractPhoneNumber(xmlUrls) {
     let foundPhone = null;
+    let senderIdOrg = null;
+    let licensePlateFrom3003 = null;
 
     for (const url of xmlUrls) {
       try {
         const xmlDoc = await fetchAndParseXML(url);
+
+        // Hent avsender-info (idOrg id)
+        if (!senderIdOrg) {
+          const orgSenderIdOrg = xmlDoc.querySelector('orgSender > idOrg');
+          if (orgSenderIdOrg) {
+            senderIdOrg = orgSenderIdOrg.getAttribute('id');
+          }
+        }
 
         // Sjekk at licensePlate matcher
         const refIdVehicle = xmlDoc.querySelector('referencesTo > idVehicle');
         if (refIdVehicle) {
           const refId = refIdVehicle.getAttribute('id');
           if (refId !== licensePlate) continue;
+          
+          // Lagre løyvenummer fra 3003 XML
+          if (!licensePlateFrom3003) {
+            licensePlateFrom3003 = refId;
+          }
         }
 
         // Frogne-format
@@ -554,7 +570,11 @@ async function runResourceInfo() {
       }
     }
 
-    return foundPhone;
+    return { 
+      phoneNumber: foundPhone, 
+      senderIdOrg: senderIdOrg,
+      licensePlate: licensePlateFrom3003
+    };
   }
 
   /* ==========================
@@ -709,7 +729,7 @@ async function runResourceInfo() {
   /* ==========================
      9. VIS KOMBINERT POPUP
      ========================== */
-  function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo) {
+  function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003) {
     const rowRect = row.getBoundingClientRect();
 
     // Overlay
@@ -776,13 +796,40 @@ async function runResourceInfo() {
       // Konverter "24/12/2025 20:55:09" til "20:55"
       const timeOnly = time3003.split(' ')[1]?.substring(0, 5) || time3003;
       
+      // Sjekk om avsender er ITF (itf0010.967332550)
+      const showLoyveLink = senderIdOrg && senderIdOrg.includes('itf0010.967332550');
+      
       html += `
-        <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800;" title="Når 3003 XML ble mottatt">
-          <span style="font-weight: bold;">🚕 Oppdrag bekreftet: </span>
-          <span style="font-size: 15px; font-weight: bold; color: #856404;">${timeOnly}</span>
-          ${!phoneNumber ? '<span style="margin-left: 10px; color: #d32f2f;">⚠️ Fant ikke telefonnummer</span>' : ''}
-        </div>
+        <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800; display: flex; justify-content: space-between; align-items: center;" title="Når 3003 XML ble mottatt">
+          <div>
+            <span style="font-weight: bold;">🚕 Oppdrag bekreftet: </span>
+            <span style="font-size: 15px; font-weight: bold; color: #856404;">${timeOnly}</span>
+            ${!phoneNumber ? '<span style="margin-left: 10px; color: #d32f2f;">⚠️ Fant ikke telefonnummer</span>' : ''}
+          </div>
       `;
+      
+      // Legg til løyveregister-link hvis avsender er ITF
+      if (showLoyveLink && licensePlate3003) {
+        const loyveUrl = `https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=${encodeURIComponent(licensePlate3003)}`;
+        html += `
+          <div>
+            <a href="${loyveUrl}" 
+               style="
+                 color: #1976d2;
+                 text-decoration: none;
+                 font-size: 13px;
+                 padding: 4px 8px;
+                 background: #e3f2fd;
+                 border-radius: 4px;
+               "
+               title="Åpne Trøndertaxi sitt løyveregister for ${licensePlate3003}">
+              📋 Løyveregister
+            </a>
+          </div>
+        `;
+      }
+      
+      html += `</div>`;
     }
 
     // TELEFONNUMMER SEKSJON
@@ -1038,6 +1085,21 @@ async function runResourceInfo() {
       link.addEventListener("click", e => {
         e.preventDefault();
         openPopupWindow(link.href);
+      });
+    });
+    
+    // Løyveregister-link (åpnes i nytt vindu uten consent-sjekk)
+    const loyveLinks = popup.querySelectorAll("a[href^='https://pasientreiser.tronder.taxi/Loyver/Oversikt']");
+    loyveLinks.forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        const width = Math.floor(window.innerWidth / 2);
+        const height = Math.floor(window.innerHeight * 0.9);
+        window.open(
+          link.href,
+          "_blank",
+          `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+        );
       });
     });
 
