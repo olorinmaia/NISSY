@@ -25,11 +25,14 @@
   
   console.log('✅ NISSY Expert DEV lastet!');
 
+  // ============================================================
+  // LEGG TIL SCRIPT-KNAPPER I GRENSESNITTET
+  // ============================================================
   (() => {
-    console.log("🔧 Legger til NISSY Expert knapper...");
+    console.log("🔧 Legger til NISSY script-knapper...");
 
     function addCustomButtons() {
-      // Finn RIKTIG tabell
+      // Finn riktig tabell (den med både Merknad og Tildel oppdrag)
       let targetTable = null;
       document.querySelectorAll('table').forEach(table => {
         const hasMerknad = table.querySelector('#buttonResourceComment');
@@ -45,11 +48,13 @@
       const tbody = targetTable.querySelector('tbody');
       if (!tbody) return;
       
-      if (targetTable.querySelector('.nissy-expert-header')) {
-        console.log("✅ NISSY Expert knapper allerede installert");
+      // Sjekk om knappene allerede er installert
+      if (targetTable.querySelector('.nissy-script-header')) {
+        console.log("✅ NISSY script-knapper allerede installert");
         return;
       }
       
+      // Finn første rad med knapper (Merknad/Avvik)
       const firstRow = Array.from(tbody.querySelectorAll('tr')).find(row => 
         row.querySelector('#buttonResourceComment')
       );
@@ -59,106 +64,104 @@
         return;
       }
       
-      // ============ LEGG TIL CSS FOR BREDERE KNAPPER ============
-      if (!document.getElementById('nissy-expert-button-styles')) {
+      // Legg til CSS for bredere knapper
+      if (!document.getElementById('nissy-script-button-styles')) {
         const style = document.createElement('style');
-        style.id = 'nissy-expert-button-styles';
+        style.id = 'nissy-script-button-styles';
         style.textContent = `
-          .nissy-expert-btn {
+          .nissy-script-btn {
             width: 200px !important;
             min-width: 150px;
           }
         `;
         document.head.appendChild(style);
       }
-      // ==========================================================
       
+      // HTML for knapper
       const rowsHTML = `
-        <tr class="nissy-expert-header" style="background: linear-gradient(to bottom, #e8f4f8 0%, #d4e9f5 100%);">
+        <tr class="nissy-script-header" style="background: linear-gradient(to bottom, #e8f4f8 0%, #d4e9f5 100%);">
           <td colspan="2" style="padding: 6px 8px; text-align: center; font-weight: bold; color: #2c5f8d; font-size: 11px;">
             🚀 NISSY Expert-funksjoner 🚀
           </td>
         </tr>
-        <tr class="nissy-expert-row">
+        <tr class="nissy-script-row">
           <td valign="top" align="left">
-            <input type="button" value="📆 Smart-tildeling (Alt+S)" class="bigbutton nissy-expert-btn" 
+            <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
                    data-hotkey="s" title="Smart tildeling med RB/ERS + passasjerregler uten behov for å velge avtale">
           </td>
           <td valign="top" align="right">
-            <input type="button" value="❌ Avbestilling (Alt+K)" class="bigbutton nissy-expert-btn" 
+            <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
                    data-hotkey="k" title="Masse-avbestill markerte ressurser">
           </td>
         </tr>
-        <tr class="nissy-expert-row">
+        <tr class="nissy-script-row">
           <td valign="top" align="left">
-            <input type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-expert-btn" 
+            <input type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn" 
                    data-hotkey="t" title="Tilordner bestillinger til hver sin avtale, ingen begrensning på antall">
           </td>
           <td valign="top" align="right">
-            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-expert-btn" 
+            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
         </tr>
-        <tr class="nissy-expert-row">
+        <tr class="nissy-script-row">
           <td valign="top" align="left">
-            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-expert-btn" 
+            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag">
           </td>
           <td valign="top" align="right">
-            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-expert-btn" 
+            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
                    data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
           </td>
         </tr>
-        <tr class="nissy-expert-row">
+        <tr class="nissy-script-row">
           <td valign="top" align="left">
-            <input type="button" value="📃 Bestillingsmodul (Alt+N)" class="bigbutton nissy-expert-btn" 
+            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul">
           </td>
           <td valign="top" align="right">
-          <!-- tom celle -->
+            <!-- tom celle -->
           </td>
         </tr>
-        <tr class="nissy-expert-separator">
+        <tr class="nissy-script-separator">
           <td colspan="2" style="padding: 4px 0 8px 0;">
             <div style="border-bottom: 2px solid #4a90e2; margin: 0 8px;"></div>
           </td>
         </tr>
       `;
       
+      // Sett inn FØR første rad (over Merknad/Avvik)
       firstRow.insertAdjacentHTML('beforebegin', rowsHTML);
       
-      const expertButtons = targetTable.querySelectorAll('.nissy-expert-btn');
-      expertButtons.forEach(button => {
+      // Koble knapper til hotkeys
+      targetTable.querySelectorAll('.nissy-script-btn').forEach(button => {
         const hotkey = button.getAttribute('data-hotkey');
         if (hotkey) {
           button.onclick = () => {
             document.dispatchEvent(new KeyboardEvent('keydown', {
-              key: hotkey, altKey: true, bubbles: true, cancelable: true
+              key: hotkey, 
+              altKey: true, 
+              bubbles: true, 
+              cancelable: true
             }));
           };
         }
       });
       
-      console.log("✅ NISSY Expert knapper installert");
+      console.log("✅ NISSY script-knapper installert");
     }
 
+    // Installer knapper når DOM er klar
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', addCustomButtons);
     } else {
       setTimeout(addCustomButtons, 300);
     }
-    
-    const originalOpenPopp = window.openPopp;
-    if (typeof originalOpenPopp === 'function') {
-      window.openPopp = function(...args) {
-        const result = originalOpenPopp.apply(this, args);
-        setTimeout(addCustomButtons, 500);
-        return result;
-      };
-    }
   })();
 
-  // Vis snarvei-popup
+  // ============================================================
+  // VIS SNARVEI-POPUP
+  // ============================================================
   setTimeout(() => {
     const popup = document.createElement('div');
     popup.innerHTML = `
@@ -189,7 +192,7 @@
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
-          • ALT+N → Bestillingsmodul</b><br>
+          • ALT+N → Bestillingsmodul<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -246,7 +249,6 @@
     document.body.appendChild(popup);
 
     const closePopup = () => {
-      // Bruk removeChild i stedet for .remove() for å unngå Rico-konflikt
       if (popup && popup.parentNode) {
         popup.parentNode.removeChild(popup);
       }
@@ -254,10 +256,8 @@
         overlay.parentNode.removeChild(overlay);
       }
       
-      // Fjern ESC-listener
       document.removeEventListener('keydown', escHandler);
       
-      // Refresh data når popup lukkes
       if (typeof openPopp === 'function') {
         openPopp('-1');
       }
@@ -266,7 +266,6 @@
     popup.querySelector('#closeNissyPopup').onclick = closePopup;
     overlay.onclick = closePopup;
 
-    // Lukk med ESC og refresh
     const escHandler = (e) => {
       if (e.key === 'Escape') {
         closePopup();
