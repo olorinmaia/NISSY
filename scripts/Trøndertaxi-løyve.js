@@ -2,7 +2,7 @@
   // ============================================================
   // LØYVENUMMER-KOPIERING OG ÅPNING AV TRØNDERTAXI LØYVEREGISTER
   // ============================================================
-
+  
   // ============================================================
   // TOAST-MELDING
   // Viser en midlertidig melding nederst på skjermen
@@ -27,40 +27,67 @@
       opacity: "0",
       transition: "opacity 0.3s ease"
     });
-
     document.body.appendChild(toast);
-
+    
     // Fade in
     setTimeout(() => {
       toast.style.opacity = "1";
     }, 10);
-
+    
     // Fade out etter 3 sekunder
     setTimeout(() => {
       toast.style.opacity = "0";
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }
-
+  
   // ============================================================
   // FINN LØYVENUMMER
   // Prøver to metoder: 1) Merket rad i NISSY, 2) turFooter i CTRL
   // ============================================================
   let loyvenummer = null;
-
+  
   // ============================================================
   // METODE 1: MERKET RAD I NISSY
   // Ser etter rad med bakgrunnsfarge rgb(148, 169, 220)
   // ============================================================
-  const markedRow = [...document.querySelectorAll("tr")].find(row =>
+  const allMarkedRows = [...document.querySelectorAll("tr")].filter(row =>
     window.getComputedStyle(row).backgroundColor === "rgb(148, 169, 220)"
   );
-
-  if (markedRow) {
-    // Hent løyvenummer fra andre kolonne (children[1])
-    loyvenummer = markedRow.children[1]?.innerText.trim() || null;
+  
+  if (allMarkedRows.length > 1) {
+    // Flere ressurser er merket - vis valg-dialog
+    const loyvenumre = allMarkedRows
+      .map(row => row.children[1]?.innerText.trim())
+      .filter(Boolean);
+    
+    const choice = prompt(
+      `Du har merket ${allMarkedRows.length} ressurser:\n\n` +
+      loyvenumre.map((lp, i) => `${i + 1}. ${lp}`).join('\n') +
+      `\n\nVelg ressurs (1-${allMarkedRows.length}) eller trykk Avbryt:`,
+      "1"
+    );
+    
+    // Sjekk om bruker trykket Avbryt
+    if (choice === null) {
+      return;
+    }
+    
+    // Valider input
+    const selectedIndex = parseInt(choice) - 1;
+    if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= allMarkedRows.length) {
+      showToast(`Ugyldig valg. Velg et tall mellom 1 og ${allMarkedRows.length}.`, true);
+      return;
+    }
+    
+    // Bruk valgt ressurs
+    loyvenummer = loyvenumre[selectedIndex];
+    
+  } else if (allMarkedRows.length === 1) {
+    // Kun én ressurs merket
+    loyvenummer = allMarkedRows[0].children[1]?.innerText.trim() || null;
   }
-
+  
   // ============================================================
   // METODE 2: TURFOOTER I CTRL (FALLBACK)
   // Hvis ikke funnet i NISSY, prøv å finne i CTRL sin turFooter
@@ -76,7 +103,7 @@
       }
     }
   }
-
+  
   // ============================================================
   // VALIDER OG KOPIER
   // ============================================================
@@ -86,6 +113,7 @@
       "Fant ikke løyvenummer verken i markert rad i NISSY eller i turFooter i CTRL.",
       true // isError = true (rød bakgrunn)
     );
+    return; // Stopp her hvis ingen løyvenummer funnet
   } else {
     // Kopier til clipboard
     navigator.clipboard.writeText(loyvenummer)
@@ -96,7 +124,7 @@
         showToast("Kunne ikke kopiere til clipboard", true);
       });
   }
-
+  
   // ============================================================
   // ÅPNE TRØNDERTAXI SITT LØYVEREGISTER I NYTT VINDU
   // Åpner pasientreiser.tronder.taxi/Loyver/Oversikt
