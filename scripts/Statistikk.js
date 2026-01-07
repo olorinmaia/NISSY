@@ -5,6 +5,13 @@
   // valgt filter. Teller ventende/pågående oppdrag.
   // ============================================================
   
+  // --- SPERRE MOT DUPLIKAT KJØRING ---
+  if (window.__statistikkActive) {
+    console.warn("⚠️ Statistikk er allerede aktiv - ignorerer ny forespørsel");
+    return;
+  }
+  window.__statistikkActive = true;
+
   // --- VISUELL VENTER OVERLAY ---
   function visVenterOverlay() {
     const overlay = document.createElement("div");
@@ -63,6 +70,8 @@
       if (e.key === "Escape") {
         overlay.remove();
         document.removeEventListener("keydown", escClose);
+        // Frigjør sperre hvis bruker avbryter
+        window.__statistikkActive = false;
       }
     }
     document.addEventListener("keydown", escClose);
@@ -136,7 +145,6 @@
       backgroundColor: "rgba(0,0,0,0.3)",
       zIndex: 999999,
     });
-    // FJERNET: overlay.addEventListener("click", () => overlay.remove());
 
     // === POPUP ===
     const popup = document.createElement("div");
@@ -233,6 +241,8 @@
       if (e.key === "Escape") {
         overlay.remove();
         document.removeEventListener("keydown", escClosePopup);
+        // Frigjør sperre når popup lukkes
+        window.__statistikkActive = false;
       }
     }
     document.addEventListener("keydown", escClosePopup);
@@ -240,6 +250,8 @@
     lukkBtn.onclick = () => {
       overlay.remove();
       document.removeEventListener("keydown", escClosePopup);
+      // Frigjør sperre når popup lukkes
+      window.__statistikkActive = false;
     };
 
     popup.appendChild(lukkBtn);
