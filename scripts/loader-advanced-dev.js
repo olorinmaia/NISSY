@@ -16,12 +16,21 @@
   // Logger at loader ble brukt (ingen persondata)
   // ============================================================
   try {
-    fetch('https://api.countapi.xyz/hit/nissy-stats/loader-advanced-dev', { 
-      method: 'GET' 
-    }).catch(() => {}); // Silent fail hvis CountAPI er nede
-  } catch (e) {
-    // Ignorer feil - statistikk skal ikke påvirke funksjonalitet
-  }
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = '//gc.zgo.at/count.js';
+    script.setAttribute('data-goatcounter', 'https://nissy.goatcounter.com/count');
+    document.head.appendChild(script);
+    
+    // Track loader
+    if (window.goatcounter) {
+      window.goatcounter.count({
+        path: '/loader-advanced-dev',
+        title: 'Loader Advanced DEV',
+        event: true
+      });
+    }
+  } catch (e) {}
   
   console.log('📦 Laster NISSY Advanced DEV...');
   
