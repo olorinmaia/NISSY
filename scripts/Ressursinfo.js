@@ -36,16 +36,46 @@ async function runResourceInfo() {
   /* ==========================
      1. Finn markert ressurs
      ========================== */
-  const row = [...document.querySelectorAll("tr")].find(tr =>
+  const allSelectedRows = [...document.querySelectorAll("tr")].filter(tr =>
     getComputedStyle(tr).backgroundColor === SELECTED_BG &&
     tr.id?.startsWith("R")
   );
   
-  if (!row) {
+  if (allSelectedRows.length === 0) {
     alert("Ingen ressurs er merket.");
     return;
   }
-
+  
+  // Hvis flere ressurser er merket, vis valg-dialog
+  if (allSelectedRows.length > 1) {
+    const licensePlates = allSelectedRows.map(r => r.cells[1]?.textContent.trim()).filter(Boolean);
+    
+    const choice = prompt(
+      `Du har merket ${allSelectedRows.length} ressurser:\n\n` +
+      licensePlates.map((lp, i) => `${i + 1}. ${lp}`).join('\n') +
+      `\n\nVelg ressurs (1-${allSelectedRows.length}) eller trykk Avbryt:`,
+      "1"
+    );
+    
+    // Sjekk om bruker trykket Avbryt
+    if (choice === null) {
+      return;
+    }
+    
+    // Valider input
+    const selectedIndex = parseInt(choice) - 1;
+    if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= allSelectedRows.length) {
+      alert(`Ugyldig valg. Velg et tall mellom 1 og ${allSelectedRows.length}.`);
+      return;
+    }
+    
+    // Bruk valgt ressurs
+    var row = allSelectedRows[selectedIndex];
+  } else {
+    // Kun én ressurs merket
+    var row = allSelectedRows[0];
+  }
+  
   const licensePlate = row.cells[1]?.textContent.trim();
   if (!licensePlate) {
     alert("Fant ikke løyvenummer i raden.");
