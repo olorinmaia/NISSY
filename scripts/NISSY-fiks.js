@@ -346,6 +346,175 @@
     }
   });
 
+    /* ======================================================
+     DEL 5: LEGG TIL MANUELLE SCRIPT-KNAPPER (NEDERST)
+     ====================================================== */
+
+  (() => {
+    console.log("🔧 Legger til manuelle script-knapper...");
+
+    function addManualButtons() {
+      // Finn bottomframe tabellen
+      const bottomTable = document.querySelector('.bottomframe table tbody tr');
+      
+      if (!bottomTable) {
+        console.warn("⚠️ Fant ikke bottomframe tabell");
+        return;
+      }
+      
+      // Sjekk om knappene allerede er lagt til
+      if (document.getElementById('nissy-manual-scripts')) {
+        console.log("✅ Manuelle script-knapper allerede installert");
+        return;
+      }
+      
+      // Legg til CSS for manuelle knapper
+      if (!document.getElementById('nissy-manual-button-styles')) {
+        const style = document.createElement('style');
+        style.id = 'nissy-manual-button-styles';
+        style.textContent = `
+          .nissy-manual-btn {
+            background: linear-gradient(135deg, #4279b8 0%, #3668a2 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+            margin-right: 6px;
+          }
+          .nissy-manual-btn:hover {
+            background: linear-gradient(135deg, #3668a2 0%, #2f5ba5 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          .nissy-manual-btn:active {
+            transform: translateY(0);
+          }
+          .nissy-manual-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+          }
+          #nissy-manual-scripts {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      // Opprett ny celle med knapper
+      const newCell = document.createElement('td');
+      newCell.className = 'd';
+      newCell.setAttribute('valign', 'top');
+      newCell.innerHTML = `
+        <div id="nissy-manual-scripts">
+          <button class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
+            🚗 Alenebil
+          </button>
+          <button class="nissy-manual-btn" data-script="auto-bestill" title="Bestiller opp alle turer på valgt filter automatisk">
+            🤖 Auto-Bestill
+          </button>
+          <button class="nissy-manual-btn" data-script="sjekk-duplikat" title="Sjekk alle bestillinger på valgt filter for duplikater">
+            🔍 Sjekk-Duplikat
+          </button>
+          <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
+            📞 Sjekk-Telefon
+          </button>
+          <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger på valgt filter">
+            📊 Statistikk
+          </button>
+          <button class="nissy-manual-btn" data-script="trondertaxi-loyve" title="Åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes">
+            🚕 Trøndertaxi-Løyve
+          </button>
+        </div>
+      `;
+      
+      // Legg til cellen etter "Dynamiske plakater"
+      bottomTable.appendChild(newCell);
+      
+      // Koble knapper til scripts
+      document.querySelectorAll('.nissy-manual-btn').forEach(button => {
+        const scriptName = button.getAttribute('data-script');
+        
+        button.onclick = async () => {
+          console.log(`🚀 Kjører ${scriptName}`);
+          
+          // Deaktiver knappen midlertidig
+          button.disabled = true;
+          const originalText = button.textContent;
+          button.textContent = '⏳ Laster...';
+          
+          try {
+            const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
+            let scriptFile = '';
+            
+            // Map script navn til filnavn
+            switch(scriptName) {
+              case 'alenebil':
+                scriptFile = 'Alenebil.js';
+                break;
+              case 'auto-bestill':
+                scriptFile = 'Auto-Bestill.js';
+                break;
+              case 'sjekk-duplikat':
+                scriptFile = 'Sjekk-duplikat.js';
+                break;
+              case 'sjekk-telefon':
+                scriptFile = 'Sjekk-telefon.js';
+                break;
+              case 'statistikk':
+                scriptFile = 'Statistikk.js';
+                break;
+              case 'trondertaxi-loyve':
+                scriptFile = 'Trøndertaxi-løyve.js';
+                break;
+              default:
+                throw new Error(`Ukjent script: ${scriptName}`);
+            }
+            
+            // Last og kjør script
+            const response = await fetch(BASE + scriptFile + `?t=${Date.now()}`);
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            const code = await response.text();
+            eval(code);
+            
+            // Re-enable knappen direkte
+            button.textContent = originalText;
+            button.disabled = false;
+            
+          } catch (err) {
+            console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
+            
+            // Visuell feedback - kun ved feil
+            button.textContent = '❌ Feil';
+            setTimeout(() => {
+              button.textContent = originalText;
+              button.disabled = false;
+            }, 2000);
+          }
+        };
+      });
+      
+      console.log("✅ Manuelle script-knapper installert (6 scripts)");
+    }
+
+    // Installer knapper når DOM er klar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addManualButtons);
+    } else {
+      setTimeout(addManualButtons, 400);
+    }
+  })();
+
   /* ======================================================
      SNARVEI-OVERSIKT
      ====================================================== */
