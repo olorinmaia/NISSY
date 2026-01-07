@@ -70,8 +70,31 @@
         style.id = 'nissy-script-button-styles';
         style.textContent = `
           .nissy-script-btn {
-            width: 200px !important;
-            min-width: 150px;
+            background: linear-gradient(135deg, #6b9bd1 0%, #5a8bc4 100%);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+            width: 180px !important;
+            min-width: 140px;
+          }
+          .nissy-script-btn:hover {
+            background: linear-gradient(135deg, #5a8bc4 0%, #4279b8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          .nissy-script-btn:active {
+            transform: translateY(0);
+          }
+          .nissy-script-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
           }
         `;
         document.head.appendChild(style);
@@ -79,53 +102,44 @@
       
       // HTML for knapper
       const rowsHTML = `
-        <tr class="nissy-script-header" style="background: linear-gradient(to bottom, #e8f4f8 0%, #d4e9f5 100%);">
-          <td colspan="2" style="padding: 6px 8px; text-align: center; font-weight: bold; color: #2c5f8d; font-size: 11px;">
-            🚀 NISSY Expert-funksjoner 🚀
-          </td>
-        </tr>
+
         <tr class="nissy-script-row">
-          <td valign="top" align="left">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
                    data-hotkey="s" title="Smart tildeling med RB/ERS + passasjerregler uten behov for å velge avtale">
           </td>
-          <td valign="top" align="right">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
                    data-hotkey="k" title="Masse-avbestill markerte ressurser">
           </td>
         </tr>
         <tr class="nissy-script-row">
-          <td valign="top" align="left">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn" 
                    data-hotkey="t" title="Tilordner bestillinger til hver sin avtale, ingen begrensning på antall">
           </td>
-          <td valign="top" align="right">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
         </tr>
         <tr class="nissy-script-row">
-          <td valign="top" align="left">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag">
           </td>
-          <td valign="top" align="right">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
                    data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
           </td>
         </tr>
         <tr class="nissy-script-row">
-          <td valign="top" align="left">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul">
           </td>
-          <td valign="top" align="right">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
             <!-- tom celle -->
-          </td>
-        </tr>
-        <tr class="nissy-script-separator">
-          <td colspan="2" style="padding: 4px 0 8px 0;">
-            <div style="border-bottom: 2px solid #4a90e2; margin: 0 8px;"></div>
           </td>
         </tr>
       `;
