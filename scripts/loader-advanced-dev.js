@@ -10,6 +10,27 @@
     'Avbestilling.js',
     'Ressursinfo.js'
   ];
+
+  // ============================================================
+  // ANONYM BRUKSSTATISTIKK
+  // Logger at loader ble brukt (ingen persondata)
+  // ============================================================
+  try {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = '//gc.zgo.at/count.js';
+    script.setAttribute('data-goatcounter', 'https://nissy.goatcounter.com/count');
+    document.head.appendChild(script);
+    
+    // Track loader
+    if (window.goatcounter) {
+      window.goatcounter.count({
+        path: '/loader-advanced-dev',
+        title: 'Loader Advanced DEV',
+        event: true
+      });
+    }
+  } catch (e) {}
   
   console.log('📦 Laster NISSY Advanced DEV...');
   
