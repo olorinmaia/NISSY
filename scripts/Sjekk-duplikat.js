@@ -320,6 +320,7 @@
   }
 
   function closeModal() {
+    // Fjern elementer først
     if (overlayDiv && overlayDiv.parentNode) {
       document.body.removeChild(overlayDiv);
     }
@@ -327,10 +328,11 @@
       document.body.removeChild(modalDiv);
     }
     document.removeEventListener('keydown', handleEscape);
-    // Frigjør sperre når modal lukkes
-    window.__sjekkDuplikatActive = false;
     overlayDiv = null;
     modalDiv = null;
+    
+    // Frigjør sperre ETTER at modalen er fjernet
+    window.__sjekkDuplikatActive = false;
   }
 
   function handleEscape(e) {
@@ -340,7 +342,14 @@
   }
 
   function showModal(countDuplicates, routeDuplicates) {
-    closeModal();
+    // IKKE kall closeModal() her siden det ville frigjort sperren
+    // Fjern bare eksisterende modal uten å frigjøre sperren
+    if (overlayDiv && overlayDiv.parentNode) {
+      document.body.removeChild(overlayDiv);
+    }
+    if (modalDiv && modalDiv.parentNode) {
+      document.body.removeChild(modalDiv);
+    }
     
     // Lag overlay
     overlayDiv = document.createElement('div');
