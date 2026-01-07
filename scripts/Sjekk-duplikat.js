@@ -1,9 +1,16 @@
-  // ================================================================================
-  // Script som sjekker for duplikater blant alle bestillinger på valgt filter
-  // Sjekker ventende og pågående oppdrag, lar deg søke etter feil for å rette opp
-  // ================================================================================
+// ================================================================================
+// Script som sjekker for duplikater blant alle bestillinger på valgt filter
+// Sjekker ventende og pågående oppdrag, lar deg søke etter feil for å rette opp
+// ================================================================================
 
 (() => {
+  // --- SPERRE MOT DUPLIKAT KJØRING ---
+  if (window.__sjekkDuplikatActive) {
+    console.warn("⚠️ Sjekk-duplikat er allerede aktiv - ignorerer ny forespørsel");
+    return;
+  }
+  window.__sjekkDuplikatActive = true;
+
   let modalDiv = null;
   let overlayDiv = null;
 
@@ -291,18 +298,13 @@
   function searchInPlanning(navn) {
     closeModal();
     
-    // ============================================================
-    // SETT SØKETYPE TIL "NAVN"
-    // Sikrer at søket gjøres på navn, ikke bookingnummer/personnummer
-    // ============================================================
+    // Sett søketype til "NAVN"
     const searchTypeSelect = document.getElementById('searchType');
     if (searchTypeSelect) {
       searchTypeSelect.value = 'name';
     }
     
-    // ============================================================
-    // UTFØR SØK
-    // ============================================================
+    // Utfør søk
     const searchInput = document.getElementById('searchPhrase');
     if (searchInput) {
       searchInput.value = navn;
@@ -325,6 +327,8 @@
       document.body.removeChild(modalDiv);
     }
     document.removeEventListener('keydown', handleEscape);
+    // Frigjør sperre når modal lukkes
+    window.__sjekkDuplikatActive = false;
     overlayDiv = null;
     modalDiv = null;
   }
