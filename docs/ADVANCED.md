@@ -204,7 +204,7 @@ Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig 
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
 - Se [README](../README.md) for mer informasjon
-- Se [CHANGELOG](../CHANGELOG.md) for endringslogg
+- Se [CHANGELOG](CHANGELOG.md) for endringslogg
 
 ---
 
