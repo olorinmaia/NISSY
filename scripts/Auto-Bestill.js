@@ -5,7 +5,14 @@
 // Åpner en pop-up som lar deg trykke på en knapp for å bestille
 // opp alle turer med 0.25 sekunders mellomrom på valgt filter
 // ============================================================
-  
+
+    // --- SPERRE MOT DUPLIKAT KJØRING ---
+    if (window.__autobestillActive) {
+        console.log("⚠️ Auto-bestilling er allerede aktiv! Lukk det eksisterende panelet før du starter på nytt.");
+        return;
+    }
+    window.__autobestillActive = true;
+
     // --- STIL ---
     const css = `
         .bpanel {
@@ -213,6 +220,8 @@
         stopClicking();
         panel.remove();
         document.removeEventListener('keydown', escListener);
+        // Frigjør sperren når panelet lukkes
+        window.__autobestillActive = false;
     }
 
     // ESC = lukk panel

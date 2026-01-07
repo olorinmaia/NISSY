@@ -1,9 +1,16 @@
-  // ================================================================================
-  // Script som sjekker for duplikater blant alle bestillinger på valgt filter
-  // Sjekker ventende og pågående oppdrag, lar deg søke etter feil for å rette opp
-  // ================================================================================
+// ================================================================================
+// Script som sjekker for duplikater blant alle bestillinger på valgt filter
+// Sjekker ventende og pågående oppdrag, lar deg søke etter feil for å rette opp
+// ================================================================================
 
 (() => {
+  // --- SPERRE MOT DUPLIKAT KJØRING ---
+  if (window.__sjekkDuplikatActive) {
+    console.warn("⚠️ Sjekk-duplikat er allerede aktiv - ignorerer ny forespørsel");
+    return;
+  }
+  window.__sjekkDuplikatActive = true;
+
   let modalDiv = null;
   let overlayDiv = null;
 
@@ -291,18 +298,13 @@
   function searchInPlanning(navn) {
     closeModal();
     
-    // ============================================================
-    // SETT SØKETYPE TIL "NAVN"
-    // Sikrer at søket gjøres på navn, ikke bookingnummer/personnummer
-    // ============================================================
+    // Sett søketype til "NAVN"
     const searchTypeSelect = document.getElementById('searchType');
     if (searchTypeSelect) {
       searchTypeSelect.value = 'name';
     }
     
-    // ============================================================
-    // UTFØR SØK
-    // ============================================================
+    // Utfør søk
     const searchInput = document.getElementById('searchPhrase');
     if (searchInput) {
       searchInput.value = navn;
@@ -318,6 +320,7 @@
   }
 
   function closeModal() {
+    // Fjern elementer først
     if (overlayDiv && overlayDiv.parentNode) {
       document.body.removeChild(overlayDiv);
     }
@@ -327,6 +330,9 @@
     document.removeEventListener('keydown', handleEscape);
     overlayDiv = null;
     modalDiv = null;
+    
+    // Frigjør sperre ETTER at modalen er fjernet
+    window.__sjekkDuplikatActive = false;
   }
 
   function handleEscape(e) {
@@ -336,7 +342,14 @@
   }
 
   function showModal(countDuplicates, routeDuplicates) {
-    closeModal();
+    // IKKE kall closeModal() her siden det ville frigjort sperren
+    // Fjern bare eksisterende modal uten å frigjøre sperren
+    if (overlayDiv && overlayDiv.parentNode) {
+      document.body.removeChild(overlayDiv);
+    }
+    if (modalDiv && modalDiv.parentNode) {
+      document.body.removeChild(modalDiv);
+    }
     
     // Lag overlay
     overlayDiv = document.createElement('div');

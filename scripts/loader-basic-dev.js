@@ -43,7 +43,136 @@
   
   console.log('✅ NISSY Basic DEV lastet!');
 
-  // Vis snarvei-popup
+  // ============================================================
+  // LEGG TIL SCRIPT-KNAPPER I GRENSESNITTET
+  // ============================================================
+  (() => {
+    console.log("🔧 Legger til NISSY script-knapper...");
+
+    function addCustomButtons() {
+      // Finn riktig tabell (den med både Merknad og Tildel oppdrag)
+      let targetTable = null;
+      document.querySelectorAll('table').forEach(table => {
+        const hasMerknad = table.querySelector('#buttonResourceComment');
+        const hasTildel = table.querySelector('#buttonAssignVopps');
+        if (hasMerknad && hasTildel) targetTable = table;
+      });
+      
+      if (!targetTable) {
+        console.warn("⚠️ Fant ikke tabell for knapper");
+        return;
+      }
+      
+      const tbody = targetTable.querySelector('tbody');
+      if (!tbody) return;
+      
+      // Sjekk om knappene allerede er installert
+      if (targetTable.querySelector('.nissy-script-header')) {
+        console.log("✅ NISSY script-knapper allerede installert");
+        return;
+      }
+      
+      // Finn første rad med knapper (Merknad/Avvik)
+      const firstRow = Array.from(tbody.querySelectorAll('tr')).find(row => 
+        row.querySelector('#buttonResourceComment')
+      );
+      
+      if (!firstRow) {
+        console.warn("⚠️ Fant ikke første rad");
+        return;
+      }
+      
+      // Legg til CSS for knapper
+      if (!document.getElementById('nissy-script-button-styles')) {
+        const style = document.createElement('style');
+        style.id = 'nissy-script-button-styles';
+        style.textContent = `
+          .nissy-script-btn {
+            background: linear-gradient(135deg, #6b9bd1 0%, #5a8bc4 100%);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+            width: 180px !important;
+            min-width: 140px;
+          }
+          .nissy-script-btn:hover {
+            background: linear-gradient(135deg, #5a8bc4 0%, #4279b8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          .nissy-script-btn:active {
+            transform: translateY(0);
+          }
+          .nissy-script-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      // HTML for knapper (kun Basic-funksjoner)
+      const rowsHTML = `
+        <tr class="nissy-script-row">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
+            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
+          </td>
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
+            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
+          </td>
+        </tr>
+        <tr class="nissy-script-row">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
+            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul">
+          </td>
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
+            <!-- tom celle -->
+          </td>
+        </tr>
+      `;
+      
+      // Sett inn FØR første rad (over Merknad/Avvik)
+      firstRow.insertAdjacentHTML('beforebegin', rowsHTML);
+      
+      // Koble knapper til hotkeys
+      targetTable.querySelectorAll('.nissy-script-btn').forEach(button => {
+        const hotkey = button.getAttribute('data-hotkey');
+        if (hotkey) {
+          button.onclick = () => {
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+              key: hotkey, 
+              altKey: true, 
+              bubbles: true, 
+              cancelable: true
+            }));
+          };
+        }
+      });
+      
+      console.log("✅ NISSY script-knapper installert");
+    }
+
+    // Installer knapper når DOM er klar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addCustomButtons);
+    } else {
+      setTimeout(addCustomButtons, 300);
+    }
+  })();
+
+  // ============================================================
+  // VIS SNARVEI-POPUP
+  // ============================================================
   setTimeout(() => {
     const popup = document.createElement('div');
     popup.innerHTML = `
@@ -70,7 +199,7 @@
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+D → Ressursinfo pop-up<br>
-          • <b>ALT+N → Bestillingsmodul (NYTT SCRIPT 🚀)</b><br>
+          • ALT+N → Bestillingsmodul<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -127,7 +256,6 @@
     document.body.appendChild(popup);
 
     const closePopup = () => {
-      // Bruk removeChild i stedet for .remove() for å unngå Rico-konflikt
       if (popup && popup.parentNode) {
         popup.parentNode.removeChild(popup);
       }
@@ -135,10 +263,8 @@
         overlay.parentNode.removeChild(overlay);
       }
       
-      // Fjern ESC-listener
       document.removeEventListener('keydown', escHandler);
       
-      // Refresh data når popup lukkes
       if (typeof openPopp === 'function') {
         openPopp('-1');
       }
@@ -147,7 +273,6 @@
     popup.querySelector('#closeNissyPopup').onclick = closePopup;
     overlay.onclick = closePopup;
 
-    // Lukk med ESC og refresh
     const escHandler = (e) => {
       if (e.key === 'Escape') {
         closePopup();

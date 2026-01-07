@@ -10,7 +10,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Flere tilpasbare innstillinger
 
 ---
-## [1.3.0] - 07.01.2026
+## [2.0.0] - 07.01.2026
+
+### 🎉 Knapper for alle script lagt til i Planleggingsbildet 🎉
+
+#### Hva er nytt?
+- Når en loader kjøres så har alle script nå fått sine egne knapper i planleggingsbildet. Snarvei står i parentes på de som har det. Manuelle script ligger nederst og må trykkes på.
+
+## [1.3.0] - 06.01.2026
 
 ### 🚕 Ressursinfo og Trøndertaxi-løyve forbedret!
 
