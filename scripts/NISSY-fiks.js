@@ -446,10 +446,7 @@
         button.onclick = async () => {
           console.log(`🚀 Kjører ${scriptName}`);
           
-          // Deaktiver knappen midlertidig
-          button.disabled = true;
           const originalText = button.textContent;
-          button.textContent = '⏳ Laster...';
           
           try {
             const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
@@ -487,14 +484,13 @@
             const code = await response.text();
             eval(code);
             
-            // Re-enable knappen direkte
-            button.textContent = originalText;
-            button.disabled = false;
+            // Ingen visuell feedback ved suksess
             
           } catch (err) {
             console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
             
             // Visuell feedback - kun ved feil
+            button.disabled = true;
             button.textContent = '❌ Feil';
             setTimeout(() => {
               button.textContent = originalText;
