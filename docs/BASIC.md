@@ -161,7 +161,8 @@ Legger til:
 
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
-- Se [hovedoversikt](../README.md) for mer informasjon
+- Se [README](../README.md) for mer informasjon
+- Se [CHANGELOG](../CHANGELOG.md) for endringslogg
 
 ---
 
