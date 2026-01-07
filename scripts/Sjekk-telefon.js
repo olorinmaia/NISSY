@@ -4,6 +4,13 @@
 (function() {
     'use strict';
 
+    // --- SPERRE MOT DUPLIKAT KJØRING ---
+    if (window.__sjekkTelefonActive) {
+        console.warn("⚠️ Sjekk-telefon er allerede aktiv - ignorerer ny forespørsel");
+        return;
+    }
+    window.__sjekkTelefonActive = true;
+
     // Regulært uttrykk for gyldig telefonnummer
     // Aksepterer: 
     // - 12345678 (8 siffer)
@@ -361,20 +368,17 @@
                 searchButton.onclick = async function() {
                   // Lukk modal og fjern kolonner
                   overlay.remove();
+                  // Frigjør sperre når modal lukkes via søk-knapp
+                  window.__sjekkTelefonActive = false;
                   await togglePhoneColumns(false);
                   
-                  // ============================================================
-                  // SETT SØKETYPE TIL "NAVN"
-                  // Sikrer at søket gjøres på navn, ikke andre kriterier
-                  // ============================================================
+                  // Sett søketype til "NAVN"
                   const searchTypeSelect = document.getElementById('searchType');
                   if (searchTypeSelect) {
                     searchTypeSelect.value = 'name';
                   }
                   
-                  // ============================================================
-                  // UTFØR SØK
-                  // ============================================================
+                  // Utfør søk
                   const searchInput = document.getElementById('searchPhrase');
                   if (searchInput) {
                     searchInput.value = result.name;
@@ -410,6 +414,8 @@
         closeButton.onmouseout = function() { this.style.background = '#007bff'; };
         closeButton.onclick = async function() {
             overlay.remove();
+            // Frigjør sperre når modal lukkes
+            window.__sjekkTelefonActive = false;
             // Skjul telefon-kolonnene når modal lukkes
             await togglePhoneColumns(false);
         };
