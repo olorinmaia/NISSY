@@ -374,7 +374,7 @@
         style.id = 'nissy-manual-button-styles';
         style.textContent = `
           .nissy-manual-btn {
-            background: linear-gradient(135deg, #4279b8 0%, #3668a2 100%);
+            background: linear-gradient(135deg, #6b9bd1 0%, #5a8bc4 100%);
             color: white;
             border: none;
             padding: 6px 12px;
@@ -384,10 +384,10 @@
             font-weight: 500;
             transition: all 0.2s;
             white-space: nowrap;
-            margin-right: 6px;
+            margin-right: 4px;
           }
           .nissy-manual-btn:hover {
-            background: linear-gradient(135deg, #3668a2 0%, #2f5ba5 100%);
+            background: linear-gradient(135deg, #5a8bc4 0%, #4279b8 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           }
@@ -401,7 +401,7 @@
           }
           #nissy-manual-scripts {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             align-items: center;
             flex-wrap: wrap;
           }
@@ -427,7 +427,7 @@
           <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
             📞 Sjekk-Telefon
           </button>
-          <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger på valgt filter">
+          <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter">
             📊 Statistikk
           </button>
           <button class="nissy-manual-btn" data-script="trondertaxi-loyve" title="Åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes">
