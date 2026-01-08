@@ -52,7 +52,9 @@
   // Ser etter rad med bakgrunnsfarge rgb(148, 169, 220)
   // ============================================================
   const allMarkedRows = [...document.querySelectorAll("tr")].filter(row =>
-    window.getComputedStyle(row).backgroundColor === "rgb(148, 169, 220)"
+    window.getComputedStyle(row).backgroundColor === "rgb(148, 169, 220)" &&
+       row.id?.startsWith("R")
+                                                                    
   );
   
   if (allMarkedRows.length > 1) {
