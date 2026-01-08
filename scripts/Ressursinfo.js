@@ -14,6 +14,9 @@
 
   // Installer hotkey-listener
   window.__ressursInfoHotkeyInstalled = true;
+  
+  // Sperre for å hindre multiple kjøringer samtidig
+  let isRunning = false;
 
   console.log("🚀 Starter Ressursinfo-script");
   
@@ -21,13 +24,24 @@
     // Alt+D (keyCode 68 = D)
     if (e.altKey && e.key === 'd') {
       e.preventDefault();
+      
+      // Sjekk om scriptet allerede kjører
+      if (isRunning) {
+        console.warn("⚠️ Ressursinfo kjører allerede - ignorerer ny forespørsel");
+        return;
+      }
+      
       runResourceInfo();
     }
   });
 
 async function runResourceInfo() {
+  // Sett sperre
+  isRunning = true;
+  
   // HINDRE FLERE POPUPS SAMTIDIG
   if (document.getElementById("customResourcePopup")) {
+    isRunning = false; // Frigjør sperre
     return;
   }
 
@@ -43,6 +57,7 @@ async function runResourceInfo() {
   
   if (allSelectedRows.length === 0) {
     alert("Ingen ressurs er merket.");
+    isRunning = false; // Frigjør sperre
     return;
   }
   
@@ -59,6 +74,7 @@ async function runResourceInfo() {
     
     // Sjekk om bruker trykket Avbryt
     if (choice === null) {
+      isRunning = false; // Frigjør sperre
       return;
     }
     
@@ -66,6 +82,7 @@ async function runResourceInfo() {
     const selectedIndex = parseInt(choice) - 1;
     if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= allSelectedRows.length) {
       alert(`Ugyldig valg. Velg et tall mellom 1 og ${allSelectedRows.length}.`);
+      isRunning = false; // Frigjør sperre
       return;
     }
     
@@ -79,6 +96,7 @@ async function runResourceInfo() {
   const licensePlate = row.cells[1]?.textContent.trim();
   if (!licensePlate) {
     alert("Fant ikke løyvenummer i raden.");
+    isRunning = false; // Frigjør sperre
     return;
   }
 
@@ -88,6 +106,7 @@ async function runResourceInfo() {
   const img = row.querySelector('img[onclick*="searchStatus?id="]');
   if (!img) {
     alert("Fant ikke turId på ressursen.");
+    isRunning = false; // Frigjør sperre
     return;
   }
   
@@ -97,6 +116,7 @@ async function runResourceInfo() {
   
   if (!turId) {
     alert("Kunne ikke hente turId.");
+    isRunning = false; // Frigjør sperre
     return;
   }
 
@@ -115,6 +135,7 @@ async function runResourceInfo() {
     if (xhr.readyState !== 4) return;
     if (xhr.status !== 200) {
       alert("Feil ved oppslag mot searchStatus.");
+      isRunning = false; // Frigjør sperre
       return;
     }
     parseSearchResult(xhr.responseText);
@@ -153,6 +174,7 @@ async function runResourceInfo() {
     );
     if (!m) {
       alert("Fant ingen bestillinger på denne ressursen.");
+      isRunning = false; // Frigjør sperre
       return;
     }
     const [, requisitionId, db, tripId, highlightTripNr] = m;
@@ -171,6 +193,7 @@ async function runResourceInfo() {
       detailHtml = await resp.text();
     } catch (e) {
       alert("Klarte ikke hente AJAX-detaljer: " + e);
+      isRunning = false; // Frigjør sperre
       return;
     }
 
@@ -1146,6 +1169,9 @@ async function runResourceInfo() {
       }
       
       document.removeEventListener("keydown", escHandler);
+      
+      // Frigjør sperre når popup lukkes
+      isRunning = false;
     }
 
     const closeBtn = popup.querySelector("#closePopup");
