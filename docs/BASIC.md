@@ -6,7 +6,7 @@
 
 NISSY Basic er perfekt for deg som:
 - Vil ha grunnleggende tastatursnarveier
-- Trenger rutekalkulering og ressursinfo
+- Trenger rutekalkulering og ressursinfo og andre individuelle scripts uten snarveier
 - Ikke trenger avansert tildelingsfunksjonalitet
 
 ## 📦 Hva får du?
@@ -16,6 +16,12 @@ NISSY Basic er perfekt for deg som:
 - ✅ **Ressursinfo.js** - (Alt+D) Vis detaljert ressursinformasjon
 - ✅ **Rutekalkulering.js** - (Alt+Q) Åpne rute i Google Maps
 - ✅ **Bestillingsmodul.js** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
+- ✅ **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
+- ✅ **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+- ✅ **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
+- ✅ **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- ✅ **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+- ✅ **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 
 ## 📥 Installasjon
 
