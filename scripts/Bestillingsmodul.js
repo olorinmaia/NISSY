@@ -648,8 +648,5 @@
         clearPreferred: () => sessionStorage.removeItem(CONFIG.sessionKey)
     };
 
-    // Logg script-info
-    console.log("⌨️  Bestillingsmodul snarveier:");
-    console.log("   ALT+N → Åpne bestillingsmodul");
     console.log("✅ Bestillingsmodul-script lastet");
 })();

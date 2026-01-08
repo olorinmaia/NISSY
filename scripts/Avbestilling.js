@@ -468,13 +468,6 @@ ${listSelected}
     // Auto-lukk etter 4 sekunder
     setTimeout(closeErrorPopup, 4000);
   }
-  
-  // ============================================================
-  // SNARVEI-OVERSIKT
-  // ============================================================
-  console.log("⌨️  Avbestilling snarveier");
-  console.log("   ALT+K → Avbestill merkede turer");
-  //console.log(`   Validering: Ressursnavn må slutte med minst ${MIN_DIGITS_AFTER_DASH} siffer etter siste "-"`);
+
   console.log("✅ Avbestilling-script lastet");
-  
 })();

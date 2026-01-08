@@ -1,4 +1,17 @@
 (async () => {
+  // ============================================================
+  // URL-VALIDERING
+  // Sjekk at vi er på riktig side før vi laster scripts
+  // ============================================================
+  const currentUrl = window.location.href;
+  
+  if (!currentUrl.includes('/planlegging')) {
+    console.warn('⚠️ NISSY: Feil URL - scriptet kjører kun på /planlegging');
+    console.log('📍 Nåværende URL:', currentUrl);
+    console.log('✅ Scriptet kjører på alle URLer som inneholder /planlegging');
+    return;
+  }
+
   const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
   
   const scripts = [
@@ -47,9 +60,14 @@
   // LEGG TIL SCRIPT-KNAPPER I GRENSESNITTET
   // ============================================================
   (() => {
-    console.log("🔧 Legger til NISSY script-knapper...");
-
     function addCustomButtons() {
+      // Sjekk om knappene allerede er installert
+      if (document.querySelector('.nissy-script-row')) {
+        console.log("✅ NISSY script-knapper allerede installert");
+        return;
+      }
+      console.log("🔧 Legger til NISSY script-knapper...");
+      
       // Finn riktig tabell (den med både Merknad og Tildel oppdrag)
       let targetTable = null;
       document.querySelectorAll('table').forEach(table => {
@@ -65,12 +83,6 @@
       
       const tbody = targetTable.querySelector('tbody');
       if (!tbody) return;
-      
-      // Sjekk om knappene allerede er installert
-      if (targetTable.querySelector('.nissy-script-header')) {
-        console.log("✅ NISSY script-knapper allerede installert");
-        return;
-      }
       
       // Finn første rad med knapper (Merknad/Avvik)
       const firstRow = Array.from(tbody.querySelectorAll('tr')).find(row => 

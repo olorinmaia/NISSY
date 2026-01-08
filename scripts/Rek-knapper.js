@@ -658,11 +658,6 @@
       document.body.appendChild(modal);
     }
   }
-  
-  // ============================================================
-  // SNARVEI-OVERSIKT
-  // ============================================================
-  console.log("⌨️  Rek-knapper snarveier:");
-  console.log("   ALT+R → Rek-knapper");
+
   console.log("✅ Rek-knapper-script lastet");
 })();

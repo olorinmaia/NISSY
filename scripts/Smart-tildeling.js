@@ -727,12 +727,5 @@
     window.tildelingScript_AltT = true;
   }
 
-  // ============================================================
-  // SNARVEI-OVERSIKT
-  // ============================================================
-  console.log("⌨️  Smart-tildeling snarveier:");
-  console.log("   ALT+S → Smart tildeling (RB/ERS + passasjerregler)");
-  console.log("   ALT+T → Tilordningsstøtte 2.0 (individuell tildeling)");
   console.log("✅ Smart-tildeling-script lastet");
-
 })();

@@ -244,10 +244,6 @@
     // REFRESH DATA
     // Oppdater siden for å vise endringene
     // ============================================================
-    try {
-      openPopp("-1"); // Prøv NISSY's innebygde refresh
-    } catch {
-      location.reload(); // Fallback: Full side-reload
-    }
+    openPopp("-1");
   });
 })();

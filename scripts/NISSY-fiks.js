@@ -511,23 +511,5 @@
     }
   })();
 
-  /* ======================================================
-     SNARVEI-OVERSIKT
-     ====================================================== */
-
-  console.log("⌨️  NISSY-fiks Tastatursnarveier:");
-  console.log("   ALT+F → Fokus søkefelt");
-  console.log("   ENTER (i søkefelt) → Søk");
-  console.log("   ESC → Nullstill søk + fokus søkefelt");
-  console.log("   F5 → Refresh data (openPopp)");
-  console.log("   CTRL/CMD+R → Blokkert");
-  console.log("   CTRL+1 → Fokus filter ventende oppdrag");
-  console.log("   CTRL+2 → Fokus filter ressurser");
-  console.log("   ALT+W → Vis i kart");
-  console.log("   ALT+G → Tildel oppdrag");
-  console.log("   ALT+B → Blank");
-  console.log("   ALT+P → Merk alle ressurser pågående oppdrag");
-  console.log("   ALT+V → Merk alle bestillinger ventende oppdrag");
   console.log("✅ NISSY-fiks-script lastet");
-
 })();
