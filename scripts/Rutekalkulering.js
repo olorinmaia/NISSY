@@ -288,12 +288,5 @@
     });
   });
 
-  /* ======================================================
-    SNARVEI-OVERSIKT
-  ====================================================== */
-
-  console.log("⌨️  Rutekalkulering Tastatursnarveier:");
-  console.log("   ALT+Q → Åpne pop-up med rutekalkulering i Google Maps");
   console.log("✅ Rutekalkulering-script lastet");
-  
 })();
