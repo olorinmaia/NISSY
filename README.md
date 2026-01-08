@@ -2,11 +2,12 @@
 
 Her ligger en rekke javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system der utviklingen har stagnert i påvente av erstattersystem.
 Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mer nyttig informasjon til planleggingen ved få tastetrykk. 
-Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakkene ved hjelp av bokmerke, og legge til de andre individiuelle scriptene som egne bokmerker etter ønske.
+Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakkene ved hjelp av bokmerke. De plasseres da som knapper i NISSY Planlegging-vinduet + snarveier.
 
 ## 📦 Innhold
 
-### Script med snarveier som ligger i pakker
+### Script med snarveier
+
 - ⌛ **NISSY-fiks**
   - Inneholder bugfikser, masse tastatursnarveier og forbedringer.
   - Automatisk kolonnejustering (skjuler/viser relevante kolonner)
@@ -38,6 +39,8 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
 - ❌ **Avbestilling (Alt+K).**
   - Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
   - WIP: Masseavbestilling av bestillinger
+- **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
+<img width="482" height="170" alt="image" src="https://github.com/user-attachments/assets/2767445f-a6c5-4da9-a27b-2ce399747ef7" />
 
 ### Individuelle script
 - **Alenebil**
@@ -52,6 +55,8 @@ Anbefalt måte å bruke disse scriptene på er å innstallere ett av script-pakk
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
 - **Trøndertaxi-løyve**
   - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
+- **Installeres som knapper nederst i footer i NISSY planlegging via script-pakke:**
+<img width="886" height="46" alt="image" src="https://github.com/user-attachments/assets/a886f2b2-3c03-4880-a73f-6759c8aef3df" />
 
 ## 📊 Oversikt alle features i script-pakker
 Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 
@@ -61,6 +66,12 @@ Under er en oversikt over de features som følger med i hver pakke.
 | Features | Basic | Advanced |
 |---------|-------|----------|
 | NISSY-fiks | ✅ | ✅ |
+| Alenebil | ✅ | ✅ |
+| Auto-Bestill | ✅ | ✅ |
+| Sjekk-Duplikat | ✅ | ✅ |
+| Sjekk-Telefon | ✅ | ✅ |
+| Statistikk | ✅ | ✅ |
+| Trøndertaxi-løyve | ✅ | ✅ |
 | Rutekalkulering (ALT+Q) | ✅ | ✅ |
 | Ressursinfo (ALT+D) | ✅ | ✅ |
 | Bestillingsmodul (ALT+N) | ✅ | ✅ |
@@ -88,36 +99,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 ```
 
 3. Gi bokmerket et navn (f.eks. "NISSY-Advanced")
-4. Klikk på bokmerket når du er inne i NISSY. Dette aktiverer all automatikk og snarveier og gir en pop-up med liste over snarveier og link til dokumentasjon.
-
-### Individuelle Scripts
-Følgende script må aktiveres manuelt og ha sitt eget bokmerke.
-Opprett bokmerke som beskrevet tidligere og kopier koden tilhørende gitt script under og lim inn i URL.
-
-**Alenebil** 
-```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Alenebil.js');eval(await s.text());})();
-```
-**Auto-Bestill** 
-```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Auto-Bestill.js');eval(await s.text());})();
-```
-**Sjekk-Duplikat** 
-```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Sjekk-duplikat.js');eval(await s.text());})();
-```
-**Sjekk-Telefon** 
-```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Sjekk-telefon.js');eval(await s.text());})();
-```
-**Statistikk** 
-```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Statistikk.js');eval(await s.text());})();
-```
-**Trøndertaxi-løyve**
-```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/Trøndertaxi-løyve.js');eval(await s.text());})();
-```
+4. Klikk på bokmerket når du er inne i NISSY. Dette aktiverer all automatikk, knapper og snarveier og viser en pop-up med liste over snarveier og link til dokumentasjon.
 
 ## ⌨️ Tastatursnarveier
 Snarveiene hører til de ulike script-pakkene.
