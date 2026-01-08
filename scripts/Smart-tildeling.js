@@ -460,19 +460,57 @@
       return td ? /RB|ERS/.test(td.textContent) : false;
     });
   
-    // Sjekk om en ressurs er merket
-    const resourceRow = [...document.querySelectorAll("tr")].find(row => {
-      const bg = getComputedStyle(row).backgroundColor;
-      const id = row.id || "";
-      return bg.includes(TARGET_BG) && 
-             id.startsWith("Rxxx") && 
-             !row.classList.contains("disabled");
-    });
-    
     // ============================================================
     // SCENARIO 1: RESSURS ER MERKET
     // Tildel alle bestillinger til denne ressursen
     // ============================================================
+    
+    // Finn alle merkede ressurser
+    const allResourceRows = [...document.querySelectorAll("tr")].filter(row => {
+      const bg = getComputedStyle(row).backgroundColor;
+      const id = row.id || "";
+      return bg.includes(TARGET_BG) && 
+             id.startsWith("R") && 
+             !row.classList.contains("disabled");
+    });
+    
+    let resourceRow = null;
+    
+    if (allResourceRows.length > 1) {
+      // Flere ressurser er merket - vis valg-dialog
+      const resourceNames = allResourceRows.map(row => {
+        const nameCell = row.querySelectorAll("td")[1];
+        return nameCell ? nameCell.textContent.trim() : "Ukjent";
+      }).filter(Boolean);
+      
+      const choice = prompt(
+        `Du har merket ${allResourceRows.length} ressurser:\n\n` +
+        resourceNames.map((name, i) => `${i + 1}. ${name}`).join('\n') +
+        `\n\nVelg ressurs (1-${allResourceRows.length}) eller trykk Avbryt:`,
+        "1"
+      );
+      
+      // Sjekk om bruker trykket Avbryt
+      if (choice === null) {
+        hideToast(0);
+        return;
+      }
+      
+      // Valider input
+      const selectedIndex = parseInt(choice) - 1;
+      if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= allResourceRows.length) {
+        updateToast(`Ugyldig valg. Velg et tall mellom 1 og ${allResourceRows.length}.`);
+        hideToast(3000);
+        return;
+      }
+      
+      // Bruk valgt ressurs
+      resourceRow = allResourceRows[selectedIndex];
+    } else if (allResourceRows.length === 1) {
+      // Kun én ressurs merket
+      resourceRow = allResourceRows[0];
+    }
+    
     if (resourceRow) {
       disableRows(vids);
       
