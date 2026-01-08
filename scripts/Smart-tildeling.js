@@ -40,6 +40,7 @@
   };
 
   let currentToast = null;
+  let currentErrorToast = null;
 
   // ============================================================
   // HJELPEFUNKSJON: Sjekk om det er merkede rader
@@ -119,13 +120,13 @@
     const col3 = document.getElementById("col3");
     if (col3) {
       const rect = col3.getBoundingClientRect();
-      currentToast.style.top = "50%";
+      currentToast.style.top = "66%"; // Flytt lengre ned (var 50%)
       currentToast.style.right = `${window.innerWidth - rect.left + 5}px`;
       currentToast.style.left = "auto";
       currentToast.style.transform = "translate(0%,-50%)";
     } else {
       // Fallback: sentrer på skjermen
-      currentToast.style.top = "50%";
+      currentToast.style.top = "66%"; // Flytt lengre ned (var 50%)
       currentToast.style.left = "50%";
       currentToast.style.transform = "translate(-50%,-50%)";
     }
@@ -156,6 +157,57 @@
         }
       }, 300);
     }, delay);
+  }
+
+  // ============================================================
+  // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
+  // ============================================================
+  function showErrorToast(msg) {
+    // Fjern eksisterende feilmelding-toast
+    if (currentErrorToast && currentErrorToast.parentNode) {
+      currentErrorToast.parentNode.removeChild(currentErrorToast);
+    }
+    
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    
+    // Styling (basert på Trøndertaxi-løyve.js)
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#d9534f", // Rød bakgrunn for feil
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      zIndex: "999999",
+      opacity: "0",
+      transition: "opacity 0.3s ease"
+    });
+    
+    document.body.appendChild(toast);
+    currentErrorToast = toast;
+    
+    // Fade in
+    setTimeout(() => {
+      toast.style.opacity = "1";
+    }, 10);
+    
+    // Fade out etter 3 sekunder
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+        if (currentErrorToast === toast) {
+          currentErrorToast = null;
+        }
+      }, 300);
+    }, 3000);
   }
 
   // ============================================================
@@ -323,7 +375,11 @@
              !row.classList.contains("disabled");
     });
     
-    if (!rows.length) return;
+    // SJEKK: Ingen bestillinger valgt
+    if (rows.length === 0) {
+      showErrorToast("Ingen bestillinger er valgt. Vennligst marker én eller flere bestillinger før du bruker ALT+T.");
+      return; // STOPP HER - ikke refresh
+    }
     
     const vids = rows.map(row => row.getAttribute("name")).filter(Boolean);
     if (!vids.length) return;
@@ -443,7 +499,11 @@
              !row.classList.contains("disabled");
     });
     
-    if (!rows.length) return;
+    // SJEKK: Ingen bestillinger valgt
+    if (rows.length === 0) {
+      showErrorToast("Ingen bestillinger er valgt. Vennligst marker én eller flere bestillinger før du bruker ALT+S.");
+      return; // STOPP HER - ikke refresh
+    }
     
     const vids = rows.map(row => row.getAttribute("name")).filter(Boolean);
     const maxOverlappingPassengers = countMaxOverlappingPassengers(rows);
