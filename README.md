@@ -14,7 +14,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Fikser bug med at filter ikke oppdaterer seg
   - Åpner alle turer ved bytting av filter automatisk
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
-- 📆 **Smart-tildeling (Alt+S)**
+- 🪄 **Smart-tildeling (Alt+S)**
   - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
 - 📆 **Tilordningsstøtte 2.0 (Alt+T)**
@@ -26,34 +26,34 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
   - WIP: [M] Møteplass
-- 🗺 **Rutekalkulering (Alt+Q)**
+- 🗺️ **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
 - 🚕 **Ressursinfo (Alt+D)**
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
   - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
   - WIP: Når NISSY kan ta imot 5021 XML (bilens nåværende posisjon) kan dette vises i samme bilde.
-- 📃 **Bestillingsmodul (Alt+N)**
+- 📝 **Bestillingsmodul (Alt+N)**
   - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
-- ❌ **Avbestilling (Alt+K).**
+- ✖️ **Avbestilling (Alt+K).**
   - Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
   - WIP: Masseavbestilling av bestillinger
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
 <img width="482" height="170" alt="image" src="https://github.com/user-attachments/assets/2767445f-a6c5-4da9-a27b-2ce399747ef7" />
 
 ### Individuelle script
-- **Alenebil**
+- 🚗 **Alenebil**
   - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
-- **Auto-Bestill**
+- 🤖 **Auto-Bestill**
   - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
-- **Sjekk-Duplikat**
+- 🔍 **Sjekk-Duplikat**
   - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
-- **Sjekk-Telefon**
+- 📞 **Sjekk-Telefon**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
-- **Statistikk**
+- 📊 **Statistikk**
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
-- **Trøndertaxi-løyve**
+- 🚕 **Trøndertaxi-løyve**
   - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 - **Installeres som knapper nederst i footer i NISSY planlegging via script-pakke:**
 <img width="886" height="46" alt="image" src="https://github.com/user-attachments/assets/a886f2b2-3c03-4880-a73f-6759c8aef3df" />
