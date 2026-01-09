@@ -151,7 +151,8 @@
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
-            <!-- tom celle -->
+            <input type="button" value="⚙️ Adminmodul (Alt+A)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="a" title="Åpne adminmodul i fanen person">
           </td>
         </tr>
       `;
