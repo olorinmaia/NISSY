@@ -21,6 +21,7 @@
     'Rutekalkulering.js',
     'Avbestilling.js',
     'Bestillingsmodul.js',
+    'Adminmodul.js',
     'Ressursinfo.js'
   ];
   
@@ -172,7 +173,8 @@
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
-            <!-- tom celle -->
+            <input type="button" value="📝 Adminmodul (Alt+A)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="a" title="Åpne adminmodul i person-fane. Limer inn fra utklippstavle i mobilnummer-felt automatisk">
           </td>
         </tr>
       `;
@@ -240,6 +242,7 @@
           • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>
+          • ALT+A → Adminmodul<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
