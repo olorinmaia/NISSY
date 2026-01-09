@@ -36,11 +36,15 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
-- ✖️ **Avbestilling (Alt+K).**
+  - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
+- ⚙️ **Adminmodul (Alt+A)**
+  - Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
+  - Åpner admin-linker i planleggingsvinduet i pop-up isteden for ny fane.
+- ✖️ **Avbestilling (Alt+K)**
   - Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
   - WIP: Masseavbestilling av bestillinger
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
-<img width="482" height="170" alt="image" src="https://github.com/user-attachments/assets/2767445f-a6c5-4da9-a27b-2ce399747ef7" />
+<img width="505" height="166" alt="image" src="https://github.com/user-attachments/assets/63c48b59-f9cc-46cf-b448-c4634793027a" />
 
 ### Individuelle script
 - 🚗 **Alenebil**
@@ -75,6 +79,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ |
+| ⚙️ Adminmodul (ALT+A) | ✅ | ✅ |
 | ✖️ Avbestill (ALT+K) | ❌ | ✅ |
 | 🪄 Smart-tildeling (ALT+S) | ❌ | ✅ |
 | 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
