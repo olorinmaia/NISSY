@@ -65,20 +65,20 @@ Under er en oversikt over de features som følger med i hver pakke.
 
 | Features | Basic | Advanced |
 |---------|-------|----------|
-| NISSY-fiks | ✅ | ✅ |
-| Alenebil | ✅ | ✅ |
-| Auto-Bestill | ✅ | ✅ |
-| Sjekk-Duplikat | ✅ | ✅ |
-| Sjekk-Telefon | ✅ | ✅ |
-| Statistikk | ✅ | ✅ |
-| Trøndertaxi-løyve | ✅ | ✅ |
-| Rutekalkulering (ALT+Q) | ✅ | ✅ |
-| Ressursinfo (ALT+D) | ✅ | ✅ |
-| Bestillingsmodul (ALT+N) | ✅ | ✅ |
-| Avbestill (ALT+K) | ❌ | ✅ |
-| Smart-tildeling (ALT+S) | ❌ | ✅ |
-| Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
-| Rek-knapper (ALT+R) | ❌ | ✅ |
+| ⌛ NISSY-fiks | ✅ | ✅ |
+| 🚗 Alenebil | ✅ | ✅ |
+| 🤖 Auto-Bestill | ✅ | ✅ |
+| 🔍 Sjekk-Duplikat | ✅ | ✅ |
+| 📞 Sjekk-Telefon | ✅ | ✅ |
+| 📊 Statistikk | ✅ | ✅ |
+| 🚖 Trøndertaxi-løyve | ✅ | ✅ |
+| 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ |
+| 🚕 Ressursinfo (ALT+D) | ✅ | ✅ |
+| 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ |
+| ✖️ Avbestill (ALT+K) | ❌ | ✅ |
+| 🪄 Smart-tildeling (ALT+S) | ❌ | ✅ |
+| 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
+| 🔠 Rek-knapper (ALT+R) | ❌ | ✅ |
 
 ## 🚀 Installasjon
 
