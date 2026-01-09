@@ -174,7 +174,7 @@
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="⚙️ Adminmodul (Alt+A)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="a" title="Åpne adminmodul i person-fane. Limer inn fra utklippstavle i mobilnummer-felt automatisk">
+                   data-hotkey="a" title="Åpne adminmodul i fanen person">
           </td>
         </tr>
       `;
