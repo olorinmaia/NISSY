@@ -14,6 +14,73 @@
   console.log("🚀 Starter Rutekalkulering-script");
 
   // ============================================================
+  // ADRESSE-NORMALISERING
+  // Konverterer adresser som Google Maps ikke finner
+  // til korrekte adresser
+  // ============================================================
+  const ADDRESS_MAPPINGS = {
+    // Sykehuset Levanger - poliklinikker/avdelinger
+    "Øye pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Dialyse, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Kreft pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Kreft pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Nyre pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Lunge pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Nevro pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Hem / Inf pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Bildediagnostikk, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Gastro pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Ønh pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Kir / Ort pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Kir / Ort pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Akuttpsyk sengepost, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Revma pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+
+    
+
+    // Sykehuset Namsos - avdelinger/poliklinikker
+    "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "./Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Allmennpsyk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Kreft pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Dialyse, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Øye pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Med pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Bildediagnostikk, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Kir / Ort pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Ønh pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Kreft pol/laboratoriet, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Urologisk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "./Øye pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "./Bildediagnostikk, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Nevro pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Recovery / Dagkir, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    
+    // ============================================================
+    // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
+    // "Problematisk adresse": "Korrekt adresse",
+    // ============================================================
+  };
+
+  /**
+   * Normaliserer en adresse ved å sjekke om den finnes i mapping-listen
+   * @param {string} address - Original adresse
+   * @returns {string} - Normalisert adresse (eller original hvis ingen mapping)
+   */
+  function normalizeAddress(address) {
+    const trimmedAddress = address.trim();
+    
+    // Sjekk om adressen finnes i mapping-listen
+    if (ADDRESS_MAPPINGS.hasOwnProperty(trimmedAddress)) {
+      const normalized = ADDRESS_MAPPINGS[trimmedAddress];
+      return normalized;
+    }
+    
+    // Ingen mapping funnet - returner original adresse
+    return trimmedAddress;
+  }
+
+  // ============================================================
   // GOOGLE MAPS CONSENT-HÅNDTERING
   // Google Maps krever at bruker godtar vilkår første gang
   // ============================================================
@@ -100,12 +167,22 @@
 
       // ============================================================
       // HJELPEFUNKSJON: Fjern duplikater som følger etter hverandre
+      // Fjerner også duplikater av normaliserte adresser (f.eks. forskjellige
+      // avdelinger på samme sykehus som er blitt konvertert til samme adresse)
       // [A, A, B, C, C, A] → [A, B, C, A]
+      // ["Dialyse Levanger", "Kreft pol Levanger", "Annen gate"] 
+      // → ["Sykehuset Levanger", "Annen gate"]
       // ============================================================
       const removeConsecutiveDuplicates = (array) => {
         return array.filter((value, index) => {
-          // Behold første element, eller element som er forskjellig fra forrige
-          return index === 0 || value !== array[index - 1];
+          if (index === 0) return true; // Behold første element alltid
+          
+          // Normaliser begge adresser før sammenligning
+          const currentNormalized = normalizeAddress(value);
+          const previousNormalized = normalizeAddress(array[index - 1]);
+          
+          // Behold bare hvis forskjellig fra forrige (etter normalisering)
+          return currentNormalized !== previousNormalized;
         });
       };
 
@@ -148,14 +225,16 @@
           rowDivs.forEach(div => {
             const text = div.textContent.trim();
             if (addressRegex.test(text)) {
-              addresses.push(text.replace(/\s+/g, " ")); // Normaliser whitespace
+              const normalizedText = text.replace(/\s+/g, " "); // Normaliser whitespace
+              addresses.push(normalizeAddress(normalizedText)); // Normaliser adresse
             }
           });
         } else {
           // Cellen har kun tekst direkte
           const text = cell.textContent.trim();
           if (addressRegex.test(text)) {
-            addresses.push(text.replace(/\s+/g, " "));
+            const normalizedText = text.replace(/\s+/g, " ");
+            addresses.push(normalizeAddress(normalizedText)); // Normaliser adresse
           }
         }
         
@@ -208,12 +287,14 @@
         
         // Legg til fra-adresse
         if (addressRegex.test(parts[0])) {
-          ventendeFromAddresses.push(parts[0].replace(/\s+/g, " "));
+          const normalizedAddress = parts[0].replace(/\s+/g, " ");
+          ventendeFromAddresses.push(normalizeAddress(normalizedAddress));
         }
         
         // Legg til til-adresse
         if (addressRegex.test(parts[1])) {
-          ventendeToAddresses.push(parts[1].replace(/\s+/g, " "));
+          const normalizedAddress = parts[1].replace(/\s+/g, " ");
+          ventendeToAddresses.push(normalizeAddress(normalizedAddress));
         }
       });
 
