@@ -1049,6 +1049,32 @@ async function runResourceInfo() {
 
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
+    
+    // Juster posisjon hvis popup går utenfor høyre kant av skjermen
+    setTimeout(() => {
+      const popupRect = popup.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+
+      // Sjekk om popup går utenfor høyre kant
+      if (popupRect.right > viewportWidth) {
+        // Beregn hvor mye popup overlapper
+        const overflow = popupRect.right - viewportWidth;
+
+        // Flytt popup mot venstre (men ikke lengre enn nødvendig)
+        const currentLeft = rowRect.left - 20;
+        const newLeft = Math.max(10, currentLeft - overflow - 20); // 20px ekstra margin
+
+        popup.style.left = `${newLeft}px`;
+        popup.style.transform = 'translateX(0)'; // Fjern transform siden vi nå bruker absolutt left
+      }
+
+      // Sjekk også om popup går utenfor venstre kant (edge case)
+      const updatedRect = popup.getBoundingClientRect();
+      if (updatedRect.left < 0) {
+        popup.style.left = '10px';
+        popup.style.transform = 'translateX(0)';
+      }
+    }, 10); // Liten forsinkelse for å la DOM rendere
 
     // EVENT LISTENERS
 
@@ -1137,7 +1163,14 @@ async function runResourceInfo() {
     bookingLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
-        openPopupWindow(link.href);
+        // Åpne NISSY admin-linker uten consent-sjekk
+        const width = Math.floor(window.innerWidth / 2);
+        const height = Math.floor(window.innerHeight * 0.9);
+        window.open(
+          link.href,
+          "_blank",
+          `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+        );
       });
     });
     

@@ -15,7 +15,8 @@ NISSY Basic er perfekt for deg som:
 - ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
-- 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
+- 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up iframe over planleggingsvindu.
+- ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
@@ -75,6 +76,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+N` | Bestillingsmodul |
+| `ALT+A` | Adminmodul |
 
 ## 📖 Detaljert brukerveiledning
 
@@ -102,6 +104,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
    - Link til NISSY admin for bestilling og tur
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
    - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
+   - Link til løyveregister til Trøndertaxi hvis bilen tilhører de
 
 
 ### ⌛ NISSY-fiks
@@ -122,6 +125,10 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 
 Trykk på Alt+N for å få første pop-up med valg om foretrukket bestillingsmodul. Deretter åpnes enten 4-stegs eller ensides i en iframe modal.
 Dette lagres i sesjonen, nullstilles når nettleser lukkes helt.
+
+### ⚙️ Adminmodul (ALT+A)
+
+Trykk på Alt+A for å åpne admin-modulen som setter fokus i person-fanen og telefonnummer. Tips her er å kopiere fra Zisson for å finne pasient så du slipper å spørre om personnummer.
 
 ## 🆙 Oppgradering
 

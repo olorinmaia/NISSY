@@ -18,6 +18,7 @@
     'NISSY-fiks.js',
     'Ressursinfo.js',
     'Bestillingsmodul.js',
+    'Adminmodul.js',
     'Rutekalkulering.js'
   ];
 
@@ -55,6 +56,87 @@
   }
   
   console.log('✅ NISSY Basic lastet!');
+
+  // ============================================================
+  // LEGG TIL BRUKERVEILEDNING-KNAPP ØVERST
+  // ============================================================
+  (() => {
+    console.log("🔧 Legger til brukerveiledning-knapp...");
+
+    function addHelpButton() {
+      // Sjekk om knappen allerede er installert
+      if (document.getElementById('nissy-help-btn')) {
+        console.log("✅ Brukerveiledning-knapp allerede installert");
+        return;
+      }
+
+      // Finn første <td> i topTable
+      const topTable = document.getElementById('topTable');
+      if (!topTable) {
+        console.warn("⚠️ Fant ikke topTable");
+        return;
+      }
+
+      const firstTd = topTable.querySelector('tbody tr td');
+      if (!firstTd) {
+        console.warn("⚠️ Fant ikke første <td>");
+        return;
+      }
+
+      // Legg til CSS for help-knapp
+      if (!document.getElementById('nissy-help-button-styles')) {
+        const style = document.createElement('style');
+        style.id = 'nissy-help-button-styles';
+        style.textContent = `
+          .nissy-help-btn {
+            background: linear-gradient(135deg, #6b9bd1 0%, #5a8bc4 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-block;
+            margin-left: 15px;
+          }
+          .nissy-help-btn:hover {
+            background: linear-gradient(135deg, #5a8bc4 0%, #4279b8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          .nissy-help-btn:active {
+            transform: translateY(0);
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Opprett knapp
+      const helpBtn = document.createElement('a');
+      helpBtn.id = 'nissy-help-btn';
+      helpBtn.className = 'nissy-help-btn';
+      helpBtn.href = 'https://github.com/olorinmaia/NISSY/blob/main/docs/BASIC.md';
+      helpBtn.target = '_blank';
+      helpBtn.title = 'Åpne brukerveiledning for NISSY Basic';
+      helpBtn.textContent = '📖 Brukerveiledning';
+
+      // Legg til knappen etter teksten i første <td>
+      firstTd.appendChild(helpBtn);
+
+      console.log("✅ Brukerveiledning-knapp installert");
+    }
+
+    // Installer knapp når DOM er klar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addHelpButton);
+    } else {
+      setTimeout(addHelpButton, 300);
+    }
+  })();
 
   // ============================================================
   // LEGG TIL SCRIPT-KNAPPER I GRENSESNITTET
@@ -148,7 +230,8 @@
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
-            <!-- tom celle -->
+            <input type="button" value="⚙️ Adminmodul (Alt+A)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="a" title="Åpne adminmodul">
           </td>
         </tr>
       `;
@@ -210,6 +293,7 @@
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>
+          • ALT+A → Adminmodul<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">

@@ -9,6 +9,7 @@
  * - Husker ditt valg i nettleserens session
  * - Blokkerer F5 for å unngå utilsiktet refresh
  * - Lukk modal med X-knapp eller klikk utenfor
+ * - Intercepter redit-lenker og åpne dem i modal
  * 
  * Bruk:
  * - Trykk ALT+N for å åpne
@@ -49,7 +50,7 @@
 
     let activeOverlay = null;
     let activeModals = [];
-    let activeKeyboardListener = null; // Ny variabel for å holde referanse til keyboard listener
+    let activeKeyboardListener = null;
 
     /**
      * Nullstiller bestillingsmodulen via XHR
@@ -113,8 +114,8 @@
             }
 
             .bestillingsmodul-iframe-modal {
-                width: 95vw;
-                max-width: 1600px;
+                width: 90vw;
+                max-width: 1700px;
                 height: calc(100vh - 40px);
                 display: none;
             }
@@ -456,6 +457,15 @@
         } catch (error) {
             console.error('Error resetting module on close:', error);
         }
+        
+        // Oppdater bestillinger som er laget/endret
+        try {
+            if (typeof openPopp === 'function') {
+                openPopp("-1");
+            }
+        } catch (error) {
+            console.error('Error calling openPopp:', error);
+        }
     }
 
     /**
@@ -642,10 +652,182 @@
         }
     });
 
-    // Eksporter init-funksjon globalt
+    /**
+     * Intercept window.open calls for requisition redit links
+     */
+    const originalWindowOpen = window.open;
+    window.open = function(url, target, features) {
+        // Sjekk om det er en rekvisisjon redit URL
+        if (url && typeof url === 'string' && url.includes('/rekvisisjon/requisition/redit')) {
+            
+            // Åpne i modal istedenfor ny fane
+            openReditInModal(url);
+            
+            // Returner et dummy window-objekt for å unngå feil
+            return { closed: false, close: () => {} };
+        }
+        
+        // For alle andre URLs, bruk original window.open
+        return originalWindowOpen.call(window, url, target, features);
+    };
+
+    /**
+     * Intercept clicks on <a> tags with redit links
+     */
+    document.addEventListener('click', function(e) {
+        // Finn nærmeste <a> element (i tilfelle vi klikker på img eller annet barn-element)
+        const link = e.target.closest('a');
+        
+        if (link && link.href) {
+            // Sjekk for redit-lenker
+            if (link.href.includes('/rekvisisjon/requisition/redit')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Åpne i modal istedenfor ny fane
+                openReditInModal(link.href);
+            }
+            // Sjekk for generell requisition-lenke (helselogo.gif)
+            else if (link.href.includes('/rekvisisjon/requisition/') && 
+                     !link.href.includes('redit')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Åpne via normal init (viser valgmodul eller foretrukket modul)
+                init();
+            }
+        }
+    }, true); // Bruk capture phase for å fange klikk tidlig
+
+    /**
+     * Hjelpefunksjon: Scroll til og fokuser på pickupTime-feltet
+     */
+    function focusPickupTime(doc) {
+        try {
+            const pickupTimeField = doc.getElementById('pickupTime');
+            if (pickupTimeField) {
+                pickupTimeField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    pickupTimeField.focus();
+                    pickupTimeField.select();
+                }, 100);
+            }
+        } catch (err) {
+            console.error('Error focusing pickupTime:', err);
+        }
+    }
+
+    /**
+     * Åpner en redit URL i bestillingsmodul-modal
+     */
+    async function openReditInModal(url) {
+        try {
+            // Steg 1: Nullstill modul
+            await resetModule();
+            
+            // Steg 2: Injiser stiler
+            injectStyles();
+            
+            // Steg 3: Opprett overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'bestillingsmodul-overlay';
+            activeOverlay = overlay;
+            
+            // Steg 4: Opprett iframe-modal
+            const modal = document.createElement('div');
+            modal.className = 'bestillingsmodul-modal bestillingsmodul-iframe-modal active';
+            modal.innerHTML = `
+                <button class="bestillingsmodul-close" aria-label="Lukk">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <iframe src="${url}"></iframe>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+            activeModals = [modal];
+
+            const iframe = modal.querySelector('iframe');
+            
+            // Håndter F5 på modal-nivå
+            modal.addEventListener('keydown', handleF5, true);
+            
+            // Når iframe laster, prøv å klikke på Rediger-knappen og fokuser på pickupTime
+            iframe.addEventListener('load', function() {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const iframeWin = iframe.contentWindow;
+                    
+                    if (iframeDoc && iframeWin) {
+                        // Håndter F5 inne i iframe
+                        const iframeF5Handler = (e) => {
+                            const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+                            if (isF5) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                iframeWin.location.reload();
+                                return false;
+                            }
+                        };
+                        
+                        iframeDoc.addEventListener('keydown', iframeF5Handler, true);
+                        iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                        
+                        // Klikk på "Rediger klar fra" knappen hvis den finnes og er synlig
+                        setTimeout(() => {
+                            const redigerBtn = iframeDoc.getElementById('redigerKlarFra');
+                            if (redigerBtn) {
+                                const style = iframeWin.getComputedStyle(redigerBtn);
+                                if (style.display !== 'none' && style.visibility !== 'hidden') {
+                                    redigerBtn.click();
+                                    setTimeout(() => focusPickupTime(iframeDoc), 50);
+                                } else {
+                                    // Knappen er skjult, bare fokuser på feltet
+                                    focusPickupTime(iframeDoc);
+                                }
+                            } else {
+                                // Knappen finnes ikke, bare fokuser på feltet
+                                focusPickupTime(iframeDoc);
+                            }
+                        }, 100);
+                    }
+                } catch (e) {
+                    // Kan ikke få tilgang til iframe-innhold (CORS)
+                    console.error('CORS error accessing iframe:', e);
+                }
+            });
+
+            // Aktiver F5-håndtering
+            enableF5Handler(iframe);
+
+            // Setup close handlers
+            const closeBtn = modal.querySelector('.bestillingsmodul-close');
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeAll();
+            });
+
+            modal.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            overlay.addEventListener('click', closeAll);
+            
+        } catch (error) {
+            console.error('Error opening redit in modal:', error);
+            alert('Kunne ikke åpne redigeringsvinduet. Vennligst prøv igjen.');
+        }
+    }
+
+    // Eksporter funksjoner globalt
     window.Bestillingsmodul = { 
         init,
-        clearPreferred: () => sessionStorage.removeItem(CONFIG.sessionKey)
+        clearPreferred: () => sessionStorage.removeItem(CONFIG.sessionKey),
+        openReditInModal
     };
 
     console.log("✅ Bestillingsmodul-script lastet");
