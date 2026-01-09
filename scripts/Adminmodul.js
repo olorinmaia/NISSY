@@ -290,8 +290,6 @@
             // Steg 3: Sett opp handlers
             setupHandlers(modal, overlay);
             
-            console.log('✅ Adminmodul åpnet');
-            
         } catch (error) {
             console.error('Error initializing Adminmodul:', error);
             alert('Kunne ikke åpne adminmodulen. Vennligst prøv igjen.');
