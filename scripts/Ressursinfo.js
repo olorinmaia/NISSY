@@ -1163,7 +1163,14 @@ async function runResourceInfo() {
     bookingLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
-        openPopupWindow(link.href);
+        // Åpne NISSY admin-linker uten consent-sjekk
+        const width = Math.floor(window.innerWidth / 2);
+        const height = Math.floor(window.innerHeight * 0.9);
+        window.open(
+          link.href,
+          "_blank",
+          `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+        );
       });
     });
     
