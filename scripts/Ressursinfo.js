@@ -1049,6 +1049,32 @@ async function runResourceInfo() {
 
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
+    
+    // Juster posisjon hvis popup går utenfor høyre kant av skjermen
+    setTimeout(() => {
+      const popupRect = popup.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+
+      // Sjekk om popup går utenfor høyre kant
+      if (popupRect.right > viewportWidth) {
+        // Beregn hvor mye popup overlapper
+        const overflow = popupRect.right - viewportWidth;
+
+        // Flytt popup mot venstre (men ikke lengre enn nødvendig)
+        const currentLeft = rowRect.left - 20;
+        const newLeft = Math.max(10, currentLeft - overflow - 20); // 20px ekstra margin
+
+        popup.style.left = `${newLeft}px`;
+        popup.style.transform = 'translateX(0)'; // Fjern transform siden vi nå bruker absolutt left
+      }
+
+      // Sjekk også om popup går utenfor venstre kant (edge case)
+      const updatedRect = popup.getBoundingClientRect();
+      if (updatedRect.left < 0) {
+        popup.style.left = '10px';
+        popup.style.transform = 'translateX(0)';
+      }
+    }, 10); // Liten forsinkelse for å la DOM rendere
 
     // EVENT LISTENERS
 
