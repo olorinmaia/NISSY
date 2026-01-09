@@ -104,6 +104,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
    - Link til NISSY admin for bestilling og tur
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
    - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
+   - Link til løyveregister til Trøndertaxi hvis bilen tilhører de
 
 
 ### ⌛ NISSY-fiks

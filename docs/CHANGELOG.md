@@ -5,9 +5,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ## [Unreleased]
 
 ### Planlagt
-- Automatisk oppdatering av scripts
-- Nye script skal legges til fortløpende
-- Flere tilpasbare innstillinger
+- Kontinuerlig forbedring av eksisterende scripts
+- Nye script legges til fortløpende når testet ferdig
+- Se på mulighetene for enkel samkjøringsalgoritme
 
 ---
 ## [2.1.0] - 09.01.2026
@@ -17,6 +17,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 #### Hva er nytt?
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
 - "?" og "R"-linker i planleggingsvinduet åpnes i Adminmodul/Bestillingsmodul-script istedenfor ny fane.
+- Auto-søk og scroll nederst på siden i når turer og bestillinger åpnes i admin via planlegging
+- Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging
+- Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
+
+#### Feilrettinger
+- **Ressursinfo.js** - Problem med at pop-up vindu forsvant ut av skjermen på små skjermer fikset.
 
 ## [2.0.0] - 07.01.2026
 
