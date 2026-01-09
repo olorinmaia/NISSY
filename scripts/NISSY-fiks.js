@@ -418,7 +418,7 @@
           <button class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
             🚗 Alenebil
           </button>
-          <button class="nissy-manual-btn" data-script="auto-bestill" title="Bestiller opp alle turer på valgt filter automatisk">
+          <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
             🤖 Auto-Bestill
           </button>
           <button class="nissy-manual-btn" data-script="sjekk-duplikat" title="Sjekk alle bestillinger på valgt filter for duplikater">
