@@ -7,7 +7,7 @@
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
 - 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
-- 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag
+- 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
 - ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
@@ -46,7 +46,7 @@
 |---------|----------|
 | `ALT+S` | Smart tildeling (RB/ERS + passasjerregler) |
 | `ALT+T` | Tilordningsstøtte 2.0 (individuell tildeling) |
-| `ALT+R` | Rek-knapper (H, S, K, T, R) |
+| `ALT+R` | Rek-knapper (H, S, K, T, R) Trykk ESC for å lukke manuelt |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+N` | Bestillingsmodul |
