@@ -659,7 +659,6 @@
     window.open = function(url, target, features) {
         // Sjekk om det er en rekvisisjon redit URL
         if (url && typeof url === 'string' && url.includes('/rekvisisjon/requisition/redit')) {
-            console.log('🔍 Fanger opp rekvisisjon redit link:', url);
             
             // Åpne i modal istedenfor ny fane
             openReditInModal(url);
@@ -679,12 +678,24 @@
         // Finn nærmeste <a> element (i tilfelle vi klikker på img eller annet barn-element)
         const link = e.target.closest('a');
         
-        if (link && link.href && link.href.includes('/rekvisisjon/requisition/redit')) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Åpne i modal istedenfor ny fane
-            openReditInModal(link.href);
+        if (link && link.href) {
+            // Sjekk for redit-lenker
+            if (link.href.includes('/rekvisisjon/requisition/redit')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Åpne i modal istedenfor ny fane
+                openReditInModal(link.href);
+            }
+            // Sjekk for generell requisition-lenke (helselogo.gif)
+            else if (link.href.includes('/rekvisisjon/requisition/') && 
+                     !link.href.includes('redit')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Åpne via normal init (viser valgmodul eller foretrukket modul)
+                init();
+            }
         }
     }, true); // Bruk capture phase for å fange klikk tidlig
 
