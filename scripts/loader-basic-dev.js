@@ -18,6 +18,7 @@
     'NISSY-fiks.js',
     'Ressursinfo.js',
     'Bestillingsmodul.js',
+    'Adminmodul.js',
     'Rutekalkulering.js'
   ];
 
