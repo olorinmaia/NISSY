@@ -19,7 +19,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
 - 📆 **Tilordningsstøtte 2.0 (Alt+T)**
   - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
-- 🔠 **Rek-knapper (Alt+R)**
+- 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
   - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
