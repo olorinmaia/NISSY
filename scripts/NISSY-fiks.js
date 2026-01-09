@@ -431,7 +431,7 @@
             📊 Statistikk
           </button>
           <button class="nissy-manual-btn" data-script="trondertaxi-loyve" title="Åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes">
-            🚕 Trøndertaxi-Løyve
+            🚖 Trøndertaxi-Løyve
           </button>
         </div>
       `;
