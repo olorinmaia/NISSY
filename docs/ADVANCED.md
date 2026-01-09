@@ -3,19 +3,19 @@
 ![NISSY Advanced](https://img.shields.io/badge/NISSY-Advanced-orange)
 
 ### Inkluderte scripts:
-- ✅ **NISSY-fiks.js** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
-- ✅ **Ressursinfo.js** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
-- ✅ **Rutekalkulering.js** - (Alt+Q) Åpne rute i Google Maps
-- ✅ **Smart-tildeling.js** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
-- ✅ **Rek-knapper.js** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag
-- ✅ **Bestillingsmodul.js** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
-- ✅ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
-- ✅ **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
-- ✅ **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
-- ✅ **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
-- ✅ **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
-- ✅ **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
-- ✅ **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
+- ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
+- 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
+- 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
+- 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
+- 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag
+- 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
+- ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
+- 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
+- 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+- 🔍 **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
+- 📞 **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- 📊 **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+- 🚕 **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 
 ## ⌨️ Alle tastatursnarveier
 
@@ -106,7 +106,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Pasientnavn (pågående oppdrag)
   
 
-### 📆 Smart Tildeling (ALT+S)
+### 🪄 Smart Tildeling (ALT+S)
 
 Intelligent tildeling som automatisk:
 - Detekterer RB/ERS i bestillinger
@@ -154,12 +154,12 @@ Viser hurtigknapper på merkede rader.
 - Knappene følger med ved scrolling
 - Automatisk høydetilpasning til rad-bilder
 
-### 📃 Bestillingsmodul (ALT+N)
+### 📝 Bestillingsmodul (ALT+N)
 
 Trykk på Alt+N for å få første pop-up med valg om foretrukket bestillingsmodul. Deretter åpnes enten 4-stegs eller ensides i en iframe modal.
 Dette lagres i sesjonen, nullstilles når nettleser lukkes helt.
 
-### ❌ Avbestilling (ALT+K)
+### ✖️ Avbestilling (ALT+K)
 
 Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en.
 
