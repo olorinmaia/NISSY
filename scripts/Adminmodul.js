@@ -5,8 +5,8 @@
  * 
  * Funksjonalitet:
  * - Snarvei ALT+A for å åpne adminmodul
- * - Åpner direkte til søkeside for tur/bestilling/person
- * - Blokkerer F5 for å unngå utilsiktet refresh
+ * - Åpner direkte til søkeside for tur/bestilling, søker og scroller ned
+ * - F5 refresher kun iframe modal, ikke bakgrunnen
  * - Lukk modal med X-knapp eller klikk utenfor
  *
  */
@@ -26,7 +26,6 @@
 
     // Konfigurasjon
     const CONFIG = {
-        resetUrl: '/rekvisisjon/requisition/exit',
         moduleUrl: '/administrasjon/admin/findPatient'
     };
 
@@ -34,30 +33,6 @@
     let activeModal = null;
     let f5Handler = null;
     let currentIframe = null;
-
-    /**
-     * Nullstiller modul via XHR
-     */
-    function resetModule() {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', CONFIG.resetUrl, true);
-            
-            xhr.onload = function() {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(xhr.response);
-                } else {
-                    reject(new Error(`Reset failed with status: ${xhr.status}`));
-                }
-            };
-            
-            xhr.onerror = function() {
-                reject(new Error('Network error during reset'));
-            };
-            
-            xhr.send();
-        });
-    }
 
     /**
      * Injiserer CSS-stiler for modal
@@ -261,7 +236,7 @@
     /**
      * Lukker modal
      */
-    async function closeAll() {
+    function closeAll() {
         if (activeOverlay && activeOverlay.parentNode) {
             activeOverlay.remove();
             activeOverlay = null;
@@ -273,13 +248,6 @@
         }
         
         disableF5Handler();
-        
-        // Nullstill modul når modal lukkes
-        try {
-            await resetModule();
-        } catch (error) {
-            console.error('Error resetting module on close:', error);
-        }
     }
 
     /**
@@ -305,7 +273,7 @@
     /**
      * Initialiserer modulen
      */
-    async function init() {
+    function init() {
         // Hvis modal allerede er åpen, ikke gjør noe
         if (activeModal) {
             console.log('ℹ️ Adminmodul er allerede åpen');
@@ -313,16 +281,13 @@
         }
 
         try {
-            // Steg 1: Nullstill modul
-            await resetModule();
-            
-            // Steg 2: Injiser stiler
+            // Steg 1: Injiser stiler
             injectStyles();
             
-            // Steg 3: Opprett modal
+            // Steg 2: Opprett modal
             const { overlay, modal } = createModal();
             
-            // Steg 4: Sett opp handlers
+            // Steg 3: Sett opp handlers
             setupHandlers(modal, overlay);
             
             console.log('✅ Adminmodul åpnet');
@@ -348,7 +313,6 @@
     window.open = function(url, target, features) {
         // Sjekk om det er en admin searchStatus URL
         if (url && typeof url === 'string' && url.includes('/administrasjon/admin/searchStatus')) {
-            console.log('🔍 Fanger opp admin searchStatus link:', url);
             
             // Åpne i modal istedenfor ny fane
             openInModal(url);
@@ -364,7 +328,7 @@
     /**
      * Åpner en spesifikk URL i adminmodul-modal
      */
-    async function openInModal(url) {
+    function openInModal(url) {
         // Hvis modal allerede er åpen, oppdater iframe src
         if (activeModal) {
             const iframe = activeModal.querySelector('iframe');
@@ -377,7 +341,6 @@
 
         // Ellers åpne ny modal med den spesifikke URL-en
         try {
-            await resetModule();
             injectStyles();
             
             // Opprett overlay
@@ -405,6 +368,10 @@
             const iframe = modal.querySelector('iframe');
             modal.addEventListener('keydown', handleF5, true);
             
+            // Flag for å forhindre gjentatt auto-søk
+            let autoSearchPerformed = false;
+            let waitingForSearchResults = false;
+            
             iframe.addEventListener('load', function() {
                 try {
                     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
@@ -424,6 +391,45 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                        
+                        // Hvis vi venter på søkeresultater, scroll nå
+                        if (waitingForSearchResults) {
+                            waitingForSearchResults = false;
+                            setTimeout(() => {
+                                try {
+                                    // Scroll til bunnen av siden
+                                    iframeWin.scrollTo({
+                                        top: iframeDoc.body.scrollHeight,
+                                        behavior: 'smooth'
+                                    });
+                                    iframeDoc.documentElement.scrollTop = iframeDoc.documentElement.scrollHeight;
+                                } catch (scrollErr) {
+                                    console.error('Scroll error:', scrollErr);
+                                }
+                            }, 200);
+                        }
+                        // Automatisk søk basert på URL-parameter - kun første gang
+                        else if (!autoSearchPerformed) {
+                            autoSearchPerformed = true;
+                            
+                            setTimeout(() => {
+                                if (url.includes('searchStatus?nr=')) {
+                                    // Klikk på reqSearch knappen for bestillingsnummer
+                                    const reqSearchBtn = iframeDoc.getElementById('reqSearch');
+                                    if (reqSearchBtn) {
+                                        waitingForSearchResults = true;
+                                        reqSearchBtn.click();
+                                    }
+                                } else if (url.includes('searchStatus?id=')) {
+                                    // Klikk på tripSearch knappen for tur-ID
+                                    const tripSearchBtn = iframeDoc.getElementById('tripSearch');
+                                    if (tripSearchBtn) {
+                                        waitingForSearchResults = true;
+                                        tripSearchBtn.click();
+                                    }
+                                }
+                            }, 150);
+                        }
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -440,8 +446,6 @@
 
             enableF5Handler(iframe);
             setupHandlers(modal, overlay);
-            
-            console.log('✅ Adminmodul åpnet med URL:', url);
             
         } catch (error) {
             console.error('Error opening modal with URL:', error);
