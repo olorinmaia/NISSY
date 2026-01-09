@@ -10,6 +10,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Flere tilpasbare innstillinger
 
 ---
+## [2.1.0] - 09.01.2026
+
+### 🎉 Nytt script Adminmodul! 🎉
+
+#### Hva er nytt?
+- ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
+- "?" og "R"-linker i planleggingsvinduet åpnes i Adminmodul/Bestillingsmodul-script istedenfor ny fane.
+
 ## [2.0.0] - 07.01.2026
 
 ### 🎉 Knapper for alle script lagt til i Planleggingsbildet 🎉
