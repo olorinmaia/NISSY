@@ -230,25 +230,11 @@
                     iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                     iframeWin.addEventListener('keydown', iframeF5Handler, true);
                     
-                    // Fokuser på Phone-feltet og lim inn fra utklippstavle
-                    setTimeout(async () => {
+                    // Fokuser på Phone-feltet
+                    setTimeout(() => {
                         const phoneInput = iframeDoc.getElementById('Phone');
                         if (phoneInput) {
                             phoneInput.focus();
-                            
-                            // Prøv å lime inn fra utklippstavle
-                            try {
-                                const clipboardText = await navigator.clipboard.readText();
-                                if (clipboardText && clipboardText.trim()) {
-                                    phoneInput.value = clipboardText.trim();
-                                    // Trigger input event for å sikre at eventuelle listeners blir kjørt
-                                    phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
-                                    phoneInput.dispatchEvent(new Event('change', { bubbles: true }));
-                                }
-                            } catch (clipboardError) {
-                                // Clipboard-tilgang ble nektet eller er ikke tilgjengelig
-                                console.log('Kunne ikke lese fra utklippstavle:', clipboardError.message);
-                            }
                         }
                     }, 150);
                 }
