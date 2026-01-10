@@ -18,6 +18,9 @@
   // ============================================================
   const MIN_DIGITS_AFTER_DASH = 5;
   
+  // Sperre for å forhindre flere samtidige kjøringer
+  let isProcessing = false;
+  
   // Miljø-baserte "Ansvarlig"-koder
   const RESPONSIBILITY_CODES = {
     test: {
@@ -86,6 +89,14 @@
   // HOVEDFUNKSJON: Initialiserer avbestilling når ALT+K trykkes
   // ============================================================
   function initializeAvbestilling() {
+    // Sjekk om en prosess allerede kjører
+    if (isProcessing) {
+      console.log("⚠️ Avbestilling pågår allerede, vennligst vent...");
+      return;
+    }
+    
+    isProcessing = true;
+    
     const highlightColor = "rgb(148, 169, 220)";
     const baseUrlTur = "/planlegging/ajax-dispatch?did=all&action=remove&rid=";
     const baseUrlBestilling = "/planlegging/ajax-dispatch?did=all&action=remove&vid=";
@@ -289,15 +300,18 @@
     const closeChoice = () => {
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
+      isProcessing = false; // Frigi sperre
     };
 
     popup.querySelector("#chooseTurer").onclick = () => {
       closeChoice();
+      isProcessing = true; // Behold sperre for ny popup
       showTurPopup(turer, "/planlegging/ajax-dispatch?did=all&action=remove&rid=");
     };
 
     popup.querySelector("#chooseBestillinger").onclick = () => {
       closeChoice();
+      isProcessing = true; // Behold sperre for ny popup
       showBestillingPopup(bestillinger, "/planlegging/ajax-dispatch?did=all&action=remove&vid=");
     };
 
@@ -416,6 +430,7 @@ ${listTurer}
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
       if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false; // Frigi sperre når popup lukkes
     };
 
     confirmButton.onclick = async () => {
@@ -628,6 +643,7 @@ ${listBestillinger}
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
       if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false; // Frigi sperre når popup lukkes
     };
 
     confirmButton.onclick = async () => {
@@ -798,6 +814,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', errorEscHandler);
+      isProcessing = false; // Frigi sperre når error-popup lukkes
     };
 
     popup.querySelector("#closeError").onclick = closeErrorPopup;
