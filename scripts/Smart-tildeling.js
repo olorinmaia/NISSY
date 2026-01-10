@@ -377,7 +377,7 @@
     
     // SJEKK: Ingen bestillinger valgt
     if (rows.length === 0) {
-      showErrorToast("Ingen bestillinger er valgt. Vennligst marker én eller flere og trykk på Tilordning 2.0-knappen eller Alt+T igjen.");
+      showErrorToast("📆 Ingen bestillinger er valgt. Vennligst marker én eller flere og trykk på Tilordning 2.0-knappen eller Alt+T igjen.");
       return; // STOPP HER - ikke refresh
     }
     
@@ -501,7 +501,7 @@
     
     // SJEKK: Ingen bestillinger valgt
     if (rows.length === 0) {
-      showErrorToast("Ingen bestillinger er valgt. Vennligst marker én eller flere og trykk på Smart-tildeling-knappen eller Alt+S igjen.");
+      showErrorToast("🪄 Ingen bestillinger er valgt. Vennligst marker én eller flere og trykk på Smart-tildeling-knappen eller Alt+S igjen.");
       return; // STOPP HER - ikke refresh
     }
     

@@ -136,7 +136,7 @@
 
   // Sjekk om noen bestillinger er merket
   if (rows.length === 0) {
-    showErrorToast("Ingen bestillinger er valgt på ventende oppdrag. Vennligst marker én eller flere og trykk på Alenebil-knappen igjen.");
+    showErrorToast("🚗 Ingen bestillinger er valgt på ventende oppdrag. Vennligst marker én eller flere og trykk på Alenebil-knappen igjen.");
     return;
   }
 

@@ -109,7 +109,7 @@ async function runResourceInfo() {
   );
   
   if (allSelectedRows.length === 0) {
-    showErrorToast("Ingen ressurser er valgt. Vennligst merk én og trykk på Ressursinfo-knappen eller Alt+D igjen.");
+    showErrorToast("🚕 Ingen ressurser er valgt. Vennligst merk én og trykk på Ressursinfo-knappen eller Alt+D igjen.");
     isRunning = false; // Frigjør sperre
     return;
   }

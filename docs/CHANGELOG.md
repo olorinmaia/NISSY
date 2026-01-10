@@ -28,6 +28,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - HIGHLIGHT SØKT REKVISISJONSNUMMER. Markerer den spesifikke bestillingen på en tur med flere bestillinger.
   - Lukker nå plakater ved trykk utenfor.
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
+- Laget felles feilmelding-toast og forbedret tekst.
 
 #### Feilrettinger
 - **Ressursinfo.js** - Problem med at pop-up vindu forsvant ut av skjermen på små skjermer fikset.

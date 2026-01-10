@@ -616,7 +616,7 @@
       });
 
       if (!count) {
-        showErrorToast("Ingen bestillinger eller turer er valgt. Vennligst marker én eller flere og trykk på Rek-knapper eller Alt+R igjen.");
+        showErrorToast("🔠 Ingen bestillinger eller turer er valgt. Vennligst marker én eller flere og trykk på Rek-knapper eller Alt+R igjen.");
       }
     };
 

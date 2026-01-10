@@ -14,6 +14,59 @@
   console.log("🚀 Starter Avbestilling-script");
 
   // ============================================================
+  // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
+  // ============================================================
+  let currentErrorToast = null;
+  
+  function showErrorToast(msg) {
+    // Fjern eksisterende feilmelding-toast
+    if (currentErrorToast && currentErrorToast.parentNode) {
+      currentErrorToast.parentNode.removeChild(currentErrorToast);
+    }
+    
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    
+    // Styling
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#d9534f", // Rød bakgrunn for feil
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      zIndex: "999999",
+      opacity: "0",
+      transition: "opacity 0.3s ease"
+    });
+    
+    document.body.appendChild(toast);
+    currentErrorToast = toast;
+    
+    // Fade in
+    setTimeout(() => {
+      toast.style.opacity = "1";
+    }, 10);
+    
+    // Fade out etter 4 sekunder
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+        if (currentErrorToast === toast) {
+          currentErrorToast = null;
+        }
+      }, 300);
+    }, 4000);
+  }
+
+  // ============================================================
   // KONFIGURASJON
   // ============================================================
   const MIN_DIGITS_AFTER_DASH = 5;
@@ -248,7 +301,8 @@
     // FEILHÅNDTERING: Ingen merkede elementer
     // ============================================================
     if (turer.length === 0 && bestillinger.length === 0) {
-      showErrorPopup("Ingen turer eller bestillinger er merket");
+      showErrorToast("✖️ Ingen bestillinger eller turer er valgt. Vennligst marker én eller flere og trykk på Avbestilling-knappen eller Alt+K igjen.");
+      isProcessing = false; // Frigi sperre
       return;
     }
 
@@ -1018,69 +1072,6 @@ ${listBestillinger}
     }
 
     return { overlay, popup };
-  }
-
-  // ============================================================
-  // HJELPEFUNKSJON: Vis feilmelding
-  // ============================================================
-  function showErrorPopup(message) {
-    const { overlay, popup } = createPopupBase();
-
-    popup.innerHTML = `
-      <div style="
-        background:#f8d7da;
-        border:1px solid #f5c6cb;
-        padding:16px;
-        border-radius:6px;
-        margin-bottom:20px;
-      ">
-        <h3 style="margin:0 0 8px; font-size:18px; color:#721c24;">
-          ⚠️ Feil
-        </h3>
-        <p style="margin:0; font-size:14px; color:#721c24;">
-          ${message}
-        </p>
-      </div>
-      
-      <p style="margin:0 0 20px; font-size:13px; color:#555;">
-        Vennligst merk elementene du ønsker å avbestille og prøv igjen.
-      </p>
-      
-      <button 
-        id="closeError" 
-        style="
-          padding:10px 24px;
-          background:#95a5a6;
-          color:#fff;
-          border:none;
-          border-radius:6px;
-          font-size:14px;
-          cursor:pointer;
-          font-weight:600;
-        "
-      >
-        OK
-      </button>
-    `;
-
-    document.body.appendChild(popup);
-
-    const closeErrorPopup = () => {
-      popup.parentNode?.removeChild(popup);
-      overlay.parentNode?.removeChild(overlay);
-      document.removeEventListener('keydown', errorEscHandler);
-      isProcessing = false; // Frigi sperre når error-popup lukkes
-    };
-
-    popup.querySelector("#closeError").onclick = closeErrorPopup;
-    overlay.onclick = closeErrorPopup;
-
-    const errorEscHandler = (e) => {
-      if (e.key === "Escape") closeErrorPopup();
-    };
-    document.addEventListener("keydown", errorEscHandler);
-
-    setTimeout(closeErrorPopup, 4000);
   }
 
   // ============================================================
