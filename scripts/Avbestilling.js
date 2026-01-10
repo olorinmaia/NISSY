@@ -70,6 +70,53 @@
   });
 
   // ============================================================
+  // INTERCEPT: Fang opp klikk på NISSY's avbestillingsknapp
+  // Erstatt standard-dialogen med vår egen popup
+  // ============================================================
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    
+    // Sjekk om det er remove.gif som ble klikket
+    if (target.tagName === "IMG" && 
+        target.src && 
+        target.src.includes("remove.gif") &&
+        target.id && 
+        target.id.startsWith("ReqNrDeleteV-")) {
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Hent bestillings-ID fra onclick-attributtet
+      const onclickAttr = target.getAttribute("onclick");
+      const match = onclickAttr ? onclickAttr.match(/removeVentendeOppdrag\('(\d+)','(\d+)'\)/) : null;
+      
+      if (match) {
+        const vid = match[1];
+        
+        // Finn raden for å hente informasjon
+        const row = target.closest("tr");
+        if (row) {
+          // Parse rad for å få info
+          const rekvNr = row.getAttribute("title") || "";
+          
+          const cells = [...row.querySelectorAll("td")];
+          let pasient = cells.find(td => td.textContent.includes(","))?.textContent.trim() ?? "(ukjent)";
+          
+          if (rekvNr) {
+            pasient += ` (${rekvNr})`;
+          }
+          
+          const info = cells.find(td => td.innerHTML.includes("<br>"))
+            ?.innerHTML.replace(/<br>/g, " → ").trim() ?? "";
+          
+          // Vis popup for enkelt-avbestilling
+          showSingleBestillingPopup({ vid, pasient, info });
+        }
+      }
+    }
+  }, true); // true = capture phase for å fange før NISSY's handler
+
+  // ============================================================
   // HJELPEFUNKSJON: Valider ressursnavn
   // ============================================================
   function isValidResourceName(name) {
@@ -675,6 +722,214 @@ ${listBestillinger}
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
       statusBox.textContent = "✅ Ferdig! Alle avbestillinger er sendt.";
+      
+      if (typeof openPopp === "function") openPopp('-1');
+      
+      // Vis Lukk-knapp
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Lukk";
+      Object.assign(closeButton.style, {
+        marginTop: "16px",
+        padding: "10px 24px",
+        background: "#95a5a6",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "14px",
+        cursor: "pointer",
+        fontWeight: "600"
+      });
+      closeButton.onclick = closePopup;
+      popup.appendChild(closeButton);
+      
+      // Sett fokus på Lukk-knappen og håndter Enter
+      setTimeout(() => closeButton.focus(), 100);
+      closeButton.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          closePopup();
+        }
+      });
+    };
+
+    popup.querySelector("#cancelRemove").onclick = closePopup;
+    overlay.onclick = closePopup;
+
+    const escapeHandler = (e) => {
+      if (e.key === "Escape") closePopup();
+    };
+    document.addEventListener("keydown", escapeHandler);
+  }
+
+  // ============================================================
+  // POPUP: Avbestill enkelt bestilling (fra remove-knapp)
+  // ============================================================
+  function showSingleBestillingPopup(bestilling) {
+    // Sjekk sperre
+    if (isProcessing) {
+      console.log("⚠️ Avbestilling pågår allerede, vennligst vent...");
+      return;
+    }
+    
+    isProcessing = true;
+    
+    const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&vid=";
+    const { overlay, popup } = createPopupBase();
+
+    // Bygg ansvarlig-options
+    const responsibilityOptions = Object.entries(currentCodes)
+      .map(([name, code]) => `<option value="${code}">${name}</option>`)
+      .join('');
+
+    popup.innerHTML = `
+      <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
+        ⚠️ Avbestill bestilling
+      </h2>
+      
+      <div style="
+        text-align:left;
+        font-size:14px;
+        padding:12px;
+        border:1px solid #ddd;
+        border-radius:6px;
+        background:#fafafa;
+        margin-bottom:16px;
+      ">
+        <strong>${bestilling.pasient}</strong><br>
+        <span style="font-size:13px; color:#666;">${bestilling.info}</span>
+      </div>
+      
+      <div style="background:#e3f2fd; border:1px solid #2196f3; padding:12px; border-radius:6px; margin-bottom:16px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:#1565c0; font-size:14px;">
+          Ansvarlig for avbestilling:
+        </label>
+        <select 
+          id="responsibilityCode" 
+          style="
+            width:100%;
+            padding:8px;
+            border:1px solid #2196f3;
+            border-radius:4px;
+            font-size:14px;
+            background:#fff;
+          "
+        >
+          ${responsibilityOptions}
+        </select>
+      </div>
+      
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
+        <p style="margin:0; font-size:13px; color:#856404;">
+          <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
+        </p>
+      </div>
+      
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button 
+          id="confirmRemove" 
+          style="
+            padding:10px 24px;
+            background:#e74c3c;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Ja, avbestill
+        </button>
+        
+        <button 
+          id="cancelRemove" 
+          style="
+            padding:10px 24px;
+            background:#95a5a6;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avbryt
+        </button>
+      </div>
+      
+      <div 
+        id="removeStatus" 
+        style="
+          margin:16px 0 0;
+          padding:12px;
+          background:#ecf0f1;
+          border-radius:6px;
+          font-size:13px;
+          color:#555;
+          min-height:24px;
+          display:none;
+        "
+      >
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+    const statusBox = popup.querySelector("#removeStatus");
+    const responsibilitySelect = popup.querySelector("#responsibilityCode");
+    const confirmButton = popup.querySelector("#confirmRemove");
+
+    // Sett fokus på ansvarlig-feltet
+    setTimeout(() => responsibilitySelect.focus(), 100);
+
+    // Håndter Enter-tast i dropdown
+    responsibilitySelect.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    // Håndter Enter-tast på bekreft-knapp
+    confirmButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    const closePopup = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false;
+    };
+
+    confirmButton.onclick = async () => {
+      const code = responsibilitySelect.value;
+      
+      statusBox.style.display = "block";
+      confirmButton.style.display = "none";
+      popup.querySelector("#cancelRemove").style.display = "none";
+      responsibilitySelect.disabled = true;
+
+      // Grå ut bestilling umiddelbart
+      disableRows([bestilling.vid], 'bestilling');
+
+      statusBox.textContent = `Sender avbestilling...`;
+
+      // Send avbestilling
+      await new Promise(resolve => {
+        const url = baseUrl + encodeURIComponent(bestilling.vid) + "&code=" + code;
+        sendXHR(url, () => {
+          resolve();
+        });
+      });
+
+      statusBox.style.background = "#d4edda";
+      statusBox.style.color = "#155724";
+      statusBox.textContent = "✅ Ferdig! Avbestilling er sendt.";
       
       if (typeof openPopp === "function") openPopp('-1');
       
