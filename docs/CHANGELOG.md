@@ -11,7 +11,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## [2.5.0] - 10.01.2026
 
-### 🎉 Nytt script Adminmodul og Avbestilling fungerer nå på bestillinger også 🎉
+### 🎉 Nytt script Adminmodul og Avbestilling fungerer på bestillinger og masse nytt til NISSY-fiks 🎉
 
 #### Hva er nytt?
 - ⚙️ **Adminmodul** 
@@ -27,6 +27,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Overvåker nå de interne NISSY-loggene for å detektere at brukeren blir logget ut. Kaster nå en feilmelding med informasjon slik at siden kan refreshes og script lastes inn på nytt.
   - HIGHLIGHT SØKT REKVISISJONSNUMMER. Markerer den spesifikke bestillingen på en tur med flere bestillinger.
   - Lukker nå plakater ved trykk utenfor.
+  - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
 - Laget felles feilmelding-toast og forbedret tekst.
 

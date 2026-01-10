@@ -98,6 +98,13 @@ Navn: `NISSY-Avansert`
 
 Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og justerer automatisk kolonnevisning:
 
+- Fikser bug med at filter ikke oppdaterer seg.
+- Åpner alle turer ved bytting av filter automatisk og ved søk.
+- Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
+- Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
+- Lukker plakater ved trykk utenfor.
+- Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
+
 **Skjuler:**
 - Ledig kapasitet (pågående oppdrag)
 - Transporttype (ventende oppdrag)
