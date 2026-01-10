@@ -114,7 +114,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 Intelligent tildeling som automatisk:
 - Detekterer RB/ERS i bestillinger
 - Teller overlappende passasjerer
-- Velger riktig avtale basert på regler
+- Velger riktig avtale basert på regler (KREVER KONFIGURASJON, TA KONTAKT FOR HJELP)
 
 **Slik bruker du:**
 
@@ -170,6 +170,10 @@ Trykk på Alt+A for å åpne admin-modulen som setter fokus i person-fanen og te
 
 Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en.
 
+**Tips:**
+- Trykk ENTER for å avbestille med en gang. Trykk utenfor boksen for å lukke den.
+- Naviger i ansvarlig for avbestilling med piltaster
+
 **Sikkerhetsjekk:**
 - Filtrerer bort turer med statuser som "Startet", "Fremme", "Ikke møtt" osv.
 - Filtrerer bort status "Akseptert" hvis ressursnavn ikke slutter på minst 5 siffer etter siste "-" for å unngå avbestilling av tur etter 3003 men før 4010-1701.
@@ -185,16 +189,16 @@ Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig 
 
 ### Snarveier virker ikke
 
-- Bekreft at scriptet er lastet (åpne konsoll, skal se "✅ NISSY Basic lastet!")
+- Bekreft at scriptet er lastet (åpne konsoll, skal se "✅ NISSY Advanced lastet!")
 - Prøv å laste siden på nytt / restart nettleser
 - Klikk bokmerket igjen
 
 ### Google Maps åpner ikke
 
 - Sjekk at popup ikke er blokkert av nettleseren
-- Godta Google Maps vilkår første gang
+- Godta Google Maps vilkår første gang, åpne Google Maps manuelt i nettleser.
   
-### Smart tildeling velger feil avtale
+### Smart-tildeling velger feil avtale
 
 - Sjekk at RB/ERS-reglene stemmer med ditt oppsett
 - Verifiser antall samtidig reisende i toast-meldingen
@@ -217,7 +221,7 @@ Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig 
 
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
-- Se [README](../README.md) for mer informasjon
+- Se [README](../README.md) for mer utfyllende informasjon
 - Se [CHANGELOG](CHANGELOG.md) for endringslogg
 
 ---

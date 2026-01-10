@@ -160,7 +160,7 @@ Legger til:
 ### Google Maps åpner ikke
 
 - Sjekk at popup ikke er blokkert av nettleseren
-- Godta Google Maps vilkår første gang
+- Godta Google Maps vilkår første gang, åpne Google Maps manuelt i nettleser
 - Sjekk at du har merket bestillinger før du trykker ALT+Q
 
 ## 💡 Tips og triks
@@ -175,7 +175,7 @@ Legger til:
 
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
-- Se [README](../README.md) for mer informasjon
+- Se [README](../README.md) for mer utfyllende informasjon
 - Se [CHANGELOG](CHANGELOG.md) for endringslogg
 
 ---

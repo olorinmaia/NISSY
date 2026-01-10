@@ -167,7 +167,7 @@
     popup.addEventListener("click", e => e.stopPropagation());
 
     const heading = document.createElement("h2");
-    heading.textContent = "Statistikk";
+    heading.textContent = "📊 Statistikk";
     heading.style.marginBottom = "5px";
     heading.style.color = "#007ACC";
     popup.appendChild(heading);
