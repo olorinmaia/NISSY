@@ -432,7 +432,6 @@
     // Finn alle question.gif ikoner som inneholder rekvisisjonsnummeret
     const questionIcons = document.querySelectorAll('img[src="images/question.gif"]');
     
-    let highlightCount = 0;
     questionIcons.forEach(icon => {
       const onclick = icon.getAttribute('onclick');
       if (onclick && onclick.includes(searchedReqNr)) {
@@ -451,7 +450,6 @@
           rowDiv.style.setProperty('border-left', '4px solid #ff6f00', 'important'); // Oransje venstre-border
           rowDiv.style.setProperty('border-radius', '2px', 'important');
           rowDiv.setAttribute('data-highlighted-req', 'true');
-          highlightCount++;
         }
       }
     });
@@ -656,6 +654,38 @@
       setTimeout(addManualButtons, 400);
     }
   })();
+
+  /* ======================================================
+     DEL 7: LUKK PLAKATER VED KLIKK UTENFOR
+     ====================================================== */
+
+  document.addEventListener('click', (e) => {
+    // Finn åpne plakater
+    const reqPoster = document.getElementById('reqposter');
+    const resPoster = document.getElementById('resposter');
+    
+    // Sjekk rekvisisjon-plakat
+    if (reqPoster && reqPoster.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!reqPoster.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof hideRequisitionPoster === 'function') {
+          hideRequisitionPoster();
+        }
+      }
+    }
+    
+    // Sjekk ressurs-plakat
+    if (resPoster && resPoster.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!resPoster.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof hideResource === 'function') {
+          hideResource();
+        }
+      }
+    }
+  }, true);
 
   console.log("✅ NISSY-fiks-script lastet");
 })();
