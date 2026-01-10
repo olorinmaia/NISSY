@@ -196,7 +196,7 @@
       toast.style.opacity = "1";
     }, 10);
     
-    // Fade out etter 3 sekunder
+    // Fade out etter 4 sekunder
     setTimeout(() => {
       toast.style.opacity = "0";
       setTimeout(() => {
@@ -207,7 +207,7 @@
           currentErrorToast = null;
         }
       }, 300);
-    }, 3000);
+    }, 4000);
   }
 
   // ============================================================
@@ -377,7 +377,7 @@
     
     // SJEKK: Ingen bestillinger valgt
     if (rows.length === 0) {
-      showErrorToast("Ingen bestillinger er valgt. Vennligst marker én eller flere bestillinger før du bruker ALT+T.");
+      showErrorToast("📆 Ingen bestillinger er valgt. Vennligst marker én eller flere og trykk på Tilordning 2.0-knappen eller Alt+T igjen.");
       return; // STOPP HER - ikke refresh
     }
     
@@ -501,7 +501,7 @@
     
     // SJEKK: Ingen bestillinger valgt
     if (rows.length === 0) {
-      showErrorToast("Ingen bestillinger er valgt. Vennligst marker én eller flere bestillinger før du bruker ALT+S.");
+      showErrorToast("🪄 Ingen bestillinger er valgt. Vennligst marker én eller flere og trykk på Smart-tildeling-knappen eller Alt+S igjen.");
       return; // STOPP HER - ikke refresh
     }
     

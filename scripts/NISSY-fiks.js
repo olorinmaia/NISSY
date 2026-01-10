@@ -214,7 +214,93 @@
   }
 
   /* ======================================================
-     DEL 2: UNIVERSAL XHR-LYTTER (PERSISTENT)
+     DEL 2: OVERVÅKING AV NISSY-LOGG FOR SESSION TIMEOUT
+     Overvåker NISSY sin interne logg for feilmeldinger
+     ====================================================== */
+
+  let consecutiveFailures = 0;
+  let sessionExpiredWarningShown = false;
+  const FAILURE_THRESHOLD = 3; // Antall påfølgende feil før varsel
+
+  function showSessionExpiredWarning() {
+    if (sessionExpiredWarningShown) return; // Vis bare én gang
+    sessionExpiredWarningShown = true;
+    
+    const userConfirmed = confirm(
+      "⚠️ NISSY-økten har utløpt\n\n" +
+      "Siden vil nå refreshes slik at du kan logge inn på nytt.\n\n" +
+      "⚠️ VIKTIG: Etter innlogging må du kjøre bokmerke med script-pakken på nytt!\n\n" +
+      "Trykk OK for å fortsette."
+    );
+    
+    if (userConfirmed) {
+      window.location.reload();
+    }
+  }
+
+  function setupLogMonitor() {
+    const logger = document.getElementById("logger");
+    if (!logger) {
+      console.warn("⚠️ Fant ikke logger-element, prøver igjen om 2 sekunder...");
+      setTimeout(setupLogMonitor, 2000);
+      return;
+    }
+
+    console.log("👀 Overvåker NISSY-logg for session timeout...");
+
+    // Observer for nye loggmeldinger
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Sjekk om det er en loggmelding-div
+          if (node.nodeType === 1 && node.classList && node.classList.contains('logMsg')) {
+            const message = node.textContent;
+            
+            // Sjekk for feilmeldinger
+            if (message.includes("OBS! Handlingen") && message.includes("kunne ikke utføres")) {
+              consecutiveFailures++;
+              console.warn(`⚠️ NISSY-feil detektert (${consecutiveFailures}/${FAILURE_THRESHOLD}): ${message}`);
+              
+              if (consecutiveFailures >= FAILURE_THRESHOLD) {
+                showSessionExpiredWarning();
+              }
+            }
+            // Reset ved suksess-meldinger (ikke feil eller "opptatt")
+            else if (!message.includes("Systemet er opptatt") && !message.includes("OBS!")) {
+              if (consecutiveFailures > 0) {
+                console.log("✅ NISSY-system tilbake til normal - resetter feil-teller");
+                consecutiveFailures = 0;
+              }
+            }
+          }
+          
+          // Sjekk også for røde error-ikoner (red.gif)
+          if (node.nodeType === 1 && node.tagName === 'IMG' && node.src && node.src.includes('red.gif')) {
+            // Red.gif vises ved feil - dette er også en indikator
+            console.warn("🔴 Rød feil-ikon detektert i logger");
+          }
+        });
+      });
+    });
+
+    // Start observering
+    observer.observe(logger, {
+      childList: true,
+      subtree: false
+    });
+
+    console.log("✅ Logger-overvåkning aktivert");
+  }
+
+  // Start overvåkning når DOM er klar
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLogMonitor);
+  } else {
+    setTimeout(setupLogMonitor, 1000);
+  }
+
+  /* ======================================================
+     DEL 3: UNIVERSAL XHR-LYTTER (PERSISTENT)
      ====================================================== */
 
   let activeWaiters = {
@@ -272,7 +358,7 @@
   }
 
   /* ======================================================
-     DEL 3: FILTER-HÅNDTERING
+     DEL 4: FILTER-HÅNDTERING
      ====================================================== */
 
   const SELECT_NAMES = [
@@ -301,7 +387,7 @@
   document.addEventListener("change", onSelectChange, true);
 
   /* ======================================================
-     DEL 4: KNAPP-HÅNDTERING
+     DEL 5: KNAPP-HÅNDTERING
      ====================================================== */
 
   const btnSearch = document.getElementById("buttonSearch");
@@ -309,6 +395,10 @@
     btnSearch.addEventListener("click", () => {
       waitForAjaxThen('search', () => {
         openPopp("-1");
+        // Vent litt etter openPopp før highlighting
+        setTimeout(() => {
+          highlightSearchedRequisition();
+        }, 300);
       });
     });
   }
@@ -318,7 +408,61 @@
     btnCancel.addEventListener("click", () => {
       waitForAjaxThen('cancel', () => {
         openPopp("-1");
+        removeRequisitionHighlight();
       });
+    });
+  }
+
+  /* ======================================================
+     HIGHLIGHT SØKT REKVISISJONSNUMMER
+     Markerer den spesifikke bestillingen i en samlet tur
+     ====================================================== */
+  
+  function highlightSearchedRequisition() {
+    // Sjekk om søket er på rekvisisjonsnummer
+    const searchType = document.getElementById("searchType");
+    const searchPhrase = document.getElementById("searchPhrase");
+    
+    if (!searchType || !searchPhrase) return;
+    if (searchType.value !== "requisitionNr") return;
+    
+    const searchedReqNr = searchPhrase.value.trim();
+    if (!searchedReqNr) return;
+    
+    // Finn alle question.gif ikoner som inneholder rekvisisjonsnummeret
+    const questionIcons = document.querySelectorAll('img[src="images/question.gif"]');
+    
+    questionIcons.forEach(icon => {
+      const onclick = icon.getAttribute('onclick');
+      if (onclick && onclick.includes(searchedReqNr)) {
+        // Sjekk om dette er en pågående oppdrag rad (P-*)
+        const tableRow = icon.closest('tr');
+        if (!tableRow || !tableRow.id || !tableRow.id.startsWith('P-')) {
+          // Dette er ventende oppdrag eller noe annet - hopp over
+          return;
+        }
+        
+        // Finn parent div.row-image (finnes kun i pågående oppdrag)
+        const rowDiv = icon.closest('div.row-image');
+        if (rowDiv) {
+          // Marker kun denne div-en med mørkere gul bakgrunn og border
+          rowDiv.style.setProperty('background-color', '#ffd54f', 'important'); // Mørkere gul
+          rowDiv.style.setProperty('border-left', '4px solid #ff6f00', 'important'); // Oransje venstre-border
+          rowDiv.style.setProperty('border-radius', '2px', 'important');
+          rowDiv.setAttribute('data-highlighted-req', 'true');
+        }
+      }
+    });
+  }
+  
+  function removeRequisitionHighlight() {
+    // Fjern alle highlights
+    const highlightedDivs = document.querySelectorAll('div[data-highlighted-req="true"]');
+    highlightedDivs.forEach(div => {
+      div.style.removeProperty('background-color');
+      div.style.removeProperty('border-left');
+      div.style.removeProperty('border-radius');
+      div.removeAttribute('data-highlighted-req');
     });
   }
 
@@ -347,7 +491,7 @@
   });
 
     /* ======================================================
-     DEL 5: LEGG TIL MANUELLE SCRIPT-KNAPPER (NEDERST)
+     DEL 6: LEGG TIL MANUELLE SCRIPT-KNAPPER (NEDERST)
      ====================================================== */
 
   (() => {
@@ -510,6 +654,38 @@
       setTimeout(addManualButtons, 400);
     }
   })();
+
+  /* ======================================================
+     DEL 7: LUKK PLAKATER VED KLIKK UTENFOR
+     ====================================================== */
+
+  document.addEventListener('click', (e) => {
+    // Finn åpne plakater
+    const reqPoster = document.getElementById('reqposter');
+    const resPoster = document.getElementById('resposter');
+    
+    // Sjekk rekvisisjon-plakat
+    if (reqPoster && reqPoster.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!reqPoster.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof hideRequisitionPoster === 'function') {
+          hideRequisitionPoster();
+        }
+      }
+    }
+    
+    // Sjekk ressurs-plakat
+    if (resPoster && resPoster.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!resPoster.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof hideResource === 'function') {
+          hideResource();
+        }
+      }
+    }
+  }, true);
 
   console.log("✅ NISSY-fiks-script lastet");
 })();

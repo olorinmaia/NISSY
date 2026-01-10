@@ -112,7 +112,7 @@
   if (!loyvenummer) {
     // Fant ikke løyvenummer i noen av stedene
     showToast(
-      "Fant ikke løyvenummer verken i markert rad i NISSY eller i turFooter i CTRL.",
+      "🚖 Fant ikke løyvenummer verken i NISSY eller CTRL. Vennligst marker en ressurs i NISSY eller åpne en tur i CTRL og prøv igjen.",
       true // isError = true (rød bakgrunn)
     );
     return; // Stopp her hvis ingen løyvenummer funnet

@@ -10,10 +10,12 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
 - ⌛ **NISSY-fiks**
   - Inneholder bugfikser, masse tastatursnarveier og forbedringer.
-  - Automatisk kolonnejustering (skjuler/viser relevante kolonner)
-  - Fikser bug med at filter ikke oppdaterer seg
-  - Åpner alle turer ved bytting av filter automatisk
+  - Automatisk kolonnejustering (skjuler/viser relevante kolonner).
+  - Fikser bug med at filter ikke oppdaterer seg.
+  - Åpner alle turer ved bytting av filter automatisk og ved søk.
+  - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
+  - Lukker plakater ved trykk utenfor.
 - 🪄 **Smart-tildeling (Alt+S)**
   - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
@@ -21,7 +23,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
-  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling
+  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.

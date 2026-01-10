@@ -22,7 +22,7 @@ NISSY Basic er perfekt for deg som:
 - 🔍 **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
 - 📞 **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
 - 📊 **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
-- 🚕 **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
+- 🚖 **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 
 ## 📥 Installasjon
 
@@ -167,8 +167,9 @@ Legger til:
 
 1. **Lagre bokmerket i bokmerkeslinjen** for rask tilgang
 2. **Bruk F5** i stedet for Ctrl+R for å refreshe (Ctrl+R er blokkert)
-3. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle ventende → tilordningsstøtte 2.0)
-4. **ESC er din venn**: Nullstiller søk og setter fokus tilbake
+3. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
+4. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle ventende → tilordningsstøtte 2.0)
+5. **ESC er din venn**: Nullstiller søk og setter fokus tilbake
 
 ## 📞 Support
 

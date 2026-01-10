@@ -1,26 +1,34 @@
-# Endringslogg
+# 📝 Endringslogg
 
 Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## [Unreleased]
 
 ### Planlagt
-- Kontinuerlig forbedring av eksisterende scripts
-- Nye script legges til fortløpende når testet ferdig
-- Se på mulighetene for enkel samkjøringsalgoritme
+- Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig
+- Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
-## [2.1.0] - 09.01.2026
+## [2.5.0] - 10.01.2026
 
 ### 🎉 Nytt script Adminmodul og Avbestilling fungerer nå på bestillinger også 🎉
 
 #### Hva er nytt?
-- ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
-- "?" og "R"-linker i planleggingsvinduet åpnes i Adminmodul/Bestillingsmodul-script istedenfor ny fane.
-- Auto-søk og scroll nederst på siden i når turer og bestillinger åpnes i admin via planlegging
-- Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging
-- **Avbestilling** - Kan nå avbestille flere bestillinger samtidig også. Må velge mellom turer eller bestillinger.
+- ⚙️ **Adminmodul** 
+  - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i med fokus i telefonnummer-feltet i person-fanen.
+  - "?" og "R"-linker i planleggingsvinduet åpnes i Adminmodul/Bestillingsmodul-script istedenfor ny fane.
+  - Auto-søk og scroll nederst på siden i når turer og bestillinger åpnes i admin via planlegging.
+- 📝 **Bestillingsmodul** 
+  - Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging.
+- ✖️ **Avbestilling** 
+  - Kan nå avbestille flere bestillinger samtidig også. Må velge mellom turer eller bestillinger.
+  - Hvis en bestilling krysses ut på ventende oppdrag avbestilles den nå via scriptet for bedre brukeropplevelse.
+- ⌛ **NISSY-fiks** 
+  - Overvåker nå de interne NISSY-loggene for å detektere at brukeren blir logget ut. Kaster nå en feilmelding med informasjon slik at siden kan refreshes og script lastes inn på nytt.
+  - HIGHLIGHT SØKT REKVISISJONSNUMMER. Markerer den spesifikke bestillingen på en tur med flere bestillinger.
+  - Lukker nå plakater ved trykk utenfor.
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
+- Laget felles feilmelding-toast og forbedret tekst.
 
 #### Feilrettinger
 - **Ressursinfo.js** - Problem med at pop-up vindu forsvant ut av skjermen på små skjermer fikset.
