@@ -10,7 +10,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Se på mulighetene for enkel samkjøringsalgoritme
 
 ---
-## [2.1.0] - 09.01.2026
+## [2.1.0] - 10.01.2026
 
 ### 🎉 Nytt script Adminmodul og Avbestilling fungerer nå på bestillinger også 🎉
 
@@ -21,7 +21,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging
 - **Avbestilling** - Kan nå avbestille flere bestillinger samtidig også. Må velge mellom turer eller bestillinger.
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
-- **NISSY-fiks** - Overvåker nå de interne NISSY-loggene for å detektere at brukeren blir logget ut. Kaster nå en feilmelding med informasjon slik at siden kan refreshes og script lastes inn på nytt.
+- **NISSY-fiks** 
+  - Overvåker nå de interne NISSY-loggene for å detektere at brukeren blir logget ut. Kaster nå en feilmelding med informasjon slik at siden kan refreshes og script lastes inn på nytt.
+  - HIGHLIGHT SØKT REKVISISJONSNUMMER. Markerer den spesifikke bestillingen på en tur med flere bestillinger
 
 #### Feilrettinger
 - **Ressursinfo.js** - Problem med at pop-up vindu forsvant ut av skjermen på små skjermer fikset.

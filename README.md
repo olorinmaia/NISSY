@@ -12,7 +12,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Inneholder bugfikser, masse tastatursnarveier og forbedringer.
   - Automatisk kolonnejustering (skjuler/viser relevante kolonner)
   - Fikser bug med at filter ikke oppdaterer seg
-  - Åpner alle turer ved bytting av filter automatisk
+  - Åpner alle turer ved bytting av filter automatisk og ved søk.
+  - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
 - 🪄 **Smart-tildeling (Alt+S)**
   - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.

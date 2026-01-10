@@ -395,6 +395,10 @@
     btnSearch.addEventListener("click", () => {
       waitForAjaxThen('search', () => {
         openPopp("-1");
+        // Vent litt etter openPopp før highlighting
+        setTimeout(() => {
+          highlightSearchedRequisition();
+        }, 300);
       });
     });
   }
@@ -404,7 +408,63 @@
     btnCancel.addEventListener("click", () => {
       waitForAjaxThen('cancel', () => {
         openPopp("-1");
+        removeRequisitionHighlight();
       });
+    });
+  }
+
+  /* ======================================================
+     HIGHLIGHT SØKT REKVISISJONSNUMMER
+     Markerer den spesifikke bestillingen i en samlet tur
+     ====================================================== */
+  
+  function highlightSearchedRequisition() {
+    // Sjekk om søket er på rekvisisjonsnummer
+    const searchType = document.getElementById("searchType");
+    const searchPhrase = document.getElementById("searchPhrase");
+    
+    if (!searchType || !searchPhrase) return;
+    if (searchType.value !== "requisitionNr") return;
+    
+    const searchedReqNr = searchPhrase.value.trim();
+    if (!searchedReqNr) return;
+    
+    // Finn alle question.gif ikoner som inneholder rekvisisjonsnummeret
+    const questionIcons = document.querySelectorAll('img[src="images/question.gif"]');
+    
+    let highlightCount = 0;
+    questionIcons.forEach(icon => {
+      const onclick = icon.getAttribute('onclick');
+      if (onclick && onclick.includes(searchedReqNr)) {
+        // Sjekk om dette er en pågående oppdrag rad (P-*)
+        const tableRow = icon.closest('tr');
+        if (!tableRow || !tableRow.id || !tableRow.id.startsWith('P-')) {
+          // Dette er ventende oppdrag eller noe annet - hopp over
+          return;
+        }
+        
+        // Finn parent div.row-image (finnes kun i pågående oppdrag)
+        const rowDiv = icon.closest('div.row-image');
+        if (rowDiv) {
+          // Marker kun denne div-en med mørkere gul bakgrunn og border
+          rowDiv.style.setProperty('background-color', '#ffd54f', 'important'); // Mørkere gul
+          rowDiv.style.setProperty('border-left', '4px solid #ff6f00', 'important'); // Oransje venstre-border
+          rowDiv.style.setProperty('border-radius', '2px', 'important');
+          rowDiv.setAttribute('data-highlighted-req', 'true');
+          highlightCount++;
+        }
+      }
+    });
+  }
+  
+  function removeRequisitionHighlight() {
+    // Fjern alle highlights
+    const highlightedDivs = document.querySelectorAll('div[data-highlighted-req="true"]');
+    highlightedDivs.forEach(div => {
+      div.style.removeProperty('background-color');
+      div.style.removeProperty('border-left');
+      div.style.removeProperty('border-radius');
+      div.removeAttribute('data-highlighted-req');
     });
   }
 
