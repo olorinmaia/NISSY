@@ -427,13 +427,13 @@ ${listTurer}
       disableRows(turer.map(t => t.rid), 'tur');
 
       let completed = 0;
-      statusBox.textContent = `Utfører 0 av ${turer.length} avbestillinger...`;
+      statusBox.textContent = `Sender 0 av ${turer.length} avbestillinger...`;
 
       await Promise.all(turer.map(item =>
         new Promise(resolve => {
           sendXHR(baseUrl + encodeURIComponent(item.rid), () => {
             completed++;
-            statusBox.textContent = `Utfører ${completed} av ${turer.length} avbestillinger...`;
+            statusBox.textContent = `Sender ${completed} av ${turer.length} avbestillinger...`;
             resolve();
           });
         })
@@ -441,10 +441,35 @@ ${listTurer}
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
-      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er utført.";
+      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er sendt.";
       
       if (typeof openPopp === "function") openPopp('-1');
-      setTimeout(closePopup, 3000);
+      
+      // Vis Lukk-knapp
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Lukk";
+      Object.assign(closeButton.style, {
+        marginTop: "16px",
+        padding: "10px 24px",
+        background: "#95a5a6",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "14px",
+        cursor: "pointer",
+        fontWeight: "600"
+      });
+      closeButton.onclick = closePopup;
+      popup.appendChild(closeButton);
+      
+      // Sett fokus på Lukk-knappen og håndter Enter
+      setTimeout(() => closeButton.focus(), 100);
+      closeButton.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          closePopup();
+        }
+      });
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
@@ -617,7 +642,7 @@ ${listBestillinger}
       disableRows(bestillinger.map(b => b.vid), 'bestilling');
 
       let completed = 0;
-      statusBox.textContent = `Utfører 0 av ${bestillinger.length} avbestillinger...`;
+      statusBox.textContent = `Sender 0 av ${bestillinger.length} avbestillinger...`;
 
       // Send alle requests parallelt
       await Promise.all(bestillinger.map(item =>
@@ -625,7 +650,7 @@ ${listBestillinger}
           const url = baseUrl + encodeURIComponent(item.vid) + "&code=" + code;
           sendXHR(url, () => {
             completed++;
-            statusBox.textContent = `Utfører ${completed} av ${bestillinger.length} avbestillinger...`;
+            statusBox.textContent = `Sender ${completed} av ${bestillinger.length} avbestillinger...`;
             resolve();
           });
         })
@@ -633,10 +658,35 @@ ${listBestillinger}
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
-      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er utført.";
+      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er sendt.";
       
       if (typeof openPopp === "function") openPopp('-1');
-      setTimeout(closePopup, 3000);
+      
+      // Vis Lukk-knapp
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Lukk";
+      Object.assign(closeButton.style, {
+        marginTop: "16px",
+        padding: "10px 24px",
+        background: "#95a5a6",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "14px",
+        cursor: "pointer",
+        fontWeight: "600"
+      });
+      closeButton.onclick = closePopup;
+      popup.appendChild(closeButton);
+      
+      // Sett fokus på Lukk-knappen og håndter Enter
+      setTimeout(() => closeButton.focus(), 100);
+      closeButton.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          closePopup();
+        }
+      });
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
@@ -679,16 +729,20 @@ ${listBestillinger}
       overflow: "auto"
     });
 
+    // Sentrér popup over col2
     const col2 = document.getElementById("col2");
     if (col2) {
       const rect = col2.getBoundingClientRect();
-      popup.style.top = `${rect.top}px`;
-      popup.style.right = `${window.innerWidth - rect.left + 5}px`;
-      popup.style.left = "auto";
-      popup.style.transform = "none";
+      const centerX = rect.left + (rect.width / 2);
+      const centerY = rect.top + (rect.height / 2);
+      
+      popup.style.left = `${centerX}px`;
+      popup.style.top = `${centerY}px`;
+      popup.style.transform = "translate(-50%, -50%)";
     } else {
+      // Fallback: sentrér på hele skjermen
       popup.style.top = "50%";
-      popup.style.left = "33%";
+      popup.style.left = "50%";
       popup.style.transform = "translate(-50%, -50%)";
     }
 
