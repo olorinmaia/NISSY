@@ -214,7 +214,93 @@
   }
 
   /* ======================================================
-     DEL 2: UNIVERSAL XHR-LYTTER (PERSISTENT)
+     DEL 2: OVERVÅKING AV NISSY-LOGG FOR SESSION TIMEOUT
+     Overvåker NISSY sin interne logg for feilmeldinger
+     ====================================================== */
+
+  let consecutiveFailures = 0;
+  let sessionExpiredWarningShown = false;
+  const FAILURE_THRESHOLD = 3; // Antall påfølgende feil før varsel
+
+  function showSessionExpiredWarning() {
+    if (sessionExpiredWarningShown) return; // Vis bare én gang
+    sessionExpiredWarningShown = true;
+    
+    const userConfirmed = confirm(
+      "⚠️ NISSY-økten har utløpt\n\n" +
+      "Siden vil nå refreshes slik at du kan logge inn på nytt.\n\n" +
+      "⚠️ VIKTIG: Etter innlogging må du kjøre bokmerke med script-pakken på nytt!\n\n" +
+      "Trykk OK for å fortsette."
+    );
+    
+    if (userConfirmed) {
+      window.location.reload();
+    }
+  }
+
+  function setupLogMonitor() {
+    const logger = document.getElementById("logger");
+    if (!logger) {
+      console.warn("⚠️ Fant ikke logger-element, prøver igjen om 2 sekunder...");
+      setTimeout(setupLogMonitor, 2000);
+      return;
+    }
+
+    console.log("👀 Overvåker NISSY-logg for session timeout...");
+
+    // Observer for nye loggmeldinger
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Sjekk om det er en loggmelding-div
+          if (node.nodeType === 1 && node.classList && node.classList.contains('logMsg')) {
+            const message = node.textContent;
+            
+            // Sjekk for feilmeldinger
+            if (message.includes("OBS! Handlingen") && message.includes("kunne ikke utføres")) {
+              consecutiveFailures++;
+              console.warn(`⚠️ NISSY-feil detektert (${consecutiveFailures}/${FAILURE_THRESHOLD}): ${message}`);
+              
+              if (consecutiveFailures >= FAILURE_THRESHOLD) {
+                showSessionExpiredWarning();
+              }
+            }
+            // Reset ved suksess-meldinger (ikke feil eller "opptatt")
+            else if (!message.includes("Systemet er opptatt") && !message.includes("OBS!")) {
+              if (consecutiveFailures > 0) {
+                console.log("✅ NISSY-system tilbake til normal - resetter feil-teller");
+                consecutiveFailures = 0;
+              }
+            }
+          }
+          
+          // Sjekk også for røde error-ikoner (red.gif)
+          if (node.nodeType === 1 && node.tagName === 'IMG' && node.src && node.src.includes('red.gif')) {
+            // Red.gif vises ved feil - dette er også en indikator
+            console.warn("🔴 Rød feil-ikon detektert i logger");
+          }
+        });
+      });
+    });
+
+    // Start observering
+    observer.observe(logger, {
+      childList: true,
+      subtree: false
+    });
+
+    console.log("✅ Logger-overvåkning aktivert");
+  }
+
+  // Start overvåkning når DOM er klar
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLogMonitor);
+  } else {
+    setTimeout(setupLogMonitor, 1000);
+  }
+
+  /* ======================================================
+     DEL 3: UNIVERSAL XHR-LYTTER (PERSISTENT)
      ====================================================== */
 
   let activeWaiters = {
@@ -272,7 +358,7 @@
   }
 
   /* ======================================================
-     DEL 3: FILTER-HÅNDTERING
+     DEL 4: FILTER-HÅNDTERING
      ====================================================== */
 
   const SELECT_NAMES = [
@@ -301,7 +387,7 @@
   document.addEventListener("change", onSelectChange, true);
 
   /* ======================================================
-     DEL 4: KNAPP-HÅNDTERING
+     DEL 5: KNAPP-HÅNDTERING
      ====================================================== */
 
   const btnSearch = document.getElementById("buttonSearch");
@@ -347,7 +433,7 @@
   });
 
     /* ======================================================
-     DEL 5: LEGG TIL MANUELLE SCRIPT-KNAPPER (NEDERST)
+     DEL 6: LEGG TIL MANUELLE SCRIPT-KNAPPER (NEDERST)
      ====================================================== */
 
   (() => {
