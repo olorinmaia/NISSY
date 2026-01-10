@@ -10,7 +10,7 @@
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up iframe over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
-- ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
+- ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Duplikat** - Sjekker alle bestillinger på valgt filter for duplikater, lar deg søke opp disse for å rette opp.
@@ -52,7 +52,7 @@
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+N` | Bestillingsmodul |
 | `ALT+A` | Adminmodul |
-| `ALT+K` | Avbestilling av merkede turer |
+| `ALT+K` | Avbestilling av merkede turer/bestillinger |
 
 ## 📥 Installasjon
 

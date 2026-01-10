@@ -1,7 +1,7 @@
 (() => {
   // ============================================================
-  // AVBESTILLING AV TURER SCRIPT (ALT+K)
-  // Avbestiller kun merkede ressurser (krever aktiv merking)
+  // AVBESTILLING AV TURER OG BESTILLINGER SCRIPT (ALT+K)
+  // Avbestiller merkede ressurser eller uplanlagte bestillinger
   // ============================================================
 
   // Sjekk om scriptet allerede er lastet for å unngå duplikater
@@ -14,10 +14,47 @@
   console.log("🚀 Starter Avbestilling-script");
 
   // ============================================================
-  // KONFIGURASJON: Minimum antall siffer etter siste "-"
-  // For å unngå at turer etter 3003 men før 4010-1701 avbestilles
+  // KONFIGURASJON
   // ============================================================
   const MIN_DIGITS_AFTER_DASH = 5;
+  
+  // Miljø-baserte "Ansvarlig"-koder
+  const RESPONSIBILITY_CODES = {
+    test: {
+      'Behandler': '285',
+      'Foreldrerepresentasjon': '315',
+      'Fullmektig': '313',
+      'Hjemmesykepleie': '287',
+      'Institusjon': '301',
+      'Omsorgssenter': '288',
+      'Pasient': '282',
+      'Pasientreisekontor': '312',
+      'Pårørende': '283',
+      'Rekvirent': '284',
+      'Skole / Barnehage': '300',
+      'Transportør': '286',
+      'Vergemål': '314'
+    },
+    prod: {
+      'Behandler': '191',
+      'Foreldrerepresentasjon': '224',
+      'Fullmektig': '222',
+      'Hjemmesykepleie': '193',
+      'Institusjon': '200',
+      'Omsorgssenter': '194',
+      'Pasient': '188',
+      'Pasientreisekontor': '197',
+      'Pårørende': '189',
+      'Rekvirent': '190',
+      'Skole / Barnehage': '199',
+      'Transportør': '192',
+      'Vergemål': '223'
+    }
+  };
+
+  // Detekter miljø basert på URL
+  const isTestEnvironment = window.location.hostname.includes('test');
+  const currentCodes = isTestEnvironment ? RESPONSIBILITY_CODES.test : RESPONSIBILITY_CODES.prod;
 
   // ============================================================
   // HOTKEY REGISTRERING: ALT+K
@@ -35,14 +72,10 @@
   function isValidResourceName(name) {
     if (!name) return false;
     
-    // Finn siste "-" i navnet
     const lastDashIndex = name.lastIndexOf("-");
-    if (lastDashIndex === -1) return false; // Ingen "-" funnet
+    if (lastDashIndex === -1) return false;
     
-    // Hent tekst etter siste "-"
     const afterDash = name.substring(lastDashIndex + 1);
-    
-    // Sjekk om det er kun siffer og minst MIN_DIGITS_AFTER_DASH siffer
     const digitsOnly = afterDash.match(/^\d+$/);
     if (!digitsOnly) return false;
     
@@ -54,17 +87,18 @@
   // ============================================================
   function initializeAvbestilling() {
     const highlightColor = "rgb(148, 169, 220)";
-    const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&rid=";
+    const baseUrlTur = "/planlegging/ajax-dispatch?did=all&action=remove&rid=";
+    const baseUrlBestilling = "/planlegging/ajax-dispatch?did=all&action=remove&vid=";
 
     // ============================================================
-    // HJELPEFUNKSJON: Parse rad og hent data
+    // HJELPEFUNKSJON: Parse tur-rad (pågående oppdrag)
     // ============================================================
-    function parseRow(row) {
+    function parseTurRow(row) {
       // Ignorer ventende oppdrag (V-)
       if (row.id?.startsWith("V-")) return null;
       if (row.querySelector("img[onclick*='removeVentendeOppdrag']")) return null;
       
-      // Ignorer pågående oppdrag (P-)
+      // Ignorer pågående oppdrag-prefix (P-) - vi vil ha de med RID
       if (row.id?.startsWith("P-")) return null;
       if (row.querySelector("img[onclick*='removePaagaaendeOppdrag']")) return null;
 
@@ -77,18 +111,11 @@
       
       if (!rid) return null;
 
-      // Hent turnummer
-      let turnummer = row.querySelector("img[onclick*='searchStatus']")
-        ?.getAttribute("onclick")
-        ?.match(/id=(\d+)/)?.[1];
-      
       // Hent avtale-navn
       let avtale = row.querySelector("td[id*='Rxxxloyve']")
         ?.textContent.trim() ?? "(ukjent)";
       
-      // ============================================================
-      // VALIDERING: Sjekk om ressursnavnet er gyldig
-      // ============================================================
+      // Validering
       if (!isValidResourceName(avtale)) {
         console.log(`⚠️  Ignorerer ressurs med ugyldig navn: ${avtale}`);
         return null;
@@ -98,84 +125,192 @@
       let status = row.querySelector("td[id*='Rxxxstatusxxx']")
         ?.textContent.trim() ?? "";
 
-      return { rid, turnummer, avtale, status, row };
+      return { type: 'tur', rid, avtale, status, row };
     }
 
     // ============================================================
-    // HJELPEFUNKSJON: Finn merkede (highlightede) ressurser
+    // HJELPEFUNKSJON: Parse bestilling-rad (ventende oppdrag)
+    // ============================================================
+    function parseBestillingRow(row) {
+      // Kun ventende oppdrag (V-)
+      if (!row.id?.startsWith("V-")) return null;
+
+      // Hent bestillings-ID (vid)
+      let vid = row.getAttribute("name") || 
+                row.id?.match(/V-(\d+)/)?.[1];
+      
+      if (!vid) return null;
+
+      // Hent rekvisisjonsnummer fra title-attributt
+      let rekvNr = row.getAttribute("title") || "";
+
+      // Hent pasientnavn
+      let pasient = Array.from(row.querySelectorAll("td"))
+        .find(td => td.textContent.includes(","))
+        ?.textContent.trim() ?? "(ukjent)";
+
+      // Legg til rekvisisjonsnummer hvis det finnes
+      if (rekvNr) {
+        pasient += ` (${rekvNr})`;
+      }
+
+      // Hent adresse/info
+      let info = Array.from(row.querySelectorAll("td"))
+        .find(td => td.innerHTML.includes("<br>"))
+        ?.innerHTML.replace(/<br>/g, " → ").trim() ?? "";
+
+      return { type: 'bestilling', vid, pasient, info, row };
+    }
+
+    // ============================================================
+    // HJELPEFUNKSJON: Finn merkede rader
     // ============================================================
     function extractSelected() {
-      return Array.from(document.querySelectorAll("tr"))
+      const highlightedRows = Array.from(document.querySelectorAll("tr"))
         .filter(row => {
           const rowBg = row.style.backgroundColor.replace(/\s+/g, '');
           return rowBg === highlightColor.replace(/\s+/g, '');
-        })
-        .map(parseRow)
-        .filter(Boolean) // Fjern null-verdier
+        });
+
+      const turer = highlightedRows
+        .map(parseTurRow)
+        .filter(Boolean)
         .filter(item => !["Framme", "Startet", "Bomtur"].includes(item.status));
+
+      const bestillinger = highlightedRows
+        .map(parseBestillingRow)
+        .filter(Boolean);
+
+      return { turer, bestillinger };
     }
 
-    const selectedItems = extractSelected();
+    const { turer, bestillinger } = extractSelected();
 
     // ============================================================
-    // FEILHÅNDTERING: Ingen merkede turer
+    // FEILHÅNDTERING: Ingen merkede elementer
     // ============================================================
-    if (selectedItems.length === 0) {
-      showErrorPopup("Ingen turer er merket");
+    if (turer.length === 0 && bestillinger.length === 0) {
+      showErrorPopup("Ingen turer eller bestillinger er merket");
       return;
     }
 
     // ============================================================
-    // OPPRETT POPUP OVERLAY
+    // FEILHÅNDTERING: Både turer og bestillinger er merket
     // ============================================================
-    const overlay = document.createElement("div");
-    Object.assign(overlay.style, {
-      position: "fixed",
-      zIndex: "999998",
-      top: "0",
-      left: "0",
-      width: "100vw",
-      height: "100vh",
-      background: "transparent"
-    });
-    document.body.appendChild(overlay);
-
-    // ============================================================
-    // OPPRETT POPUP
-    // ============================================================
-    const popup = document.createElement("div");
-    Object.assign(popup.style, {
-      position: "fixed",
-      zIndex: "999999",
-      background: "#ffffff",
-      padding: "20px 24px",
-      borderRadius: "10px",
-      boxShadow: "0 8px 30px rgba(0, 0, 0, 0.25)",
-      fontFamily: "Segoe UI, Arial, sans-serif",
-      textAlign: "center",
-      maxWidth: "650px",
-      maxHeight: "80vh",
-      overflow: "auto"
-    });
-
-    // Posisjonér popup mot col2
-    const col2 = document.getElementById("col2");
-    if (col2) {
-      const rect = col2.getBoundingClientRect();
-      popup.style.top = `${rect.top}px`;
-      popup.style.right = `${window.innerWidth - rect.left + 5}px`;
-      popup.style.left = "auto";
-      popup.style.transform = "none";
-    } else {
-      // Fallback hvis col2 ikke finnes
-      popup.style.top = "50%";
-      popup.style.left = "33%";
-      popup.style.transform = "translate(-50%, -50%)";
+    if (turer.length > 0 && bestillinger.length > 0) {
+      showChoicePopup(turer, bestillinger);
+      return;
     }
 
     // ============================================================
-    // POPUP INNHOLD
+    // Vis popup basert på hva som er merket
     // ============================================================
+    if (turer.length > 0) {
+      showTurPopup(turer, baseUrlTur);
+    } else {
+      showBestillingPopup(bestillinger, baseUrlBestilling);
+    }
+  }
+
+  // ============================================================
+  // POPUP: Valg mellom turer og bestillinger
+  // ============================================================
+  function showChoicePopup(turer, bestillinger) {
+    const { overlay, popup } = createPopupBase();
+
+    popup.innerHTML = `
+      <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
+        ⚠️ Velg hva du vil avbestille
+      </h2>
+      
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
+        <p style="margin:0; font-size:13px; color:#856404;">
+          <strong>OBS:</strong> Du har merket både turer og bestillinger.<br>
+          Velg hva du ønsker å avbestille.
+        </p>
+      </div>
+      
+      <div style="display:grid; gap:12px; margin-bottom:20px;">
+        <button 
+          id="chooseTurer" 
+          style="
+            padding:16px;
+            background:#3498db;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+            text-align:left;
+          "
+        >
+          🚗 Avbestill ${turer.length} ${turer.length === 1 ? 'tur' : 'turer'}
+        </button>
+        
+        <button 
+          id="chooseBestillinger" 
+          style="
+            padding:16px;
+            background:#e67e22;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+            text-align:left;
+          "
+        >
+          📋 Avbestill ${bestillinger.length} ${bestillinger.length === 1 ? 'bestilling' : 'bestillinger'}
+        </button>
+      </div>
+      
+      <button 
+        id="cancelChoice" 
+        style="
+          padding:10px 24px;
+          background:#95a5a6;
+          color:#fff;
+          border:none;
+          border-radius:6px;
+          font-size:13px;
+          cursor:pointer;
+          font-weight:600;
+          width:100%;
+        "
+      >
+        Avbryt
+      </button>
+    `;
+
+    document.body.appendChild(popup);
+
+    const closeChoice = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+    };
+
+    popup.querySelector("#chooseTurer").onclick = () => {
+      closeChoice();
+      showTurPopup(turer, "/planlegging/ajax-dispatch?did=all&action=remove&rid=");
+    };
+
+    popup.querySelector("#chooseBestillinger").onclick = () => {
+      closeChoice();
+      showBestillingPopup(bestillinger, "/planlegging/ajax-dispatch?did=all&action=remove&vid=");
+    };
+
+    popup.querySelector("#cancelChoice").onclick = closeChoice;
+    overlay.onclick = closeChoice;
+  }
+
+  // ============================================================
+  // POPUP: Avbestill turer
+  // ============================================================
+  function showTurPopup(turer, baseUrl) {
+    const { overlay, popup } = createPopupBase();
+
     const listBoxStyle = `
       text-align:left;
       font-size:13px;
@@ -188,8 +323,8 @@
       margin-bottom:20px;
     `;
 
-    const listSelected = selectedItems
-      .map(item => `• Ressurs: ${item.avtale}`)
+    const listTurer = turer
+      .map(item => `• ${item.avtale}`)
       .join("\n");
 
     popup.innerHTML = `
@@ -198,11 +333,11 @@
       </h2>
       
       <p style="margin:8px 0 4px; font-weight:600; color:#555; font-size:15px;">
-        Du er i ferd med å avbestille ${selectedItems.length} ${selectedItems.length === 1 ? 'tur' : 'turer'}:
+        Du er i ferd med å avbestille ${turer.length} ${turer.length === 1 ? 'tur' : 'turer'}:
       </p>
       
       <pre style="${listBoxStyle}">
-${listSelected}
+${listTurer}
       </pre>
       
       <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
@@ -263,49 +398,42 @@ ${listSelected}
 
     document.body.appendChild(popup);
     const statusBox = popup.querySelector("#removeStatus");
+    const confirmButton = popup.querySelector("#confirmRemove");
 
-    // ============================================================
-    // XHR FUNKSJON: Send avbestilling til server
-    // ============================================================
-    function sendXHR(url, callback) {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", url, true);
-      xhr.withCredentials = true;
+    // Sett fokus på bekreft-knappen
+    setTimeout(() => confirmButton.focus(), 100);
 
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          callback(); // Ferdig uansett status
-        }
-      };
+    // Håndter Enter-tast på bekreft-knapp
+    confirmButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
 
-      xhr.onerror = function () {
-        console.error("XHR-feil på:", url);
-        callback();
-      };
+    const closePopup = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+    };
 
-      xhr.send();
-    }
-
-    // ============================================================
-    // AVBESTILLINGSFUNKSJON: Sender parallelle XHR requests
-    // ============================================================
-    async function removeItems(items) {
-      // Vis statusboks
+    confirmButton.onclick = async () => {
       statusBox.style.display = "block";
-      
-      // Skjul knapper
-      popup.querySelector("#confirmRemove").style.display = "none";
+      confirmButton.style.display = "none";
       popup.querySelector("#cancelRemove").style.display = "none";
 
-      let completed = 0;
-      statusBox.textContent = `Sender 0 av ${items.length} avbestillinger...`;
+      // Grå ut turer umiddelbart
+      disableRows(turer.map(t => t.rid), 'tur');
 
-      // Send alle requests parallelt
-      await Promise.all(items.map(item =>
+      let completed = 0;
+      statusBox.textContent = `Utfører 0 av ${turer.length} avbestillinger...`;
+
+      await Promise.all(turer.map(item =>
         new Promise(resolve => {
           sendXHR(baseUrl + encodeURIComponent(item.rid), () => {
             completed++;
-            statusBox.textContent = `Sender ${completed} av ${items.length} avbestillinger...`;
+            statusBox.textContent = `Utfører ${completed} av ${turer.length} avbestillinger...`;
             resolve();
           });
         })
@@ -313,60 +441,217 @@ ${listSelected}
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
-      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er sendt.";
+      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er utført.";
       
-      // Refresh data
-      if (typeof openPopp === "function") {
-        openPopp('-1');
-      }
+      if (typeof openPopp === "function") openPopp('-1');
+      setTimeout(closePopup, 3000);
+    };
 
-      // Auto-lukk etter 3 sekunder
-      setTimeout(() => {
-        closePopup();
-      }, 3000);
-    }
-
-    // ============================================================
-    // LUKK POPUP FUNKSJON
-    // ============================================================
-    function closePopup() {
-      if (popup && popup.parentNode) {
-        popup.parentNode.removeChild(popup);
-      }
-      if (overlay && overlay.parentNode) {
-        overlay.parentNode.removeChild(overlay);
-      }
-      
-      // Fjern ESC-listener
-      document.removeEventListener('keydown', escapeHandler);
-
-      if (typeof openPopp === 'function') {
-        openPopp('-1');
-      }
-    }
-
-    // ============================================================
-    // EVENT LISTENERS
-    // ============================================================
-    popup.querySelector("#confirmRemove").onclick = () => removeItems(selectedItems);
     popup.querySelector("#cancelRemove").onclick = closePopup;
-
-    // Lukk ved klikk utenfor popup
     overlay.onclick = closePopup;
 
-    // Lukk med ESC-tast
     const escapeHandler = (e) => {
-      if (e.key === "Escape") {
-        closePopup();
-      }
+      if (e.key === "Escape") closePopup();
     };
     document.addEventListener("keydown", escapeHandler);
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Vis feilmelding
+  // POPUP: Avbestill bestillinger
   // ============================================================
-  function showErrorPopup(message) {
+  function showBestillingPopup(bestillinger, baseUrl) {
+    const { overlay, popup } = createPopupBase();
+
+    const listBoxStyle = `
+      text-align:left;
+      font-size:13px;
+      max-height:300px;
+      overflow:auto;
+      border:1px solid #ddd;
+      padding:10px;
+      border-radius:6px;
+      background:#fafafa;
+      margin-bottom:16px;
+    `;
+
+    const listBestillinger = bestillinger
+      .map(item => `• ${item.pasient}\n  ${item.info}`)
+      .join("\n\n");
+
+    // Bygg ansvarlig-options
+    const responsibilityOptions = Object.entries(currentCodes)
+      .map(([name, code]) => `<option value="${code}">${name}</option>`)
+      .join('');
+
+    popup.innerHTML = `
+      <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
+        ⚠️ Avbestill merkede bestillinger
+      </h2>
+      
+      <p style="margin:8px 0 4px; font-weight:600; color:#555; font-size:15px;">
+        Du er i ferd med å avbestille ${bestillinger.length} ${bestillinger.length === 1 ? 'bestilling' : 'bestillinger'}:
+      </p>
+      
+      <pre style="${listBoxStyle}">
+${listBestillinger}
+      </pre>
+      
+      <div style="background:#e3f2fd; border:1px solid #2196f3; padding:12px; border-radius:6px; margin-bottom:16px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:#1565c0; font-size:14px;">
+          Ansvarlig for avbestilling:
+        </label>
+        <select 
+          id="responsibilityCode" 
+          style="
+            width:100%;
+            padding:8px;
+            border:1px solid #2196f3;
+            border-radius:4px;
+            font-size:14px;
+            background:#fff;
+          "
+        >
+          ${responsibilityOptions}
+        </select>
+        <p style="margin:8px 0 0; font-size:12px; color:#1565c0;">
+          💡 Dette valget gjelder for alle merkede bestillinger
+        </p>
+      </div>
+      
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
+        <p style="margin:0; font-size:13px; color:#856404;">
+          <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
+        </p>
+      </div>
+      
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button 
+          id="confirmRemove" 
+          style="
+            padding:10px 24px;
+            background:#e74c3c;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Ja, avbestill
+        </button>
+        
+        <button 
+          id="cancelRemove" 
+          style="
+            padding:10px 24px;
+            background:#95a5a6;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avbryt
+        </button>
+      </div>
+      
+      <div 
+        id="removeStatus" 
+        style="
+          margin:16px 0 0;
+          padding:12px;
+          background:#ecf0f1;
+          border-radius:6px;
+          font-size:13px;
+          color:#555;
+          min-height:24px;
+          display:none;
+        "
+      >
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+    const statusBox = popup.querySelector("#removeStatus");
+    const responsibilitySelect = popup.querySelector("#responsibilityCode");
+    const confirmButton = popup.querySelector("#confirmRemove");
+
+    // Sett fokus på ansvarlig-feltet
+    setTimeout(() => responsibilitySelect.focus(), 100);
+
+    // Håndter Enter-tast i dropdown
+    responsibilitySelect.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    // Håndter Enter-tast på bekreft-knapp
+    confirmButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    const closePopup = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+    };
+
+    confirmButton.onclick = async () => {
+      const code = responsibilitySelect.value;
+      
+      statusBox.style.display = "block";
+      confirmButton.style.display = "none";
+      popup.querySelector("#cancelRemove").style.display = "none";
+      responsibilitySelect.disabled = true;
+
+      // Grå ut bestillinger umiddelbart
+      disableRows(bestillinger.map(b => b.vid), 'bestilling');
+
+      let completed = 0;
+      statusBox.textContent = `Utfører 0 av ${bestillinger.length} avbestillinger...`;
+
+      // Send alle requests parallelt
+      await Promise.all(bestillinger.map(item =>
+        new Promise(resolve => {
+          const url = baseUrl + encodeURIComponent(item.vid) + "&code=" + code;
+          sendXHR(url, () => {
+            completed++;
+            statusBox.textContent = `Utfører ${completed} av ${bestillinger.length} avbestillinger...`;
+            resolve();
+          });
+        })
+      ));
+
+      statusBox.style.background = "#d4edda";
+      statusBox.style.color = "#155724";
+      statusBox.textContent = "✅ Ferdig! Alle avbestillinger er utført.";
+      
+      if (typeof openPopp === "function") openPopp('-1');
+      setTimeout(closePopup, 3000);
+    };
+
+    popup.querySelector("#cancelRemove").onclick = closePopup;
+    overlay.onclick = closePopup;
+
+    const escapeHandler = (e) => {
+      if (e.key === "Escape") closePopup();
+    };
+    document.addEventListener("keydown", escapeHandler);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Opprett popup base
+  // ============================================================
+  function createPopupBase() {
     const overlay = document.createElement("div");
     Object.assign(overlay.style, {
       position: "fixed",
@@ -384,15 +669,16 @@ ${listSelected}
       position: "fixed",
       zIndex: "999999",
       background: "#ffffff",
-      padding: "24px 28px",
+      padding: "20px 24px",
       borderRadius: "10px",
       boxShadow: "0 8px 30px rgba(0, 0, 0, 0.25)",
       fontFamily: "Segoe UI, Arial, sans-serif",
       textAlign: "center",
-      maxWidth: "450px"
+      maxWidth: "650px",
+      maxHeight: "80vh",
+      overflow: "auto"
     });
 
-    // Posisjonér popup mot col2
     const col2 = document.getElementById("col2");
     if (col2) {
       const rect = col2.getBoundingClientRect();
@@ -405,6 +691,15 @@ ${listSelected}
       popup.style.left = "33%";
       popup.style.transform = "translate(-50%, -50%)";
     }
+
+    return { overlay, popup };
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Vis feilmelding
+  // ============================================================
+  function showErrorPopup(message) {
+    const { overlay, popup } = createPopupBase();
 
     popup.innerHTML = `
       <div style="
@@ -423,7 +718,7 @@ ${listSelected}
       </div>
       
       <p style="margin:0 0 20px; font-size:13px; color:#555;">
-        Vennligst merk turene du ønsker å avbestille og prøv igjen.
+        Vennligst merk elementene du ønsker å avbestille og prøv igjen.
       </p>
       
       <button 
@@ -445,28 +740,76 @@ ${listSelected}
 
     document.body.appendChild(popup);
 
-    function closeErrorPopup() {
-      if (popup && popup.parentNode) {
-        popup.parentNode.removeChild(popup);
-      }
-      if (overlay && overlay.parentNode) {
-        overlay.parentNode.removeChild(overlay);
-      }
+    const closeErrorPopup = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', errorEscHandler);
-    }
+    };
 
     popup.querySelector("#closeError").onclick = closeErrorPopup;
     overlay.onclick = closeErrorPopup;
 
     const errorEscHandler = (e) => {
-      if (e.key === "Escape") {
-        closeErrorPopup();
-      }
+      if (e.key === "Escape") closeErrorPopup();
     };
     document.addEventListener("keydown", errorEscHandler);
 
-    // Auto-lukk etter 4 sekunder
     setTimeout(closeErrorPopup, 4000);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Grå ut rader under planlegging
+  // Bruker systemets innebygde ListSelectionGroup.disableSelection
+  // ============================================================
+  function disableRows(ids, type = 'bestilling') {
+    if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.disableSelection) {
+      let elementsToDisable;
+      
+      if (type === 'bestilling') {
+        // Bestillinger trenger V-prefix
+        elementsToDisable = ids.map(id => 'V-' + id);
+      } else if (type === 'tur') {
+        // Turer bruker ID direkte (eller R-prefix hvis nødvendig)
+        elementsToDisable = ids.map(id => {
+          const idStr = id.toString();
+          // Hvis ID allerede starter med R, bruk som den er
+          if (idStr.startsWith('R')) return idStr;
+          // Ellers legg til R-prefix
+          return 'R-' + idStr;
+        });
+      }
+      
+      try {
+        ListSelectionGroup.disableSelection(
+          elementsToDisable, 
+          ListSelectionGroup.sourceSelectionLists[0]
+        );
+      } catch (e) {
+        console.warn("Kunne ikke bruke ListSelectionGroup.disableSelection:", e);
+      }
+    }
+  }
+
+  // ============================================================
+  // XHR FUNKSJON: Send avbestilling til server
+  // ============================================================
+  function sendXHR(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.withCredentials = true;
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        callback();
+      }
+    };
+
+    xhr.onerror = function () {
+      console.error("XHR-feil på:", url);
+      callback();
+    };
+
+    xhr.send();
   }
 
   console.log("✅ Avbestilling-script lastet");
