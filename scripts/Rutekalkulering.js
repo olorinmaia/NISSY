@@ -14,6 +14,59 @@
   console.log("🚀 Starter Rutekalkulering-script");
 
   // ============================================================
+  // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
+  // ============================================================
+  let currentErrorToast = null;
+  
+  function showErrorToast(msg) {
+    // Fjern eksisterende feilmelding-toast
+    if (currentErrorToast && currentErrorToast.parentNode) {
+      currentErrorToast.parentNode.removeChild(currentErrorToast);
+    }
+    
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    
+    // Styling
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#d9534f", // Rød bakgrunn for feil
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      zIndex: "999999",
+      opacity: "0",
+      transition: "opacity 0.3s ease"
+    });
+    
+    document.body.appendChild(toast);
+    currentErrorToast = toast;
+    
+    // Fade in
+    setTimeout(() => {
+      toast.style.opacity = "1";
+    }, 10);
+    
+    // Fade out etter 4 sekunder
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+        if (currentErrorToast === toast) {
+          currentErrorToast = null;
+        }
+      }, 300);
+    }, 4000);
+  }
+
+  // ============================================================
   // ADRESSE-NORMALISERING
   // Konverterer adresser som Google Maps ikke finner
   // til korrekte adresser
@@ -154,7 +207,7 @@
 
       // Sjekk om vi fant noen rader
       if (!ventendeRows.length && !paagaaendeRows.length) {
-        alert("Fant ingen markerte rader.");
+        showErrorToast("Ingen bestillinger eller turer er valgt. Vennligst marker én eller flere og trykk på knappen eller Alt+Q igjen.");
         return;
       }
 

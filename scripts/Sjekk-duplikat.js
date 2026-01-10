@@ -373,7 +373,7 @@
     let html = `
       <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
       <div style="position: sticky; top: 0; background: #007bff; color: white; padding: 16px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; z-index: 1;">
-        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Duplikatsjekk Bestillinger</h2>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">🔍 Duplikatsjekk av bestillinger</h2>
         <button id="closeModalBtn" style="background: transparent; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px;">✕</button>
       </div>
 
