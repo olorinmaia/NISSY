@@ -111,6 +111,13 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og justerer automatisk kolonnevisning:
 
+- Fikser bug med at filter ikke oppdaterer seg.
+- Åpner alle turer ved bytting av filter automatisk og ved søk.
+- Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
+- Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
+- Lukker plakater ved trykk utenfor.
+- Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
+
 **Skjuler:**
 - Ledig kapasitet (pågående oppdrag)
 - Transporttype (ventende oppdrag)
@@ -160,7 +167,7 @@ Legger til:
 ### Google Maps åpner ikke
 
 - Sjekk at popup ikke er blokkert av nettleseren
-- Godta Google Maps vilkår første gang
+- Godta Google Maps vilkår første gang, åpne Google Maps manuelt i nettleser
 - Sjekk at du har merket bestillinger før du trykker ALT+Q
 
 ## 💡 Tips og triks
@@ -175,7 +182,7 @@ Legger til:
 
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
-- Se [README](../README.md) for mer informasjon
+- Se [README](../README.md) for mer utfyllende informasjon
 - Se [CHANGELOG](CHANGELOG.md) for endringslogg
 
 ---

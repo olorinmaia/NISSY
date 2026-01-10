@@ -687,5 +687,164 @@
     }
   }, true);
 
+  /* ======================================================
+     DEL 8: BEGRENS TEKST I KOLONNER
+     Finner dynamisk hvilke kolonner som skal begrenses
+     Med retry-mekanisme for kolonner som lastes sent
+     ====================================================== */
+
+  (() => {
+    console.log("🔧 Setter opp kolonnebegrensning...");
+
+    let retryCount = 0;
+    const MAX_RETRIES = 10; // Maks 10 forsøk
+    const RETRY_INTERVAL = 5000; // 5 sekund mellom hvert forsøk
+    let stylesApplied = false;
+
+    function setupColumnLimits() {
+      // Funksjon for å finne kolonneindeks basert på header-link
+      function findColumnIndex(tableId, sortFunctionName, sortParameter) {
+        const table = document.getElementById(tableId);
+        if (!table) return -1;
+
+        const headers = table.querySelectorAll('thead th');
+        for (let i = 0; i < headers.length; i++) {
+          const link = headers[i].querySelector(`a[href*="${sortFunctionName}('${sortParameter}')"]`);
+          if (link) {
+            console.log(`✓ Fant kolonne "${sortParameter}" på index ${i + 1} i ${tableId}`);
+            return i + 1; // CSS nth-child er 1-basert
+          }
+        }
+        return -1;
+      }
+
+      // Finn kolonneindekser
+      const ventende = {
+        patientName: findColumnIndex('ventendeoppdrag', 'sortVentendeOppdragList', 'patientName'),
+        address: findColumnIndex('ventendeoppdrag', 'sortVentendeOppdragList', 'tripFromAddress')
+      };
+
+      const paagaaende = {
+        patientName: findColumnIndex('pagaendeoppdrag', 'sortPopp', 'patientName'),
+        fromAddress: findColumnIndex('pagaendeoppdrag', 'sortPopp', 'tripFromAddress'),
+        toAddress: findColumnIndex('pagaendeoppdrag', 'sortPopp', 'tripToAddress')
+      };
+
+      // Sjekk om vi fant alle kritiske kolonner
+      const allColumnsFound = 
+        ventende.patientName > 0 &&
+        ventende.address > 0 &&
+        paagaaende.patientName > 0 &&
+        paagaaende.fromAddress > 0 &&
+        paagaaende.toAddress > 0;
+
+      // Bygg CSS dynamisk basert på funne kolonner
+      let cssRules = '';
+
+      // Ventende oppdrag
+      if (ventende.patientName > 0) {
+        cssRules += `
+          #ventendeoppdrag tbody tr td:nth-child(${ventende.patientName}) {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        `;
+      }
+
+      if (ventende.address > 0) {
+        cssRules += `
+          #ventendeoppdrag tbody tr td:nth-child(${ventende.address}) {
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        `;
+      }
+
+      // Pågående oppdrag
+      if (paagaaende.patientName > 0) {
+        cssRules += `
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.patientName}) {
+            max-width: 150px;
+          }
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.patientName}),
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.patientName}) div.row-image {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        `;
+      }
+
+      if (paagaaende.fromAddress > 0) {
+        cssRules += `
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.fromAddress}) {
+            max-width: 250px;
+          }
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.fromAddress}),
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.fromAddress}) div.row-image {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        `;
+      }
+
+      if (paagaaende.toAddress > 0) {
+        cssRules += `
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.toAddress}) {
+            max-width: 250px;
+          }
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.toAddress}),
+          #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.toAddress}) div.row-image {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        `;
+      }
+
+      // Legg til CSS hvis vi fant noen kolonner
+      if (cssRules) {
+        // Fjern eksisterende style hvis den finnes
+        const existingStyle = document.getElementById('nissy-column-limit-styles');
+        if (existingStyle) {
+          existingStyle.remove();
+        }
+
+        const style = document.createElement('style');
+        style.id = 'nissy-column-limit-styles';
+        style.textContent = cssRules;
+        document.head.appendChild(style);
+        
+        if (allColumnsFound) {
+          console.log("✅ Kolonnebegrensning aktivert - alle kolonner funnet");
+          stylesApplied = true;
+        } else {
+          console.log(`⚠️ Kolonnebegrensning delvis aktivert (forsøk ${retryCount + 1}/${MAX_RETRIES})`);
+        }
+      }
+
+      // Retry hvis ikke alle kolonner er funnet og vi har forsøk igjen
+      if (!allColumnsFound && retryCount < MAX_RETRIES) {
+        retryCount++;
+        console.log(`🔄 Prøver igjen om ${RETRY_INTERVAL}ms... (${retryCount}/${MAX_RETRIES})`);
+        setTimeout(setupColumnLimits, RETRY_INTERVAL);
+      } else if (!allColumnsFound) {
+        console.log("⚠️ Noen kolonner ble ikke funnet etter maksimalt antall forsøk");
+      }
+    }
+
+    // Kjør når DOM er klar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(setupColumnLimits, 500);
+      });
+    } else {
+      setTimeout(setupColumnLimits, 500);
+    }
+  })();
   console.log("✅ NISSY-fiks-script lastet");
 })();

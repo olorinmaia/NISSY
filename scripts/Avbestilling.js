@@ -160,7 +160,7 @@
           }
           
           const info = cells.find(td => td.innerHTML.includes("<br>"))
-            ?.innerHTML.replace(/<br>/g, " → ").trim() ?? "";
+            ?.innerHTML.replace(/<br>/g, " →<br>").trim() ?? "";
           
           // Vis popup for enkelt-avbestilling
           showSingleBestillingPopup({ vid, pasient, info });
@@ -332,7 +332,7 @@
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
-        ⚠️ Velg hva du vil avbestille
+        ✖️ Velg hva du vil avbestille
       </h2>
       
       <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
@@ -444,7 +444,7 @@
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
-        ⚠️ Avbestill merkede turer
+        ✖️ Avbestill merkede turer
       </h2>
       
       <p style="margin:8px 0 4px; font-weight:600; color:#555; font-size:15px;">
@@ -475,7 +475,7 @@ ${listTurer}
             font-weight:600;
           "
         >
-          Ja, avbestill
+          Avbestill
         </button>
         
         <button 
@@ -616,7 +616,7 @@ ${listTurer}
     `;
 
     const listBestillinger = bestillinger
-      .map(item => `• ${item.pasient}\n  ${item.info}`)
+      .map(item => `• <strong>${item.pasient}</strong>\n  ${item.info}`)
       .join("\n\n");
 
     // Bygg ansvarlig-options
@@ -626,7 +626,7 @@ ${listTurer}
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
-        ⚠️ Avbestill merkede bestillinger
+        ✖️ Avbestill merkede bestillinger
       </h2>
       
       <p style="margin:8px 0 4px; font-weight:600; color:#555; font-size:15px;">
@@ -679,7 +679,7 @@ ${listBestillinger}
             font-weight:600;
           "
         >
-          Ja, avbestill
+          Avbestill
         </button>
         
         <button 
@@ -837,7 +837,7 @@ ${listBestillinger}
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
-        ⚠️ Avbestill bestilling
+        ✖️ Avbestill bestilling
       </h2>
       
       <div style="
@@ -892,7 +892,7 @@ ${listBestillinger}
             font-weight:600;
           "
         >
-          Ja, avbestill
+          Avbestill
         </button>
         
         <button 
@@ -1049,7 +1049,7 @@ ${listBestillinger}
       boxShadow: "0 8px 30px rgba(0, 0, 0, 0.25)",
       fontFamily: "Segoe UI, Arial, sans-serif",
       textAlign: "center",
-      maxWidth: "650px",
+      maxWidth: "380px",
       maxHeight: "80vh",
       overflow: "auto"
     });

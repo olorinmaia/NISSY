@@ -16,6 +16,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
   - Lukker plakater ved trykk utenfor.
+  - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
 - 🪄 **Smart-tildeling (Alt+S)**
   - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.

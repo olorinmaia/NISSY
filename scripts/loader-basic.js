@@ -272,7 +272,7 @@
     const popup = document.createElement('div');
     popup.innerHTML = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2 style="margin: 0 0 15px 0; color: #333;">🎉 NISSY Basic Lastet!</h2>
+        <h2 style="margin: 0 0 15px 0; color: #333;">🎉 NISSY Basic lastet!</h2>
         
         <h3 style="margin: 15px 0 8px 0; color: #555;">⌨️ Tastatursnarveier:</h3>
         <div style="font-size: 13px; color: #666;">
