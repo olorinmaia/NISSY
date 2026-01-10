@@ -211,6 +211,7 @@ Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig 
 1. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle → tilordningsstøtte 2.0 (ingen begrensning på antall bestillinger))
 2. **Rek-knapper + Smart tildeling**: Rediger først, tildel etterpå
 3. **ESC lukker alt**: Rek-knapper, modaler, popups
+4. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
 
 ## 📞 Support
 

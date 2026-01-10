@@ -21,6 +21,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging
 - **Avbestilling** - Kan nå avbestille flere bestillinger samtidig også. Må velge mellom turer eller bestillinger.
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
+- **NISSY-fiks** - Overvåker nå de interne NISSY-loggene for å detektere at brukeren blir logget ut. Kaster nå en feilmelding med informasjon slik at siden kan refreshes og script lastes inn på nytt.
 
 #### Feilrettinger
 - **Ressursinfo.js** - Problem med at pop-up vindu forsvant ut av skjermen på små skjermer fikset.

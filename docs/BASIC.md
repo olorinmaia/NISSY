@@ -167,8 +167,9 @@ Legger til:
 
 1. **Lagre bokmerket i bokmerkeslinjen** for rask tilgang
 2. **Bruk F5** i stedet for Ctrl+R for å refreshe (Ctrl+R er blokkert)
-3. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle ventende → tilordningsstøtte 2.0)
-4. **ESC er din venn**: Nullstiller søk og setter fokus tilbake
+3. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
+4. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle ventende → tilordningsstøtte 2.0)
+5. **ESC er din venn**: Nullstiller søk og setter fokus tilbake
 
 ## 📞 Support
 
