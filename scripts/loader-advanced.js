@@ -225,7 +225,7 @@
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="k" title="Masse-avbestill markerte ressurser">
+                   data-hotkey="k" title="Masse-avbestill markerte turer eller bestillinger">
           </td>
         </tr>
         <tr class="nissy-script-row">

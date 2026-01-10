@@ -12,13 +12,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## [2.1.0] - 09.01.2026
 
-### 🎉 Nytt script Adminmodul! 🎉
+### 🎉 Nytt script Adminmodul og Avbestilling fungerer nå på bestillinger også 🎉
 
 #### Hva er nytt?
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
 - "?" og "R"-linker i planleggingsvinduet åpnes i Adminmodul/Bestillingsmodul-script istedenfor ny fane.
 - Auto-søk og scroll nederst på siden i når turer og bestillinger åpnes i admin via planlegging
 - Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging
+- **Avbestilling** - Kan nå avbestille flere bestillinger samtidig også. Må velge mellom turer eller bestillinger.
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
 
 #### Feilrettinger

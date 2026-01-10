@@ -41,8 +41,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
   - Åpner admin-linker i planleggingsvinduet i pop-up isteden for ny fane.
 - ✖️ **Avbestilling (Alt+K)**
-  - Lar deg masse-avbestille merkede turer. Ikke mulig og avbestille turer etter 3003 XML.
-  - WIP: Masseavbestilling av bestillinger
+  - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
+
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
 <img width="505" height="166" alt="image" src="https://github.com/user-attachments/assets/63c48b59-f9cc-46cf-b448-c4634793027a" />
 
@@ -142,7 +142,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+D` | Ressursinfo |
 | `ALT+R` | Rek-knapper |
 | `ALT+N` | Bestillingsmodul |
-| `ALT+K` | Avbestilling av turer |
+| `ALT+K` | Avbestilling av turer/bestillinger |
 
 ## 🔧 Funksjonalitet
 
