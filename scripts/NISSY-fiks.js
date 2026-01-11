@@ -722,6 +722,144 @@
     }
   }, true);
 
+  console.log("✅ Plakat-lukking ved klikk utenfor aktivert");
+
+  /* ======================================================
+     DEL 7B: FORHINDRE AUTO-LUKKING VED MOUSEOUT
+     Plakater forblir åpne til: klikk på kryss, klikk utenfor,
+     eller hover over ny plakat (med delay)
+     ====================================================== */
+
+  (() => {
+    let showReqDelayTimer = null;
+    let pendingReqId = null;
+    let pendingElement = null; // Lagre elementet vi holder over
+    const POSTER_CHANGE_DELAY = 500;
+
+    // Lagre original hideReqDynamic funksjon
+    if (typeof window.hideReqDynamic === 'function') {
+      // Overstyr hideReqDynamic - ikke lukk plakat ved mouseout
+      window.hideReqDynamic = function() {
+        // Clear NISSY sin show-timer
+        if (RequisitionShow.reqTimerId != null) {
+          clearTimeout(RequisitionShow.reqTimerId);
+          RequisitionShow.reqTimerId = null;
+        }
+        RequisitionShow.reqTag = null;
+        
+        // IKKE cancel delay-timer - la den fullføre
+        // IKKE lukk plakaten
+      };
+
+      console.log("✅ Plakat auto-lukking ved mouseout deaktivert");
+    }
+
+    // Overstyr showReq for å legge til delay
+    if (typeof window.showReq === 'function') {
+      const originalShowReq = window.showReq;
+
+      window.showReq = function(tag, reqId, posX) {
+        const currentReqId = RequisitionShow.displayingRequisitionId;
+        const reqPoster = document.getElementById('reqposter');
+        const isPosterOpen = reqPoster && reqPoster.style.display !== 'none';
+
+        // Hvis samme plakat som vises - cancel pending timer
+        if (reqId === currentReqId && isPosterOpen) {
+          if (showReqDelayTimer && pendingReqId !== reqId) {
+            console.log(`Tilbake til ${reqId} - canceller timer for ${pendingReqId}`);
+            clearTimeout(showReqDelayTimer);
+            showReqDelayTimer = null;
+            pendingReqId = null;
+            pendingElement = null;
+          }
+          return;
+        }
+
+        // Hvis samme pending - refresh timer
+        if (reqId === pendingReqId && showReqDelayTimer) {
+          console.log(`Refresh timer for ${reqId}`);
+          clearTimeout(showReqDelayTimer);
+          pendingElement = tag; // Oppdater element
+          
+          showReqDelayTimer = setTimeout(() => {
+            // Sjekk om musen fortsatt er over elementet
+            const rect = pendingElement ? pendingElement.getBoundingClientRect() : null;
+            const mouseX = currentMouseX;
+            const mouseY = currentMouseY;
+            
+            if (rect && mouseX >= rect.left && mouseX <= rect.right && 
+                mouseY >= rect.top && mouseY <= rect.bottom) {
+              console.log(`${POSTER_CHANGE_DELAY}ms passert og mus er over element - viser ${reqId}`);
+              
+              RequisitionShow.reqTag = null;
+              if (RequisitionShow.reqTimerId != null) {
+                clearTimeout(RequisitionShow.reqTimerId);
+                RequisitionShow.reqTimerId = null;
+              }
+              
+              originalShowReq.call(this, tag, reqId, posX);
+            } else {
+              console.log(`${POSTER_CHANGE_DELAY}ms passert men mus er IKKE over element - canceller ${reqId}`);
+            }
+            
+            showReqDelayTimer = null;
+            pendingReqId = null;
+            pendingElement = null;
+          }, POSTER_CHANGE_DELAY);
+          return;
+        }
+
+        // Clear timer hvis ny plakat
+        if (showReqDelayTimer && pendingReqId !== reqId) {
+          console.log(`Ny plakat ${reqId} - canceller timer for ${pendingReqId}`);
+          clearTimeout(showReqDelayTimer);
+          showReqDelayTimer = null;
+          pendingReqId = null;
+          pendingElement = null;
+        }
+
+        // Hvis plakat er åpen og ny plakat
+        if (isPosterOpen && currentReqId !== null && currentReqId !== reqId) {
+          console.log(`Plakat ${currentReqId} er åpen, starter ${POSTER_CHANGE_DELAY}ms timer for ${reqId}`);
+          
+          pendingReqId = reqId;
+          pendingElement = tag;
+          
+          showReqDelayTimer = setTimeout(() => {
+            // Sjekk om musen fortsatt er over elementet
+            const rect = pendingElement ? pendingElement.getBoundingClientRect() : null;
+            const mouseX = currentMouseX;
+            const mouseY = currentMouseY;
+            
+            if (rect && mouseX >= rect.left && mouseX <= rect.right && 
+                mouseY >= rect.top && mouseY <= rect.bottom) {
+              console.log(`${POSTER_CHANGE_DELAY}ms passert og mus er over element - viser ${reqId}`);
+              
+              RequisitionShow.reqTag = null;
+              if (RequisitionShow.reqTimerId != null) {
+                clearTimeout(RequisitionShow.reqTimerId);
+                RequisitionShow.reqTimerId = null;
+              }
+              
+              originalShowReq.call(this, tag, reqId, posX);
+            } else {
+              console.log(`${POSTER_CHANGE_DELAY}ms passert men mus er IKKE over element - canceller ${reqId}`);
+            }
+            
+            showReqDelayTimer = null;
+            pendingReqId = null;
+            pendingElement = null;
+          }, POSTER_CHANGE_DELAY);
+        } else if (!isPosterOpen) {
+          console.log(`Ingen plakat åpen - vis umiddelbart ${reqId}`);
+          originalShowReq.call(this, tag, reqId, posX);
+        }
+      };
+
+      console.log("✅ Plakat-endring delay aktivert med mus-posisjon sjekk (500ms)");
+    }
+  })();
+
   /* ======================================================
      DEL 8: BEGRENS TEKST I KOLONNER
      Finner dynamisk hvilke kolonner som skal begrenses
