@@ -16,7 +16,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
   - Lukker plakater ved trykk utenfor.
-  - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
+  - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag dynamisk.
 - 🪄 **Smart-tildeling (Alt+S)**
   - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
@@ -37,6 +37,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - WIP: Når NISSY kan ta imot 5021 XML (bilens nåværende posisjon) kan dette vises i samme bilde.
 - 📝 **Bestillingsmodul (Alt+N)**
   - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
+    - <img width="400" alt="image" src="https://github.com/user-attachments/assets/be203274-df7b-4799-8caa-76d3af2bbd3c" />
+
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
@@ -47,7 +49,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
-<img width="505" height="166" alt="image" src="https://github.com/user-attachments/assets/63c48b59-f9cc-46cf-b448-c4634793027a" />
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/63c48b59-f9cc-46cf-b448-c4634793027a" />
 
 ### Individuelle script
 - 🚗 **Alenebil**
@@ -63,7 +65,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🚕 **Trøndertaxi-løyve**
   - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 - **Installeres som knapper nederst i footer i NISSY planlegging via script-pakke:**
-<img width="886" height="46" alt="image" src="https://github.com/user-attachments/assets/a886f2b2-3c03-4880-a73f-6759c8aef3df" />
+  - <img width="800" alt="image" src="https://github.com/user-attachments/assets/a886f2b2-3c03-4880-a73f-6759c8aef3df" />
 
 ## 📊 Oversikt alle features i script-pakker
 Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 
