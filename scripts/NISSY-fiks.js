@@ -358,7 +358,6 @@
           
           // Sett ny timer - kjører kun hvis ingen nye endringer kommer
           columnChangeDebounceTimer = setTimeout(() => {
-            console.log("🔄 Kolonneendring detektert - oppdaterer kolonnebegrensning...");
             if (window.__reapplyColumnLimits) {
               window.__reapplyColumnLimits();
             }
@@ -611,8 +610,6 @@
         const scriptName = button.getAttribute('data-script');
         
         button.onclick = async () => {
-          console.log(`🚀 Kjører ${scriptName}`);
-          
           const originalText = button.textContent;
           
           try {
@@ -667,7 +664,7 @@
         };
       });
       
-      console.log("✅ Manuelle script-knapper installert (6 scripts)");
+      console.log("✅ Manuelle script-knapper installert");
     }
 
     // Installer knapper når DOM er klar
@@ -723,14 +720,127 @@
   }, true);
 
   /* ======================================================
+     DEL 7B: FORHINDRE AUTO-LUKKING VED MOUSEOUT
+     Plakater forblir åpne til: klikk på kryss, klikk utenfor,
+     eller hover over ny plakat (med delay)
+     ====================================================== */
+
+  (() => {
+    let showReqDelayTimer = null;
+    let pendingReqId = null;
+    let pendingElement = null; // Lagre elementet vi holder over
+    const POSTER_CHANGE_DELAY = 500;
+
+    // Overstyr hideReqDynamic - ikke lukk plakat ved mouseout
+    if (typeof window.hideReqDynamic === 'function') {
+      window.hideReqDynamic = function() {
+        // Clear NISSY sin show-timer
+        if (RequisitionShow.reqTimerId != null) {
+          clearTimeout(RequisitionShow.reqTimerId);
+          RequisitionShow.reqTimerId = null;
+        }
+        RequisitionShow.reqTag = null;
+        
+        // IKKE cancel delay-timer - la den fullføre
+        // IKKE lukk plakaten
+      };
+    }
+
+    // Overstyr showReq for å legge til delay
+    if (typeof window.showReq === 'function') {
+      const originalShowReq = window.showReq;
+
+      window.showReq = function(tag, reqId, posX) {
+        const currentReqId = RequisitionShow.displayingRequisitionId;
+        const reqPoster = document.getElementById('reqposter');
+        const isPosterOpen = reqPoster && reqPoster.style.display !== 'none';
+
+        // Hvis samme plakat som vises - cancel pending timer
+        if (reqId === currentReqId && isPosterOpen) {
+          if (showReqDelayTimer && pendingReqId !== reqId) {
+            clearTimeout(showReqDelayTimer);
+            showReqDelayTimer = null;
+            pendingReqId = null;
+            pendingElement = null;
+          }
+          return;
+        }
+
+        // Hvis samme pending - refresh timer
+        if (reqId === pendingReqId && showReqDelayTimer) {
+          clearTimeout(showReqDelayTimer);
+          pendingElement = tag; // Oppdater element
+          
+          showReqDelayTimer = setTimeout(() => {
+            // Sjekk om musen fortsatt er over elementet
+            const rect = pendingElement ? pendingElement.getBoundingClientRect() : null;
+            const mouseX = currentMouseX;
+            const mouseY = currentMouseY;
+            
+            if (rect && mouseX >= rect.left && mouseX <= rect.right && 
+                mouseY >= rect.top && mouseY <= rect.bottom) {
+              RequisitionShow.reqTag = null;
+              if (RequisitionShow.reqTimerId != null) {
+                clearTimeout(RequisitionShow.reqTimerId);
+                RequisitionShow.reqTimerId = null;
+              }
+              originalShowReq.call(this, tag, reqId, posX);
+            }
+            
+            showReqDelayTimer = null;
+            pendingReqId = null;
+            pendingElement = null;
+          }, POSTER_CHANGE_DELAY);
+          return;
+        }
+
+        // Clear timer hvis ny plakat
+        if (showReqDelayTimer && pendingReqId !== reqId) {
+          clearTimeout(showReqDelayTimer);
+          showReqDelayTimer = null;
+          pendingReqId = null;
+          pendingElement = null;
+        }
+
+        // Hvis plakat er åpen og ny plakat
+        if (isPosterOpen && currentReqId !== null && currentReqId !== reqId) {
+          pendingReqId = reqId;
+          pendingElement = tag;
+          
+          showReqDelayTimer = setTimeout(() => {
+            // Sjekk om musen fortsatt er over elementet
+            const rect = pendingElement ? pendingElement.getBoundingClientRect() : null;
+            const mouseX = currentMouseX;
+            const mouseY = currentMouseY;
+            
+            if (rect && mouseX >= rect.left && mouseX <= rect.right && 
+                mouseY >= rect.top && mouseY <= rect.bottom) {
+              RequisitionShow.reqTag = null;
+              if (RequisitionShow.reqTimerId != null) {
+                clearTimeout(RequisitionShow.reqTimerId);
+                RequisitionShow.reqTimerId = null;
+              }
+              originalShowReq.call(this, tag, reqId, posX);
+            }
+            
+            showReqDelayTimer = null;
+            pendingReqId = null;
+            pendingElement = null;
+          }, POSTER_CHANGE_DELAY);
+        } else if (!isPosterOpen) {
+          originalShowReq.call(this, tag, reqId, posX);
+        }
+      };
+    }
+  })();
+
+  /* ======================================================
      DEL 8: BEGRENS TEKST I KOLONNER
      Finner dynamisk hvilke kolonner som skal begrenses
      Med retry-mekanisme for kolonner som lastes sent
      ====================================================== */
 
   (() => {
-    console.log("🔧 Setter opp kolonnebegrensning...");
-
     let retryCount = 0;
     const MAX_RETRIES = 10; // Maks 10 forsøk
     const RETRY_INTERVAL = 5000; // 5 sekund mellom hvert forsøk
@@ -740,7 +850,6 @@
       // Reset retry counter når manuelt kalt
       if (arguments[0] === 'manual') {
         retryCount = 0;
-        console.log("🔄 Manuell reapply av kolonnebegrensning...");
       }
 
       // Funksjon for å finne kolonneindeks basert på header-link
@@ -752,8 +861,7 @@
         for (let i = 0; i < headers.length; i++) {
           const link = headers[i].querySelector(`a[href*="${sortFunctionName}('${sortParameter}')"]`);
           if (link) {
-            console.log(`✓ Fant kolonne "${sortParameter}" på index ${i + 1} i ${tableId}`);
-            return i + 1; // CSS nth-child er 1-basert
+            return i + 1;
           }
         }
         return -1;
@@ -861,20 +969,14 @@
         document.head.appendChild(style);
         
         if (allColumnsFound) {
-          console.log("✅ Kolonnebegrensning aktivert - alle kolonner funnet");
           stylesApplied = true;
-        } else {
-          console.log(`⚠️ Kolonnebegrensning delvis aktivert (forsøk ${retryCount + 1}/${MAX_RETRIES})`);
         }
       }
 
       // Retry hvis ikke alle kolonner er funnet og vi har forsøk igjen
       if (!allColumnsFound && retryCount < MAX_RETRIES) {
         retryCount++;
-        console.log(`🔄 Prøver igjen om ${RETRY_INTERVAL}ms... (${retryCount}/${MAX_RETRIES})`);
         setTimeout(setupColumnLimits, RETRY_INTERVAL);
-      } else if (!allColumnsFound) {
-        console.log("⚠️ Noen kolonner ble ikke funnet etter maksimalt antall forsøk");
       }
     }
 

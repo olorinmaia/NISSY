@@ -17,6 +17,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
   - Lukker plakater ved trykk utenfor.
   - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag dynamisk.
+  - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
 - 🪄 **Smart-tildeling (Alt+S)**
   - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
