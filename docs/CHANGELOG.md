@@ -9,7 +9,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
-## [2.5.0] - 10.01.2026
+## [2.5.0] - 11.01.2026
 
 ### 🎉 Nytt script Adminmodul og Avbestilling fungerer på bestillinger og masse nytt til NISSY-fiks 🎉
 
@@ -28,6 +28,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - HIGHLIGHT SØKT REKVISISJONSNUMMER. Markerer den spesifikke bestillingen på en tur med flere bestillinger.
   - Lukker nå plakater ved trykk utenfor.
   - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
+- Lagt på snarvei til "Hent rekvisisjon" i Alt+H
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
 - Laget felles feilmelding-toast og forbedret tekst.
 

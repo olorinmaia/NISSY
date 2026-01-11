@@ -76,6 +76,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+N` | Bestillingsmodul |
+| `ALT+H` | Hent Rekvisisjon |
 | `ALT+A` | Adminmodul |
 
 ## 📖 Detaljert brukerveiledning
