@@ -220,16 +220,16 @@
 
   let consecutiveFailures = 0;
   let sessionExpiredWarningShown = false;
-  const FAILURE_THRESHOLD = 3; // Antall påfølgende feil før varsel
+  const FAILURE_THRESHOLD = 5; // Antall påfølgende feil før varsel
 
   function showSessionExpiredWarning() {
     if (sessionExpiredWarningShown) return; // Vis bare én gang
     sessionExpiredWarningShown = true;
     
     const userConfirmed = confirm(
-      "⚠️ NISSY-økten har utløpt\n\n" +
-      "Siden vil nå refreshes slik at du kan logge inn på nytt.\n\n" +
-      "⚠️ VIKTIG: Etter innlogging må du kjøre bokmerke med script-pakken på nytt!\n\n" +
+      "⚠️ NISSY-økten svarer ikke eller har utløpt\n\n" +
+      "Siden vil nå refreshes for å fikse problemet.\n\n" +
+      "⚠️ VIKTIG: Etter refresh og evt. innlogging må du kjøre bokmerke med script-pakken på nytt!\n\n" +
       "Trykk OK for å fortsette."
     );
     
@@ -310,6 +310,9 @@
     assign: null
   };
 
+  let columnChangeDebounceTimer = null;
+  const COLUMN_CHANGE_DEBOUNCE = 3000; // 3 sekunder debounce
+
   const originalOpen = XMLHttpRequest.prototype.open;
   const originalSend = XMLHttpRequest.prototype.send;
 
@@ -325,6 +328,9 @@
         this._requestType = 'search';
       } else if (url.includes('action=asstrans') || url.includes('action=assresassist')) {
         this._requestType = 'assign';
+      } else if (url.includes('action=pshowcol') || url.includes('action=phidecol') || 
+                 url.includes('action=vshowcol') || url.includes('action=vhidecol')) {
+        this._requestType = 'columnchange';
       }
     }
 
@@ -341,6 +347,23 @@
           clearTimeout(waiter.timeout);
           activeWaiters[requestType] = null;
           waiter.callback();
+        }
+        
+        // Kjør kolonnebegrensning på nytt ved kolonneendringer (med debounce)
+        if (requestType === 'columnchange') {
+          // Clear eksisterende timer
+          if (columnChangeDebounceTimer) {
+            clearTimeout(columnChangeDebounceTimer);
+          }
+          
+          // Sett ny timer - kjører kun hvis ingen nye endringer kommer
+          columnChangeDebounceTimer = setTimeout(() => {
+            console.log("🔄 Kolonneendring detektert - oppdaterer kolonnebegrensning...");
+            if (window.__reapplyColumnLimits) {
+              window.__reapplyColumnLimits();
+            }
+            columnChangeDebounceTimer = null;
+          }, COLUMN_CHANGE_DEBOUNCE);
         }
       });
     }
@@ -714,6 +737,12 @@
     let stylesApplied = false;
 
     function setupColumnLimits() {
+      // Reset retry counter når manuelt kalt
+      if (arguments[0] === 'manual') {
+        retryCount = 0;
+        console.log("🔄 Manuell reapply av kolonnebegrensning...");
+      }
+
       // Funksjon for å finne kolonneindeks basert på header-link
       function findColumnIndex(tableId, sortFunctionName, sortParameter) {
         const table = document.getElementById(tableId);
@@ -848,6 +877,11 @@
         console.log("⚠️ Noen kolonner ble ikke funnet etter maksimalt antall forsøk");
       }
     }
+
+    // Gjør setupColumnLimits tilgjengelig globalt for re-apply
+    window.__reapplyColumnLimits = function() {
+      setupColumnLimits('manual');
+    };
 
     // Kjør når DOM er klar
     if (document.readyState === 'loading') {
