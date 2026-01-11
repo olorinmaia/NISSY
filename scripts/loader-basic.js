@@ -227,7 +227,7 @@
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul">
+                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'.">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="⚙️ Adminmodul (Alt+A)" class="bigbutton nissy-script-btn" 
@@ -288,6 +288,7 @@
           • ALT+B → Blank<br>
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
+          • ALT+H → Hent rekvisisjon<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>

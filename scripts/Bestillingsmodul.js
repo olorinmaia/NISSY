@@ -5,6 +5,7 @@
  * 
  * Funksjonalitet:
  * - Snarvei ALT+N for å åpne bestillingsmodul
+ * - Snarvei ALT+H for å åpne Hent rekvisisjon
  * - Velg mellom 4-stegs eller Ensides bestillingsmodul
  * - Husker ditt valg i nettleserens session
  * - Blokkerer F5 for å unngå utilsiktet refresh
@@ -12,7 +13,8 @@
  * - Intercepter redit-lenker og åpne dem i modal
  * 
  * Bruk:
- * - Trykk ALT+N for å åpne
+ * - Trykk ALT+N for å åpne bestillingsmodul
+ * - Trykk ALT+H for Hent rekvisisjon
  * - Første gang: Velg foretrukket modul (lagres i session)
  * - Neste gang: Åpner direkte til valgt modul
  * - For å nullstille valg: window.Bestillingsmodul.clearPreferred()
@@ -36,6 +38,7 @@
     const CONFIG = {
         resetUrl: '/rekvisisjon/requisition/exit',
         sessionKey: 'bestillingsmodul_preferred',
+        hentRekUrl: '/rekvisisjon/requisition/confirmGetRequisition',
         modules: {
             fourStep: {
                 url: '/rekvisisjon/requisition/new?confirmed=1',
@@ -644,11 +647,103 @@
         }
     }
 
-    // Global tastatursnarvei: Alt+N
+    /**
+     * Åpner en direkte URL i modal (brukes for Hent rekvisisjon)
+     */
+    async function openDirectUrl(url) {
+        try {
+            // Steg 1: Nullstill modul
+            await resetModule();
+            
+            // Steg 2: Injiser stiler
+            injectStyles();
+            
+            // Steg 3: Opprett overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'bestillingsmodul-overlay';
+            activeOverlay = overlay;
+            
+            // Steg 4: Opprett iframe-modal
+            const modal = document.createElement('div');
+            modal.className = 'bestillingsmodul-modal bestillingsmodul-iframe-modal active';
+            modal.innerHTML = `
+                <button class="bestillingsmodul-close" aria-label="Lukk">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <iframe src="${url}"></iframe>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+            activeModals = [modal];
+
+            const iframe = modal.querySelector('iframe');
+            
+            // Håndter F5 på modal-nivå
+            modal.addEventListener('keydown', handleF5, true);
+            
+            // Prøv å håndtere F5 inne i iframe når det laster
+            iframe.addEventListener('load', function() {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const iframeWin = iframe.contentWindow;
+                    
+                    if (iframeDoc && iframeWin) {
+                        // Håndter F5 inne i iframe
+                        const iframeF5Handler = (e) => {
+                            const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+                            if (isF5) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                iframeWin.location.reload();
+                                return false;
+                            }
+                        };
+                        
+                        iframeDoc.addEventListener('keydown', iframeF5Handler, true);
+                        iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                    }
+                } catch (e) {
+                    // Kan ikke få tilgang til iframe-innhold (CORS)
+                }
+            });
+
+            // Aktiver F5-håndtering
+            enableF5Handler(iframe);
+
+            // Setup close handlers
+            const closeBtn = modal.querySelector('.bestillingsmodul-close');
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeAll();
+            });
+
+            modal.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            overlay.addEventListener('click', closeAll);
+            
+        } catch (error) {
+            console.error('Error opening URL in modal:', error);
+            alert('Kunne ikke åpne vinduet. Vennligst prøv igjen.');
+        }
+    }
+
+    // Global tastatursnarvei: Alt+N og Alt+H
     document.addEventListener('keydown', (e) => {
         if (e.altKey && e.key.toLowerCase() === 'n') {
             e.preventDefault();
             init();
+        }
+        // Alt+H for Hent rekvisisjon
+        else if (e.altKey && e.key.toLowerCase() === 'h') {
+            e.preventDefault();
+            openDirectUrl(CONFIG.hentRekUrl);
         }
     });
 
@@ -827,7 +922,8 @@
     window.Bestillingsmodul = { 
         init,
         clearPreferred: () => sessionStorage.removeItem(CONFIG.sessionKey),
-        openReditInModal
+        openReditInModal,
+        openDirectUrl
     };
 
     console.log("✅ Bestillingsmodul-script lastet");
