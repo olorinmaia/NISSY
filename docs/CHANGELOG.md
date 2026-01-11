@@ -2,14 +2,12 @@
 
 Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
-## [Unreleased]
-
-### Planlagt
+## Planlagt
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
-## [2.5.0] - 11.01.2026
+## 🚀 [2.5.0] - 11.01.2026
 
 ### 🎉 Nytt script Adminmodul og Avbestilling fungerer på bestillinger og masse nytt til NISSY-fiks 🎉
 
@@ -17,32 +15,33 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - ⚙️ **Adminmodul** 
   - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i med fokus i telefonnummer-feltet i person-fanen.
   - "?" og "R"-linker i planleggingsvinduet åpnes i Adminmodul/Bestillingsmodul-script istedenfor ny fane.
-  - Auto-søk og scroll nederst på siden i når turer og bestillinger åpnes i admin via planlegging.
+  - Auto-søk og scroller nederst på siden når turer og bestillinger åpnes i admin via "?" i planlegging.
 - 📝 **Bestillingsmodul** 
-  - Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging.
+  - Auto-scroll og fokus til hentetid når bestillinger redigeres i planlegging via "R"-knapp på ventende oppdrag.
+  - Lagt på snarvei til "Hent rekvisisjon" i Alt+H
 - ✖️ **Avbestilling** 
   - Kan nå avbestille flere bestillinger samtidig også. Må velge mellom turer eller bestillinger.
   - Hvis en bestilling krysses ut på ventende oppdrag avbestilles den nå via scriptet for bedre brukeropplevelse.
+  - Trykk "ENTER" etter pop-up når du har lest over for å bekrefte isteden for å klikke.
 - ⌛ **NISSY-fiks** 
   - Overvåker nå de interne NISSY-loggene for å detektere at brukeren blir logget ut. Kaster nå en feilmelding med informasjon slik at siden kan refreshes og script lastes inn på nytt.
   - HIGHLIGHT SØKT REKVISISJONSNUMMER. Markerer den spesifikke bestillingen på en tur med flere bestillinger.
   - Lukker nå plakater ved trykk utenfor.
   - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
-- Lagt på snarvei til "Hent rekvisisjon" i Alt+H
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
 - Laget felles feilmelding-toast og forbedret tekst.
 
-#### Feilrettinger
+#### 🐛 Feilrettinger
 - **Ressursinfo.js** - Problem med at pop-up vindu forsvant ut av skjermen på små skjermer fikset.
 
-## [2.0.0] - 07.01.2026
+## 🚀 [2.0.0] - 07.01.2026
 
 ### 🎉 Knapper for alle script lagt til i Planleggingsbildet 🎉
 
 #### Hva er nytt?
 - Når en loader kjøres så har alle script nå fått sine egne knapper i planleggingsbildet. Snarvei står i parentes på de som har det. Manuelle script ligger nederst og må trykkes på.
 
-## [1.3.0] - 06.01.2026
+## 🚀 [1.3.0] - 06.01.2026
 
 ### 🚕 Ressursinfo og Trøndertaxi-løyve forbedret!
 
@@ -55,7 +54,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 #### Feilrettinger
 - Problem med at Tab-knapp ikke virket pga feil i koden til Bestillingsmodul.js er rettet.
 
-## [1.2.0] - 04.01.2026
+## 🚀 [1.2.0] - 04.01.2026
 
 ### 🎉 Utvidelse med 2 nye script Bestillingsmodul.js og Avbestilling.js og 🚕 Ressursinfo forbedret!
 
@@ -80,7 +79,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 #### Dokumentasjon
 - Oppdatert README.md iht. nye script som er lagt til samt installasjonsveiledning.
 
-## [1.0.0] - 01.01.2026
+## 🚀 [1.0.0] - 01.01.2026
 
 ### 🎉 Første offisielle release!
 
@@ -186,4 +185,4 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-**❤️ Make NISSY great again!? 🤓**
+**❤️ Make NISSY great 🤓**
