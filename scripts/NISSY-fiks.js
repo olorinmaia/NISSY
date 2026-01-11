@@ -663,6 +663,7 @@
     // Finn åpne plakater
     const reqPoster = document.getElementById('reqposter');
     const resPoster = document.getElementById('resposter');
+    const showCost = document.getElementById('showcost');
     
     // Sjekk rekvisisjon-plakat
     if (reqPoster && reqPoster.style.display !== 'none') {
@@ -671,6 +672,17 @@
         // Kall eksisterende funksjon for å lukke
         if (typeof hideRequisitionPoster === 'function') {
           hideRequisitionPoster();
+        }
+      }
+    }
+
+    // Sjekk kostnad/distanse-plakat
+    if (showCost && showCost.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!showCost.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof closeTransportCost === 'function') {
+          closeTransportCost();
         }
       }
     }
