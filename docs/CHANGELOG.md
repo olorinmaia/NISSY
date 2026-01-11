@@ -28,6 +28,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - HIGHLIGHT SØKT REKVISISJONSNUMMER. Markerer den spesifikke bestillingen på en tur med flere bestillinger.
   - Lukker nå plakater ved trykk utenfor.
   - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
+  - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
 - Lagt til brukerveiledning øverst til venstre i NISSY Planlegging
 - Laget felles feilmelding-toast og forbedret tekst.
 
