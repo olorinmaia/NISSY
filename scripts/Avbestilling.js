@@ -761,17 +761,17 @@ ${listBestillinger}
       let completed = 0;
       statusBox.textContent = `Sender 0 av ${bestillinger.length} avbestillinger...`;
 
-      // Send alle requests parallelt
-      await Promise.all(bestillinger.map(item =>
-        new Promise(resolve => {
+      // Send requests sekvensiellt - vent på fullføring av hver
+      for (const item of bestillinger) {
+        await new Promise(resolve => {
           const url = baseUrl + encodeURIComponent(item.vid) + "&code=" + code;
           sendXHR(url, () => {
             completed++;
             statusBox.textContent = `Sender ${completed} av ${bestillinger.length} avbestillinger...`;
             resolve();
           });
-        })
-      ));
+        });
+      }
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
