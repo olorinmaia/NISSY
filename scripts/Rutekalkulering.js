@@ -92,6 +92,8 @@
     "Beinmasse pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Endo pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Allmennpsyk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Kir/Ort post 4, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "LMS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -110,6 +112,7 @@
     "./Bildediagnostikk, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Nevro pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Recovery / Dagkir, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Fedme pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
 
     // St. Olavs hospital
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
