@@ -90,6 +90,8 @@
     "Revma pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Lab prøvetaking, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Beinmasse pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Endo pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Allmennpsyk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
