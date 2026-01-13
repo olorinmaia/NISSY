@@ -91,6 +91,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | ✖️ Avbestill (ALT+K) | ❌ | ✅ |
 | 🪄 Smart-tildeling (ALT+S) | ❌ | ✅ |
 | 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
+| 🕐 Hentetid (ALT+E) | ❌ | ✅ |
 | 🔠 Rek-knapper (ALT+R) | ❌ | ✅ |
 
 ## 🚀 Installasjon
