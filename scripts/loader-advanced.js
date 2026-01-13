@@ -371,7 +371,7 @@
       boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
       zIndex: '999999',
       maxWidth: '600px',
-      maxHeight: '80vh',
+      maxHeight: '90vh',
       overflow: 'auto'
     });
 
