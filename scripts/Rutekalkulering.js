@@ -80,6 +80,7 @@
     "Nyre pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Lunge pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Nevro pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Nevro pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Hem / Inf pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Bildediagnostikk, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Gastro pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
@@ -88,12 +89,20 @@
     "./Kir / Ort pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Akuttpsyk sengepost, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Revma pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
-
-    
+    "Lab prøvetaking, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Beinmasse pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Endo pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Allmennpsyk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Kir/Ort post 4, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "LMS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Mottakelsen, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Kir dagenhet, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
 
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "./Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Med H5, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Allmennpsyk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Kreft pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Dialyse, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -108,6 +117,22 @@
     "./Bildediagnostikk, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Nevro pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Recovery / Dagkir, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Fedme pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Mottakelsen, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+
+    // St. Olavs hospital 
+    "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "KVB 6. Gynekologi kreft, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "BVS 1. ort pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+
+    // Diverse adresser 
+    "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
+    "Brit&Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
+    "Steinkjer rehab/Fysioterapi, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
+    "Steinkjer rehab, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
+    "Dialyse, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
+
+    
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
@@ -116,12 +141,25 @@
   };
 
   /**
+   * Fjerner problematiske husnummer-suffikser (H0123, U0123 etc)
+   * @param {string} address - Original adresse
+   * @returns {string} - Adresse uten suffikser
+   */
+  function cleanAddressSuffixes(address) {
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "NAMSOSVEGEN 23 H0201, 7750 NAMDALSEID" → "NAMSOSVEGEN 23, 7750 NAMDALSEID"
+    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  /**
    * Normaliserer en adresse ved å sjekke om den finnes i mapping-listen
    * @param {string} address - Original adresse
    * @returns {string} - Normalisert adresse (eller original hvis ingen mapping)
    */
   function normalizeAddress(address) {
-    const trimmedAddress = address.trim();
+    // Først: Fjern problematiske suffikser
+    const cleanedAddress = cleanAddressSuffixes(address);
+    const trimmedAddress = cleanedAddress.trim();
     
     // Sjekk om adressen finnes i mapping-listen
     if (ADDRESS_MAPPINGS.hasOwnProperty(trimmedAddress)) {
@@ -129,7 +167,7 @@
       return normalized;
     }
     
-    // Ingen mapping funnet - returner original adresse
+    // Ingen mapping funnet - returner renset adresse
     return trimmedAddress;
   }
 
