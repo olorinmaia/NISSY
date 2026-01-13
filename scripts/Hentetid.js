@@ -11,14 +11,14 @@
   }
   window.__endreTidHotkeyInstalled = true;
 
-  console.log("🚀 Starter Endre tid-script");
+  console.log("🚀 Starter Hentetid-script");
 
   // Bakgrunnsfarge for merkede rader i NISSY
   const SELECTED_BG = "rgb(148, 169, 220)";
   
   // Konfigurerbar tekst-lengde
   const MAX_NAME_LENGTH = 20;
-  const MAX_ADDRESS_LENGTH = 30;
+  const MAX_ADDRESS_LENGTH = 40;
   
   // Sperre for å forhindre flere samtidige popups
   let isPopupOpen = false;
@@ -97,12 +97,10 @@
     
     const [hours, minutes] = time.split(':').map(Number);
     
-    // Sjekk at timer er mellom 00-23
     if (hours < 0 || hours > 23) {
       return false;
     }
     
-    // Sjekk at minutter er mellom 00-59
     if (minutes < 0 || minutes > 59) {
       return false;
     }
@@ -120,19 +118,352 @@
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Marker bestillinger på nytt
+  // HJELPEFUNKSJON: Sorter bestillinger basert på hentetid
   // ============================================================
-  function reselectRows(rowIds) {
-    if (typeof selectRow !== 'function' || typeof g_voppLS === 'undefined') {
-      console.warn("selectRow eller g_voppLS er ikke tilgjengelig");
-      return;
-    }
+  function sortBestillingerByTime(bestillinger, popup) {
+    const updatedBestillinger = bestillinger.map(b => {
+      const input = popup ? popup.querySelector(`#time_${b.id}`) : null;
+      const currentTime = input ? input.value.trim() : b.existingTime;
+      return {
+        ...b,
+        currentTime: currentTime || b.existingTime
+      };
+    });
+
+    // Sorter basert på currentTime
+    updatedBestillinger.sort((a, b) => {
+      const timeA = a.currentTime.replace(':', '');
+      const timeB = b.currentTime.replace(':', '');
+      return parseInt(timeA) - parseInt(timeB);
+    });
+
+    return updatedBestillinger;
+  }
+
+  // ============================================================
+  // ============================================================
+  // HJELPEFUNKSJON: Rebuil bestillingslisten i popup
+  // ============================================================
+  function rebuildBestillingsList(bestillinger, popup, confirmButton) {
+    const container = popup.querySelector('#bestillingerContainer');
+    if (!container) return bestillinger;
+  
+    // Sorter bestillinger
+    const sorted = sortBestillingerByTime(bestillinger, popup);
+  
+    // Bygg ny HTML
+    const bestillingRows = sorted.map((b, index) => {
+      const displayName = truncateText(b.name, MAX_NAME_LENGTH);
+      const displayFrom = truncateText(b.fromAddress, MAX_ADDRESS_LENGTH);
+      const displayTo = truncateText(b.toAddress, MAX_ADDRESS_LENGTH);
+      
+      // Hent nåværende verdi fra input hvis den finnes
+      const existingInput = popup.querySelector(`#time_${b.id}`);
+      const currentValue = existingInput ? existingInput.value : b.existingTime;
+      const borderColor = existingInput ? existingInput.style.borderColor : '#2196f3';
+      const bgColor = existingInput ? existingInput.style.background : '#fff';
+      
+      return `
+      <div style="
+        background: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'};
+        padding: 6px 10px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        border: 1px solid #dee2e6;
+      ">
+        <div style="
+          display: grid;
+          grid-template-columns: 0.8fr 1.3fr auto;
+          gap: 15px;
+          align-items: center;
+        ">
+          <div style="
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          " title="${b.name}">
+            ${displayName}
+          </div>
+          <div style="
+            font-size: 12px;
+            color: #666;
+            line-height: 1.3;
+          " title="${b.fromAddress} → ${b.toAddress}">
+            ${displayFrom} →<br>${displayTo}
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <div>
+              <div style="
+                font-size: 9px;
+                color: #666;
+                margin-bottom: 2px;
+                text-align: center;
+              ">Hentetid</div>
+              <input 
+                type="text" 
+                id="time_${b.id}"
+                data-original="${b.existingTime}"
+                value="${currentValue}"
+                placeholder="HH:MM"
+                maxlength="5"
+                style="
+                  padding: 6px 8px;
+                  border: 2px solid ${borderColor};
+                  border-radius: 4px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  width: 60px;
+                  text-align: center;
+                  font-family: 'Courier New', monospace;
+                  background: ${bgColor};
+                  color: #333;
+                "
+              >
+            </div>
+            ${b.oppmotetid ? `
+              <div>
+                <div style="
+                  font-size: 9px;
+                  color: #666;
+                  margin-bottom: 2px;
+                  text-align: center;
+                ">Oppmøte</div>
+                <div style="
+                  padding: 6px 8px;
+                  border: 2px solid #ccc;
+                  border-radius: 4px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  width: 60px;
+                  text-align: center;
+                  background: #f8f8f8;
+                  color: #666;
+                  font-family: 'Courier New', monospace;
+                ">${b.oppmotetid}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    }).join('');
+  
+    // Oppdater container
+    container.innerHTML = bestillingRows;
     
-    rowIds.forEach(id => {
-      try {
-        selectRow('V-' + id, g_voppLS);
-      } catch (e) {
-        console.warn("Kunne ikke markere rad:", id, e);
+    // Re-attach event listeners
+    attachEventListeners(sorted, popup, confirmButton);
+    
+    return sorted;
+  }
+
+    // ============================================================
+    // HJELPEFUNKSJON: Attach event listeners til input-felt
+    // ============================================================
+    function attachEventListeners(bestillinger, popup, confirmButton) {
+      // Legg til auto-formatering og keyboard-handling på tidsfeltene
+      bestillinger.forEach((b, index) => {
+        const input = popup.querySelector(`#time_${b.id}`);
+        if (!input) return;
+        
+        // Auto-formatering mens du skriver
+        input.addEventListener('input', (e) => {
+          let value = e.target.value.replace(/[^\d:]/g, '');
+          
+          // Hvis bruker skriver tall etter kolon, ikke auto-formater
+          if (value.includes(':')) {
+            e.target.value = value;
+          } else {
+            // Auto-formater når det bare er tall
+            if (value.length >= 3) {
+              value = value.slice(0, 2) + ':' + value.slice(2, 4);
+              e.target.value = value;
+            }
+          }
+          
+          // Fjern rød farge hvis bruker retter
+          e.target.style.borderColor = '#2196f3';
+          e.target.style.background = '#fff';
+        });
+        
+        // Formatering og validering
+        const handleFormat = (e) => {
+          let value = e.target.value.replace(/[^\d]/g, '');
+          
+          if (value.length === 0) {
+            e.target.value = '';
+            return;
+          }
+          
+          if (value.length === 2) {
+            // "00" → "00:00"
+            e.target.value = `${value}:00`;
+          } else if (value.length === 3) {
+            // "123" → "12:30"
+            e.target.value = value.slice(0, 2) + ':' + value.slice(2) + '0';
+          } else if (value.length >= 4) {
+            // "1234" → "12:34"
+            e.target.value = value.slice(0, 2) + ':' + value.slice(2, 4);
+          } else if (value.length === 1) {
+            // "1" → "01:00"
+            e.target.value = '0' + value + ':00';
+          }
+
+          // Valider tidspunktet
+          if (e.target.value && !isValidTime(e.target.value)) {
+            e.target.style.borderColor = '#dc3545';
+            e.target.style.background = '#fff5f5';
+          } else {
+            e.target.style.borderColor = '#2196f3';
+            e.target.style.background = '#fff';
+          }
+        };
+        
+        input.addEventListener('blur', handleFormat);
+        
+        // Keyboard-handling
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            
+            handleFormat(e);
+            input.blur();
+            
+            setTimeout(() => {
+              confirmButton.click();
+            }, 50);
+          } else if (e.key === 'Tab') {
+            e.preventDefault();
+            handleFormat(e);
+            
+            // Sorter og finn neste/forrige felt
+            const sorted = rebuildBestillingsList(bestillinger, popup, confirmButton);
+            
+            // Finn nåværende index i sortert liste
+            const currentIndex = sorted.findIndex(item => item.id === b.id);
+            
+            setTimeout(() => {
+              if (e.shiftKey) {
+                // Shift+Tab - gå til forrige
+                if (currentIndex > 0) {
+                  // Gå til forrige felt
+                  const prevInput = popup.querySelector(`#time_${sorted[currentIndex - 1].id}`);
+                  if (prevInput) {
+                    prevInput.focus();
+                    prevInput.select();
+                  }
+                } else if (currentIndex === 0) {
+                  // Første felt - gå til Avbryt-knappen
+                  const cancelButton = popup.querySelector("#cancelChange");
+                  if (cancelButton) cancelButton.focus();
+                } else {
+                  // currentIndex === -1: Feltet flyttet seg - gå til første felt
+                  const firstInput = popup.querySelector(`#time_${sorted[0].id}`);
+                  if (firstInput) {
+                    firstInput.focus();
+                    firstInput.select();
+                  }
+                }
+              } else {
+                // Tab - gå til neste
+                if (currentIndex >= 0 && currentIndex < sorted.length - 1) {
+                  // Gå til neste felt
+                  const nextInput = popup.querySelector(`#time_${sorted[currentIndex + 1].id}`);
+                  if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
+                  }
+                } else {
+                  // Siste felt eller ugyldig index - gå til første felt
+                  const firstInput = popup.querySelector(`#time_${sorted[0].id}`);
+                  if (firstInput) {
+                    firstInput.focus();
+                    firstInput.select();
+                  }
+                }
+              }
+            }, 50);
+          }
+        });
+      });
+      
+      // Legg til keyboard-handling på knappene for å kunne tabbe tilbake
+      const cancelButton = popup.querySelector("#cancelChange");
+      if (cancelButton && !cancelButton.dataset.keyboardAttached) {
+        cancelButton.dataset.keyboardAttached = 'true';
+        cancelButton.addEventListener('keydown', (e) => {
+          if (e.key === 'Tab' && !e.shiftKey) {
+            e.preventDefault();
+            confirmButton.focus();
+          } else if (e.key === 'Tab' && e.shiftKey) {
+            e.preventDefault();
+            // Gå til siste input-felt
+            const sorted = sortBestillingerByTime(bestillinger, popup);
+            const lastInput = popup.querySelector(`#time_${sorted[sorted.length - 1].id}`);
+            if (lastInput) {
+              lastInput.focus();
+              lastInput.select();
+            }
+          }
+        });
+      }
+      
+      if (confirmButton && !confirmButton.dataset.keyboardAttached) {
+        confirmButton.dataset.keyboardAttached = 'true';
+        confirmButton.addEventListener('keydown', (e) => {
+          if (e.key === 'Tab' && !e.shiftKey) {
+            e.preventDefault();
+            // Wrap til første input-felt
+            const sorted = sortBestillingerByTime(bestillinger, popup);
+            const firstInput = popup.querySelector(`#time_${sorted[0].id}`);
+            if (firstInput) {
+              firstInput.focus();
+              firstInput.select();
+            }
+          } else if (e.key === 'Tab' && e.shiftKey) {
+            e.preventDefault();
+            cancelButton.focus();
+          }
+        });
+      }
+    }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Finn alle merkede rader (både V- og Rxxx)
+  // ============================================================
+  function getAllSelectedRows() {
+    return [...document.querySelectorAll("tr")].filter(tr => {
+      const rowBg = getComputedStyle(tr).backgroundColor.replace(/\s+/g, '');
+      return rowBg === SELECTED_BG.replace(/\s+/g, '');
+    });
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Marker rader på nytt (både V- og Rxxx)
+  // ============================================================
+  function reselectAllRows(selectedRows) {
+    selectedRows.forEach(row => {
+      const rowId = row.id;
+      
+      if (rowId.startsWith('V-')) {
+        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+          try {
+            selectRow(rowId, g_voppLS);
+          } catch (e) {
+            console.warn("Kunne ikke markere ventende oppdrag:", rowId, e);
+          }
+        }
+      } else if (rowId.startsWith('Rxxx')) {
+        if (typeof selectRow === 'function' && typeof g_resLS !== 'undefined') {
+          try {
+            selectRow(rowId, g_resLS);
+          } catch (e) {
+            console.warn("Kunne ikke markere ressurs:", rowId, e);
+          }
+        }
       }
     });
   }
@@ -284,7 +615,6 @@
       .find(td => td.textContent.includes(','));
     const name = nameCell ? nameCell.textContent.trim() : '(ukjent)';
     
-    // Hent adresse (Fra → Til) - inkluder alt (adresse, postnummer, poststed)
     const addressCell = Array.from(row.querySelectorAll('td'))
       .find(td => td.innerHTML.includes('<br>'));
     
@@ -315,14 +645,16 @@
   // ============================================================
   // POPUP: Rediger hentetid for flere bestillinger
   // ============================================================
-  function showTimeEditPopup(bestillinger) {
-    // Sett popup som åpen
+  function showTimeEditPopup(bestillinger, allSelectedRows) {
     isPopupOpen = true;
     
     const { overlay, popup } = createPopupBase("620px");
 
+    // Sorter bestillinger initialt
+    const sortedBestillinger = sortBestillingerByTime(bestillinger, null);
+
     // Bygg HTML for hver bestilling
-    const bestillingRows = bestillinger.map((b, index) => {
+    const bestillingRows = sortedBestillinger.map((b, index) => {
       const displayName = truncateText(b.name, MAX_NAME_LENGTH);
       const displayFrom = truncateText(b.fromAddress, MAX_ADDRESS_LENGTH);
       const displayTo = truncateText(b.toAddress, MAX_ADDRESS_LENGTH);
@@ -337,8 +669,8 @@
       ">
         <div style="
           display: grid;
-          grid-template-columns: 0.9fr 1.2fr auto;
-          gap: 10px;
+          grid-template-columns: 0.8fr 1.3fr auto;
+          gap: 15px;
           align-items: center;
         ">
           <div style="
@@ -352,11 +684,11 @@
             ${displayName}
           </div>
           <div style="
-            font-size: 11px;
+            font-size: 12px;
             color: #666;
             line-height: 1.3;
           " title="${b.fromAddress} → ${b.toAddress}">
-            <b>${displayFrom} →</b><br>${displayTo}
+            ${displayFrom} →<br>${displayTo}
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
             <div>
@@ -365,7 +697,7 @@
                 color: #666;
                 margin-bottom: 2px;
                 text-align: center;
-              "><b>Hentetid</b></div>
+              ">Hentetid</div>
               <input 
                 type="text" 
                 id="time_${b.id}"
@@ -432,7 +764,7 @@
         <strong>${bestillinger.length} bestillinger valgt</strong> - Juster hentetid individuelt
       </div>
       
-      <div style="
+      <div id="bestillingerContainer" style="
         max-height: 550px;
         overflow-y: auto;
         margin-bottom: 10px;
@@ -447,10 +779,10 @@
         padding:8px 10px;
         border-radius:4px;
         margin-bottom:10px;
-        font-size:11px;
+        font-size:12px;
         color:#856404;
       ">
-        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 12 eller 1230). Tab = neste felt, Enter = lagre.
+        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Tab = neste felt. Enter = lagre.
       </div>
       
       <div style="display:flex; gap:10px; justify-content:center;">
@@ -508,91 +840,12 @@
     const statusBox = popup.querySelector("#changeStatus");
     const confirmButton = popup.querySelector("#confirmChange");
     
-    // Legg til auto-formatering og keyboard-handling på tidsfeltene
-    bestillinger.forEach((b, index) => {
-      const input = popup.querySelector(`#time_${b.id}`);
-      if (!input) return;
-      
-      // Auto-formatering mens du skriver
-      input.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/[^\d:]/g, '');
-        
-        // Hvis bruker skriver tall etter kolon, ikke auto-formater
-        if (value.includes(':')) {
-          e.target.value = value;
-        } else {
-          // Auto-formater når det bare er tall
-          if (value.length >= 3) {
-            value = value.slice(0, 2) + ':' + value.slice(2, 4);
-            e.target.value = value;
-          }
-        }
-        
-        // Fjern rød farge hvis bruker retter
-        e.target.style.borderColor = '#2196f3';
-        e.target.style.background = '#fff';
-      });
-      
-      // Formatering og validering
-      const handleFormat = (e) => {
-        let value = e.target.value.replace(/[^\d]/g, '');
-        
-        if (value.length === 0) {
-          e.target.value = '';
-          return;
-        }
-        
-        if (value.length === 2) {
-          // "00" → "00:00"
-          e.target.value = `${value}:00`;
-        } else if (value.length === 3) {
-          // "123" → "12:30"
-          e.target.value = value.slice(0, 2) + ':' + value.slice(2) + '0';
-        } else if (value.length >= 4) {
-          // "1234" → "12:34"
-          e.target.value = value.slice(0, 2) + ':' + value.slice(2, 4);
-        } else if (value.length === 1) {
-          // "1" → "01:00"
-          e.target.value = '0' + value + ':00';
-        }
-        
-        // Valider tidspunktet
-        if (e.target.value && !isValidTime(e.target.value)) {
-          e.target.style.borderColor = '#dc3545';
-          e.target.style.background = '#fff5f5';
-        } else {
-          e.target.style.borderColor = '#2196f3';
-          e.target.style.background = '#fff';
-        }
-      };
-      
-      input.addEventListener('blur', handleFormat);
-      
-      // Keyboard-handling
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          
-          // Formater feltet
-          handleFormat(e);
-          
-          // Fjern fokus fra input-feltet (dette gjør at blur-eventet kjører)
-          input.blur();
-          
-          // Vent et lite øyeblikk for at blur skal bli synlig
-          setTimeout(() => {
-            confirmButton.click();
-          }, 50);
-        } else if (e.key === 'Tab') {
-          // Tab = formater og gå til neste
-          handleFormat(e);
-        }
-      });
-    });
+    // Attach event listeners til alle felt
+    attachEventListeners(sortedBestillinger, popup, confirmButton);
     
     // Sett fokus på første tidsfelt og marker innholdet
     setTimeout(() => {
-      const firstInput = popup.querySelector(`#time_${bestillinger[0].id}`);
+      const firstInput = popup.querySelector(`#time_${sortedBestillinger[0].id}`);
       if (firstInput) {
         firstInput.focus();
         firstInput.select();
@@ -603,14 +856,10 @@
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
-      isPopupOpen = false; // Frigi sperre
+      isPopupOpen = false;
     };
 
-    // Lagre bestillings-IDer for re-seleksjon
-    const rowIds = bestillinger.map(b => b.id);
-
     confirmButton.onclick = async () => {
-      // Valider og samle BARE endringer (hvor tid faktisk er endret)
       const changes = [];
       let invalidFields = [];
       
@@ -619,13 +868,11 @@
         const newTime = input.value.trim();
         const originalTime = input.getAttribute('data-original');
         
-        // Hopp over hvis tiden ikke er endret
         if (newTime === originalTime) {
           continue;
         }
         
         if (newTime) {
-          // Valider tidsformat og verdi
           if (!isValidTime(newTime)) {
             input.style.borderColor = '#dc3545';
             input.style.background = '#fff5f5';
@@ -659,7 +906,6 @@
       confirmButton.style.display = "none";
       popup.querySelector("#cancelChange").style.display = "none";
       
-      // Deaktiver alle input-felt
       bestillinger.forEach(b => {
         const input = popup.querySelector(`#time_${b.id}`);
         if (input) input.disabled = true;
@@ -674,13 +920,11 @@
       if (typeof openPopp === "function") {
         openPopp('-1');
         
-        // Vent litt for at openPopp skal fullføre, deretter re-marker radene
         setTimeout(() => {
-          reselectRows(rowIds);
+          reselectAllRows(allSelectedRows);
         }, 500);
       }
       
-      // Vis Lukk-knapp
       const closeButton = document.createElement("button");
       closeButton.textContent = "Lukk";
       Object.assign(closeButton.style, {
@@ -815,13 +1059,11 @@
   // HOVEDFUNKSJON: Finn merkede bestillinger og vis popup
   // ============================================================
   function initializeTimeChange() {
-    const rows = [...document.querySelectorAll("tr")].filter(tr =>
-      getComputedStyle(tr).backgroundColor === SELECTED_BG &&
-      (tr.id || "").startsWith("V-")
-    );
+    const allSelectedRows = getAllSelectedRows();
+    const rows = allSelectedRows.filter(tr => (tr.id || "").startsWith("V-"));
 
     if (rows.length === 0) {
-      showErrorToast("Ingen bestillinger er valgt på ventende oppdrag. Vennligst marker én eller flere.");
+      showErrorToast("🕐 Ingen bestillinger er valgt på ventende oppdrag. Vennligst marker én eller flere og trykk på Hentetid-knappen eller Alt+E igjen.");
       return;
     }
 
@@ -834,8 +1076,8 @@
     }
 
     const bestillinger = rows.map(row => parseRowInfo(row, reiseTidIndex, oppTidIndex));
-    showTimeEditPopup(bestillinger);
+    showTimeEditPopup(bestillinger, allSelectedRows);
   }
 
-  console.log("✅ Endre tid-script lastet - Bruk Alt+E for å endre hentetid på merkede bestillinger");
+  console.log("✅ Hentetid-script lastet");
 })();

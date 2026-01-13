@@ -7,9 +7,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [2.6.0] - 13.01.2026
+
+### 🎉 Nytt script Hentetid
+
+#### Hva er nytt?
+- 🕐 **Hentetid** 
+  - (Alt+E) Lar deg redigere hentetid på merkede bestillinger på ventende oppdrag. TODO: Gjøre det mulig på pågående oppdrag kun for status tildelt.
+
 ## 🚀 [2.5.0] - 11.01.2026
 
-### 🎉 Nytt script Adminmodul og Avbestilling fungerer på bestillinger og masse nytt til NISSY-fiks 🎉
+### 🎉 Nytt script Adminmodul og Avbestilling fungerer på bestillinger og masse nytt til NISSY-fiks
 
 #### Hva er nytt?
 - ⚙️ **Adminmodul** 

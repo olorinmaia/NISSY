@@ -7,6 +7,7 @@
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
 - 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
+- 🕐 **Hentetid** - (Alt+E) Rediger hentetid på merkede bestillinger på ventende oppdrag. TODO: Gjøre det mulig på pågående oppdrag kun for status tildelt.
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up iframe over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
@@ -47,6 +48,7 @@
 |---------|----------|
 | `ALT+S` | Smart tildeling (RB/ERS + passasjerregler) |
 | `ALT+T` | Tilordningsstøtte 2.0 (individuell tildeling) |
+| `ALT+E` | Endre hentetid |
 | `ALT+R` | Rek-knapper (H, S, K, T, R) Trykk ESC for å lukke manuelt |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
@@ -142,6 +144,10 @@ Intelligent tildeling som automatisk:
 ### 📆 Tilordningsstøtte 2.0 (ALT+T)
 
 Tildeler hver bestilling til sin egen avtale (individuelt). Ingen begrensning på antall bestillinger som kan merkes.
+
+### 🕐 Hentetid (ALT+E)
+
+Lar deg merke bestillinger på ventende oppdrag og redigere hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
 
 
 ### 🔠 Rek-knapper (ALT+R)
