@@ -429,7 +429,7 @@
         font-size:12px;
         color:#1565c0;
       ">
-        <strong>${bestillinger.length} bestillinger valgt</strong> - Juster hentetid individuelt (format: HH:MM)
+        <strong>${bestillinger.length} bestillinger valgt</strong> - Juster hentetid individuelt
       </div>
       
       <div style="
@@ -450,7 +450,7 @@
         font-size:11px;
         color:#856404;
       ">
-        💡 Tips: Skriv tid i format HH:MM (f.eks. 14:30). Tab = neste felt, Enter = lagre.
+        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 12 eller 1230). Tab = neste felt, Enter = lagre.
       </div>
       
       <div style="display:flex; gap:10px; justify-content:center;">
