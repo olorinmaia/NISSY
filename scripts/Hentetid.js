@@ -11,7 +11,7 @@
   }
   window.__endreTidHotkeyInstalled = true;
 
-  console.log("🚀 Starter Endre tid-script");
+  console.log("🚀 Starter Hentetid-script");
 
   // Bakgrunnsfarge for merkede rader i NISSY
   const SELECTED_BG = "rgb(148, 169, 220)";
@@ -1079,5 +1079,5 @@
     showTimeEditPopup(bestillinger, allSelectedRows);
   }
 
-  console.log("✅ Hentetid-script lastet - Bruk Alt+E for å endre hentetid på merkede bestillinger");
+  console.log("✅ Hentetid-script lastet");
 })();
