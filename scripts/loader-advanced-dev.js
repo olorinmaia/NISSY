@@ -222,7 +222,7 @@
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="s" title="Smart tildeling med RB/ERS + passasjerregler uten behov for å velge avtale">
+                   data-hotkey="s" title="Smart tildeling med RB/ERS + passasjerregler uten behov for å velge avtale. Trykk Alt+T for 📆 Tilordningsstøtte 2.0">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
@@ -231,8 +231,8 @@
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="t" title="Tilordner bestillinger til hver sin avtale, ingen begrensning på antall">
+            <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende oppdrag">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 

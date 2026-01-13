@@ -110,6 +110,7 @@
     "Med pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Bildediagnostikk, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Kir / Ort pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "./Kir / Ort pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Ønh pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Kreft pol/laboratoriet, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Urologisk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
