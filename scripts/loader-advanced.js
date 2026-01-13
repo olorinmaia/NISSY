@@ -22,6 +22,7 @@
     'Avbestilling.js',
     'Bestillingsmodul.js',
     'Adminmodul.js',
+    'Hentetid.js',
     'Ressursinfo.js'
   ];
   
@@ -317,6 +318,7 @@
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+S → Smart tildeling (RB/ERS + passasjerregler)<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
+          • ALT+E → Hentetid<br>
           • ALT+R → Rek-knapper<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+K → Avbestilling<br>
