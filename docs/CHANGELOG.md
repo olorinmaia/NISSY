@@ -9,10 +9,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## 🚀 [2.6.1] - 14.01.2026
 
-### Skjuling av ubrukte elementer
+### Skjuling av ubrukte elementer og "K"-knapp på pågående oppdrag åpnes i Bestillingsmodul
 
 #### Hva er nytt?
 - Fjerner filter i header og checkbox for dynamiske plakater i footer som ikke har noen funksjon lengre. 
+- Bestillingsmodul fanger opp trykk på "K"-knapp (kopier bestilling ved ikke møtt) på pågående oppdrag.
 
 ## 🚀 [2.6.0] - 13.01.2026
 
