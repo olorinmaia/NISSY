@@ -44,7 +44,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 1. Åpne NISSY i nettleseren
 2. Klikk på `NISSY Basic` bokmerket
 3. Vent til popup vises med bekreftelse
-4. Ferdig! Alle snarveier er nå aktive
+4. Ferdig! Alle knapper og funksjoner er lagt til
 
 ## ⌨️ Alle tastatursnarveier
 
@@ -145,9 +145,10 @@ Klar for mer funksjonalitet?
 
 ### NISSY Advanced
 Legger til:
-- Smart tildeling (ALT+S)
+- Smart tildeling (ALT+S) **(OBS!! KREVER KONFIGURASJON. TA KONTAKT)**
 - Tilordningsstøtte 2.0 (ALT+T)
 - Rek-knapper (ALT+R)
+- Hentetid (ALT+E)
 - Avbestilling (ALT+K)
 
 [Se ADVANCED.md](ADVANCED.md)
