@@ -26,15 +26,48 @@
   }
 
   // Funksjon for å finne kolonne-indeks basert på header-tekst
-  function findColumnIndex(table, headerText) {
+  function findColumnIndex(table, expectedHeader) {
     const headers = table.querySelectorAll('thead th');
+  
+    const normalize = str =>
+      str
+        .replace(/\s+/g, ' ')
+        .replace(/\u00a0/g, ' ')
+        .trim()
+        .toLowerCase();
+  
+    const expected = normalize(expectedHeader);
+  
     for (let i = 0; i < headers.length; i++) {
-      const headerContent = headers[i].textContent.trim().replace(/\s+/g, ' ');
-      if (headerContent === headerText || headerContent.includes(headerText)) {
+      const actual = normalize(headers[i].innerText);
+      if (actual === expected) {
         return i;
       }
     }
     return -1;
+  }
+
+  // Sjekker at kolonner som trengs er synlig, hvis ikke kast feilmelding
+  function requireColumns(table, requiredColumns, contextName) {
+    const missing = [];
+  
+    for (const col of requiredColumns) {
+      const idx = findColumnIndex(table, col);
+      if (idx === -1) {
+        missing.push(col);
+      }
+    }
+  
+    if (missing.length > 0) {
+      const msg = `❌ Mangler nødvendige kolonner i ${contextName}: ${missing.join(', ')}`;
+      //console.error(msg);
+  
+      // Viktig: frigjør sperre før vi stopper
+      window.__sjekkDuplikatActive = false;
+  
+      alert(msg);
+      throw new Error(msg);
+    }
   }
 
   function extractVentendeData() {
@@ -45,12 +78,16 @@
     if (!table) return [];
     
     // Finn kolonne-indekser dynamisk
-    const navnIndex = findColumnIndex(table, 'Pnavn');
-    const reiseIndex = findColumnIndex(table, 'Reise');
-    const oppIndex = findColumnIndex(table, 'Opp');
-    const fraIndex = findColumnIndex(table, 'Fra');
+    requireColumns(
+      table,
+      ['Pnavn', 'Reise tid', 'Opp tid', 'Fra Til'],
+      'Ventende oppdrag'
+    );
     
-    if (navnIndex === -1 || reiseIndex === -1) return [];
+    const navnIndex = findColumnIndex(table, 'Pnavn');
+    const reiseIndex = findColumnIndex(table, 'Reise tid');
+    const oppIndex = findColumnIndex(table, 'Opp tid');
+    const fraIndex = findColumnIndex(table, 'Fra Til');
     
     const rows = [...container.querySelectorAll('tr[id^="V-"]')];
     const data = [];
@@ -91,15 +128,19 @@
     if (!table) return [];
     
     // Finn kolonne-indekser dynamisk
+    requireColumns(
+      table,
+      ['Pnavn', 'Start', 'Oppm tid', 'Fra', 'Til', 'Status', 'T'],
+      'Pågående oppdrag'
+    );
+    
     const navnIndex = findColumnIndex(table, 'Pnavn');
     const startIndex = findColumnIndex(table, 'Start');
-    const oppIndex = findColumnIndex(table, 'Oppm');
+    const oppIndex = findColumnIndex(table, 'Oppm tid');
     const fraIndex = findColumnIndex(table, 'Fra');
     const tilIndex = findColumnIndex(table, 'Til');
     const statusIndex = findColumnIndex(table, 'Status');
     const toggleIndex = findColumnIndex(table, 'T');
-    
-    if (navnIndex === -1 || startIndex === -1) return [];
     
     const rows = [...container.querySelectorAll('tr[id^="P-"]')];
     const data = [];
