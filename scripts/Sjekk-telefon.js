@@ -11,44 +11,6 @@
     }
     window.__sjekkTelefonActive = true;
 
-    function requireTwoPnavnContexts() {
-        let ventendeOk = false;
-        let paagaaendeOk = false;
-
-        const tables = document.querySelectorAll('table');
-
-        for (const table of tables) {
-            const headers = Array.from(table.querySelectorAll('thead th'))
-                .map(th => th.textContent.trim());
-
-            if (headers.length === 0) continue;
-
-            if (headers.includes('Pnavn')) {
-                // Ventende oppdrag-identifikasjon
-                if (table.querySelector('tbody.scrollContent tr[id^="V-"]')) {
-                    ventendeOk = true;
-                }
-
-                // Pågående oppdrag-identifikasjon
-                if (table.querySelector('tbody tr[id^="P-"]')) {
-                    paagaaendeOk = true;
-                }
-            }
-        }
-
-        const missing = [];
-        if (!ventendeOk) missing.push('Pnavn i ventende oppdrag');
-        if (!paagaaendeOk) missing.push('Pnavn i pågående oppdrag');
-
-        if (missing.length > 0) {
-            const msg = `❌ Mangler nødvendige kolonner:\n• ${missing.join('\n• ')}`;
-
-            window.__sjekkTelefonActive = false;
-            alert(msg);
-            throw new Error(msg);
-        }
-    }
-
     // Regulært uttrykk for gyldig telefonnummer
     // Aksepterer: 
     // - 12345678 (8 siffer)
@@ -481,9 +443,6 @@
 
     // Hovedfunksjon
     async function runPhoneCheck() {
-        // Sjekk at nødvendige kolonner er tilgjengelige
-        requireTwoPnavnContexts();
-        
         console.log('Starter telefonnummer validering...');
 
         // Avbryt eventuelt aktivt søk før vi begynner
