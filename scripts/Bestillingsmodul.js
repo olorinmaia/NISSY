@@ -748,22 +748,26 @@
     });
 
     /**
-     * Intercept window.open calls for requisition redit links
+     * Fang opp window.open kall for redigering og kopiering av bestillinger
      */
     const originalWindowOpen = window.open;
-    window.open = function(url, target, features) {
-        // Sjekk om det er en rekvisisjon redit URL
-        if (url && typeof url === 'string' && url.includes('/rekvisisjon/requisition/redit')) {
-            
-            // Åpne i modal istedenfor ny fane
-            openReditInModal(url);
-            
-            // Returner et dummy window-objekt for å unngå feil
-            return { closed: false, close: () => {} };
-        }
-        
-        // For alle andre URLs, bruk original window.open
-        return originalWindowOpen.call(window, url, target, features);
+    window.open = function (url, target, features) {
+      if (
+        typeof url === 'string' &&
+        (
+          url.includes('/rekvisisjon/requisition/redit') ||
+          url.includes('/rekvisisjon/requisition/patient?copyReqId')
+        )
+      ) {
+        // Åpne i modal istedenfor ny fane
+        openReditInModal(url);
+    
+        // Returner et dummy window-objekt for å unngå feil
+        return { closed: false, close: () => {} };
+      }
+    
+      // For alle andre URLs, bruk original window.open
+      return originalWindowOpen.call(window, url, target, features);
     };
 
     /**
