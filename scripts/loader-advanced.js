@@ -72,6 +72,12 @@
     if (efilter) {
       efilter.remove();
     }
+
+    // Skjuler Dynamiske plakater i footer
+    const td = document.querySelector('td input#dynamic_poster')?.closest('td');
+    if (td) {
+      td.style.display = 'none';
+    }
     
     function addHeaderButton() {
       // Sjekk om knappen allerede er installert
