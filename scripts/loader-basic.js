@@ -58,11 +58,23 @@
   console.log('✅ NISSY Basic lastet!');
 
   // ============================================================
-  // LEGG TIL BRUKERVEILEDNING-KNAPP ØVERST
+  // LEGG TIL BRUKERVEILEDNING-KNAPP ØVERST OG SKJUL DIVERSE SOM IKKE ER I BRUK
   // ============================================================
   (() => {
     console.log("🔧 Legger til brukerveiledning-knapp...");
 
+    // Skjul filter i header, ikke i bruk
+    const efilter = document.getElementById('efilter');
+    if (efilter) {
+      efilter.remove();
+    }
+
+    // Skjuler Dynamiske plakater i footer
+    const td = document.querySelector('td input#dynamic_poster')?.closest('td');
+    if (td) {
+      td.style.display = 'none';
+    }
+    
     function addHelpButton() {
       // Sjekk om knappen allerede er installert
       if (document.getElementById('nissy-help-btn')) {

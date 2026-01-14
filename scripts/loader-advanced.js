@@ -62,15 +62,27 @@
   console.log('✅ NISSY Advanced lastet!');
 
   // ============================================================
-  // LEGG TIL BRUKERVEILEDNING-KNAPP ØVERST
+  // LEGG TIL DIVERSE KNAPPER ØVERST OG SKJUL FILTER
   // ============================================================
   (() => {
-    console.log("🔧 Legger til brukerveiledning-knapp...");
+    console.log("🔧 Legger til knapper i header...");
 
-    function addHelpButton() {
+    // Skjul filter i header, ikke i bruk
+    const efilter = document.getElementById('efilter');
+    if (efilter) {
+      efilter.remove();
+    }
+
+    // Skjuler Dynamiske plakater i footer
+    const td = document.querySelector('td input#dynamic_poster')?.closest('td');
+    if (td) {
+      td.style.display = 'none';
+    }
+    
+    function addHeaderButton() {
       // Sjekk om knappen allerede er installert
-      if (document.getElementById('nissy-help-btn')) {
-        console.log("✅ Brukerveiledning-knapp allerede installert");
+      if (document.getElementById('nissy-help-btn') || document.getElementById('nissy-admin-btn')) {
+        console.log("✅ Knapper i header allerede installert");
         return;
       }
 
@@ -87,12 +99,12 @@
         return;
       }
 
-      // Legg til CSS for help-knapp
-      if (!document.getElementById('nissy-help-button-styles')) {
+      // Legg til CSS for header-knapper
+      if (!document.getElementById('nissy-header-button-styles')) {
         const style = document.createElement('style');
-        style.id = 'nissy-help-button-styles';
+        style.id = 'nissy-header-button-styles';
         style.textContent = `
-          .nissy-help-btn {
+          .nissy-header-btn {
             background: linear-gradient(135deg, #6b9bd1 0%, #5a8bc4 100%);
             color: white;
             border: none;
@@ -105,40 +117,61 @@
             white-space: nowrap;
             text-decoration: none;
             display: inline-block;
-            margin-left: 15px;
+            margin-left: 6px;
           }
-          .nissy-help-btn:hover {
+          .nissy-header-btn:hover {
             background: linear-gradient(135deg, #5a8bc4 0%, #4279b8 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           }
-          .nissy-help-btn:active {
+          .nissy-header-btn:active {
             transform: translateY(0);
           }
         `;
         document.head.appendChild(style);
       }
 
-      // Opprett knapp
+      // Opprett knapper
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
-      helpBtn.className = 'nissy-help-btn';
+      helpBtn.className = 'nissy-header-btn';
       helpBtn.href = 'https://github.com/olorinmaia/NISSY/blob/main/docs/ADVANCED.md';
       helpBtn.target = '_blank';
       helpBtn.title = 'Åpne brukerveiledning for NISSY Advanced';
       helpBtn.textContent = '📖 Brukerveiledning';
 
-      // Legg til knappen etter teksten i første <td>
-      firstTd.appendChild(helpBtn);
+      const adminBtn = document.createElement('button');
+      adminBtn.id = 'nissy-admin-btn';
+      adminBtn.className = 'nissy-header-btn';
+      adminBtn.type = 'button';
+      adminBtn.title = 'Åpne adminmodul';
+      adminBtn.textContent = '⚙️ Adminmodul (Alt+A)';
+      adminBtn.addEventListener('click', () => triggerHotkey('a'));
 
-      console.log("✅ Brukerveiledning-knapp installert");
+      function triggerHotkey(key) {
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key,
+            code: `Key${key.toUpperCase()}`,
+            altKey: true,
+            bubbles: true,
+            cancelable: true
+          })
+        );
+      }
+      
+      // Legg til knappene etter teksten i første <td>
+      firstTd.appendChild(helpBtn);
+      firstTd.appendChild(adminBtn);
+
+      console.log("✅ Knapper i header installert");
     }
 
     // Installer knapp når DOM er klar
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', addHelpButton);
+      document.addEventListener('DOMContentLoaded', addHeaderButton);
     } else {
-      setTimeout(addHelpButton, 300);
+      setTimeout(addHeaderButton, 300);
     }
   })();
 
@@ -222,7 +255,7 @@
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="s" title="Smart tildeling med RB/ERS + passasjerregler uten behov for å velge avtale. Trykk Alt+T for 📆 Tilordningsstøtte 2.0">
+                   data-hotkey="s" title="Smart tildeling med RB/ERS + passasjerregler uten behov for å velge avtale">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
@@ -231,8 +264,8 @@
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende oppdrag">
+            <input type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="t" title="Tilordninger bestillinger til hver sin avtale, ingen begrensning på antall">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
@@ -241,8 +274,8 @@
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag">
+            <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende oppdrag">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
@@ -251,12 +284,12 @@
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
-            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'.">
+            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
-            <input type="button" value="⚙️ Adminmodul (Alt+A)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="a" title="Åpne adminmodul">
+            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'">
           </td>
         </tr>
       `;

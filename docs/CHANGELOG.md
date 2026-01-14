@@ -7,6 +7,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [2.6.1] - 14.01.2026
+
+### Skjuling av ubrukte elementer
+
+#### Hva er nytt?
+- Fjerner filter i header og checkbox for dynamiske plakater i footer som ikke har noen funksjon lengre. 
+
 ## 🚀 [2.6.0] - 13.01.2026
 
 ### 🎉 Nytt script Hentetid
