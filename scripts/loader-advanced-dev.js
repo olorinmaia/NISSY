@@ -62,15 +62,21 @@
   console.log('✅ NISSY Advanced DEV lastet!');
 
   // ============================================================
-  // LEGG TIL BRUKERVEILEDNING-KNAPP ØVERST
+  // LEGG TIL DIVERSE KNAPPER ØVERST OG SKJUL FILTER
   // ============================================================
   (() => {
-    console.log("🔧 Legger til brukerveiledning-knapp...");
+    console.log("🔧 Legger til knapper i header...");
 
-    function addHelpButton() {
+    // Skjul filter i header, ikke i bruk
+    const efilter = document.getElementById('efilter');
+    if (efilter) {
+      efilter.remove();
+    }
+    
+    function addHeaderButton() {
       // Sjekk om knappen allerede er installert
-      if (document.getElementById('nissy-help-btn')) {
-        console.log("✅ Brukerveiledning-knapp allerede installert");
+      if (document.getElementById('nissy-help-btn') || document.getElementById('nissy-admin-btn')) {
+        console.log("✅ Knapper i header allerede installert");
         return;
       }
 
@@ -87,12 +93,12 @@
         return;
       }
 
-      // Legg til CSS for help-knapp
-      if (!document.getElementById('nissy-help-button-styles')) {
+      // Legg til CSS for header-knapper
+      if (!document.getElementById('nissy-header-button-styles')) {
         const style = document.createElement('style');
-        style.id = 'nissy-help-button-styles';
+        style.id = 'nissy-header-button-styles';
         style.textContent = `
-          .nissy-help-btn {
+          .nissy-header-btn {
             background: linear-gradient(135deg, #6b9bd1 0%, #5a8bc4 100%);
             color: white;
             border: none;
@@ -105,40 +111,61 @@
             white-space: nowrap;
             text-decoration: none;
             display: inline-block;
-            margin-left: 15px;
+            margin-left: 6px;
           }
-          .nissy-help-btn:hover {
+          .nissy-header-btn:hover {
             background: linear-gradient(135deg, #5a8bc4 0%, #4279b8 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           }
-          .nissy-help-btn:active {
+          .nissy-header-btn:active {
             transform: translateY(0);
           }
         `;
         document.head.appendChild(style);
       }
 
-      // Opprett knapp
+      // Opprett knapper
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
-      helpBtn.className = 'nissy-help-btn';
+      helpBtn.className = 'nissy-header-btn';
       helpBtn.href = 'https://github.com/olorinmaia/NISSY/blob/dev/docs/ADVANCED.md';
       helpBtn.target = '_blank';
       helpBtn.title = 'Åpne brukerveiledning for NISSY Advanced';
       helpBtn.textContent = '📖 Brukerveiledning';
 
-      // Legg til knappen etter teksten i første <td>
-      firstTd.appendChild(helpBtn);
+      const adminBtn = document.createElement('button');
+      adminBtn.id = 'nissy-admin-btn';
+      adminBtn.className = 'nissy-header-btn';
+      adminBtn.type = 'button';
+      adminBtn.title = 'Åpne adminmodul';
+      adminBtn.textContent = '⚙️ Adminmodul (Alt+A)';
+      adminBtn.addEventListener('click', () => triggerHotkey('a'));
 
-      console.log("✅ Brukerveiledning-knapp installert");
+      function triggerHotkey(key) {
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key,
+            code: `Key${key.toUpperCase()}`,
+            altKey: true,
+            bubbles: true,
+            cancelable: true
+          })
+        );
+      }
+      
+      // Legg til knappene etter teksten i første <td>
+      firstTd.appendChild(helpBtn);
+      firstTd.appendChild(adminBtn);
+
+      console.log("✅ Knapper i header installert");
     }
 
     // Installer knapp når DOM er klar
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', addHelpButton);
+      document.addEventListener('DOMContentLoaded', addHeaderButton);
     } else {
-      setTimeout(addHelpButton, 300);
+      setTimeout(addHeaderButton, 300);
     }
   })();
 
