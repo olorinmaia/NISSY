@@ -285,7 +285,7 @@
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag">
+                   data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
@@ -352,7 +352,7 @@
           • ALT+S → Smart tildeling (RB/ERS + passasjerregler)<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+E → Hentetid<br>
-          • ALT+R → Rek-knapper<br>
+          • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
