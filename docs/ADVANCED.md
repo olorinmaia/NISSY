@@ -28,7 +28,7 @@
 | `ALT+F` | Fokus søkefelt (marker eksisterende tekst) |
 | `ENTER` (i søkefelt) | Utfør søk |
 | `ESC` | Nullstill søk og sett fokus tilbake til søkefelt |
-| `F5` | Refresh all data (openPopp) |
+| `F5` | Refresher alle bestillinger/turer og åpner alle turer |
 | `CTRL+1` | Fokus til filter ventende oppdrag |
 | `CTRL+2` | Fokus til filter ressurser |
 

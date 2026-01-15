@@ -14,6 +14,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 #### Hva er nytt?
 - Fjerner filter i header og checkbox for dynamiske plakater i footer som ikke har noen funksjon lengre. 
 - Bestillingsmodul fanger opp trykk på "K"-knapp (kopier bestilling ved ikke møtt) på pågående oppdrag.
+- Rek-knapper lukkes nå automatisk ved bruk av Smart-tildel, tilordning 2.0, avbestill, hentetid og filterbytte, søk og nullstill.
 
 ## 🚀 [2.6.0] - 13.01.2026
 
