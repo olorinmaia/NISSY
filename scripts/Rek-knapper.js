@@ -141,12 +141,12 @@
     injectButtonStyles();
 
     // ============================================================
-    // LYTTERE FOR TILDELINGSKNAPPER
-    // Oppdaterer knappene når tildeling skjer
+    // LYTTERE FOR DIVERSE KNAPPER OG SNARVEIER
+    // Lukker Rek-knappene for å hindre at de ligger plassert feil
     // ============================================================
     const setupTildelingListeners = () => {
       // Lytt på tildelingsknapper i dialogen
-      ["buttonAssignVoppsAssistConfirm", "buttonAssignVopps"].forEach((btnId) => {
+      ["buttonAssignVoppsAssistConfirm", "buttonAssignVopps", "buttonSearch", "buttonCancelSearch"].forEach((btnId) => {
         const btn = document.getElementById(btnId);
         if (btn) {
           const handler = () => setTimeout(() => cleanupSnippet(), 500);
@@ -172,6 +172,43 @@
       const onclick = img.getAttribute("onclick");
       return onclick && (onclick.includes("removeResurs") || onclick.includes("removePaagaaendeOppdrag"));
     };
+
+    // Lukker rek-knapper når følgende funksjoner brukes
+    // Smart-tildel (Alt+S), Tilordning (Alt+T), Avbestill (Alt+K) og Hentetid (Alt+E)
+    const CLEANUP_HOTKEYS = new Set(["s", "t", "k", "e"]);
+    
+    document.addEventListener("keydown", (e) => {
+      if (!window.snippetActive) return;
+      if (!e.altKey) return;
+    
+      const key = e.key.toLowerCase();
+      if (!CLEANUP_HOTKEYS.has(key)) return;
+
+      cleanupSnippet();
+    });
+
+    // ============================================================
+    // LYTTERE FOR FILTER-DROPDOWNS
+    // Kjører cleanup når filter endres
+    // ============================================================
+    const setupFilterListeners = () => {
+      document.addEventListener(
+        "change",
+        (e) => {
+          if (!window.snippetActive) return;
+    
+          const target = e.target;
+          if (
+            target.tagName === "SELECT" &&
+            target.classList.contains("filter")
+          ) {
+            setTimeout(() => cleanupSnippet(), 500);
+          }
+        },
+        true // capture – samme mønster som resten
+      );
+    };
+    setupFilterListeners();
 
     // ============================================================
     // RESET IFRAME
