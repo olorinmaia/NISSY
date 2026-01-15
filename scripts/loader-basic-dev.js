@@ -294,7 +294,7 @@
           • ALT+F → Fokus søkefelt<br>
           • ENTER (i søkefelt) → Søk<br>
           • ESC → Nullstill søk + fokus søkefelt<br>
-          • F5 → Refresh data<br>
+          • F5 → Refresher alle bestillinger/turer og åpner alle turer<br>
           • CTRL+1 → Fokus filter ventende oppdrag<br>
           • CTRL+2 → Fokus filter ressurser<br>
           • ALT+W → Vis i kart<br>
