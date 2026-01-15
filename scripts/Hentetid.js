@@ -2,11 +2,12 @@
   // ============================================================
   // MASSEENDRING AV HENTETID SCRIPT (ALT+E)
   // Endrer hentetid på markerte bestillinger individuelt
+  // STØTTER NÅ BÅDE VENTENDE OG PÅGÅENDE OPPDRAG
   // ============================================================
   
   // Sjekk om scriptet allerede er lastet for å unngå duplikater
   if (window.__endreTidHotkeyInstalled) {
-    console.log("✅ Endre tid-script er allerede aktiv");
+    console.log("✅ Hentetid-script er allerede aktiv");
     return;
   }
   window.__endreTidHotkeyInstalled = true;
@@ -122,18 +123,22 @@
   // ============================================================
   function sortBestillingerByTime(bestillinger, popup) {
     const updatedBestillinger = bestillinger.map(b => {
-      const input = popup ? popup.querySelector(`#time_${b.id}`) : null;
+      const displayId = b.uniqueId || b.id;
+      const input = popup ? popup.querySelector(`#time_${displayId}`) : null;
       const currentTime = input ? input.value.trim() : b.existingTime;
+      
+      // Returner oppdatert objekt med currentTime
       return {
         ...b,
-        currentTime: currentTime || b.existingTime
+        currentTime: currentTime || b.existingTime,
+        existingTime: b.existingTime // Behold original
       };
     });
 
     // Sorter basert på currentTime
     updatedBestillinger.sort((a, b) => {
-      const timeA = a.currentTime.replace(':', '');
-      const timeB = b.currentTime.replace(':', '');
+      const timeA = (a.currentTime || '00:00').replace(':', '');
+      const timeB = (b.currentTime || '00:00').replace(':', '');
       return parseInt(timeA) - parseInt(timeB);
     });
 
@@ -141,14 +146,13 @@
   }
 
   // ============================================================
-  // ============================================================
   // HJELPEFUNKSJON: Rebuil bestillingslisten i popup
   // ============================================================
   function rebuildBestillingsList(bestillinger, popup, confirmButton) {
     const container = popup.querySelector('#bestillingerContainer');
     if (!container) return bestillinger;
   
-    // Sorter bestillinger
+    // Sorter bestillinger og få oppdaterte objekter med currentTime
     const sorted = sortBestillingerByTime(bestillinger, popup);
   
     // Bygg ny HTML
@@ -157,9 +161,12 @@
       const displayFrom = truncateText(b.fromAddress, MAX_ADDRESS_LENGTH);
       const displayTo = truncateText(b.toAddress, MAX_ADDRESS_LENGTH);
       
+      // Bruk uniqueId hvis det finnes, ellers id
+      const displayId = b.uniqueId || b.id;
+      
       // Hent nåværende verdi fra input hvis den finnes
-      const existingInput = popup.querySelector(`#time_${b.id}`);
-      const currentValue = existingInput ? existingInput.value : b.existingTime;
+      const existingInput = popup.querySelector(`#time_${displayId}`);
+      const currentValue = existingInput ? existingInput.value : b.currentTime || b.existingTime;
       const borderColor = existingInput ? existingInput.style.borderColor : '#2196f3';
       const bgColor = existingInput ? existingInput.style.background : '#fff';
       
@@ -204,7 +211,7 @@
               ">Hentetid</div>
               <input 
                 type="text" 
-                id="time_${b.id}"
+                id="time_${displayId}"
                 data-original="${b.existingTime}"
                 value="${currentValue}"
                 placeholder="HH:MM"
@@ -254,185 +261,198 @@
     // Oppdater container
     container.innerHTML = bestillingRows;
     
-    // Re-attach event listeners
+    // Re-attach event listeners med de oppdaterte bestillingene
     attachEventListeners(sorted, popup, confirmButton);
     
     return sorted;
   }
 
-    // ============================================================
-    // HJELPEFUNKSJON: Attach event listeners til input-felt
-    // ============================================================
-    function attachEventListeners(bestillinger, popup, confirmButton) {
-      // Legg til auto-formatering og keyboard-handling på tidsfeltene
-      bestillinger.forEach((b, index) => {
-        const input = popup.querySelector(`#time_${b.id}`);
-        if (!input) return;
+  // ============================================================
+  // HJELPEFUNKSJON: Attach event listeners til input-felt
+  // ============================================================
+  function attachEventListeners(bestillinger, popup, confirmButton) {
+    // Legg til auto-formatering og keyboard-handling på tidsfeltene
+    bestillinger.forEach((b, index) => {
+      const displayId = b.uniqueId || b.id;
+      const input = popup.querySelector(`#time_${displayId}`);
+      if (!input) return;
+      
+      // Auto-formatering mens du skriver
+      input.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^\d:]/g, '');
         
-        // Auto-formatering mens du skriver
-        input.addEventListener('input', (e) => {
-          let value = e.target.value.replace(/[^\d:]/g, '');
-          
-          // Hvis bruker skriver tall etter kolon, ikke auto-formater
-          if (value.includes(':')) {
+        // Hvis bruker skriver tall etter kolon, ikke auto-formater
+        if (value.includes(':')) {
+          e.target.value = value;
+        } else {
+          // Auto-formater når det bare er tall
+          if (value.length >= 3) {
+            value = value.slice(0, 2) + ':' + value.slice(2, 4);
             e.target.value = value;
-          } else {
-            // Auto-formater når det bare er tall
-            if (value.length >= 3) {
-              value = value.slice(0, 2) + ':' + value.slice(2, 4);
-              e.target.value = value;
-            }
           }
-          
-          // Fjern rød farge hvis bruker retter
-          e.target.style.borderColor = '#2196f3';
-          e.target.style.background = '#fff';
-        });
+        }
         
-        // Formatering og validering
-        const handleFormat = (e) => {
-          let value = e.target.value.replace(/[^\d]/g, '');
-          
-          if (value.length === 0) {
-            e.target.value = '';
-            return;
-          }
-          
-          if (value.length === 2) {
-            // "00" → "00:00"
-            e.target.value = `${value}:00`;
-          } else if (value.length === 3) {
-            // "123" → "12:30"
-            e.target.value = value.slice(0, 2) + ':' + value.slice(2) + '0';
-          } else if (value.length >= 4) {
-            // "1234" → "12:34"
-            e.target.value = value.slice(0, 2) + ':' + value.slice(2, 4);
-          } else if (value.length === 1) {
-            // "1" → "01:00"
-            e.target.value = '0' + value + ':00';
-          }
-
-          // Valider tidspunktet
-          if (e.target.value && !isValidTime(e.target.value)) {
-            e.target.style.borderColor = '#dc3545';
-            e.target.style.background = '#fff5f5';
-          } else {
-            e.target.style.borderColor = '#2196f3';
-            e.target.style.background = '#fff';
-          }
-        };
-        
-        input.addEventListener('blur', handleFormat);
-        
-        // Keyboard-handling
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            
-            handleFormat(e);
-            input.blur();
-            
-            setTimeout(() => {
-              confirmButton.click();
-            }, 50);
-          } else if (e.key === 'Tab') {
-            e.preventDefault();
-            handleFormat(e);
-            
-            // Sorter og finn neste/forrige felt
-            const sorted = rebuildBestillingsList(bestillinger, popup, confirmButton);
-            
-            // Finn nåværende index i sortert liste
-            const currentIndex = sorted.findIndex(item => item.id === b.id);
-            
-            setTimeout(() => {
-              if (e.shiftKey) {
-                // Shift+Tab - gå til forrige
-                if (currentIndex > 0) {
-                  // Gå til forrige felt
-                  const prevInput = popup.querySelector(`#time_${sorted[currentIndex - 1].id}`);
-                  if (prevInput) {
-                    prevInput.focus();
-                    prevInput.select();
-                  }
-                } else if (currentIndex === 0) {
-                  // Første felt - gå til Avbryt-knappen
-                  const cancelButton = popup.querySelector("#cancelChange");
-                  if (cancelButton) cancelButton.focus();
-                } else {
-                  // currentIndex === -1: Feltet flyttet seg - gå til første felt
-                  const firstInput = popup.querySelector(`#time_${sorted[0].id}`);
-                  if (firstInput) {
-                    firstInput.focus();
-                    firstInput.select();
-                  }
-                }
-              } else {
-                // Tab - gå til neste
-                if (currentIndex >= 0 && currentIndex < sorted.length - 1) {
-                  // Gå til neste felt
-                  const nextInput = popup.querySelector(`#time_${sorted[currentIndex + 1].id}`);
-                  if (nextInput) {
-                    nextInput.focus();
-                    nextInput.select();
-                  }
-                } else {
-                  // Siste felt eller ugyldig index - gå til første felt
-                  const firstInput = popup.querySelector(`#time_${sorted[0].id}`);
-                  if (firstInput) {
-                    firstInput.focus();
-                    firstInput.select();
-                  }
-                }
-              }
-            }, 50);
-          }
-        });
+        // Fjern rød farge hvis bruker retter
+        e.target.style.borderColor = '#2196f3';
+        e.target.style.background = '#fff';
       });
       
-      // Legg til keyboard-handling på knappene for å kunne tabbe tilbake
-      const cancelButton = popup.querySelector("#cancelChange");
-      if (cancelButton && !cancelButton.dataset.keyboardAttached) {
-        cancelButton.dataset.keyboardAttached = 'true';
-        cancelButton.addEventListener('keydown', (e) => {
-          if (e.key === 'Tab' && !e.shiftKey) {
-            e.preventDefault();
-            confirmButton.focus();
-          } else if (e.key === 'Tab' && e.shiftKey) {
-            e.preventDefault();
-            // Gå til siste input-felt
-            const sorted = sortBestillingerByTime(bestillinger, popup);
-            const lastInput = popup.querySelector(`#time_${sorted[sorted.length - 1].id}`);
-            if (lastInput) {
-              lastInput.focus();
-              lastInput.select();
-            }
-          }
-        });
-      }
+      // Formatering og validering
+      const handleFormat = (e) => {
+        let value = e.target.value.replace(/[^\d]/g, '');
+        
+        if (value.length === 0) {
+          e.target.value = '';
+          return;
+        }
+        
+        if (value.length === 2) {
+          // "00" → "00:00"
+          e.target.value = `${value}:00`;
+        } else if (value.length === 3) {
+          // "123" → "12:30"
+          e.target.value = value.slice(0, 2) + ':' + value.slice(2) + '0';
+        } else if (value.length >= 4) {
+          // "1234" → "12:34"
+          e.target.value = value.slice(0, 2) + ':' + value.slice(2, 4);
+        } else if (value.length === 1) {
+          // "1" → "01:00"
+          e.target.value = '0' + value + ':00';
+        }
+
+        // Valider tidspunktet
+        if (e.target.value && !isValidTime(e.target.value)) {
+          e.target.style.borderColor = '#dc3545';
+          e.target.style.background = '#fff5f5';
+        } else {
+          e.target.style.borderColor = '#2196f3';
+          e.target.style.background = '#fff';
+        }
+      };
       
-      if (confirmButton && !confirmButton.dataset.keyboardAttached) {
-        confirmButton.dataset.keyboardAttached = 'true';
-        confirmButton.addEventListener('keydown', (e) => {
-          if (e.key === 'Tab' && !e.shiftKey) {
-            e.preventDefault();
-            // Wrap til første input-felt
-            const sorted = sortBestillingerByTime(bestillinger, popup);
-            const firstInput = popup.querySelector(`#time_${sorted[0].id}`);
-            if (firstInput) {
-              firstInput.focus();
-              firstInput.select();
+      input.addEventListener('blur', handleFormat);
+      
+      // Keyboard-handling
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          
+          handleFormat(e);
+          input.blur();
+          
+          setTimeout(() => {
+            confirmButton.click();
+          }, 50);
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          handleFormat(e);
+          
+          // VIKTIG: Hent de oppdaterte bestillingene fra rebuild
+          const sorted = rebuildBestillingsList(bestillinger, popup, confirmButton);
+          
+          // Finn nåværende index i sortert liste (bruk displayId for sammenligning)
+          const currentIndex = sorted.findIndex(item => (item.uniqueId || item.id) === displayId);
+          
+          setTimeout(() => {
+            if (e.shiftKey) {
+              // Shift+Tab - gå til forrige
+              if (currentIndex > 0) {
+                // Gå til forrige felt
+                const prevItem = sorted[currentIndex - 1];
+                const prevDisplayId = prevItem.uniqueId || prevItem.id;
+                const prevInput = popup.querySelector(`#time_${prevDisplayId}`);
+                if (prevInput) {
+                  prevInput.focus();
+                  prevInput.select();
+                }
+              } else if (currentIndex === 0) {
+                // Første felt - gå til Avbryt-knappen
+                const cancelButton = popup.querySelector("#cancelChange");
+                if (cancelButton) cancelButton.focus();
+              } else {
+                // currentIndex === -1: Feltet flyttet seg - gå til første felt
+                const firstItem = sorted[0];
+                const firstDisplayId = firstItem.uniqueId || firstItem.id;
+                const firstInput = popup.querySelector(`#time_${firstDisplayId}`);
+                if (firstInput) {
+                  firstInput.focus();
+                  firstInput.select();
+                }
+              }
+            } else {
+              // Tab - gå til neste
+              if (currentIndex >= 0 && currentIndex < sorted.length - 1) {
+                // Gå til neste felt
+                const nextItem = sorted[currentIndex + 1];
+                const nextDisplayId = nextItem.uniqueId || nextItem.id;
+                const nextInput = popup.querySelector(`#time_${nextDisplayId}`);
+                if (nextInput) {
+                  nextInput.focus();
+                  nextInput.select();
+                }
+              } else {
+                // Siste felt eller ugyldig index - gå til første felt
+                const firstItem = sorted[0];
+                const firstDisplayId = firstItem.uniqueId || firstItem.id;
+                const firstInput = popup.querySelector(`#time_${firstDisplayId}`);
+                if (firstInput) {
+                  firstInput.focus();
+                  firstInput.select();
+                }
+              }
             }
-          } else if (e.key === 'Tab' && e.shiftKey) {
-            e.preventDefault();
-            cancelButton.focus();
+          }, 50);
+        }
+      });
+    });
+    
+    // Legg til keyboard-handling på knappene for å kunne tabbe tilbake
+    const cancelButton = popup.querySelector("#cancelChange");
+    if (cancelButton && !cancelButton.dataset.keyboardAttached) {
+      cancelButton.dataset.keyboardAttached = 'true';
+      cancelButton.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && !e.shiftKey) {
+          e.preventDefault();
+          confirmButton.focus();
+        } else if (e.key === 'Tab' && e.shiftKey) {
+          e.preventDefault();
+          // Gå til siste input-felt
+          const sorted = sortBestillingerByTime(bestillinger, popup);
+          const lastItem = sorted[sorted.length - 1];
+          const lastDisplayId = lastItem.uniqueId || lastItem.id;
+          const lastInput = popup.querySelector(`#time_${lastDisplayId}`);
+          if (lastInput) {
+            lastInput.focus();
+            lastInput.select();
           }
-        });
-      }
+        }
+      });
     }
+    
+    if (confirmButton && !confirmButton.dataset.keyboardAttached) {
+      confirmButton.dataset.keyboardAttached = 'true';
+      confirmButton.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && !e.shiftKey) {
+          e.preventDefault();
+          // Wrap til første input-felt
+          const sorted = sortBestillingerByTime(bestillinger, popup);
+          const firstItem = sorted[0];
+          const firstDisplayId = firstItem.uniqueId || firstItem.id;
+          const firstInput = popup.querySelector(`#time_${firstDisplayId}`);
+          if (firstInput) {
+            firstInput.focus();
+            firstInput.select();
+          }
+        } else if (e.key === 'Tab' && e.shiftKey) {
+          e.preventDefault();
+          cancelButton.focus();
+        }
+      });
+    }
+  }
 
   // ============================================================
-  // HJELPEFUNKSJON: Finn alle merkede rader (både V- og Rxxx)
+  // HJELPEFUNKSJON: Finn alle merkede rader (V-, P- og Rxxx)
   // ============================================================
   function getAllSelectedRows() {
     return [...document.querySelectorAll("tr")].filter(tr => {
@@ -442,7 +462,7 @@
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Marker rader på nytt (både V- og Rxxx)
+  // HJELPEFUNKSJON: Marker rader på nytt (V-, P- og Rxxx)
   // ============================================================
   function reselectAllRows(selectedRows) {
     selectedRows.forEach(row => {
@@ -456,40 +476,30 @@
             console.warn("Kunne ikke markere ventende oppdrag:", rowId, e);
           }
         }
-      } else if (rowId.startsWith('Rxxx')) {
-        if (typeof selectRow === 'function' && typeof g_resLS !== 'undefined') {
+      } else if (rowId.startsWith('P-')) {
+        // For pågående oppdrag, bruk g_poppLS
+        // MERK: Vi markerer kun P-raden, ikke Rxxx, da de kan oppheve hverandre
+        if (typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
           try {
-            selectRow(rowId, g_resLS);
+            selectRow(rowId, g_poppLS);
           } catch (e) {
-            console.warn("Kunne ikke markere ressurs:", rowId, e);
+            console.warn("Kunne ikke markere pågående oppdrag:", rowId, e);
           }
         }
       }
+      // VIKTIG: Ignorer Rxxx-rader når P-rader finnes, da de kan oppheve hverandre
+      // (samme ressurs kan være merket både i Ressurser og Pågående oppdrag)
     });
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Finn kolonne-indeks for "Reise tid"
+  // HJELPEFUNKSJON: Finn kolonne-indeks basert på header-link
   // ============================================================
-  function findReiseTidColumnIndex() {
-    const headers = document.querySelectorAll('.ventendeoppdrag thead th');
+  function findColumnIndex(tableSelector, headerLink) {
+    const headers = document.querySelectorAll(`${tableSelector} thead th`);
     for (let i = 0; i < headers.length; i++) {
-      const headerLink = headers[i].querySelector('a[href*="tripStartDate"]');
-      if (headerLink) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  // ============================================================
-  // HJELPEFUNKSJON: Finn kolonne-indeks for "Opp tid"
-  // ============================================================
-  function findOppTidColumnIndex() {
-    const headers = document.querySelectorAll('.ventendeoppdrag thead th');
-    for (let i = 0; i < headers.length; i++) {
-      const headerLink = headers[i].querySelector('a[href*="tripTreatmentDate"]');
-      if (headerLink) {
+      const link = headers[i].querySelector(`a[href*="${headerLink}"]`);
+      if (link) {
         return i;
       }
     }
@@ -504,11 +514,13 @@
     
     text = text.trim();
     
+    // Først prøv å finne tidspunkt på slutten av teksten
     const timeMatch = text.match(/(\d{2}:\d{2})$/);
     if (timeMatch) {
       return timeMatch[1];
     }
     
+    // Hvis det bare er et tidspunkt
     const simpleTimeMatch = text.match(/^\d{2}:\d{2}$/);
     if (simpleTimeMatch) {
       return text;
@@ -518,41 +530,131 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hent tekst fra celle (med støtte for <div>)
+  // ============================================================
+  function getCellText(cell, rowClass = null) {
+    if (!cell) return "";
+    
+    // Hvis det er en celle med flere <div> (pågående oppdrag)
+    if (rowClass) {
+      const divs = cell.querySelectorAll('div');
+      for (const div of divs) {
+        if (div.className === rowClass) {
+          return div.textContent.trim();
+        }
+      }
+    }
+    
+    // Sjekk om det er en <font> tag
+    const fontTag = cell.querySelector('font');
+    if (fontTag) {
+      return fontTag.textContent.trim();
+    }
+    
+    return cell.textContent.trim();
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Hent eksisterende hentetid fra rad
   // ============================================================
-  function getExistingTime(row, columnIndex) {
+  function getExistingTime(row, columnIndex, rowClass = null) {
     if (columnIndex === -1) return "";
     
     const cells = row.querySelectorAll('td');
     if (columnIndex >= cells.length) return "";
     
-    const cell = cells[columnIndex];
-    
-    const fontTag = cell.querySelector('font');
-    if (fontTag) {
-      return extractTimeOnly(fontTag.textContent);
-    }
-    
-    return extractTimeOnly(cell.textContent);
+    const cellText = getCellText(cells[columnIndex], rowClass);
+    return extractTimeOnly(cellText);
   }
 
   // ============================================================
   // HJELPEFUNKSJON: Hent oppmøtetid (read-only)
   // ============================================================
-  function getOppmotetid(row, columnIndex) {
+  function getOppmotetid(row, columnIndex, rowClass = null) {
     if (columnIndex === -1) return "";
     
     const cells = row.querySelectorAll('td');
     if (columnIndex >= cells.length) return "";
     
-    const cell = cells[columnIndex];
-    const fontTag = cell.querySelector('font');
+    const cellText = getCellText(cells[columnIndex], rowClass);
+    return extractTimeOnly(cellText);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Hent status fra rad
+  // ============================================================
+  function getStatus(row, columnIndex, rowClass = null) {
+    if (columnIndex === -1) return "";
     
-    if (fontTag) {
-      return extractTimeOnly(fontTag.textContent);
+    const cells = row.querySelectorAll('td');
+    if (columnIndex >= cells.length) return "";
+    
+    return getCellText(cells[columnIndex], rowClass);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Hent ID fra pågående oppdrag (popp_XXXXX)
+  // ============================================================
+  function getIdFromPaagaaende(row, rowClass = null) {
+    const cells = row.querySelectorAll('td');
+    
+    // ID finnes i T-kolonnen (3. kolonne, indeks 2)
+    if (cells.length < 3) return "";
+    
+    const tCell = cells[2];
+    
+    // Hvis rowClass er spesifisert (multi-bestilling)
+    if (rowClass) {
+      const divs = tCell.querySelectorAll('div');
+      for (const div of divs) {
+        if (div.className === rowClass) {
+          const img = div.querySelector('img[id^="popp_"]');
+          if (img) {
+            const match = img.id.match(/popp_(\d+)/);
+            return match ? match[1] : "";
+          }
+        }
+      }
+    } else {
+      // Single bestilling
+      const img = tCell.querySelector('img[id^="popp_"]');
+      if (img) {
+        const match = img.id.match(/popp_(\d+)/);
+        return match ? match[1] : "";
+      }
     }
     
-    return extractTimeOnly(cell.textContent);
+    return "";
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Hent TS (ressurs-ID) fra pågående oppdrag
+  // ============================================================
+  function getTsFromPaagaaende(row) {
+    const cells = row.querySelectorAll('td');
+    
+    // TS finnes i andre kolonne (indeks 1) - ressursnavn: "Levan-L-LB-XXXXXXXX"
+    if (cells.length > 1) {
+      const resourceCell = cells[1];
+      const resourceText = resourceCell.textContent.trim();
+      
+      // Ekstraherer siste tall fra "Levan-L-LB-56515070"
+      const match = resourceText.match(/(\d+)$/);
+      if (match) {
+        return match[1];
+      }
+    }
+    
+    // Fallback: Søk etter searchStatus?id=
+    for (const cell of cells) {
+      const img = cell.querySelector('img[onclick*="searchStatus?id="]');
+      if (img) {
+        const match = img.getAttribute('onclick').match(/id=(\d+)/);
+        return match ? match[1] : "";
+      }
+    }
+    
+    return "";
   }
 
   // ============================================================
@@ -605,9 +707,9 @@
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Parse bestillingsinformasjon
+  // HJELPEFUNKSJON: Parse bestillingsinformasjon (VENTENDE)
   // ============================================================
-  function parseRowInfo(row, reiseTidIndex, oppTidIndex) {
+  function parseVentendeRow(row, reiseTidIndex, oppTidIndex) {
     const id = row.getAttribute("name") || row.id.replace(/^V-/, "");
     const rekvNr = row.getAttribute("title") || "";
     
@@ -638,8 +740,132 @@
       toAddress,
       existingTime,
       oppmotetid,
-      row 
+      row,
+      source: 'ventende',
+      ts: null // Ventende har ikke ts
     };
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Parse bestillingsinformasjon (PÅGÅENDE)
+  // ============================================================
+  function parsePaagaaendeRow(row, startTimeIndex, oppTidIndex, nameIndex, fromIndex, toIndex, statusIndex) {
+    const rowId = row.getAttribute("name") || row.id.replace(/^P-/, "");
+    const ts = getTsFromPaagaaende(row);
+    
+    // Sjekk om denne raden har flere bestillinger (har <div> med row-image)
+    const cells = row.querySelectorAll('td');
+    const firstDataCell = cells[2]; // Tredje celle, ofte T-kolonnen
+    
+    if (!firstDataCell) return [];
+    
+    const divs = firstDataCell.querySelectorAll('div.row-image');
+    
+    if (divs.length === 0) {
+      // Enkelt-bestilling (ingen <div> struktur)
+      const status = getStatus(row, statusIndex);
+      
+      // Ignorer hvis ikke "Tildelt"
+      if (status !== "Tildelt") {
+        return [];
+      }
+      
+      const id = getIdFromPaagaaende(row);
+      const name = getCellText(cells[nameIndex]);
+      
+      // Fra/Til kan være i samme celle med <br>
+      let fromAddress = '';
+      let toAddress = '';
+      
+      if (fromIndex !== -1 && fromIndex < cells.length) {
+        const addressText = cells[fromIndex].innerHTML;
+        if (addressText.includes('<br>')) {
+          const parts = addressText.split('<br>');
+          fromAddress = parts[0] ? parts[0].replace(/<[^>]*>/g, '').trim() : '';
+          toAddress = parts[1] ? parts[1].replace(/<[^>]*>/g, '').trim() : '';
+        } else {
+          fromAddress = getCellText(cells[fromIndex]);
+        }
+      }
+      
+      if (toIndex !== -1 && toIndex < cells.length && !toAddress) {
+        toAddress = getCellText(cells[toIndex]);
+      }
+      
+      const existingTime = getExistingTime(row, startTimeIndex);
+      const oppmotetid = getOppmotetid(row, oppTidIndex);
+      
+      return [{
+        id,
+        ts,
+        name,
+        fromAddress,
+        toAddress,
+        existingTime,
+        oppmotetid,
+        row,
+        source: 'pågående',
+        rowClass: null
+      }];
+    } else {
+      // Multi-bestilling (har <div> struktur)
+      // Vi må iterere gjennom ALLE divs i rekkefølge, ikke filtrere på className
+      const bestillinger = [];
+      const numBestillinger = divs.length;
+      
+      // Hent alle div-arrays fra relevante kolonner
+      const startTimeDivs = startTimeIndex !== -1 ? cells[startTimeIndex]?.querySelectorAll('div.row-image') : [];
+      const oppTidDivs = oppTidIndex !== -1 ? cells[oppTidIndex]?.querySelectorAll('div.row-image') : [];
+      const nameDivs = nameIndex !== -1 ? cells[nameIndex]?.querySelectorAll('div.row-image') : [];
+      const fromDivs = fromIndex !== -1 ? cells[fromIndex]?.querySelectorAll('div.row-image') : [];
+      const toDivs = toIndex !== -1 ? cells[toIndex]?.querySelectorAll('div.row-image') : [];
+      const statusDivs = statusIndex !== -1 ? cells[statusIndex]?.querySelectorAll('div.row-image') : [];
+      
+      // Iterer gjennom hver bestilling basert på index
+      for (let i = 0; i < numBestillinger; i++) {
+        // Hent status for denne bestillingen
+        const statusDiv = statusDivs[i];
+        const status = statusDiv ? statusDiv.textContent.trim() : '';
+        
+        // Ignorer hvis ikke "Tildelt"
+        if (status !== "Tildelt") {
+          continue;
+        }
+        
+        // Hent ID for denne bestillingen
+        const tDiv = divs[i];
+        const img = tDiv?.querySelector('img[id^="popp_"]');
+        const id = img ? img.id.match(/popp_(\d+)/)?.[1] : '';
+        
+        if (!id) continue;
+        
+        // Hent data for denne bestillingen basert på index
+        const name = nameDivs[i] ? nameDivs[i].textContent.trim() : '';
+        const fromAddress = fromDivs[i] ? fromDivs[i].textContent.trim() : '';
+        const toAddress = toDivs[i] ? toDivs[i].textContent.trim() : '';
+        const existingTime = startTimeDivs[i] ? extractTimeOnly(startTimeDivs[i].textContent.trim()) : '';
+        const oppmotetid = oppTidDivs[i] ? extractTimeOnly(oppTidDivs[i].textContent.trim()) : '';
+        
+        // Bruk unikt ID basert på popp_ID og index
+        const uniqueId = `${id}_${i}`;
+        
+        bestillinger.push({
+          id,
+          ts,
+          name,
+          fromAddress,
+          toAddress,
+          existingTime,
+          oppmotetid,
+          row,
+          source: 'pågående',
+          rowClass: tDiv.className, // Behold for debugging
+          uniqueId
+        });
+      }
+      
+      return bestillinger;
+    }
   }
 
   // ============================================================
@@ -653,11 +879,27 @@
     // Sorter bestillinger initialt
     const sortedBestillinger = sortBestillingerByTime(bestillinger, null);
 
+    // Tell antall fra hver kilde
+    const ventendeCount = bestillinger.filter(b => b.source === 'ventende').length;
+    const paagaaendeCount = bestillinger.filter(b => b.source === 'pågående').length;
+    
+    let sourceInfo = '';
+    if (ventendeCount > 0 && paagaaendeCount > 0) {
+      sourceInfo = ` (${ventendeCount} ventende, ${paagaaendeCount} pågående)`;
+    } else if (ventendeCount > 0) {
+      sourceInfo = ` (ventende)`;
+    } else if (paagaaendeCount > 0) {
+      sourceInfo = ` (pågående)`;
+    }
+
     // Bygg HTML for hver bestilling
     const bestillingRows = sortedBestillinger.map((b, index) => {
       const displayName = truncateText(b.name, MAX_NAME_LENGTH);
       const displayFrom = truncateText(b.fromAddress, MAX_ADDRESS_LENGTH);
       const displayTo = truncateText(b.toAddress, MAX_ADDRESS_LENGTH);
+      
+      // Bruk uniqueId hvis det finnes, ellers id
+      const displayId = b.uniqueId || b.id;
       
       return `
       <div style="
@@ -700,7 +942,7 @@
               ">Hentetid</div>
               <input 
                 type="text" 
-                id="time_${b.id}"
+                id="time_${displayId}"
                 data-original="${b.existingTime}"
                 value="${b.existingTime}"
                 placeholder="HH:MM"
@@ -748,9 +990,30 @@
     }).join('');
 
     popup.innerHTML = `
-      <h2 style="margin:0 0 12px; font-size:18px; color:#333;">
-        🕐 Endre hentetid
-      </h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 style="margin: 0; font-size: 18px; color: #333;">
+          🕐 Endre hentetid
+        </h2>
+        <button 
+          id="showMapButton"
+          style="
+            padding: 8px 16px;
+            background: #17a2b8;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          "
+          title="Åpne merkede bestillinger i kart (Alt+W)"
+        >
+          🗺️ Vis i kart
+        </button>
+      </div>
       
       <div style="
         background:#e3f2fd;
@@ -761,7 +1024,7 @@
         font-size:12px;
         color:#1565c0;
       ">
-        <strong>${bestillinger.length} bestillinger valgt</strong> - Juster hentetid individuelt
+        <strong>${bestillinger.length} bestillinger valgt</strong>${sourceInfo} - Juster hentetid individuelt
       </div>
       
       <div id="bestillingerContainer" style="
@@ -839,13 +1102,53 @@
     
     const statusBox = popup.querySelector("#changeStatus");
     const confirmButton = popup.querySelector("#confirmChange");
+    const showMapButton = popup.querySelector("#showMapButton");
+    
+    // Event handler for "Vis i kart" knappen
+    showMapButton.onclick = () => {
+      // 1. Blank ut eksisterende merkinger hvis knappen er enabled
+      const clearButton = document.getElementById('buttonClearSelection');
+      if (clearButton && !clearButton.disabled) {
+        clearButton.click();
+        
+        // Vent litt for at blanking skal fullføres
+        setTimeout(() => {
+          // 2. Marker alle radene på nytt
+          reselectAllRows(allSelectedRows);
+          
+          // 3. Åpne kartet
+          setTimeout(() => {
+            if (typeof showMapForSelectedItems === 'function') {
+              showMapForSelectedItems(null);
+            } else {
+              console.error('showMapForSelectedItems er ikke tilgjengelig');
+              showErrorToast('Kartfunksjonen er ikke tilgjengelig');
+            }
+          }, 100);
+        }, 100);
+      } else {
+        // Hvis ingen blanking trengs, marker og åpne direkte
+        reselectAllRows(allSelectedRows);
+        
+        setTimeout(() => {
+          if (typeof showMapForSelectedItems === 'function') {
+            showMapForSelectedItems(null);
+          } else {
+            console.error('showMapForSelectedItems er ikke tilgjengelig');
+            showErrorToast('Kartfunksjonen er ikke tilgjengelig');
+          }
+        }, 100);
+      }
+    };
     
     // Attach event listeners til alle felt
     attachEventListeners(sortedBestillinger, popup, confirmButton);
     
     // Sett fokus på første tidsfelt og marker innholdet
     setTimeout(() => {
-      const firstInput = popup.querySelector(`#time_${sortedBestillinger[0].id}`);
+      const firstItem = sortedBestillinger[0];
+      const firstDisplayId = firstItem.uniqueId || firstItem.id;
+      const firstInput = popup.querySelector(`#time_${firstDisplayId}`);
       if (firstInput) {
         firstInput.focus();
         firstInput.select();
@@ -864,7 +1167,8 @@
       let invalidFields = [];
       
       for (const b of bestillinger) {
-        const input = popup.querySelector(`#time_${b.id}`);
+        const displayId = b.uniqueId || b.id;
+        const input = popup.querySelector(`#time_${displayId}`);
         const newTime = input.value.trim();
         const originalTime = input.getAttribute('data-original');
         
@@ -907,7 +1211,8 @@
       popup.querySelector("#cancelChange").style.display = "none";
       
       bestillinger.forEach(b => {
-        const input = popup.querySelector(`#time_${b.id}`);
+        const displayId = b.uniqueId || b.id;
+        const input = popup.querySelector(`#time_${displayId}`);
         if (input) input.disabled = true;
       });
 
@@ -917,6 +1222,7 @@
       statusBox.style.color = "#155724";
       statusBox.textContent = `✅ Ferdig! ${changes.length} ${changes.length === 1 ? 'bestilling' : 'bestillinger'} oppdatert.`;
       
+      // Oppdater pågående oppdrag (dette oppdaterer alt)
       if (typeof openPopp === "function") {
         openPopp('-1');
         
@@ -981,7 +1287,16 @@
     statusBox.textContent = `Behandler 0 av ${changes.length} bestillinger...`;
 
     for (const change of changes) {
-      const url = `/rekvisisjon/requisition/editMultipleRequisitions?userid=${userid}&id=${change.id}&res=${change.rekvNr}`;
+      let url;
+      
+      // Bygg URL basert på kilde
+      if (change.source === 'ventende') {
+        // Ventende oppdrag: /rekvisisjon/requisition/editMultipleRequisitions?userid=108137&id=53221506&res=262000770171
+        url = `/rekvisisjon/requisition/editMultipleRequisitions?userid=${userid}&id=${change.id}&res=${change.rekvNr}`;
+      } else {
+        // Pågående oppdrag: /rekvisisjon/requisition/editMultipleRequisitions?userid=108137&id=53221506,&ts=56515071
+        url = `/rekvisisjon/requisition/editMultipleRequisitions?userid=${userid}&id=${change.id},&ts=${change.ts}`;
+      }
 
       try {
         const html = await fetch(url, { credentials: "same-origin" }).then(r => r.text());
@@ -998,7 +1313,7 @@
           admin_param_1: "",
           admin_param_2: "",
           admin_param_3: "",
-          admin_param_4: change.rekvNr,
+          admin_param_4: change.rekvNr || "",
           admin_param_5: "",
           admin_param_6: "",
           version_0: v,
@@ -1060,23 +1375,109 @@
   // ============================================================
   function initializeTimeChange() {
     const allSelectedRows = getAllSelectedRows();
-    const rows = allSelectedRows.filter(tr => (tr.id || "").startsWith("V-"));
-
-    if (rows.length === 0) {
-      showErrorToast("🕐 Ingen bestillinger er valgt på ventende oppdrag. Vennligst marker én eller flere og trykk på Hentetid-knappen eller Alt+E igjen.");
-      return;
-    }
-
-    const reiseTidIndex = findReiseTidColumnIndex();
-    const oppTidIndex = findOppTidColumnIndex();
     
-    if (reiseTidIndex === -1) {
-      showErrorToast("Kunne ikke finne 'Reise tid' kolonne");
+    // Separer ventende og pågående
+    const ventendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("V-"));
+    const paagaaendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("P-"));
+
+    // VALIDERING: Tillat ikke flere ressurser (P-rader) samtidig
+    if (paagaaendeRows.length > 1) {
+      const resourceNames = paagaaendeRows.map(r => {
+        const cells = r.querySelectorAll('td');
+        return cells[1]?.textContent.trim() || '(ukjent)';
+      }).filter(Boolean);
+      
+      const choice = prompt(
+        `Du har merket ${paagaaendeRows.length} ressurser på pågående oppdrag:\n\n` +
+        resourceNames.map((name, i) => `${i + 1}. ${name}`).join('\n') +
+        `\n\nVelg ressurs (1-${paagaaendeRows.length}) eller trykk Avbryt:`,
+        "1"
+      );
+      
+      // Sjekk om bruker trykket Avbryt
+      if (choice === null) {
+        return;
+      }
+      
+      // Valider input
+      const selectedIndex = parseInt(choice) - 1;
+      if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= paagaaendeRows.length) {
+        showErrorToast(`Ugyldig valg. Velg et tall mellom 1 og ${paagaaendeRows.length}.`);
+        return;
+      }
+      
+      // Bruk kun valgt ressurs
+      paagaaendeRows.length = 0;
+      paagaaendeRows.push(allSelectedRows.filter(tr => (tr.id || "").startsWith("P-"))[selectedIndex]);
+      
+      // Oppdater allSelectedRows til å kun inneholde valgt ressurs + eventuelle ventende
+      allSelectedRows.length = 0;
+      allSelectedRows.push(...ventendeRows, ...paagaaendeRows);
+    }
+
+    let allBestillinger = [];
+
+    // Prosesser ventende oppdrag
+    if (ventendeRows.length > 0) {
+      const reiseTidIndex = findColumnIndex('.ventendeoppdrag', 'tripStartDate');
+      const oppTidIndex = findColumnIndex('.ventendeoppdrag', 'tripTreatmentDate');
+      
+      // Valider kritiske kolonner
+      if (reiseTidIndex === -1) {
+        showErrorToast("❌ Mangler kolonnen 'Reisetid' på ventende oppdrag. Vennligst legg til kolonnen i tabellen.");
+        return;
+      }
+      
+      // Sjekk om pasientnavn-kolonnen finnes (ikke strengt nødvendig, men anbefalt)
+      const hasPatientNames = ventendeRows.every(row => {
+        const nameCell = Array.from(row.querySelectorAll('td'))
+          .find(td => td.textContent.includes(','));
+        return nameCell !== undefined;
+      });
+      
+      if (!hasPatientNames) {
+        showErrorToast("❌ Mangler kolonnen 'Pnavn' (pasientnavn) på ventende oppdrag. Vennligst legg til kolonnen i tabellen.");
+        return;
+      }
+      
+      const ventendeBestillinger = ventendeRows.map(row => 
+        parseVentendeRow(row, reiseTidIndex, oppTidIndex)
+      );
+      allBestillinger.push(...ventendeBestillinger);
+    }
+
+    // Prosesser pågående oppdrag
+    if (paagaaendeRows.length > 0) {
+      const startTimeIndex = findColumnIndex('#pagaendeoppdrag', 'tripStartTime');
+      const oppTidIndex = findColumnIndex('#pagaendeoppdrag', 'tripTreatmentDate');
+      const nameIndex = findColumnIndex('#pagaendeoppdrag', 'patientName');
+      const fromIndex = findColumnIndex('#pagaendeoppdrag', 'tripFromAddress');
+      const toIndex = findColumnIndex('#pagaendeoppdrag', 'tripToAddress');
+      const statusIndex = findColumnIndex('#pagaendeoppdrag', 'resourceStatus');
+      
+      // Valider kritiske kolonner
+      const missingColumns = [];
+      if (startTimeIndex === -1) missingColumns.push("'Start' (hentetid)");
+      if (nameIndex === -1) missingColumns.push("'Pnavn' (pasientnavn)");
+      if (statusIndex === -1) missingColumns.push("'Status'");
+      
+      if (missingColumns.length > 0) {
+        showErrorToast(`❌ Mangler kolonne(r) på pågående oppdrag: ${missingColumns.join(', ')}. Vennligst legg til i tabellen.`);
+        return;
+      }
+      
+      paagaaendeRows.forEach(row => {
+        const bestillinger = parsePaagaaendeRow(row, startTimeIndex, oppTidIndex, nameIndex, fromIndex, toIndex, statusIndex);
+        allBestillinger.push(...bestillinger);
+      });
+    }
+
+    if (allBestillinger.length === 0) {
+      showErrorToast("🕐 Vennligst marker bestillinger på ventende oppdrag eller én tur med status tildelt på pågående oppdrag og trykk på Hentetid-knappen eller Alt+E igjen.");
       return;
     }
 
-    const bestillinger = rows.map(row => parseRowInfo(row, reiseTidIndex, oppTidIndex));
-    showTimeEditPopup(bestillinger, allSelectedRows);
+    showTimeEditPopup(allBestillinger, allSelectedRows);
   }
 
   console.log("✅ Hentetid-script lastet");
