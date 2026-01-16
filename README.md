@@ -11,13 +11,14 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - ⌛ **NISSY-fiks**
   - Inneholder bugfikser, masse tastatursnarveier og forbedringer.
   - Automatisk kolonnejustering (skjuler/viser relevante kolonner).
-  - Fikser bug med at filter ikke oppdaterer seg.
+  - Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
   - Åpner alle turer ved bytting av filter automatisk og ved søk.
   - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
   - Lukker plakater ved trykk utenfor.
   - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag dynamisk.
   - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
+  - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
 - 🪄 **Smart-tildeling (Alt+S)**
   - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.

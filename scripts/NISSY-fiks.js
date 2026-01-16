@@ -383,9 +383,20 @@
      DEL 4: FILTER-HÅNDTERING
      ====================================================== */
 
-  const SELECT_NAMES = [
+  // Selects som skal kjøre clear + waitForAjax + openPopp
+  const SELECTS_FULL_ACTION = [
     "filter-resurser",
     "filter-ventende-oppdrag"
+  ];
+
+  // Selects som KUN skal kjøre clear
+  const SELECTS_CLEAR_ONLY = [
+    "show-vopp-columns",
+    "hide-vopp-columns",
+    "filter-ventende-oppdrag-gruppe",
+    "filter-resurser-gruppe",
+    "show-popp-columns",
+    "hide-popp-columns"
   ];
 
   function clickClearButton() {
@@ -397,13 +408,20 @@
 
   function onSelectChange(e) {
     const select = e.target;
-    if (!SELECT_NAMES.includes(select.name)) return;
-
-    clickClearButton();
-
-    waitForAjaxThen('filter', () => {
-      openPopp("-1");
-    });
+    if (!select || select.tagName !== "SELECT") return;
+  
+    if (SELECTS_CLEAR_ONLY.includes(select.name)) {
+      clickClearButton();
+      return;
+    }
+  
+    if (SELECTS_FULL_ACTION.includes(select.name)) {
+      clickClearButton();
+  
+      waitForAjaxThen("filter", () => {
+        openPopp("-1");
+      });
+    }
   }
 
   document.addEventListener("change", onSelectChange, true);

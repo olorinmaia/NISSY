@@ -7,6 +7,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [2.7.0] - 16.01.2026
+
+### 🎉 Hentetid fungerer nå for både ventende og pågående oppdrag
+
+#### Hva er nytt?
+- 🕐 **Hentetid** 
+  - (Alt+E) Lar deg nå også redigere hentetid på bestillinger tilhørende turer med status **tildelt** på pågående oppdrag.
+  - Lagt til "Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet.
+- ⌛ **NISSY-fiks** 
+  - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
+
 ## 🚀 [2.6.1] - 14.01.2026
 
 ### Skjuling av ubrukte elementer og "K"-knapp på pågående oppdrag åpnes i Bestillingsmodul
