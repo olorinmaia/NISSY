@@ -1291,10 +1291,10 @@
       
       // Bygg URL basert på kilde
       if (change.source === 'ventende') {
-        // Ventende oppdrag: /rekvisisjon/requisition/editMultipleRequisitions?userid=108137&id=53221506&res=262000770171
-        url = `/rekvisisjon/requisition/editMultipleRequisitions?userid=${userid}&id=${change.id}&res=${change.rekvNr}`;
+        // Ventende oppdrag
+        url = `/rekvisisjon/requisition/editMultipleRequisitions?userid=${userid}&id=${change.id},&res=${change.rekvNr}`;
       } else {
-        // Pågående oppdrag: /rekvisisjon/requisition/editMultipleRequisitions?userid=108137&id=53221506,&ts=56515071
+        // Pågående oppdrag
         url = `/rekvisisjon/requisition/editMultipleRequisitions?userid=${userid}&id=${change.id},&ts=${change.ts}`;
       }
 
@@ -1314,7 +1314,7 @@
           admin_param_2: "",
           admin_param_3: "",
           admin_param_4: change.rekvNr || "",
-          admin_param_5: "",
+          admin_param_5: change.ts ||"",
           admin_param_6: "",
           version_0: v,
           version_count: "1",
