@@ -1314,7 +1314,7 @@
           admin_param_2: "",
           admin_param_3: "",
           admin_param_4: change.rekvNr || "",
-          admin_param_5: change.ts ||"",
+          admin_param_5: change.ts || "",
           admin_param_6: "",
           version_0: v,
           version_count: "1",
