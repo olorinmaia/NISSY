@@ -1381,16 +1381,37 @@
     const paagaaendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("P-"));
 
     // VALIDERING: Tillat ikke flere ressurser (P-rader) samtidig
-    if (paagaaendeRows.length > 1) {
-      const resourceNames = paagaaendeRows.map(r => {
+    // Men kun tell ressurser som har status "Tildelt"
+    const statusColumnIndex = findColumnIndex('#pagaendeoppdrag', 'resourceStatus');
+    
+    const paagaaendeWithTildelt = paagaaendeRows.filter(row => {
+      if (statusColumnIndex === -1) return true; // Hvis vi ikke finner status-kolonnen, inkluder alle
+      
+      const cells = row.querySelectorAll('td');
+      const statusCell = cells[statusColumnIndex];
+      if (!statusCell) return false;
+      
+      // Sjekk om det er multi-bestilling (med divs)
+      const statusDivs = statusCell.querySelectorAll('div.row-image');
+      if (statusDivs.length > 0) {
+        // Multi-bestilling: Sjekk om minst én har status "Tildelt"
+        return Array.from(statusDivs).some(div => div.textContent.trim() === 'Tildelt');
+      } else {
+        // Enkelt-bestilling: Sjekk direkte
+        return statusCell.textContent.trim() === 'Tildelt';
+      }
+    });
+    
+    if (paagaaendeWithTildelt.length > 1) {
+      const resourceNames = paagaaendeWithTildelt.map(r => {
         const cells = r.querySelectorAll('td');
         return cells[1]?.textContent.trim() || '(ukjent)';
       }).filter(Boolean);
       
       const choice = prompt(
-        `Du har merket ${paagaaendeRows.length} ressurser på pågående oppdrag:\n\n` +
+        `Du har merket ${paagaaendeWithTildelt.length} ressurser med status "Tildelt" på pågående oppdrag:\n\n` +
         resourceNames.map((name, i) => `${i + 1}. ${name}`).join('\n') +
-        `\n\nVelg ressurs (1-${paagaaendeRows.length}) eller trykk Avbryt:`,
+        `\n\nVelg ressurs (1-${paagaaendeWithTildelt.length}) eller trykk Avbryt:`,
         "1"
       );
       
@@ -1401,14 +1422,14 @@
       
       // Valider input
       const selectedIndex = parseInt(choice) - 1;
-      if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= paagaaendeRows.length) {
-        showErrorToast(`Ugyldig valg. Velg et tall mellom 1 og ${paagaaendeRows.length}.`);
+      if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= paagaaendeWithTildelt.length) {
+        showErrorToast(`Ugyldig valg. Velg et tall mellom 1 og ${paagaaendeWithTildelt.length}.`);
         return;
       }
       
       // Bruk kun valgt ressurs
       paagaaendeRows.length = 0;
-      paagaaendeRows.push(allSelectedRows.filter(tr => (tr.id || "").startsWith("P-"))[selectedIndex]);
+      paagaaendeRows.push(paagaaendeWithTildelt[selectedIndex]);
       
       // Oppdater allSelectedRows til å kun inneholde valgt ressurs + eventuelle ventende
       allSelectedRows.length = 0;
