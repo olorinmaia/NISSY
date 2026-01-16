@@ -7,7 +7,7 @@
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
 - 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
-- 🕐 **Hentetid** - (Alt+E) Rediger hentetid på merkede bestillinger på ventende oppdrag. TODO: Gjøre det mulig på pågående oppdrag kun for status tildelt.
+- 🕐 **Hentetid** - (Alt+E) Rediger hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up iframe over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
