@@ -644,6 +644,7 @@
                   style="
                     padding: 6px 8px;
                     background: #17a2b8;
+                    margin-top: 13px;
                     color: #fff;
                     border: none;
                     border-radius: 4px;
@@ -2224,10 +2225,6 @@
         showErrorToast(`❌ Mangler kolonne(r) på pågående oppdrag: ${missingColumns.join(', ')}. Vennligst legg til i tabellen.`);
         return;
       }
-      
-      // Bruk kun de filtrerte radene (med Tildelt status)
-      paagaaendeRows.length = 0;
-      paagaaendeRows.push(...paagaaendeWithTildelt);
       
       paagaaendeRows.forEach(row => {
         const bestillinger = parsePaagaaendeRow(row, startTimeIndex, oppTidIndex, nameIndex, fromIndex, toIndex, statusIndex);
