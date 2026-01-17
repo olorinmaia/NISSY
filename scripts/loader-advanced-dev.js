@@ -332,7 +332,7 @@
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+S → Smart tildeling (RB/ERS + passasjerregler)<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
-          • ALT+E → Hentetid (masseendre)<br>
+          • ALT+E → Hentetid<br>
           • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+K → Avbestilling<br>

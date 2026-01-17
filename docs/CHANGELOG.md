@@ -7,6 +7,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [2.8.0] - 17.01.2026
+
+### 🎉 Hentetid beregner nå hentetid med egendefinert oppmøtetid
+
+#### Hva er nytt?
+- 🕐 **Hentetid** 
+  - Lar deg nå også beregne hentetid basert på oppmøtetid eller redigert oppmøtetid.
+
 ## 🚀 [2.7.0] - 16.01.2026
 
 ### 🎉 Hentetid fungerer nå for både ventende og pågående oppdrag
