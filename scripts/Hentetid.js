@@ -820,6 +820,54 @@
               // Trigger beregning
               calcButton.click();
             }
+          } else if (e.key === 'Tab') {
+            e.preventDefault();
+            
+            // Formater først
+            handleOppFormat({ target: e.target });
+            
+            // Hent sortert liste
+            const sorted = sortBestillingerByTime(bestillinger, popup);
+            const currentIndex = sorted.findIndex(item => (item.uniqueId || item.id) === displayId);
+            
+            setTimeout(() => {
+              if (e.shiftKey) {
+                // Shift+Tab - gå til forrige hentetid-felt
+                if (currentIndex > 0) {
+                  const prevItem = sorted[currentIndex - 1];
+                  const prevDisplayId = prevItem.uniqueId || prevItem.id;
+                  const prevInput = popup.querySelector(`#time_${prevDisplayId}`);
+                  if (prevInput) {
+                    prevInput.focus();
+                    prevInput.select();
+                  }
+                } else {
+                  // Første felt - gå til Avbryt-knappen
+                  const cancelButton = popup.querySelector("#cancelChange");
+                  if (cancelButton) cancelButton.focus();
+                }
+              } else {
+                // Tab - gå til neste hentetid-felt
+                if (currentIndex >= 0 && currentIndex < sorted.length - 1) {
+                  const nextItem = sorted[currentIndex + 1];
+                  const nextDisplayId = nextItem.uniqueId || nextItem.id;
+                  const nextInput = popup.querySelector(`#time_${nextDisplayId}`);
+                  if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
+                  }
+                } else {
+                  // Siste felt - gå til første hentetid-felt
+                  const firstItem = sorted[0];
+                  const firstDisplayId = firstItem.uniqueId || firstItem.id;
+                  const firstInput = popup.querySelector(`#time_${firstDisplayId}`);
+                  if (firstInput) {
+                    firstInput.focus();
+                    firstInput.select();
+                  }
+                }
+              }
+            }, 50);
           }
         });
         
@@ -862,6 +910,16 @@
       const displayId = b.uniqueId || b.id;
       const input = popup.querySelector(`#time_${displayId}`);
       if (!input) return;
+      
+      // Auto-select ved klikk
+      input.addEventListener('focus', (e) => {
+        e.target.select();
+      });
+      
+      // Auto-select ved museklikk (for å sikre at det fungerer i alle tilfeller)
+      input.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+      });
       
       // Auto-formatering mens du skriver
       input.addEventListener('input', (e) => {
