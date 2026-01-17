@@ -1536,6 +1536,7 @@
                   style="
                     padding: 6px 8px;
                     background: #17a2b8;
+                    margin-top: 13px;
                     color: #fff;
                     border: none;
                     border-radius: 4px;
