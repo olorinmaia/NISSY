@@ -25,10 +25,8 @@
   // Spesialbehov og deres kapasitetskrav
   // Bestillinger med disse behovene teller som angitt antall passasjerer
   const SPECIAL_NEEDS_CAPACITY = {
-    "LB": 2  // God benplass og regulerbart sete - ingen kan sitte bak
-    // Legg til flere behov her ved behov, f.eks:
-    // "ØH": 3,  // Eksempel: Ekstra høy kapasitet
-    // "BR": 2   // Eksempel: Båre
+    "LB": 2  // Trenger hele baksetet - ingen kan sitte bak
+    // Legg til flere behov her ved behov
   };
   
   // Regler når RB/ERS finnes i bestillingene
