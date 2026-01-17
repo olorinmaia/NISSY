@@ -20,6 +20,7 @@
   // KONSTANTER
   // ============================================================
   const TARGET_BG = "148, 169, 220"; // Bakgrunnsfarge for merkede rader
+  const RETURN_TRIP_MARGIN = 5; // 5 minutters margin for å gruppere returer
   
   // Regler når RB/ERS finnes i bestillingene
   const RB_ERS_RULES = {
@@ -243,6 +244,23 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Normaliser tidspar (håndter dårlig datakvalitet)
+  // Hvis leveringstid er tidligere enn hentetid, sett leveringstid = hentetid
+  // ============================================================
+  function normalizeTimes(pickupTime, deliveryTime) {
+    if (pickupTime === null || deliveryTime === null) {
+      return { pickupTime, deliveryTime };
+    }
+    
+    // Dårlig datakvalitet: leveringstid før hentetid
+    if (deliveryTime < pickupTime) {
+      return { pickupTime, deliveryTime: pickupTime };
+    }
+    
+    return { pickupTime, deliveryTime };
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Sjekk om to tidsperioder overlapper
   // ============================================================
   function periodsOverlap(start1, end1, start2, end2) {
@@ -258,6 +276,7 @@
   // ============================================================
   // HJELPEFUNKSJON: Tell maksimalt overlappende passasjerer
   // Analyserer alle turer og finner maks antall samtidige passasjerer
+  // FORBEDRET: Grupperer returer innenfor RETURN_TRIP_MARGIN
   // ============================================================
   function countMaxOverlappingPassengers(rows) {
     const trips = [];
@@ -278,10 +297,15 @@
         deliveryCell = cells[2];
       }
       
-      const pickupTime = pickupCell ? parseTime(pickupCell.textContent.trim()) : null;
-      const deliveryTime = deliveryCell ? parseTime(deliveryCell.textContent.trim()) : null;
+      let pickupTime = pickupCell ? parseTime(pickupCell.textContent.trim()) : null;
+      let deliveryTime = deliveryCell ? parseTime(deliveryCell.textContent.trim()) : null;
       
       if (pickupTime === null || deliveryTime === null) continue;
+      
+      // Normaliser tider (håndter dårlig datakvalitet)
+      const normalized = normalizeTimes(pickupTime, deliveryTime);
+      pickupTime = normalized.pickupTime;
+      deliveryTime = normalized.deliveryTime;
       
       const companions = getCompanionCount(row);
       const passengers = companions + 1; // +1 for pasienten selv
@@ -291,23 +315,43 @@
 
     if (trips.length === 0) return 0;
 
-    // Grupper turer med identiske tider (returturer)
-    const timeGroups = new Map();
+    // Grupper returturer (start === end) innenfor RETURN_TRIP_MARGIN
+    // Sorter returturer etter tid først
+    const returnTrips = trips
+      .filter(trip => trip.pickupTime === trip.deliveryTime)
+      .sort((a, b) => a.pickupTime - b.pickupTime);
     
-    for (const trip of trips) {
-      if (trip.pickupTime === trip.deliveryTime) {
-        const key = trip.pickupTime;
-        if (!timeGroups.has(key)) {
-          timeGroups.set(key, []);
+    const returnGroups = [];
+    
+    for (const trip of returnTrips) {
+      const time = trip.pickupTime;
+      
+      // Finn gruppe denne returen tilhører (innenfor margin av SISTE tur i gruppen)
+      let foundGroup = null;
+      
+      for (const group of returnGroups) {
+        const lastTripInGroup = group[group.length - 1];
+        const lastTime = lastTripInGroup.pickupTime;
+        
+        if (Math.abs(time - lastTime) <= RETURN_TRIP_MARGIN) {
+          foundGroup = group;
+          break;
         }
-        timeGroups.get(key).push(trip);
+      }
+      
+      if (foundGroup !== null) {
+        // Legg til i eksisterende gruppe
+        foundGroup.push(trip);
+      } else {
+        // Opprett ny gruppe
+        returnGroups.push([trip]);
       }
     }
 
     let maxOverlap = 0;
 
-    // Tell passasjerer i hver tidsgruppe
-    for (const [time, group] of timeGroups.entries()) {
+    // Tell passasjerer i hver returgruppe
+    for (const group of returnGroups) {
       let totalPassengers = 0;
       for (const trip of group) {
         totalPassengers += trip.passengers;
@@ -317,7 +361,7 @@
       }
     }
 
-    // Sjekk overlapp mellom vanlige turer
+    // Sjekk overlapp mellom vanlige turer (ikke returer)
     for (let i = 0; i < trips.length; i++) {
       if (trips[i].pickupTime === trips[i].deliveryTime) continue;
       
