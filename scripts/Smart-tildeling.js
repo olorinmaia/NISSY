@@ -22,6 +22,15 @@
   const TARGET_BG = "148, 169, 220"; // Bakgrunnsfarge for merkede rader
   const RETURN_TRIP_MARGIN = 5; // 5 minutters margin for å gruppere returer
   
+  // Spesialbehov og deres kapasitetskrav
+  // Bestillinger med disse behovene teller som angitt antall passasjerer
+  const SPECIAL_NEEDS_CAPACITY = {
+    "LB": 2  // God benplass og regulerbart sete - ingen kan sitte bak
+    // Legg til flere behov her ved behov, f.eks:
+    // "ØH": 3,  // Eksempel: Ekstra høy kapasitet
+    // "BR": 2   // Eksempel: Båre
+  };
+  
   // Regler når RB/ERS finnes i bestillingene
   const RB_ERS_RULES = {
     4116: 4120, 8942: 9041, 8918: 9035, 8948: 9043, 8950: 9043,
@@ -229,6 +238,48 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hent spesialbehov fra rad
+  // Finner cellen under "Behov"-kolonnen og returnerer array av behov
+  // ============================================================
+  function getSpecialNeeds(row) {
+    const cells = [...row.querySelectorAll("td")];
+    
+    // Finn kolonneindeks for "Behov" i header
+    const headerRow = row.closest('table')?.querySelector('thead tr');
+    if (!headerRow) return [];
+    
+    const headers = [...headerRow.querySelectorAll('th')];
+    const behovIndex = headers.findIndex(th => th.textContent.trim() === 'Behov');
+    
+    if (behovIndex === -1 || behovIndex >= cells.length) return [];
+    
+    const behovText = cells[behovIndex].textContent.trim();
+    if (!behovText) return [];
+    
+    // Split på komma for å håndtere flere behov (f.eks "LI,LB,ØH")
+    return behovText.split(',').map(need => need.trim()).filter(Boolean);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Beregn kapasitetskrav basert på spesialbehov
+  // Returnerer høyeste kapasitetskrav hvis flere behov finnes
+  // ============================================================
+  function getCapacityRequirement(specialNeeds) {
+    if (!specialNeeds || specialNeeds.length === 0) return 1;
+    
+    let maxCapacity = 1;
+    
+    for (const need of specialNeeds) {
+      const capacity = SPECIAL_NEEDS_CAPACITY[need];
+      if (capacity && capacity > maxCapacity) {
+        maxCapacity = capacity;
+      }
+    }
+    
+    return maxCapacity;
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Parse tid til minutter fra midnatt
   // ============================================================
   function parseTime(timeStr) {
@@ -277,6 +328,9 @@
   // HJELPEFUNKSJON: Tell maksimalt overlappende passasjerer
   // Analyserer alle turer og finner maks antall samtidige passasjerer
   // FORBEDRET: Grupperer returer innenfor RETURN_TRIP_MARGIN
+  // FORBEDRET: Håndterer spesialbehov som påvirker kapasitet
+  //            Spesialbehov angir hvor mange plasser pasienten tar
+  //            Ledsagere legges alltid til i tillegg
   // ============================================================
   function countMaxOverlappingPassengers(rows) {
     const trips = [];
@@ -308,9 +362,15 @@
       deliveryTime = normalized.deliveryTime;
       
       const companions = getCompanionCount(row);
-      const passengers = companions + 1; // +1 for pasienten selv
+      const specialNeeds = getSpecialNeeds(row);
+      const capacityRequirement = getCapacityRequirement(specialNeeds);
       
-      trips.push({ pickupTime, deliveryTime, passengers, companions });
+      // Beregn total kapasitet:
+      // - Pasient tar enten 1 plass (normalt) eller mer (spesialbehov)
+      // - Ledsagere legges alltid til i tillegg
+      const passengers = capacityRequirement + companions;
+      
+      trips.push({ pickupTime, deliveryTime, passengers, companions, specialNeeds, capacityRequirement });
     }
 
     if (trips.length === 0) return 0;
