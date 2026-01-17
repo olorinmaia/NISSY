@@ -25,6 +25,20 @@
     return day * 24 * 60 + hours * 60 + minutes;
   }
 
+  function extractDate(timeStr) {
+    if (!timeStr) return null;
+    const match = timeStr.match(/(\d{1,2})\.(\d{1,2})/);
+    if (!match) return null;
+    return `${match[1]}.${match[2]}`;
+  }
+
+  function datesAreDifferent(hentetid, leveringstid) {
+    const hentetidDate = extractDate(hentetid);
+    const leveringstidDate = extractDate(leveringstid);
+    if (!hentetidDate || !leveringstidDate) return false;
+    return hentetidDate !== leveringstidDate;
+  }
+
   // Funksjon for å finne kolonne-indeks basert på header-tekst
   function findColumnIndex(table, headerText) {
     const headers = table.querySelectorAll('thead th');
@@ -295,6 +309,26 @@
     return duplicates;
   }
 
+  function findDateMismatches() {
+    const ventendeData = extractVentendeData();
+    const pagaendeData = extractPagaendeData();
+    const allData = [...ventendeData, ...pagaendeData];
+    
+    const mismatches = [];
+    
+    for (const item of allData) {
+      if (datesAreDifferent(item.hentetid, item.leveringstid)) {
+        mismatches.push({
+          navn: item.navn,
+          items: [item],
+          reason: 'Hentetid og leveringstid har ulik dato'
+        });
+      }
+    }
+    
+    return mismatches;
+  }
+
   function searchInPlanning(navn) {
     closeModal();
     
@@ -341,7 +375,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -368,7 +402,7 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalDuplicates = countDuplicates.length + routeDuplicates.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length;
     
     let html = `
       <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -380,10 +414,10 @@
       <div style="padding: 20px;">
     `;
     
-    if (totalDuplicates === 0) {
+    if (totalIssues === 0) {
       html += `
         <div style="text-align: center; padding: 40px 20px;">
-          <p style="font-size: 16px; color: #28a745; font-weight: 500; margin: 0;">✓ Ingen duplikater funnet</p>
+          <p style="font-size: 16px; color: #28a745; font-weight: 500; margin: 0;">✓ Ingen duplikater eller datofeil funnet</p>
         </div>
       `;
     } else {
@@ -392,9 +426,17 @@
         html += `<div style="background: #fff3cd; color: #856404; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #ffc107;">📊 ${countDuplicates.length} pasient${countDuplicates.length === 1 ? '' : 'er'} med mer enn 2 bestillinger</div>`;
       }
       if (routeDuplicates.length > 0) {
-        html += `<div style="background: #d1ecf1; color: #0c5460; padding: 10px 12px; border-radius: 4px; border-left: 4px solid #17a2b8;">🔄 ${routeDuplicates.length} duplikat${routeDuplicates.length === 1 ? '' : 'er'} med samme fra/til adresse</div>`;
+        html += `<div style="background: #d1ecf1; color: #0c5460; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #17a2b8;">🔄 ${routeDuplicates.length} duplikat${routeDuplicates.length === 1 ? '' : 'er'} med samme fra/til adresse</div>`;
+      }
+      if (dateMismatches.length > 0) {
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; border-left: 4px solid #dc3545;">📅 ${dateMismatches.length} bestilling${dateMismatches.length === 1 ? '' : 'er'} med ulik dato på hentetid og leveringstid</div>`;
       }
       html += '</div>';
+      
+      if (dateMismatches.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">Bestillinger med datofeil (hentetid ≠ leveringstid)</h3>';
+        html += renderDuplicates(dateMismatches, 'date');
+      }
       
       if (countDuplicates.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">Pasienter med mer enn 2 bestillinger</h3>';
@@ -433,12 +475,21 @@
 
   function renderDuplicates(duplicates, type) {
     let html = '';
+    
+    const colorMap = {
+      'count': '#ffc107',
+      'route': '#17a2b8',
+      'date': '#dc3545'
+    };
+    
+    const color = colorMap[type] || '#6c757d';
+    
     for (const dup of duplicates) {
       html += `
-        <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${type === 'count' ? '#ffc107' : '#17a2b8'};">
+        <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div>
-              <div style="font-weight: 600; color: #333; font-size: 15px; margin-bottom: 2px;">${dup.navn} <span style="font-size: 13px; color: #666; font-weight: 400;">(${dup.items.length} bestillinger)</span></div>
+              <div style="font-weight: 600; color: #333; font-size: 15px; margin-bottom: 2px;">${dup.navn} <span style="font-size: 13px; color: #666; font-weight: 400;">(${dup.items.length} bestilling${dup.items.length === 1 ? '' : 'er'})</span></div>
               <div style="font-size: 12px; color: #666;">${dup.reason}</div>
             </div>
             <button class="nissy-search-btn" data-navn="${dup.navn}" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
@@ -465,12 +516,19 @@
           ? `${item.reknr} <span style="color: #dc3545;">(${item.status})</span>` 
           : item.reknr;
         
+        const hentetidDate = extractDate(item.hentetid);
+        const leveringstidDate = extractDate(item.leveringstid);
+        const dateMismatch = hentetidDate !== leveringstidDate;
+        
+        const hentetidStyle = dateMismatch ? 'color: #dc3545; font-weight: 600;' : 'color: #495057;';
+        const leveringstidStyle = dateMismatch ? 'color: #dc3545; font-weight: 600;' : 'color: #495057;';
+        
         html += `
           <tr style="border-bottom: 1px solid #dee2e6;">
             <td style="padding: 6px 8px;"><span style="background: ${item.type === 'Ventende' ? '#ffc107' : '#17a2b8'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">${item.type}</span></td>
             <td style="padding: 6px 8px; color: #495057;">${reknrDisplay}</td>
-            <td style="padding: 6px 8px; color: #495057;">${item.hentetid}</td>
-            <td style="padding: 6px 8px; color: #495057;">${item.leveringstid}</td>
+            <td style="padding: 6px 8px; ${hentetidStyle}">${item.hentetid}</td>
+            <td style="padding: 6px 8px; ${leveringstidStyle}">${item.leveringstid}</td>
             <td style="padding: 6px 8px; color: #495057;">${item.fra}</td>
             <td style="padding: 6px 8px; color: #495057;">${item.til}</td>
           </tr>
@@ -489,5 +547,6 @@
 
   const { duplicates: countDuplicates, excludedNames } = findDuplicates();
   const routeDuplicates = findSameRouteDuplicates(excludedNames);
-  showModal(countDuplicates, routeDuplicates);
+  const dateMismatches = findDateMismatches();
+  showModal(countDuplicates, routeDuplicates, dateMismatches);
 })();
