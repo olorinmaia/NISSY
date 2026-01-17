@@ -20,6 +20,14 @@
   // KONSTANTER
   // ============================================================
   const TARGET_BG = "148, 169, 220"; // Bakgrunnsfarge for merkede rader
+  const RETURN_TRIP_MARGIN = 5; // 5 minutters margin for å gruppere returer
+  
+  // Spesialbehov og deres kapasitetskrav
+  // Bestillinger med disse behovene teller som angitt antall passasjerer
+  const SPECIAL_NEEDS_CAPACITY = {
+    "LB": 2  // Trenger hele baksetet - ingen kan sitte bak
+    // Legg til flere behov her ved behov
+  };
   
   // Regler når RB/ERS finnes i bestillingene
   const RB_ERS_RULES = {
@@ -228,6 +236,48 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hent spesialbehov fra rad
+  // Finner cellen under "Behov"-kolonnen og returnerer array av behov
+  // ============================================================
+  function getSpecialNeeds(row) {
+    const cells = [...row.querySelectorAll("td")];
+    
+    // Finn kolonneindeks for "Behov" i header
+    const headerRow = row.closest('table')?.querySelector('thead tr');
+    if (!headerRow) return [];
+    
+    const headers = [...headerRow.querySelectorAll('th')];
+    const behovIndex = headers.findIndex(th => th.textContent.trim() === 'Behov');
+    
+    if (behovIndex === -1 || behovIndex >= cells.length) return [];
+    
+    const behovText = cells[behovIndex].textContent.trim();
+    if (!behovText) return [];
+    
+    // Split på komma for å håndtere flere behov (f.eks "LI,LB,ØH")
+    return behovText.split(',').map(need => need.trim()).filter(Boolean);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Beregn kapasitetskrav basert på spesialbehov
+  // Returnerer høyeste kapasitetskrav hvis flere behov finnes
+  // ============================================================
+  function getCapacityRequirement(specialNeeds) {
+    if (!specialNeeds || specialNeeds.length === 0) return 1;
+    
+    let maxCapacity = 1;
+    
+    for (const need of specialNeeds) {
+      const capacity = SPECIAL_NEEDS_CAPACITY[need];
+      if (capacity && capacity > maxCapacity) {
+        maxCapacity = capacity;
+      }
+    }
+    
+    return maxCapacity;
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Parse tid til minutter fra midnatt
   // ============================================================
   function parseTime(timeStr) {
@@ -240,6 +290,23 @@
     const minutes = parseInt(match[2], 10);
     
     return hours * 60 + minutes;
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Normaliser tidspar (håndter dårlig datakvalitet)
+  // Hvis leveringstid er tidligere enn hentetid, sett leveringstid = hentetid
+  // ============================================================
+  function normalizeTimes(pickupTime, deliveryTime) {
+    if (pickupTime === null || deliveryTime === null) {
+      return { pickupTime, deliveryTime };
+    }
+    
+    // Dårlig datakvalitet: leveringstid før hentetid
+    if (deliveryTime < pickupTime) {
+      return { pickupTime, deliveryTime: pickupTime };
+    }
+    
+    return { pickupTime, deliveryTime };
   }
 
   // ============================================================
@@ -258,6 +325,10 @@
   // ============================================================
   // HJELPEFUNKSJON: Tell maksimalt overlappende passasjerer
   // Analyserer alle turer og finner maks antall samtidige passasjerer
+  // FORBEDRET: Grupperer returer innenfor RETURN_TRIP_MARGIN
+  // FORBEDRET: Håndterer spesialbehov som påvirker kapasitet
+  //            Spesialbehov angir hvor mange plasser pasienten tar
+  //            Ledsagere legges alltid til i tillegg
   // ============================================================
   function countMaxOverlappingPassengers(rows) {
     const trips = [];
@@ -278,36 +349,67 @@
         deliveryCell = cells[2];
       }
       
-      const pickupTime = pickupCell ? parseTime(pickupCell.textContent.trim()) : null;
-      const deliveryTime = deliveryCell ? parseTime(deliveryCell.textContent.trim()) : null;
+      let pickupTime = pickupCell ? parseTime(pickupCell.textContent.trim()) : null;
+      let deliveryTime = deliveryCell ? parseTime(deliveryCell.textContent.trim()) : null;
       
       if (pickupTime === null || deliveryTime === null) continue;
       
-      const companions = getCompanionCount(row);
-      const passengers = companions + 1; // +1 for pasienten selv
+      // Normaliser tider (håndter dårlig datakvalitet)
+      const normalized = normalizeTimes(pickupTime, deliveryTime);
+      pickupTime = normalized.pickupTime;
+      deliveryTime = normalized.deliveryTime;
       
-      trips.push({ pickupTime, deliveryTime, passengers, companions });
+      const companions = getCompanionCount(row);
+      const specialNeeds = getSpecialNeeds(row);
+      const capacityRequirement = getCapacityRequirement(specialNeeds);
+      
+      // Beregn total kapasitet:
+      // - Pasient tar enten 1 plass (normalt) eller mer (spesialbehov)
+      // - Ledsagere legges alltid til i tillegg
+      const passengers = capacityRequirement + companions;
+      
+      trips.push({ pickupTime, deliveryTime, passengers, companions, specialNeeds, capacityRequirement });
     }
 
     if (trips.length === 0) return 0;
 
-    // Grupper turer med identiske tider (returturer)
-    const timeGroups = new Map();
+    // Grupper returturer (start === end) innenfor RETURN_TRIP_MARGIN
+    // Sorter returturer etter tid først
+    const returnTrips = trips
+      .filter(trip => trip.pickupTime === trip.deliveryTime)
+      .sort((a, b) => a.pickupTime - b.pickupTime);
     
-    for (const trip of trips) {
-      if (trip.pickupTime === trip.deliveryTime) {
-        const key = trip.pickupTime;
-        if (!timeGroups.has(key)) {
-          timeGroups.set(key, []);
+    const returnGroups = [];
+    
+    for (const trip of returnTrips) {
+      const time = trip.pickupTime;
+      
+      // Finn gruppe denne returen tilhører (innenfor margin av SISTE tur i gruppen)
+      let foundGroup = null;
+      
+      for (const group of returnGroups) {
+        const lastTripInGroup = group[group.length - 1];
+        const lastTime = lastTripInGroup.pickupTime;
+        
+        if (Math.abs(time - lastTime) <= RETURN_TRIP_MARGIN) {
+          foundGroup = group;
+          break;
         }
-        timeGroups.get(key).push(trip);
+      }
+      
+      if (foundGroup !== null) {
+        // Legg til i eksisterende gruppe
+        foundGroup.push(trip);
+      } else {
+        // Opprett ny gruppe
+        returnGroups.push([trip]);
       }
     }
 
     let maxOverlap = 0;
 
-    // Tell passasjerer i hver tidsgruppe
-    for (const [time, group] of timeGroups.entries()) {
+    // Tell passasjerer i hver returgruppe
+    for (const group of returnGroups) {
       let totalPassengers = 0;
       for (const trip of group) {
         totalPassengers += trip.passengers;
@@ -317,7 +419,7 @@
       }
     }
 
-    // Sjekk overlapp mellom vanlige turer
+    // Sjekk overlapp mellom vanlige turer (ikke returer)
     for (let i = 0; i < trips.length; i++) {
       if (trips[i].pickupTime === trips[i].deliveryTime) continue;
       
@@ -365,7 +467,7 @@
     const vids = rows.map(row => row.getAttribute("name")).filter(Boolean);
     if (!vids.length) return;
     
-    showToast(`Tildeler ${vids.length} bestilling${vids.length === 1 ? '' : 'er'}...`);
+    showToast(`Tilordner ${vids.length} bestilling${vids.length === 1 ? '' : 'er'}...`);
 
     // POST: Hent avtaleinformasjon for alle bestillinger
     const formData = new URLSearchParams();
@@ -441,7 +543,7 @@
         
         if (xhrGet.status === 200) {
           // Bygg resultatmelding
-          let msg = `✓ Tildelt ${medAgreement.length} bestilling${medAgreement.length === 1 ? '' : 'er'}:\n`;
+          let msg = `✓ Tilordnet ${medAgreement.length} bestilling${medAgreement.length === 1 ? '' : 'er'}:\n`;
           msg += displayMedAgreement.map(d => `${d.requisitionName} → ${d.agreementName}`).join('\n');
           
           if (utenAgreement.length > 0) {
@@ -490,7 +592,7 @@
     const maxOverlappingPassengers = countMaxOverlappingPassengers(rows);
     
     showToast(
-      `Tildeler ${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"}...\n` +
+      `Smart-tildeler ${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"}...\n` +
       `Samtidig reisende: ${maxOverlappingPassengers}`
     );
   
@@ -662,11 +764,11 @@
         
         // Vis resultat
         if (ruleApplied) {
-          updateToast(`${vids.length} bestillinger tildelt avtale iht. oppsett.`);
+          updateToast(`${vids.length} bestillinger smart-tildelt avtale iht. oppsett.`);
         } else {
           updateToast(
             `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
-            `tildelt avtale ${display.agreementName}`
+            `smart-tildelt avtale ${display.agreementName}`
           );
         }
         

@@ -7,7 +7,7 @@
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
 - 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
-- 🕐 **Hentetid** - (Alt+E) Rediger hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
+- 🕐 **Hentetid** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up iframe over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
@@ -148,8 +148,8 @@ Tildeler hver bestilling til sin egen avtale (individuelt). Ingen begrensning p�
 
 ### 🕐 Hentetid (ALT+E)
 
-Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildelt) for å redigere hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
-"Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet.
+Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildelt) for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
+"Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Ruteberegning" åpner bestillingene i google maps.
 
 
 ### 🔠 Rek-knapper (ALT+R)

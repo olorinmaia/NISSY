@@ -254,7 +254,7 @@
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende oppdrag">
+                   data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende og pågående oppdrag (kun status tildelt)">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
@@ -332,7 +332,7 @@
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+S → Smart tildeling (RB/ERS + passasjerregler)<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
-          • ALT+E → Hentetid (masseendre)<br>
+          • ALT+E → Hentetid<br>
           • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+K → Avbestilling<br>

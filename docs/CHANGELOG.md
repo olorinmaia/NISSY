@@ -7,6 +7,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [2.8.0] - 17.01.2026
+
+### 🎉 Hentetid beregner nå hentetid med egendefinert oppmøtetid og forbedringer til Smart-tildel
+
+#### Hva er nytt?
+- 🕐 **Hentetid** 
+  - Lar deg nå også beregne hentetid basert på oppmøtetid eller redigert oppmøtetid.
+- 🪄 **Smart-tildel** 
+  - Innført håndtering av spesielle behov, i første omgang så teller LB som 2 i kapasitet.
+  - Returer med dårlig datakvalitet, hent 09:00 lever 08:00 (tilbake i tid) telles nå riktig.
+  - Innført 5 min margin for returer, hvis returer med like tidspunkt på hent/lever er 11:05, 11:10, 11:15 så telles de nå som 3 isteden for 1.
+
 ## 🚀 [2.7.0] - 16.01.2026
 
 ### 🎉 Hentetid fungerer nå for både ventende og pågående oppdrag

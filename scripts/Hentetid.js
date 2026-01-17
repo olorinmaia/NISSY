@@ -127,15 +127,13 @@
       const input = popup ? popup.querySelector(`#time_${displayId}`) : null;
       const currentTime = input ? input.value.trim() : b.existingTime;
       
-      // Returner oppdatert objekt med currentTime
       return {
         ...b,
         currentTime: currentTime || b.existingTime,
-        existingTime: b.existingTime // Behold original
+        existingTime: b.existingTime
       };
     });
 
-    // Sorter basert på currentTime
     updatedBestillinger.sort((a, b) => {
       const timeA = (a.currentTime || '00:00').replace(':', '');
       const timeB = (b.currentTime || '00:00').replace(':', '');
@@ -143,6 +141,428 @@
     });
 
     return updatedBestillinger;
+  }
+
+  // ============================================================
+  // NY: Hent bestillingsdata fra server
+  // ============================================================
+  async function fetchRequisitionData(requisitionId) {
+    try {
+      const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${requisitionId}`;
+      const response = await fetch(url, { credentials: "same-origin" });
+      
+      // Serveren sender ISO-8859-1, men fetch leser som UTF-8
+      // Vi må decode korrekt for å få norske tegn
+      let text;
+      try {
+        const buffer = await response.arrayBuffer();
+        
+        // Prøv ISO-8859-1 først (NISSY's standard encoding)
+        let decoder = new TextDecoder('iso-8859-1');
+        text = decoder.decode(buffer);
+        
+        // Hvis vi fortsatt har problemer, prøv UTF-8
+        if (text.includes('�')) {
+          decoder = new TextDecoder('utf-8', { fatal: false });
+          const utf8Text = decoder.decode(buffer);
+          
+          // Bruk UTF-8 hvis det ser bedre ut
+          if (!utf8Text.includes('�')) {
+            text = utf8Text;
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ Encoding fallback:', e);
+        text = await response.text();
+      }
+      
+      // Parse XML response
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, "text/xml");
+      
+      // Sjekk for parsing-feil
+      const parseError = xmlDoc.querySelector('parsererror');
+      if (parseError) {
+        console.error("XML parsing error:", parseError.textContent);
+        // Prøv å parse som HTML i stedet (mer tolerant)
+        const htmlDoc = parser.parseFromString(text, "text/html");
+        return htmlDoc;
+      }
+      
+      return xmlDoc;
+    } catch (error) {
+      console.error("Feil ved henting av bestillingsdata:", error);
+      return null;
+    }
+  }
+
+  // ============================================================
+  // NY: Fjern problematiske husnummer-suffikser (H0123, U0123 etc)
+  // ============================================================
+  /**
+   * Fjerner problematiske husnummer-suffikser (H0123, U0123 etc)
+   * @param {string} address - Original adresse
+   * @returns {string} - Adresse uten suffikser
+   */
+  function cleanAddressSuffixes(address) {
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  // ============================================================
+  // NY: Parse adresse fra tekst (format: "Gatenavn 123A, 1234 Poststed")
+  // ============================================================
+  function parseAddress(addressText) {
+    if (!addressText) return null;
+    
+    // Fjern <br/> tags og split på linjeskift
+    const lines = addressText.split(/<br\s*\/?>/gi).map(line => line.trim()).filter(Boolean);
+    
+    if (lines.length === 0) return null;
+    
+    // Bruk siste linje som inneholder gateadresse (med komma eller postnummer)
+    // Dette unngår organisasjonsnavn som "Kirkegata legesenter"
+    let addressLine = lines[lines.length - 1];
+    
+    // Hvis siste linje bare er telefonnummer, bruk forrige linje
+    if (addressLine.startsWith('Tlf:')) {
+      addressLine = lines.length > 1 ? lines[lines.length - 2] : addressLine;
+    }
+    
+    // Fjern H0101/U0101 suffikser før parsing
+    addressLine = cleanAddressSuffixes(addressLine);
+    
+    // Mønster: "Gatenavn 123A, 1234 Poststed"
+    const match = addressLine.match(/^(.+?)\s+(\d+)([A-Za-z]?),?\s+(\d{4})\s+(.+?)$/);
+    
+    if (!match) {
+      console.warn("Kunne ikke parse adresse:", addressLine);
+      return null;
+    }
+    
+    return {
+      gatenavn: match[1].trim(),
+      husnummer: match[2],
+      husbokstav: match[3] || "",
+      postnummer: match[4],
+      poststed: match[5].trim()
+    };
+  }
+
+  // ============================================================
+  // NY: Ekstraher data fra XML-dokument
+  // ============================================================
+  function extractRequisitionData(xmlDoc) {
+    try {
+      const rows = xmlDoc.querySelectorAll('tr');
+      
+      let behandlingsdato = '';
+      let behandlingstid = '';
+      let fraAdresse = null;
+      let tilAdresse = null;
+      let transportType = 'TAX';
+      let valgteSpesielleBehov = [];
+      
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 2) return;
+        
+        const fieldText = cells[0].textContent.trim();
+        
+        if (fieldText === 'Reise til:') {
+          const dateTimeText = cells[1].textContent.trim();
+          const addressText = cells.length > 2 ? cells[2].innerHTML : '';
+          
+          const dateTimeMatch = dateTimeText.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/);
+          if (dateTimeMatch) {
+            const [, day, month, year] = dateTimeMatch;
+            behandlingsdato = `${day}.${month}.${year.substring(2)}`;
+            behandlingstid = `${dateTimeMatch[4]}:${dateTimeMatch[5]}`;
+          }
+          
+          tilAdresse = parseAddress(addressText);
+        }
+        
+        if (fieldText === 'Reise fra:') {
+          const addressText = cells.length > 2 ? cells[2].innerHTML : '';
+          fraAdresse = parseAddress(addressText);
+        }
+      });
+      
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 1) return;
+        
+        const titleCell = cells[0];
+        if (titleCell && titleCell.className === 'reqvtitle' && 
+            titleCell.textContent.trim() === 'Spesielle behov (denne reisen)') {
+          const nextRow = row.nextElementSibling;
+          if (nextRow) {
+            const needsCells = nextRow.querySelectorAll('td');
+            if (needsCells.length > 0) {
+              const innerTable = needsCells[0].querySelector('table');
+              if (innerTable) {
+                const innerCells = innerTable.querySelectorAll('td');
+                innerCells.forEach(cell => {
+                  const need = cell.textContent.trim();
+                  if (need && need.length > 0) {
+                    valgteSpesielleBehov.push(need);
+                  }
+                });
+              }
+            }
+          }
+        }
+      });
+      
+      return {
+        behandlingsdato,
+        behandlingstid,
+        valgteSpesielleBehov,
+        fraAdresse,
+        tilAdresse,
+        transportType
+      };
+    } catch (error) {
+      console.error("Feil ved parsing av XML-data:", error);
+      return null;
+    }
+  }
+
+  // ============================================================
+  // NY: Beregn reisetid via API
+  // ============================================================
+  async function calculateTravelTime(requisitionData) {
+    return new Promise((resolve, reject) => {
+      try {
+        const url = '/rekvisisjon/ajax/beregnReisetid';
+        
+        const cleanData = {
+          behandlingsdato: requisitionData.behandlingsdato,
+          behandlingstid: requisitionData.behandlingstid,
+          valgteSpesielleBehov: requisitionData.valgteSpesielleBehov,
+          fraAdresse: requisitionData.fraAdresse,
+          tilAdresse: requisitionData.tilAdresse,
+          transportType: requisitionData.transportType
+        };
+        
+        // Manuell JSON-bygging for å unngå NISSY's overstyrte JSON.stringify
+        const escapeString = (str) => {
+          if (str === null || str === undefined) return '""';
+          return '"' + String(str)
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t') + '"';
+        };
+        
+        const arrayToJson = (arr) => {
+          if (!arr || !Array.isArray(arr)) return '[]';
+          if (arr.length === 0) return '[]';
+          return '[' + arr.map(item => escapeString(item)).join(',') + ']';
+        };
+        
+        const objectToJson = (obj) => {
+          if (!obj || typeof obj !== 'object') return 'null';
+          const parts = [];
+          for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              const value = obj[key];
+              if (value === null || value === undefined) {
+                parts.push(escapeString(key) + ':""');
+              } else {
+                parts.push(escapeString(key) + ':' + escapeString(value));
+              }
+            }
+          }
+          return '{' + parts.join(',') + '}';
+        };
+        
+        const bodyString = 
+          '{' +
+          '"behandlingsdato":' + escapeString(cleanData.behandlingsdato) + ',' +
+          '"behandlingstid":' + escapeString(cleanData.behandlingstid) + ',' +
+          '"valgteSpesielleBehov":' + arrayToJson(cleanData.valgteSpesielleBehov) + ',' +
+          '"fraAdresse":' + objectToJson(cleanData.fraAdresse) + ',' +
+          '"tilAdresse":' + objectToJson(cleanData.tilAdresse) + ',' +
+          '"transportType":' + escapeString(cleanData.transportType) +
+          '}';
+        
+        console.log('📋 Beregner reisetid:', bodyString);
+        
+        if (typeof jQuery !== 'undefined' && jQuery.post) {
+          jQuery.post(url, bodyString, function(jsonData) {
+            console.log('📥 Mottatt reisetid response:', jsonData);
+            resolve(jsonData);
+          }, "json");
+        } else {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', url, true);
+          xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+          xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+          
+          xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const data = JSON.parse(xhr.responseText);
+                console.log('📥 Mottatt reisetid response:', data);
+                resolve(data);
+              } catch (error) {
+                console.error('Feil ved parsing av response:', error);
+                reject(new Error('Kunne ikke parse JSON response'));
+              }
+            } else {
+              console.error('HTTP error:', xhr.status, xhr.statusText);
+              reject(new Error(`HTTP error! status: ${xhr.status}`));
+            }
+          };
+          
+          xhr.onerror = function() {
+            console.error('Network error');
+            reject(new Error('Network error'));
+          };
+          
+          xhr.send(bodyString);
+        }
+        
+      } catch (error) {
+        console.error("Feil ved beregning av reisetid:", error);
+        reject(error);
+      }
+    });
+  }
+
+  // ============================================================
+  // NY: Beregn hentetid fra oppmøtetid og reisetid
+  // ============================================================
+  function calculatePickupTime(behandlingstid, totalMinutes) {
+    if (!behandlingstid || !isValidTime(behandlingstid)) {
+      return null;
+    }
+    
+    const [hours, minutes] = behandlingstid.split(':').map(Number);
+    
+    // Konverter til minutter
+    let totalMinutesFromMidnight = hours * 60 + minutes;
+    
+    // Trekk fra reisetid
+    totalMinutesFromMidnight -= totalMinutes;
+    
+    // Håndter negative verdier (går over midnatt)
+    if (totalMinutesFromMidnight < 0) {
+      totalMinutesFromMidnight += 24 * 60;
+    }
+    
+    // Konverter tilbake til timer og minutter
+    const newHours = Math.floor(totalMinutesFromMidnight / 60) % 24;
+    const newMinutes = totalMinutesFromMidnight % 60;
+    
+    // Formater som HH:MM
+    return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+  }
+
+  // ============================================================
+  // NY: Hovedfunksjon for å beregne og oppdatere hentetid
+  // ============================================================
+  async function autoCalculatePickupTime(bestilling, inputElement, calcButton, popup) {
+    calcButton.disabled = true;
+    calcButton.style.opacity = '0.5';
+    calcButton.style.cursor = 'wait';
+    calcButton.title = 'Beregner...';
+    
+    try {
+      const xmlDoc = await fetchRequisitionData(bestilling.id);
+      if (!xmlDoc) {
+        showErrorToast('❌ Kunne ikke hente bestillingsdata');
+        return;
+      }
+      
+      const requisitionData = extractRequisitionData(xmlDoc);
+      if (!requisitionData) {
+        showErrorToast('❌ Kunne ikke parse bestillingsdata');
+        return;
+      }
+      
+      const displayId = bestilling.uniqueId || bestilling.id;
+      const oppTimeInput = popup.querySelector(`#opptime_${displayId}`);
+      const targetTime = oppTimeInput ? oppTimeInput.value.trim() : requisitionData.behandlingstid;
+      
+      if (!targetTime) {
+        showErrorToast('❌ Oppmøtetid mangler - kan ikke beregne hentetid');
+        return;
+      }
+      
+      if (oppTimeInput && !isValidTime(targetTime)) {
+        showErrorToast('❌ Ugyldig oppmøtetid - vennligst rett opp');
+        oppTimeInput.style.borderColor = '#dc3545';
+        oppTimeInput.style.background = '#fff5f5';
+        return;
+      }
+      
+      if (!requisitionData.fraAdresse || !requisitionData.tilAdresse) {
+        showErrorToast('❌ Fra/til-adresse mangler - kan ikke beregne hentetid');
+        return;
+      }
+      
+      const modifiedRequisitionData = {
+        ...requisitionData,
+        behandlingstid: targetTime
+      };
+      
+      const travelData = await calculateTravelTime(modifiedRequisitionData);
+      if (!travelData || travelData.reisetid === undefined) {
+        showErrorToast('❌ Kunne ikke beregne reisetid');
+        return;
+      }
+      
+      let totalMinutes = travelData.reisetid || 0;
+      console.log('🧮 Reisetid (basis):', totalMinutes, 'min');
+      
+      if (travelData.tidstilleggSpesielleBehov) {
+        Object.values(travelData.tidstilleggSpesielleBehov).forEach(tillegg => {
+          console.log('🧮 Legger til tidstillegg behov:', tillegg, 'min');
+          totalMinutes += tillegg || 0;
+        });
+      }
+      
+      if (travelData.tidstilleggRegionalt) {
+        console.log('🧮 Legger til regionalt tillegg:', travelData.tidstilleggRegionalt, 'min');
+        totalMinutes += travelData.tidstilleggRegionalt;
+      }
+      
+      console.log('🧮 Total reisetid:', totalMinutes, 'min fra oppmøtetid:', targetTime);
+      
+      const pickupTime = calculatePickupTime(targetTime, totalMinutes);
+      
+      if (!pickupTime) {
+        showErrorToast('❌ Kunne ikke beregne hentetid');
+        return;
+      }
+      
+      inputElement.value = pickupTime;
+      inputElement.style.borderColor = '#28a745';
+      inputElement.style.background = '#f0fff0';
+      
+      if (oppTimeInput) {
+        oppTimeInput.style.borderColor = '#28a745';
+        oppTimeInput.style.background = '#f0fff0';
+      }
+      
+      inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      console.log(`✅ Beregnet hentetid: ${pickupTime} (totalt ${totalMinutes} min)`);
+      
+    } catch (error) {
+      console.error('Feil ved automatisk beregning:', error);
+      showErrorToast('❌ Feil ved beregning av hentetid');
+    } finally {
+      calcButton.disabled = false;
+      calcButton.style.opacity = '1';
+      calcButton.style.cursor = 'pointer';
+      calcButton.title = 'Beregn hentetid automatisk';
+    }
   }
 
   // ============================================================
@@ -169,6 +589,20 @@
       const currentValue = existingInput ? existingInput.value : b.currentTime || b.existingTime;
       const borderColor = existingInput ? existingInput.style.borderColor : '#2196f3';
       const bgColor = existingInput ? existingInput.style.background : '#fff';
+      
+      // Hent nåværende oppmøtetid-verdi hvis feltet eksisterer
+      const existingOppInput = popup.querySelector(`#opptime_${displayId}`);
+      const currentOppValue = existingOppInput ? existingOppInput.value : b.oppmotetid;
+      
+      // Sjekk om dette er en retur (hentetid = oppmøtetid ELLER hentetid > oppmøtetid)
+      // NISSY kan ha bestillinger hvor hentetid er senere enn oppmøtetid
+      const isRetur = b.oppmotetid && (
+        b.existingTime === b.oppmotetid || 
+        (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''))
+      );
+      
+      // Sjekk om oppmøtetid er forskjellig fra hentetid (ikke retur)
+      const showEditableOppmotetid = b.oppmotetid && !isRetur;
       
       return `
       <div style="
@@ -202,33 +636,63 @@
             ${displayFrom} →<br>${displayTo}
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
-            <div>
-              <div style="
-                font-size: 9px;
-                color: #666;
-                margin-bottom: 2px;
-                text-align: center;
-              ">Hentetid</div>
-              <input 
-                type="text" 
-                id="time_${displayId}"
-                data-original="${b.existingTime}"
-                value="${currentValue}"
-                placeholder="HH:MM"
-                maxlength="5"
-                style="
-                  padding: 6px 8px;
-                  border: 2px solid ${borderColor};
-                  border-radius: 4px;
-                  font-size: 15px;
-                  font-weight: 600;
-                  width: 60px;
+            <div style="display: flex; gap: 4px; align-items: center;">
+              ${b.oppmotetid && !isRetur ? `
+                <button 
+                  class="calc-time-btn" 
+                  data-id="${displayId}"
+                  style="
+                    padding: 6px 8px;
+                    background: #17a2b8;
+                    margin-top: 13px;
+                    color: #fff;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 13px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                  "
+                  title="Beregn hentetid automatisk"
+                >
+                  🧮
+                </button>
+              ` : b.oppmotetid ? `
+                <!-- Usynlig spacer for å bevare layout når knappen ikke vises (retur) -->
+                <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
+              ` : ''}
+              <div>
+                <div style="
+                  font-size: 9px;
+                  color: #666;
+                  margin-bottom: 2px;
                   text-align: center;
-                  font-family: 'Courier New', monospace;
-                  background: ${bgColor};
-                  color: #333;
-                "
-              >
+                ">Hentetid</div>
+                <input 
+                  type="text" 
+                  id="time_${displayId}"
+                  data-original="${b.existingTime}"
+                  value="${currentValue}"
+                  placeholder="HH:MM"
+                  maxlength="5"
+                  style="
+                    padding: 6px 8px;
+                    border: 2px solid ${borderColor};
+                    border-radius: 4px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    width: 60px;
+                    text-align: center;
+                    font-family: 'Courier New', monospace;
+                    background: ${bgColor};
+                    color: #333;
+                  "
+                >
+              </div>
             </div>
             ${b.oppmotetid ? `
               <div>
@@ -238,18 +702,42 @@
                   margin-bottom: 2px;
                   text-align: center;
                 ">Oppmøte</div>
-                <div style="
-                  padding: 6px 8px;
-                  border: 2px solid #ccc;
-                  border-radius: 4px;
-                  font-size: 15px;
-                  font-weight: 600;
-                  width: 60px;
-                  text-align: center;
-                  background: #f8f8f8;
-                  color: #666;
-                  font-family: 'Courier New', monospace;
-                ">${b.oppmotetid}</div>
+                ${showEditableOppmotetid ? `
+                  <input 
+                    type="text" 
+                    id="opptime_${displayId}"
+                    data-original="${b.oppmotetid}"
+                    value="${currentOppValue}"
+                    placeholder="HH:MM"
+                    maxlength="5"
+                    style="
+                      padding: 6px 8px;
+                      border: 2px solid #ffc107;
+                      border-radius: 4px;
+                      font-size: 15px;
+                      font-weight: 600;
+                      width: 60px;
+                      text-align: center;
+                      background: #fffbf0;
+                      color: #333;
+                      font-family: 'Courier New', monospace;
+                    "
+                    title="Redigerbart felt for beregning. Endringen lagres IKKE i systemet, men brukes kun til å beregne hentetid."
+                  >
+                ` : `
+                  <div style="
+                    padding: 6px 8px;
+                    border: 2px solid #ccc;
+                    border-radius: 4px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    width: 60px;
+                    text-align: center;
+                    background: #f8f8f8;
+                    color: #666;
+                    font-family: 'Courier New', monospace;
+                  ">${b.oppmotetid}</div>
+                `}
               </div>
             ` : ''}
           </div>
@@ -271,11 +759,167 @@
   // HJELPEFUNKSJON: Attach event listeners til input-felt
   // ============================================================
   function attachEventListeners(bestillinger, popup, confirmButton) {
+    // Legg til event listeners på beregn-knappene
+    bestillinger.forEach(b => {
+      const displayId = b.uniqueId || b.id;
+      const calcButton = popup.querySelector(`.calc-time-btn[data-id="${displayId}"]`);
+      
+      if (calcButton) {
+        calcButton.onclick = async (e) => {
+          e.preventDefault();
+          const inputElement = popup.querySelector(`#time_${displayId}`);
+          await autoCalculatePickupTime(b, inputElement, calcButton, popup);
+        };
+      }
+    });
+    
+    // Legg til auto-formatering og keyboard-handling på oppmøtetid-feltene
+    bestillinger.forEach(b => {
+      const displayId = b.uniqueId || b.id;
+      const oppTimeInput = popup.querySelector(`#opptime_${displayId}`);
+      
+      if (oppTimeInput) {
+        // Auto-select ved klikk
+        oppTimeInput.addEventListener('focus', (e) => {
+          e.target.select();
+        });
+        
+        // Auto-select ved museklikk (for å sikre at det fungerer i alle tilfeller)
+        oppTimeInput.addEventListener('mouseup', (e) => {
+          e.preventDefault();
+        });
+        
+        // Auto-formatering mens du skriver
+        oppTimeInput.addEventListener('input', (e) => {
+          let value = e.target.value.replace(/[^\d:]/g, '');
+          
+          if (value.includes(':')) {
+            e.target.value = value;
+          } else {
+            if (value.length >= 3) {
+              value = value.slice(0, 2) + ':' + value.slice(2, 4);
+              e.target.value = value;
+            }
+          }
+          
+          e.target.style.borderColor = '#ffc107';
+          e.target.style.background = '#fffbf0';
+        });
+        
+        // Keyboard-handling
+        oppTimeInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            
+            // Formater først
+            handleOppFormat({ target: e.target });
+            
+            // Finn beregn-knappen for denne bestillingen
+            const calcButton = popup.querySelector(`.calc-time-btn[data-id="${displayId}"]`);
+            if (calcButton) {
+              // Trigger beregning
+              calcButton.click();
+            }
+          } else if (e.key === 'Tab') {
+            e.preventDefault();
+            
+            // Formater først
+            handleOppFormat({ target: e.target });
+            
+            // Hent sortert liste
+            const sorted = sortBestillingerByTime(bestillinger, popup);
+            const currentIndex = sorted.findIndex(item => (item.uniqueId || item.id) === displayId);
+            
+            setTimeout(() => {
+              if (e.shiftKey) {
+                // Shift+Tab - gå til forrige hentetid-felt
+                if (currentIndex > 0) {
+                  const prevItem = sorted[currentIndex - 1];
+                  const prevDisplayId = prevItem.uniqueId || prevItem.id;
+                  const prevInput = popup.querySelector(`#time_${prevDisplayId}`);
+                  if (prevInput) {
+                    prevInput.focus();
+                    prevInput.select();
+                  }
+                } else {
+                  // Første felt - gå til Avbryt-knappen
+                  const cancelButton = popup.querySelector("#cancelChange");
+                  if (cancelButton) cancelButton.focus();
+                }
+              } else {
+                // Tab - gå til neste hentetid-felt
+                if (currentIndex >= 0 && currentIndex < sorted.length - 1) {
+                  const nextItem = sorted[currentIndex + 1];
+                  const nextDisplayId = nextItem.uniqueId || nextItem.id;
+                  const nextInput = popup.querySelector(`#time_${nextDisplayId}`);
+                  if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
+                  }
+                } else {
+                  // Siste felt - gå til første hentetid-felt
+                  const firstItem = sorted[0];
+                  const firstDisplayId = firstItem.uniqueId || firstItem.id;
+                  const firstInput = popup.querySelector(`#time_${firstDisplayId}`);
+                  if (firstInput) {
+                    firstInput.focus();
+                    firstInput.select();
+                  }
+                }
+              }
+            }, 50);
+          }
+        });
+        
+        // Formatering og validering ved blur
+        const handleOppFormat = (e) => {
+          let value = e.target.value.replace(/[^\d]/g, '');
+          
+          if (value.length === 0) {
+            e.target.value = e.target.getAttribute('data-original');
+            e.target.style.borderColor = '#ffc107';
+            e.target.style.background = '#fffbf0';
+            return;
+          }
+          
+          if (value.length === 2) {
+            e.target.value = `${value}:00`;
+          } else if (value.length === 3) {
+            e.target.value = value.slice(0, 2) + ':' + value.slice(2) + '0';
+          } else if (value.length >= 4) {
+            e.target.value = value.slice(0, 2) + ':' + value.slice(2, 4);
+          } else if (value.length === 1) {
+            e.target.value = '0' + value + ':00';
+          }
+
+          if (e.target.value && !isValidTime(e.target.value)) {
+            e.target.style.borderColor = '#dc3545';
+            e.target.style.background = '#fff5f5';
+          } else {
+            e.target.style.borderColor = '#ffc107';
+            e.target.style.background = '#fffbf0';
+          }
+        };
+        
+        oppTimeInput.addEventListener('blur', handleOppFormat);
+      }
+    });
+    
     // Legg til auto-formatering og keyboard-handling på tidsfeltene
     bestillinger.forEach((b, index) => {
       const displayId = b.uniqueId || b.id;
       const input = popup.querySelector(`#time_${displayId}`);
       if (!input) return;
+      
+      // Auto-select ved klikk
+      input.addEventListener('focus', (e) => {
+        e.target.select();
+      });
+      
+      // Auto-select ved museklikk (for å sikre at det fungerer i alle tilfeller)
+      input.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+      });
       
       // Auto-formatering mens du skriver
       input.addEventListener('input', (e) => {
@@ -901,6 +1545,16 @@
       // Bruk uniqueId hvis det finnes, ellers id
       const displayId = b.uniqueId || b.id;
       
+      // Sjekk om dette er en retur (hentetid = oppmøtetid ELLER hentetid > oppmøtetid)
+      // NISSY kan ha bestillinger hvor hentetid er senere enn oppmøtetid
+      const isRetur = b.oppmotetid && (
+        b.existingTime === b.oppmotetid || 
+        (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''))
+      );
+      
+      // Sjekk om oppmøtetid er forskjellig fra hentetid (ikke retur)
+      const showEditableOppmotetid = b.oppmotetid && !isRetur;
+      
       return `
       <div style="
         background: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'};
@@ -933,33 +1587,63 @@
             ${displayFrom} →<br>${displayTo}
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
-            <div>
-              <div style="
-                font-size: 9px;
-                color: #666;
-                margin-bottom: 2px;
-                text-align: center;
-              ">Hentetid</div>
-              <input 
-                type="text" 
-                id="time_${displayId}"
-                data-original="${b.existingTime}"
-                value="${b.existingTime}"
-                placeholder="HH:MM"
-                maxlength="5"
-                style="
-                  padding: 6px 8px;
-                  border: 2px solid #2196f3;
-                  border-radius: 4px;
-                  font-size: 15px;
-                  font-weight: 600;
-                  width: 60px;
+            <div style="display: flex; gap: 4px; align-items: center;">
+              ${b.oppmotetid && !isRetur ? `
+                <button 
+                  class="calc-time-btn" 
+                  data-id="${displayId}"
+                  style="
+                    padding: 6px 8px;
+                    background: #17a2b8;
+                    margin-top: 13px;
+                    color: #fff;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 13px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                  "
+                  title="Beregn hentetid automatisk"
+                >
+                  🧮
+                </button>
+              ` : b.oppmotetid ? `
+                <!-- Usynlig spacer for å bevare layout når knappen ikke vises (retur) -->
+                <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
+              ` : ''}
+              <div>
+                <div style="
+                  font-size: 9px;
+                  color: #666;
+                  margin-bottom: 2px;
                   text-align: center;
-                  font-family: 'Courier New', monospace;
-                  background: #fff;
-                  color: #333;
-                "
-              >
+                ">Hentetid</div>
+                <input 
+                  type="text" 
+                  id="time_${displayId}"
+                  data-original="${b.existingTime}"
+                  value="${b.existingTime}"
+                  placeholder="HH:MM"
+                  maxlength="5"
+                  style="
+                    padding: 6px 8px;
+                    border: 2px solid #2196f3;
+                    border-radius: 4px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    width: 60px;
+                    text-align: center;
+                    font-family: 'Courier New', monospace;
+                    background: #fff;
+                    color: #333;
+                  "
+                >
+              </div>
             </div>
             ${b.oppmotetid ? `
               <div>
@@ -969,18 +1653,42 @@
                   margin-bottom: 2px;
                   text-align: center;
                 ">Oppmøte</div>
-                <div style="
-                  padding: 6px 8px;
-                  border: 2px solid #ccc;
-                  border-radius: 4px;
-                  font-size: 15px;
-                  font-weight: 600;
-                  width: 60px;
-                  text-align: center;
-                  background: #f8f8f8;
-                  color: #666;
-                  font-family: 'Courier New', monospace;
-                ">${b.oppmotetid}</div>
+                ${showEditableOppmotetid ? `
+                  <input 
+                    type="text" 
+                    id="opptime_${displayId}"
+                    data-original="${b.oppmotetid}"
+                    value="${b.oppmotetid}"
+                    placeholder="HH:MM"
+                    maxlength="5"
+                    style="
+                      padding: 6px 8px;
+                      border: 2px solid #ffc107;
+                      border-radius: 4px;
+                      font-size: 15px;
+                      font-weight: 600;
+                      width: 60px;
+                      text-align: center;
+                      background: #fffbf0;
+                      color: #333;
+                      font-family: 'Courier New', monospace;
+                    "
+                    title="Redigerbart felt for beregning. Endringen lagres IKKE i systemet, men brukes kun til å beregne hentetid."
+                  >
+                ` : `
+                  <div style="
+                    padding: 6px 8px;
+                    border: 2px solid #ccc;
+                    border-radius: 4px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    width: 60px;
+                    text-align: center;
+                    background: #f8f8f8;
+                    color: #666;
+                    font-family: 'Courier New', monospace;
+                  ">${b.oppmotetid}</div>
+                `}
               </div>
             ` : ''}
           </div>
@@ -994,25 +1702,46 @@
         <h2 style="margin: 0; font-size: 18px; color: #333;">
           🕐 Endre hentetid
         </h2>
-        <button 
-          id="showMapButton"
-          style="
-            padding: 8px 16px;
-            background: #17a2b8;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-          "
-          title="Åpne merkede bestillinger i kart (Alt+W)"
-        >
-          🗺️ Vis i kart
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button 
+            id="showMapButton"
+            style="
+              padding: 8px 16px;
+              background: #17a2b8;
+              color: #fff;
+              border: none;
+              border-radius: 6px;
+              font-size: 13px;
+              cursor: pointer;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+            "
+            title="Åpne merkede bestillinger i kart (Alt+W)"
+          >
+            🗺️ Vis i kart
+          </button>
+          <button 
+            id="showRouteButton"
+            style="
+              padding: 8px 16px;
+              background: #28a745;
+              color: #fff;
+              border: none;
+              border-radius: 6px;
+              font-size: 13px;
+              cursor: pointer;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+            "
+            title="Åpne rute i Google Maps for merkede bestillinger (Alt+Q)"
+          >
+            🗺️ Rutekalkulering
+          </button>
+        </div>
       </div>
       
       <div style="
@@ -1045,7 +1774,7 @@
         font-size:12px;
         color:#856404;
       ">
-        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Tab = neste felt. Enter = lagre.
+        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Trykk 🧮 for automatisk beregning. Rediger oppmøtetid for å beregne mot et annet tidspunkt. Tab = neste felt. Enter = lagre.
       </div>
       
       <div style="display:flex; gap:10px; justify-content:center;">
@@ -1103,20 +1832,17 @@
     const statusBox = popup.querySelector("#changeStatus");
     const confirmButton = popup.querySelector("#confirmChange");
     const showMapButton = popup.querySelector("#showMapButton");
+    const showRouteButton = popup.querySelector("#showRouteButton");
     
     // Event handler for "Vis i kart" knappen
     showMapButton.onclick = () => {
-      // 1. Blank ut eksisterende merkinger hvis knappen er enabled
       const clearButton = document.getElementById('buttonClearSelection');
       if (clearButton && !clearButton.disabled) {
         clearButton.click();
         
-        // Vent litt for at blanking skal fullføres
         setTimeout(() => {
-          // 2. Marker alle radene på nytt
           reselectAllRows(allSelectedRows);
           
-          // 3. Åpne kartet
           setTimeout(() => {
             if (typeof showMapForSelectedItems === 'function') {
               showMapForSelectedItems(null);
@@ -1127,7 +1853,6 @@
           }, 100);
         }, 100);
       } else {
-        // Hvis ingen blanking trengs, marker og åpne direkte
         reselectAllRows(allSelectedRows);
         
         setTimeout(() => {
@@ -1137,6 +1862,45 @@
             console.error('showMapForSelectedItems er ikke tilgjengelig');
             showErrorToast('Kartfunksjonen er ikke tilgjengelig');
           }
+        }, 100);
+      }
+    };
+    
+    // Event handler for "Rutekalkulering" knappen (trigger Alt+Q)
+    showRouteButton.onclick = () => {
+      // Reselecter bestillinger først
+      const clearButton = document.getElementById('buttonClearSelection');
+      if (clearButton && !clearButton.disabled) {
+        clearButton.click();
+        
+        setTimeout(() => {
+          reselectAllRows(allSelectedRows);
+          
+          // Trigger Alt+Q
+          setTimeout(() => {
+            const event = new KeyboardEvent('keydown', {
+              key: 'q',
+              code: 'KeyQ',
+              altKey: true,
+              bubbles: true,
+              cancelable: true
+            });
+            document.dispatchEvent(event);
+          }, 100);
+        }, 100);
+      } else {
+        reselectAllRows(allSelectedRows);
+        
+        // Trigger Alt+Q
+        setTimeout(() => {
+          const event = new KeyboardEvent('keydown', {
+            key: 'q',
+            code: 'KeyQ',
+            altKey: true,
+            bubbles: true,
+            cancelable: true
+          });
+          document.dispatchEvent(event);
         }, 100);
       }
     };
@@ -1371,6 +2135,25 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hent status fra Ressurser-tabellen for en ressurs
+  // ============================================================
+  function getResourceStatus(resourceId) {
+    const resourceRow = document.getElementById(`Rxxx${resourceId}`);
+    if (!resourceRow) {
+      console.warn(`Kunne ikke finne ressurs Rxxx${resourceId} i Ressurser-tabellen`);
+      return null;
+    }
+    
+    const statusCell = document.getElementById(`Rxxxstatusxxx${resourceId}`);
+    if (!statusCell) {
+      console.warn(`Kunne ikke finne status-celle for ressurs ${resourceId}`);
+      return null;
+    }
+    
+    return statusCell.textContent.trim();
+  }
+
+  // ============================================================
   // HOVEDFUNKSJON: Finn merkede bestillinger og vis popup
   // ============================================================
   function initializeTimeChange() {
@@ -1380,27 +2163,34 @@
     const ventendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("V-"));
     const paagaaendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("P-"));
 
-    // VALIDERING: Tillat ikke flere ressurser (P-rader) samtidig
-    // Men kun tell ressurser som har status "Tildelt"
-    const statusColumnIndex = findColumnIndex('#pagaendeoppdrag', 'resourceStatus');
-    
+    // VALIDERING: Sjekk status fra Ressurser-tabellen for pågående oppdrag
     const paagaaendeWithTildelt = paagaaendeRows.filter(row => {
-      if (statusColumnIndex === -1) return true; // Hvis vi ikke finner status-kolonnen, inkluder alle
+      const resourceId = row.getAttribute("name") || row.id.replace(/^P-/, "");
+      const status = getResourceStatus(resourceId);
       
-      const cells = row.querySelectorAll('td');
-      const statusCell = cells[statusColumnIndex];
-      if (!statusCell) return false;
+      if (!status) return false;
       
-      // Sjekk om det er multi-bestilling (med divs)
-      const statusDivs = statusCell.querySelectorAll('div.row-image');
-      if (statusDivs.length > 0) {
-        // Multi-bestilling: Sjekk om minst én har status "Tildelt"
-        return Array.from(statusDivs).some(div => div.textContent.trim() === 'Tildelt');
-      } else {
-        // Enkelt-bestilling: Sjekk direkte
-        return statusCell.textContent.trim() === 'Tildelt';
-      }
+      return status === 'Tildelt';
     });
+    
+    // Hvis noen ressurser ble filtrert bort, vis advarsel
+    if (paagaaendeWithTildelt.length === 0 && paagaaendeRows.length > 0) {
+      const statuses = paagaaendeRows.map(row => {
+        const resourceId = row.getAttribute("name") || row.id.replace(/^P-/, "");
+        const status = getResourceStatus(resourceId);
+        const cells = row.querySelectorAll('td');
+        const resourceName = cells[1]?.textContent.trim() || resourceId;
+        return `${resourceName}: ${status || 'ikke funnet'}`;
+      }).join(', ');
+      
+      showErrorToast(`❌ Ingen av de merkede ressursene har status "Tildelt". Status: ${statuses}`);
+      
+      // Hvis det BARE er pågående (ingen ventende), stopp helt
+      if (ventendeRows.length === 0) {
+        return;
+      }
+      // Ellers fortsett med bare ventende oppdrag
+    }
     
     if (paagaaendeWithTildelt.length > 1) {
       const resourceNames = paagaaendeWithTildelt.map(r => {
@@ -1432,6 +2222,13 @@
       paagaaendeRows.push(paagaaendeWithTildelt[selectedIndex]);
       
       // Oppdater allSelectedRows til å kun inneholde valgt ressurs + eventuelle ventende
+      allSelectedRows.length = 0;
+      allSelectedRows.push(...ventendeRows, ...paagaaendeRows);
+    } else if (paagaaendeWithTildelt.length === 1) {
+      // Kun én ressurs med Tildelt - bruk den
+      paagaaendeRows.length = 0;
+      paagaaendeRows.push(paagaaendeWithTildelt[0]);
+      
       allSelectedRows.length = 0;
       allSelectedRows.push(...ventendeRows, ...paagaaendeRows);
     }
@@ -1467,8 +2264,8 @@
       allBestillinger.push(...ventendeBestillinger);
     }
 
-    // Prosesser pågående oppdrag
-    if (paagaaendeRows.length > 0) {
+    // Prosesser pågående oppdrag (kun hvis det finnes ressurser med Tildelt)
+    if (paagaaendeRows.length > 0 && paagaaendeWithTildelt.length > 0) {
       const startTimeIndex = findColumnIndex('#pagaendeoppdrag', 'tripStartTime');
       const oppTidIndex = findColumnIndex('#pagaendeoppdrag', 'tripTreatmentDate');
       const nameIndex = findColumnIndex('#pagaendeoppdrag', 'patientName');
@@ -1494,7 +2291,7 @@
     }
 
     if (allBestillinger.length === 0) {
-      showErrorToast("🕐 Vennligst marker bestillinger på ventende oppdrag eller én tur med status tildelt på pågående oppdrag og trykk på Hentetid-knappen eller Alt+E igjen.");
+      showErrorToast("🕐 Vennligst marker bestillinger eller én tur med status tildelt og trykk på Hentetid-knappen eller Alt+E igjen.");
       return;
     }
 
