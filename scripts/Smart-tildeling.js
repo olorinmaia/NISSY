@@ -467,7 +467,7 @@
     const vids = rows.map(row => row.getAttribute("name")).filter(Boolean);
     if (!vids.length) return;
     
-    showToast(`Tildeler ${vids.length} bestilling${vids.length === 1 ? '' : 'er'}...`);
+    showToast(`Tilordner ${vids.length} bestilling${vids.length === 1 ? '' : 'er'}...`);
 
     // POST: Hent avtaleinformasjon for alle bestillinger
     const formData = new URLSearchParams();
@@ -543,7 +543,7 @@
         
         if (xhrGet.status === 200) {
           // Bygg resultatmelding
-          let msg = `✓ Tildelt ${medAgreement.length} bestilling${medAgreement.length === 1 ? '' : 'er'}:\n`;
+          let msg = `✓ Tilordnet ${medAgreement.length} bestilling${medAgreement.length === 1 ? '' : 'er'}:\n`;
           msg += displayMedAgreement.map(d => `${d.requisitionName} → ${d.agreementName}`).join('\n');
           
           if (utenAgreement.length > 0) {
@@ -592,7 +592,7 @@
     const maxOverlappingPassengers = countMaxOverlappingPassengers(rows);
     
     showToast(
-      `Tildeler ${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"}...\n` +
+      `Smart-tildeler ${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"}...\n` +
       `Samtidig reisende: ${maxOverlappingPassengers}`
     );
   
@@ -764,11 +764,11 @@
         
         // Vis resultat
         if (ruleApplied) {
-          updateToast(`${vids.length} bestillinger tildelt avtale iht. oppsett.`);
+          updateToast(`${vids.length} bestillinger smart-tildelt avtale iht. oppsett.`);
         } else {
           updateToast(
             `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
-            `tildelt avtale ${display.agreementName}`
+            `smart-tildelt avtale ${display.agreementName}`
           );
         }
         
