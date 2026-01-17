@@ -663,7 +663,7 @@
                 </button>
               ` : b.oppmotetid ? `
                 <!-- Usynlig spacer for å bevare layout når knappen ikke vises (retur) -->
-                <div style="width: 32px; height: 32px;"></div>
+                <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
               ` : ''}
               <div>
                 <div style="
@@ -1556,7 +1556,7 @@
                 </button>
               ` : b.oppmotetid ? `
                 <!-- Usynlig spacer for å bevare layout når knappen ikke vises (retur) -->
-                <div style="width: 32px; height: 32px;"></div>
+                <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
               ` : ''}
               <div>
                 <div style="
