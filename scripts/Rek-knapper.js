@@ -67,6 +67,105 @@
   }
 
   // ============================================================
+  // ADVARSEL-TOAST: Vises nederst på skjermen (gul bakgrunn)
+  // ============================================================
+  let currentWarningToast = null;
+  
+  function showWarningToast(msg) {
+    // Fjern eksisterende advarsel-toast
+    if (currentWarningToast && currentWarningToast.parentNode) {
+      currentWarningToast.parentNode.removeChild(currentWarningToast);
+    }
+    
+    const toast = document.createElement("div");
+    
+    // Opprett varseltrekant-ikon
+    const warningIcon = document.createElement("span");
+    warningIcon.innerHTML = "⚠️";
+    warningIcon.style.marginRight = "8px";
+    warningIcon.style.fontSize = "16px";
+    
+    // Legg til ikon og tekst
+    toast.appendChild(warningIcon);
+    toast.appendChild(document.createTextNode(msg));
+    
+    // Styling
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#b09f2b", // Mørkegul bakgrunn for advarsel
+      color: "#fff",
+      padding: "12px 24px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      fontWeight: "bold",
+      zIndex: "1000002", // Høyere enn modal (1000000) og close-button (1000001)
+      opacity: "0",
+      transition: "opacity 0.3s ease",
+      display: "flex",
+      alignItems: "center"
+    });
+    
+    document.body.appendChild(toast);
+    currentWarningToast = toast;
+    
+    // Fade in
+    setTimeout(() => {
+      toast.style.opacity = "1";
+    }, 10);
+    
+    // Fade out etter 5 sekunder
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+        if (currentWarningToast === toast) {
+          currentWarningToast = null;
+        }
+      }, 300);
+    }, 5000);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Finn ressurs-status basert på ressurs-ID
+  // ============================================================
+  function getResourceStatus(resourceId) {
+    const resourceRow = document.getElementById(`Rxxx${resourceId}`);
+    if (!resourceRow) {
+      console.warn(`Kunne ikke finne ressurs Rxxx${resourceId} i Ressurser-tabellen`);
+      return null;
+    }
+    
+    const statusCell = document.getElementById(`Rxxxstatusxxx${resourceId}`);
+    if (!statusCell) {
+      console.warn(`Kunne ikke finne status-celle for ressurs ${resourceId}`);
+      return null;
+    }
+    
+    return statusCell.textContent.trim();
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Sjekk om bestilling er på pågående oppdrag
+  // ============================================================
+  function isOngoingAssignment(row) {
+    // Sjekk om raden er innenfor pågående oppdrag-seksjonen
+    let parent = row.parentElement;
+    while (parent) {
+      if (parent.id && parent.id.toLowerCase().includes("pagaende")) {
+        return true;
+      }
+      parent = parent.parentElement;
+    }
+    return false;
+  }
+
+  // ============================================================
   // HOTKEY REGISTRERING: ALT+R
   // ============================================================
   document.addEventListener("keydown", (e) => {
@@ -546,6 +645,19 @@
           btn.onclick = () => {
             window.isVentendeOppdrag = isVentende;
             window.lastEditedReqId = reqId;
+
+            // Sjekk for advarsel ved redigering av pågående oppdrag
+            if (label === "R") {
+              const resourceId = row.getAttribute("name"); // Bruk name-attributtet som er ressurs-ID
+              const isPagaende = isOngoingAssignment(row);
+              
+              if (isPagaende && resourceId) {
+                const resourceStatus = getResourceStatus(resourceId);
+                if (resourceStatus && resourceStatus !== "Tildelt" && resourceStatus !== "Bekreftet") {
+                  showWarningToast("OBS! Bestillingen kan endres, men endringen vil IKKE sendes til transportør!");
+                }
+              }
+            }
 
             if (label === "T") {
               // T-knappen krever requisitionNumber
