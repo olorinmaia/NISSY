@@ -1802,7 +1802,7 @@
             font-weight:600;
           "
         >
-          💾 Lagre alle endringer
+          💾 Lagre
         </button>
         
         <button 

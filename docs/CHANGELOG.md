@@ -9,7 +9,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## 🚀 [2.8.0] - 17.01.2026
 
-### 🎉 Hentetid beregner nå hentetid med egendefinert oppmøtetid og forbedringer til Smart-tildel og Sjekk-Duplikat
+### 🎉 Hentetid beregner nå hentetid med egendefinert oppmøtetid og forbedringer til Smart-tildel, Rek-knapper og Sjekk-Bestilling
 
 #### Hva er nytt?
 - 🕐 **Hentetid** 
@@ -20,6 +20,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Innført 5 min margin for returer, hvis returer med like tidspunkt på hent/lever er 11:05, 11:10, 11:15 så telles de nå som 3 isteden for 1.
 - 🔍 **Sjekk-Bestilling** (Tidligere Sjekk-Duplikat)
   - Sjekker nå for bestillinger med ulik dato på hentetid og leveringstid og lar deg søke opp disse for å rette opp.
+- 🔠 **Rek-knapper**
+  - Gir en advarsel hvis "R"-rediger brukes på en bestilling på en ressurs som ikke har status "Tildelt" eller "Bekreftet" om at bestilling blir lagret, men ikke sendt til transportør.
 
 ## 🚀 [2.7.0] - 16.01.2026
 
