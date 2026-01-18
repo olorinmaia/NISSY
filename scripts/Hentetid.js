@@ -574,6 +574,13 @@
   
     // Sorter bestillinger og få oppdaterte objekter med currentTime
     const sorted = sortBestillingerByTime(bestillinger, popup);
+    
+    // Beregn om alle bestillinger er returer (trengs for spacer-styling)
+    const allAreReturer = sorted.every(b => {
+      if (!b.oppmotetid) return false;
+      return b.existingTime === b.oppmotetid || 
+             (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''));
+    });
   
     // Bygg ny HTML
     const bestillingRows = sorted.map((b, index) => {
@@ -636,63 +643,60 @@
             ${displayFrom} →<br>${displayTo}
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
-            <div style="display: flex; gap: 4px; align-items: center;">
-              ${b.oppmotetid && !isRetur ? `
-                <button 
-                  class="calc-time-btn" 
-                  data-id="${displayId}"
-                  style="
-                    padding: 6px 8px;
-                    background: #17a2b8;
-                    margin-top: 13px;
-                    color: #fff;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 13px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 32px;
-                    height: 32px;
-                  "
-                  title="Beregn hentetid automatisk"
-                >
-                  🧮
-                </button>
-              ` : b.oppmotetid ? `
-                <!-- Usynlig spacer for å bevare layout når knappen ikke vises (retur) -->
-                <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
-              ` : ''}
-              <div>
-                <div style="
-                  font-size: 9px;
-                  color: #666;
-                  margin-bottom: 2px;
+            ${b.oppmotetid && !isRetur ? `
+              <button 
+                class="calc-time-btn" 
+                data-id="${displayId}"
+                style="
+                  padding: 6px 8px;
+                  background: #17a2b8;
+                  margin-top: 13px;
+                  color: #fff;
+                  border: none;
+                  border-radius: 4px;
+                  font-size: 13px;
+                  cursor: pointer;
+                  font-weight: 600;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  width: 32px;
+                  height: 32px;
+                "
+                title="Beregn hentetid automatisk"
+              >
+                🧮
+              </button>
+            ` : b.oppmotetid && !allAreReturer ? `
+              <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
+            ` : ''}
+            <div>
+              <div style="
+                font-size: 9px;
+                color: #666;
+                margin-bottom: 2px;
+                text-align: center;
+              ">Hentetid</div>
+              <input 
+                type="text" 
+                id="time_${displayId}"
+                data-original="${b.existingTime}"
+                value="${currentValue}"
+                placeholder="HH:MM"
+                maxlength="5"
+                style="
+                  padding: 6px 8px;
+                  border: 2px solid ${borderColor};
+                  border-radius: 4px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  width: 60px;
                   text-align: center;
-                ">Hentetid</div>
-                <input 
-                  type="text" 
-                  id="time_${displayId}"
-                  data-original="${b.existingTime}"
-                  value="${currentValue}"
-                  placeholder="HH:MM"
-                  maxlength="5"
-                  style="
-                    padding: 6px 8px;
-                    border: 2px solid ${borderColor};
-                    border-radius: 4px;
-                    font-size: 15px;
-                    font-weight: 600;
-                    width: 60px;
-                    text-align: center;
-                    font-family: 'Courier New', monospace;
-                    background: ${bgColor};
-                    color: #333;
-                  "
-                >
-              </div>
+                  font-family: 'Courier New', monospace;
+                  background: ${bgColor};
+                  color: #333;
+                "
+              >
             </div>
             ${b.oppmotetid ? `
               <div>
@@ -1538,6 +1542,14 @@
       sourceInfo = ` (pågående)`;
     }
 
+    // Beregn om alle bestillinger er returer (trengs for spacer-styling)
+    const allAreReturer = sortedBestillinger.every(b => {
+      if (!b.oppmotetid) return false; // Ingen oppmøtetid = ikke retur
+      
+      return b.existingTime === b.oppmotetid || 
+             (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''));
+    });
+
     // Bygg HTML for hver bestilling
     const bestillingRows = sortedBestillinger.map((b, index) => {
       const displayName = truncateText(b.name, MAX_NAME_LENGTH);
@@ -1589,63 +1601,60 @@
             ${displayFrom} →<br>${displayTo}
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
-            <div style="display: flex; gap: 4px; align-items: center;">
-              ${b.oppmotetid && !isRetur ? `
-                <button 
-                  class="calc-time-btn" 
-                  data-id="${displayId}"
-                  style="
-                    padding: 6px 8px;
-                    background: #17a2b8;
-                    margin-top: 13px;
-                    color: #fff;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 13px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 32px;
-                    height: 32px;
-                  "
-                  title="Beregn hentetid automatisk"
-                >
-                  🧮
-                </button>
-              ` : b.oppmotetid ? `
-                <!-- Usynlig spacer for å bevare layout når knappen ikke vises (retur) -->
-                <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
-              ` : ''}
-              <div>
-                <div style="
-                  font-size: 9px;
-                  color: #666;
-                  margin-bottom: 2px;
+            ${b.oppmotetid && !isRetur ? `
+              <button 
+                class="calc-time-btn" 
+                data-id="${displayId}"
+                style="
+                  padding: 6px 8px;
+                  background: #17a2b8;
+                  margin-top: 13px;
+                  color: #fff;
+                  border: none;
+                  border-radius: 4px;
+                  font-size: 13px;
+                  cursor: pointer;
+                  font-weight: 600;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  width: 32px;
+                  height: 32px;
+                "
+                title="Beregn hentetid automatisk"
+              >
+                🧮
+              </button>
+            ` : b.oppmotetid && !allAreReturer ? `
+              <div style="width: 32px; height: 32px; margin-top: 13px;"></div>
+            ` : ''}
+            <div>
+              <div style="
+                font-size: 9px;
+                color: #666;
+                margin-bottom: 2px;
+                text-align: center;
+              ">Hentetid</div>
+              <input 
+                type="text" 
+                id="time_${displayId}"
+                data-original="${b.existingTime}"
+                value="${b.existingTime}"
+                placeholder="HH:MM"
+                maxlength="5"
+                style="
+                  padding: 6px 8px;
+                  border: 2px solid #2196f3;
+                  border-radius: 4px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  width: 60px;
                   text-align: center;
-                ">Hentetid</div>
-                <input 
-                  type="text" 
-                  id="time_${displayId}"
-                  data-original="${b.existingTime}"
-                  value="${b.existingTime}"
-                  placeholder="HH:MM"
-                  maxlength="5"
-                  style="
-                    padding: 6px 8px;
-                    border: 2px solid #2196f3;
-                    border-radius: 4px;
-                    font-size: 15px;
-                    font-weight: 600;
-                    width: 60px;
-                    text-align: center;
-                    font-family: 'Courier New', monospace;
-                    background: #fff;
-                    color: #333;
-                  "
-                >
-              </div>
+                  font-family: 'Courier New', monospace;
+                  background: #fff;
+                  color: #333;
+                "
+              >
             </div>
             ${b.oppmotetid ? `
               <div>
