@@ -19,7 +19,7 @@
   
   // Konfigurerbar tekst-lengde
   const MAX_NAME_LENGTH = 20;
-  const MAX_ADDRESS_LENGTH = 40;
+  const MAX_ADDRESS_LENGTH = 35;
   
   // Sperre for å forhindre flere samtidige popups
   let isPopupOpen = false;
