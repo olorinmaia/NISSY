@@ -18,7 +18,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Innført håndtering av spesielle behov, i første omgang så teller LB som 2 i kapasitet.
   - Returer med dårlig datakvalitet, hent 09:00 lever 08:00 (tilbake i tid) telles nå riktig.
   - Innført 5 min margin for returer, hvis returer med like tidspunkt på hent/lever er 11:05, 11:10, 11:15 så telles de nå som 3 isteden for 1.
-- 🔍 **Sjekk-Duplikat**
+- 🔍 **Sjekk-Bestilling** (Tidligere Sjekk-Duplikat)
   - Sjekker nå for bestillinger med ulik dato på hentetid og leveringstid og lar deg søke opp disse for å rette opp.
 
 ## 🚀 [2.7.0] - 16.01.2026

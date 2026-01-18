@@ -1785,7 +1785,7 @@
         font-size:12px;
         color:#856404;
       ">
-        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Trykk 🧮 for automatisk beregning. Rediger oppmøtetid for å beregne mot et annet tidspunkt. Tab = neste felt. Enter = lagre.
+        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Trykk 🧮 for automatisk beregning.<br>Rediger oppmøtetid for å beregne mot et annet tidspunkt. Tab = neste felt. Enter = lagre/beregn.
       </div>
       
       <div style="display:flex; gap:10px; justify-content:center;">

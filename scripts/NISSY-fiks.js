@@ -605,8 +605,8 @@
           <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
             🤖 Auto-Bestill
           </button>
-          <button class="nissy-manual-btn" data-script="sjekk-duplikat" title="Sjekk alle bestillinger på valgt filter for duplikater">
-            🔍 Sjekk-Duplikat
+          <button class="nissy-manual-btn" data-script="sjekk-duplikat" title="Sjekk alle bestillinger på valgt filter for duplikater og forskjellig dato på hent og levering">
+            🔍 Sjekk-Bestilling
           </button>
           <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
             📞 Sjekk-Telefon
