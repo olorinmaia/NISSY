@@ -1542,7 +1542,7 @@
       sourceInfo = ` (pågående)`;
     }
 
-    // NY: Sjekk om ALLE bestillinger er returer
+    // Beregn om alle bestillinger er returer (trengs for spacer-styling)
     const allAreReturer = sortedBestillinger.every(b => {
       if (!b.oppmotetid) return false; // Ingen oppmøtetid = ikke retur
       
