@@ -1353,13 +1353,15 @@
   // ============================================================
   // HJELPEFUNKSJON: Parse bestillingsinformasjon (VENTENDE)
   // ============================================================
-  function parseVentendeRow(row, reiseTidIndex, oppTidIndex) {
+  function parseVentendeRow(row, reiseTidIndex, oppTidIndex, nameIndex) {
     const id = row.getAttribute("name") || row.id.replace(/^V-/, "");
     const rekvNr = row.getAttribute("title") || "";
     
-    const nameCell = Array.from(row.querySelectorAll('td'))
-      .find(td => td.textContent.includes(','));
-    const name = nameCell ? nameCell.textContent.trim() : '(ukjent)';
+    // Bruk nameIndex i stedet
+    const cells = row.querySelectorAll('td');
+    const name = (nameIndex !== -1 && cells[nameIndex]) 
+      ? cells[nameIndex].textContent.trim() 
+      : '(ukjent)';
     
     const addressCell = Array.from(row.querySelectorAll('td'))
       .find(td => td.innerHTML.includes('<br>'));
@@ -2239,27 +2241,20 @@
     if (ventendeRows.length > 0) {
       const reiseTidIndex = findColumnIndex('.ventendeoppdrag', 'tripStartDate');
       const oppTidIndex = findColumnIndex('.ventendeoppdrag', 'tripTreatmentDate');
+      const nameIndex = findColumnIndex('.ventendeoppdrag', 'patientName');
       
       // Valider kritiske kolonner
       if (reiseTidIndex === -1) {
         showErrorToast("❌ Mangler kolonnen 'Reisetid' på ventende oppdrag. Vennligst legg til kolonnen i tabellen.");
         return;
       }
-      
-      // Sjekk om pasientnavn-kolonnen finnes (ikke strengt nødvendig, men anbefalt)
-      const hasPatientNames = ventendeRows.every(row => {
-        const nameCell = Array.from(row.querySelectorAll('td'))
-          .find(td => td.textContent.includes(','));
-        return nameCell !== undefined;
-      });
-      
-      if (!hasPatientNames) {
-        showErrorToast("❌ Mangler kolonnen 'Pnavn' (pasientnavn) på ventende oppdrag. Vennligst legg til kolonnen i tabellen.");
+      if (nameIndex === -1) {
+        showErrorToast("❌ Mangler kolonnen 'Pnavn' på ventende oppdrag. Vennligst legg til kolonnen i tabellen.");
         return;
       }
       
       const ventendeBestillinger = ventendeRows.map(row => 
-        parseVentendeRow(row, reiseTidIndex, oppTidIndex)
+        parseVentendeRow(row, reiseTidIndex, oppTidIndex, nameIndex)
       );
       allBestillinger.push(...ventendeBestillinger);
     }
