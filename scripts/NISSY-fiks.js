@@ -282,7 +282,7 @@
         <tr>
             <td valign="top" align="left"><input id="buttonClearSelection" type="button" value="Blank" title="Snarvei: Alt+B" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
             <td class="d_right" align="right">
-                <input id="searchPhrase" type="text" title="Snarvei: Alt+F" style="width:150px">
+                <input id="searchPhrase" type="text" title="Snarvei: Alt+F for å komme til søkefeltet" style="width:150px">
             </td>
         </tr>
         <tr>
@@ -290,7 +290,7 @@
                 <!-- tom plass for fremtidig bruk -->
             </td>
             <td class="d_right" align="right">
-                <input type="button" id="buttonSearch" value="Søk" title="Snarvei: trykk Enter etter du har skrevet noe i søkefeltet" onclick="performSearch()">&nbsp;
+                <input type="button" id="buttonSearch" value="Søk" title="Snarvei: Trykk Enter etter du har skrevet noe i søkefeltet" onclick="performSearch()">&nbsp;
                 <input type="button" id="buttonCancelSearch" value="Nullstill" title="Snarvei: Trykk ESC etter søk" onclick="cancelSearch()">
             </td>
         </tr>
