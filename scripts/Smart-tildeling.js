@@ -669,7 +669,7 @@
         
         updateToast(
           `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
-          `tildelt ressurs${resourceName ? `: <b>${resourceName}</b>` : ""}`
+          `tildelt ressurs${resourceName ? `: ${resourceName}` : ""}`
         );
         hideToast(3000);
         refreshIfNoSelection();
@@ -764,11 +764,11 @@
         
         // Vis resultat
         if (ruleApplied) {
-          updateToast(`${vids.length} bestillinger smart-tildelt avtale iht. oppsett.`);
+          updateToast(`${vids.length} bestillinger tildelt avtale iht. oppsett.`);
         } else {
           updateToast(
             `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
-            `tildelt avtale: <b>${display.agreementName}</b>`
+            `tildelt avtale: ${display.agreementName}`
           );
         }
         
