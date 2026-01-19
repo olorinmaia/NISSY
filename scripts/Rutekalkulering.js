@@ -134,8 +134,8 @@
     "Steinkjer rehab/Fysioterapi, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
     "Steinkjer rehab, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
     "Dialyse, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
-
-    
+    "Rørvik helsesenter/Dialyse, 7900 Rørvik": "Rørvik sykestue, 7900 Rørvik",
+    "Fiskarbyen bofelleskap, 7970 Kolvereid": "Bjørkåsvegen 15D, 7970 Kolvereid",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
