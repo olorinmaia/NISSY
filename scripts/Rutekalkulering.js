@@ -100,6 +100,9 @@
     "Kir dagenhet, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Med B Nyre, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Fys med og rehab sengepost, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Med D Slag, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Med H Gastro, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Urologisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
