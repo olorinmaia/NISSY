@@ -213,9 +213,9 @@
     runSequentially(urls.slice());
   }
 
-  /* ======================================================
+/* ======================================================
      DEL 1B: ERSTATT OG FORENKLE KONTROLLPANEL-TABELL
-     Kjører FØR andre event handlers settes opp (DEL 5)
+     Kjører tidlig og setter opp event handlers ETTER erstatning
      Fjerner unødvendige knapper og forenkler layout
      ====================================================== */
 
@@ -290,8 +290,8 @@
                 <!-- tom plass for fremtidig bruk -->
             </td>
             <td class="d_right" align="right">
-                <input type="button" id="buttonSearch" value="Søk" title="Snarvei: Trykk Enter etter du har skrevet noe i søkefeltet" onclick="performSearch()">&nbsp;
-                <input type="button" id="buttonCancelSearch" value="Nullstill" title="Snarvei: Trykk ESC etter søk" onclick="cancelSearch()">
+                <input type="button" id="buttonSearch" value="Søk" title="Snarvei: Trykk Enter etter du har skrevet noe i søkefeltet">&nbsp;
+                <input type="button" id="buttonCancelSearch" value="Nullstill" title="Snarvei: Trykk ESC etter søk">
             </td>
         </tr>
       `;
@@ -300,9 +300,12 @@
       targetTable.setAttribute('data-nissy-simplified', 'true');
 
       console.log("✅ Kontrollpanel-tabell forenklet");
+      
+      // Sett opp event handlers ETTER at tabellen er erstattet
+      setupButtonHandlers();
     }
 
-    // Kjør når DOM er klar, men før DEL 5
+    // Kjør når DOM er klar
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         setTimeout(simplifyControlTable, 300);
@@ -527,29 +530,64 @@
 
   /* ======================================================
      DEL 5: KNAPP-HÅNDTERING
+     Settes opp AV DEL 1B etter at tabellen er erstattet
      ====================================================== */
 
-  const btnSearch = document.getElementById("buttonSearch");
-  if (btnSearch) {
-    btnSearch.addEventListener("click", () => {
-      waitForAjaxThen('search', () => {
-        openPopp("-1");
-        // Vent litt etter openPopp før highlighting
-        setTimeout(() => {
-          highlightSearchedRequisition();
-        }, 300);
-      });
-    });
-  }
+  function setupButtonHandlers() {
+    console.log("🔧 Setter opp knapp-handlers...");
 
-  const btnCancel = document.getElementById("buttonCancelSearch");
-  if (btnCancel) {
-    btnCancel.addEventListener("click", () => {
-      waitForAjaxThen('cancel', () => {
-        openPopp("-1");
-        removeRequisitionHighlight();
+    const btnSearch = document.getElementById("buttonSearch");
+    if (btnSearch) {
+      btnSearch.addEventListener("click", () => {
+        // Kall original NISSY-funksjon
+        if (typeof performSearch === 'function') {
+          performSearch();
+        }
+        
+        // Deretter vår logikk
+        waitForAjaxThen('search', () => {
+          openPopp("-1");
+          // Vent litt etter openPopp før highlighting
+          setTimeout(() => {
+            highlightSearchedRequisition();
+          }, 300);
+        });
       });
-    });
+    } else {
+      console.warn("⚠️ Fant ikke buttonSearch");
+    }
+
+    const btnCancel = document.getElementById("buttonCancelSearch");
+    if (btnCancel) {
+      btnCancel.addEventListener("click", () => {
+        // Kall original NISSY-funksjon
+        if (typeof cancelSearch === 'function') {
+          cancelSearch();
+        }
+        
+        // Deretter vår logikk
+        waitForAjaxThen('cancel', () => {
+          openPopp("-1");
+          removeRequisitionHighlight();
+        });
+      });
+    } else {
+      console.warn("⚠️ Fant ikke buttonCancelSearch");
+    }
+
+    // Tildel oppdrag handler
+    const btnAssign = document.getElementById("buttonAssignVopps");
+    if (btnAssign) {
+      btnAssign.addEventListener("click", onAssignClick);
+    } else {
+      console.warn("⚠️ Fant ikke buttonAssignVopps");
+    }
+
+    // Tildel oppdrag assist confirm (finnes andre steder, ikke i vår tabell)
+    const btnAssignConfirm = document.getElementById("buttonAssignVoppsAssistConfirm");
+    if (btnAssignConfirm) {
+      btnAssignConfirm.addEventListener("click", onAssignClick);
+    }
   }
 
   /* ======================================================
@@ -618,16 +656,6 @@
       }, 1500);
     });
   }
-
-  [
-    "buttonAssignVopps",
-    "buttonAssignVoppsAssistConfirm"
-  ].forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) {
-      btn.addEventListener("click", onAssignClick);
-    }
-  });
 
     /* ======================================================
      DEL 6: LEGG TIL MANUELLE SCRIPT-KNAPPER (NEDERST)
