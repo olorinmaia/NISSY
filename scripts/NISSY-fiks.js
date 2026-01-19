@@ -268,7 +268,7 @@
             <td valign="top" align="right"><input id="buttonShowMap" type="button" value="Vis i kart" title="Snarvei: Alt+W" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
         </tr>
         <tr>
-            <td valign="top" align="left"><input id="buttonMeetingplace" type="button" value="Møteplass" title="Snarvei: Alt+M" class="bigbutton" accesskey="m" onclick="ButtonController.onClick(this)" disabled=""></td>
+            <td valign="top" align="left"><input id="buttonMeetingplace" type="button" value="Møteplass" title="Snarvei: Alt+M" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
             <td align="right">
                 <select id="searchType" style="width:150px">
                     <option value="name">Navn</option>

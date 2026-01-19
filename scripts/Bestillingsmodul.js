@@ -6,15 +6,18 @@
  * Funksjonalitet:
  * - Snarvei ALT+N for å åpne bestillingsmodul
  * - Snarvei ALT+H for å åpne Hent rekvisisjon
+ * - Snarvei ALT+M for å åpne Møteplass
  * - Velg mellom 4-stegs eller Ensides bestillingsmodul
  * - Husker ditt valg i nettleserens session
  * - Blokkerer F5 for å unngå utilsiktet refresh
  * - Lukk modal med X-knapp eller klikk utenfor
  * - Intercepter redit-lenker og åpne dem i modal
+ * - Intercepter Møteplass-knappen og åpne i modal
  * 
  * Bruk:
  * - Trykk ALT+N for å åpne bestillingsmodul
  * - Trykk ALT+H for Hent rekvisisjon
+ * - Trykk ALT+M for Møteplass (krever valgte elementer)
  * - Første gang: Velg foretrukket modul (lagres i session)
  * - Neste gang: Åpner direkte til valgt modul
  * - For å nullstille valg: window.Bestillingsmodul.clearPreferred()
@@ -39,6 +42,7 @@
         resetUrl: '/rekvisisjon/requisition/exit',
         sessionKey: 'bestillingsmodul_preferred',
         hentRekUrl: '/rekvisisjon/requisition/confirmGetRequisition',
+        meetingplaceUrl: '/rekvisisjon/meetingplace/',
         modules: {
             fourStep: {
                 url: '/rekvisisjon/requisition/new?confirmed=1',
@@ -734,7 +738,165 @@
         }
     }
 
-    // Global tastatursnarvei: Alt+N og Alt+H
+    /**
+     * Henter valgt bestilling (kun ventende oppdrag - V-)
+     */
+    function getSelectedRequisition() {
+        // Finn alle rader som er selected (blå bakgrunn)
+        const selectedRows = document.querySelectorAll('tr[style*="background-color: rgb(148, 169, 220)"]');
+        
+        // Finn første ventende oppdrag (V- prefiks)
+        for (const row of selectedRows) {
+            const id = row.id;
+            if (id && id.startsWith('V-')) {
+                // Hent rekvisisjonsnummer fra id (fjern V- prefiks)
+                const reqId = id.substring(2); // "V-53221507" -> "53221507"
+                return reqId;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Bygger URL for Møteplass med valgt bestilling
+     */
+    function buildMeetingplaceUrl(reqId) {
+        // Format: /rekvisisjon/meetingplace/edit?rid=53221507&ns=true
+        return `${CONFIG.meetingplaceUrl}edit?rid=${reqId}&ns=true`;
+    }
+
+    /**
+     * Åpner Møteplass i modal
+     */
+    async function openMeetingplace() {
+        try {
+            // Hent valgt bestilling (kun ventende oppdrag)
+            const reqId = getSelectedRequisition();
+            
+            if (!reqId) {
+                alert('Du må velge én bestilling fra ventende oppdrag først.');
+                return;
+            }
+            
+            // Bygg URL med valgt bestilling
+            const url = buildMeetingplaceUrl(reqId);
+            
+            // Nullstill modul
+            await resetModule();
+            
+            // Injiser stiler
+            injectStyles();
+            
+            // Opprett overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'bestillingsmodul-overlay';
+            activeOverlay = overlay;
+            
+            // Opprett iframe-modal
+            const modal = document.createElement('div');
+            modal.className = 'bestillingsmodul-modal bestillingsmodul-iframe-modal active';
+            modal.innerHTML = `
+                <button class="bestillingsmodul-close" aria-label="Lukk">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <iframe src="${url}"></iframe>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+            activeModals = [modal];
+
+            const iframe = modal.querySelector('iframe');
+            
+            // Håndter F5 på modal-nivå
+            modal.addEventListener('keydown', handleF5, true);
+            
+            // Prøv å håndtere F5 og window.close inne i iframe når det laster
+            iframe.addEventListener('load', function() {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const iframeWin = iframe.contentWindow;
+                    
+                    if (iframeDoc && iframeWin) {
+                        // Håndter F5 inne i iframe
+                        const iframeF5Handler = (e) => {
+                            const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+                            if (isF5) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                iframeWin.location.reload();
+                                return false;
+                            }
+                        };
+                        
+                        iframeDoc.addEventListener('keydown', iframeF5Handler, true);
+                        iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                        
+                        // Override window.close() i iframe for å lukke modal istedenfor
+                        iframeWin.close = function() {
+                            closeAll();
+                        };
+                    }
+                } catch (e) {
+                    // Kan ikke få tilgang til iframe-innhold (CORS)
+                    console.warn('⚠️ Kunne ikke overstyre window.close() i Møteplass-iframe:', e);
+                }
+            });
+
+            // Aktiver F5-håndtering
+            enableF5Handler(iframe);
+
+            // Setup close handlers
+            const closeBtn = modal.querySelector('.bestillingsmodul-close');
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeAll();
+            });
+
+            modal.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            overlay.addEventListener('click', closeAll);
+            
+        } catch (error) {
+            console.error('Error opening Møteplass in modal:', error);
+            alert('Kunne ikke åpne Møteplass. Vennligst prøv igjen.');
+        }
+    }
+
+    /**
+     * Intercept clicks på Møteplass-knappen
+     */
+    function setupMeetingplaceIntercept() {
+        const meetingplaceBtn = document.getElementById('buttonMeetingplace');
+        if (!meetingplaceBtn) {
+            // Prøv igjen om 500ms hvis knappen ikke finnes ennå
+            setTimeout(setupMeetingplaceIntercept, 500);
+            return;
+        }
+
+        // Fjern original onclick handler
+        const originalOnClick = meetingplaceBtn.onclick;
+        
+        // Overstyr onclick
+        meetingplaceBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Åpne møteplass i modal istedenfor popup
+            openMeetingplace();
+            
+            return false;
+        };
+    }
+
+    // Global tastatursnarvei: Alt+N, Alt+H, og Alt+M
     document.addEventListener('keydown', (e) => {
         if (e.altKey && e.key.toLowerCase() === 'n') {
             e.preventDefault();
@@ -744,6 +906,11 @@
         else if (e.altKey && e.key.toLowerCase() === 'h') {
             e.preventDefault();
             openDirectUrl(CONFIG.hentRekUrl);
+        }
+        // Alt+M for Møteplass
+        else if (e.altKey && e.key.toLowerCase() === 'm') {
+            e.preventDefault();
+            openMeetingplace();
         }
     });
 
@@ -922,12 +1089,20 @@
         }
     }
 
+    // Setup Møteplass-intercept når DOM er klar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupMeetingplaceIntercept);
+    } else {
+        setTimeout(setupMeetingplaceIntercept, 500);
+    }
+
     // Eksporter funksjoner globalt
     window.Bestillingsmodul = { 
         init,
         clearPreferred: () => sessionStorage.removeItem(CONFIG.sessionKey),
         openReditInModal,
-        openDirectUrl
+        openDirectUrl,
+        openMeetingplace
     };
 
     console.log("✅ Bestillingsmodul-script lastet");

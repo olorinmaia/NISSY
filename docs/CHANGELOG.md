@@ -13,7 +13,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 #### Hva er nytt?
 - ⌛ **NISSY-fiks** 
-  - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
+  - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over.
+- 📝 **Bestillingsmodul** 
+  - Møteplass-knappen har fått snarvei Alt+M og åpnes i pop-up over planleggingsvinduet.
 
 ## 🚀 [2.8.0] - 17.01.2026
 
