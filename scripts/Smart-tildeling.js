@@ -127,13 +127,13 @@
     const col3 = document.getElementById("col3");
     if (col3) {
       const rect = col3.getBoundingClientRect();
-      currentToast.style.top = "66%"; // Flytt lengre ned (var 50%)
+      currentToast.style.top = "35%"; // Flytt lengre opp (var 66%)
       currentToast.style.right = `${window.innerWidth - rect.left + 5}px`;
       currentToast.style.left = "auto";
       currentToast.style.transform = "translate(0%,-50%)";
     } else {
       // Fallback: sentrer på skjermen
-      currentToast.style.top = "66%"; // Flytt lengre ned (var 50%)
+      currentToast.style.top = "35%"; // Flytt lengre opp (var 66%)
       currentToast.style.left = "50%";
       currentToast.style.transform = "translate(-50%,-50%)";
     }
@@ -669,7 +669,7 @@
         
         updateToast(
           `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
-          `tildelt ressurs${resourceName ? `: ${resourceName}` : ""}`
+          `tildelt ressurs${resourceName ? `: <b>${resourceName}</b>` : ""}`
         );
         hideToast(3000);
         refreshIfNoSelection();
@@ -768,7 +768,7 @@
         } else {
           updateToast(
             `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
-            `smart-tildelt avtale ${display.agreementName}`
+            `tildelt avtale: <b>${display.agreementName}</b>`
           );
         }
         
