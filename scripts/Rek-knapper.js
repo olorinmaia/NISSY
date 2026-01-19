@@ -93,7 +93,7 @@
     Object.assign(toast.style, {
       position: "fixed",
       bottom: "20px",
-      left: "50%",
+      left: "800px", // Sentrert i modal-området (1580px / 2 + 10px margin)
       transform: "translateX(-50%)",
       background: "#b09f2b", // Mørkegul bakgrunn for advarsel
       color: "#fff",
