@@ -131,6 +131,13 @@
                 display: block;
             }
 
+            .bestillingsmodul-iframe-modal.meetingplace-modal {
+                width: 1100px;
+                max-width: 90%;
+                left: 20px;
+                transform: none;
+            }
+
             .bestillingsmodul-modal iframe {
                 width: 100%;
                 height: 100%;
@@ -795,7 +802,7 @@
             
             // Opprett iframe-modal
             const modal = document.createElement('div');
-            modal.className = 'bestillingsmodul-modal bestillingsmodul-iframe-modal active';
+            modal.className = 'bestillingsmodul-modal bestillingsmodul-iframe-modal meetingplace-modal active';
             modal.innerHTML = `
                 <button class="bestillingsmodul-close" aria-label="Lukk">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
