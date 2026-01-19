@@ -92,7 +92,7 @@
     // Styling
     Object.assign(toast.style, {
       position: "fixed",
-      bottom: "20px",
+      bottom: "200px",
       left: "800px", // Sentrert i modal-området (1580px / 2 + 10px margin)
       transform: "translateX(-50%)",
       background: "#b09f2b", // Mørkegul bakgrunn for advarsel
@@ -117,7 +117,7 @@
       toast.style.opacity = "1";
     }, 10);
     
-    // Fade out etter 5 sekunder
+    // Fade out etter 6 sekunder
     setTimeout(() => {
       toast.style.opacity = "0";
       setTimeout(() => {
@@ -128,7 +128,7 @@
           currentWarningToast = null;
         }
       }, 300);
-    }, 5000);
+    }, 6000);
   }
 
   // ============================================================
