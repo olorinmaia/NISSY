@@ -310,25 +310,13 @@
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Sjekk om to tidsperioder overlapper
-  // ============================================================
-  function periodsOverlap(start1, end1, start2, end2) {
-    // Spesialtilfelle: Identiske tider (returturer)
-    if (start1 === end1 && start2 === end2) {
-      return start1 === start2;
-    }
-    
-    // Normal overlappsjekk
-    return start1 < end2 && start2 < end1;
-  }
-
-  // ============================================================
   // HJELPEFUNKSJON: Tell maksimalt overlappende passasjerer
   // Analyserer alle turer og finner maks antall samtidige passasjerer
   // FORBEDRET: Grupperer returer innenfor RETURN_TRIP_MARGIN
   // FORBEDRET: Håndterer spesialbehov som påvirker kapasitet
   //            Spesialbehov angir hvor mange plasser pasienten tar
   //            Ledsagere legges alltid til i tillegg
+  // FORBEDRET: Returer som skjer samtidig med normale turer telles sammen
   // ============================================================
   function countMaxOverlappingPassengers(rows) {
     const trips = [];
@@ -368,81 +356,94 @@
       // - Ledsagere legges alltid til i tillegg
       const passengers = capacityRequirement + companions;
       
-      trips.push({ pickupTime, deliveryTime, passengers, companions, specialNeeds, capacityRequirement });
+      trips.push({ pickupTime, deliveryTime, passengers, isReturn: pickupTime === deliveryTime });
     }
 
     if (trips.length === 0) return 0;
 
-    // Grupper returturer (start === end) innenfor RETURN_TRIP_MARGIN
-    // Sorter returturer etter tid først
-    const returnTrips = trips
-      .filter(trip => trip.pickupTime === trip.deliveryTime)
-      .sort((a, b) => a.pickupTime - b.pickupTime);
+    // Bruk event-basert tilnærming for å finne maksimal samtidig kapasitet
+    const events = [];
     
-    const returnGroups = [];
-    
-    for (const trip of returnTrips) {
-      const time = trip.pickupTime;
-      
-      // Finn gruppe denne returen tilhører (innenfor margin av SISTE tur i gruppen)
-      let foundGroup = null;
-      
-      for (const group of returnGroups) {
-        const lastTripInGroup = group[group.length - 1];
-        const lastTime = lastTripInGroup.pickupTime;
-        
-        if (Math.abs(time - lastTime) <= RETURN_TRIP_MARGIN) {
-          foundGroup = group;
-          break;
-        }
-      }
-      
-      if (foundGroup !== null) {
-        // Legg til i eksisterende gruppe
-        foundGroup.push(trip);
+    for (const trip of trips) {
+      if (trip.isReturn) {
+        // Retur: Behandles som eget event
+        events.push({ time: trip.pickupTime, type: 'return', passengers: trip.passengers });
       } else {
-        // Opprett ny gruppe
-        returnGroups.push([trip]);
+        // Normal tur: Start og slutt
+        events.push({ time: trip.pickupTime, type: 'start', passengers: trip.passengers });
+        events.push({ time: trip.deliveryTime, type: 'end', passengers: trip.passengers });
       }
     }
-
+    
+    // Sorter events (start før end før return ved samme tid)
+    // Dette sikrer at passasjerer som leveres trekkes fra FØR returer telles
+    events.sort((a, b) => {
+      if (a.time !== b.time) return a.time - b.time;
+      const order = { 'start': 0, 'end': 1, 'return': 2 };
+      return order[a.type] - order[b.type];
+    });
+    
     let maxOverlap = 0;
-
-    // Tell passasjerer i hver returgruppe
-    for (const group of returnGroups) {
-      let totalPassengers = 0;
-      for (const trip of group) {
-        totalPassengers += trip.passengers;
-      }
-      if (totalPassengers > maxOverlap) {
-        maxOverlap = totalPassengers;
-      }
-    }
-
-    // Sjekk overlapp mellom vanlige turer (ikke returer)
-    for (let i = 0; i < trips.length; i++) {
-      if (trips[i].pickupTime === trips[i].deliveryTime) continue;
+    let currentOngoing = 0;  // Pågående normale turer
+    
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i];
       
-      let currentOverlap = trips[i].passengers;
-      
-      for (let j = 0; j < trips.length; j++) {
-        if (i === j) continue;
-        
-        if (periodsOverlap(
-          trips[i].pickupTime, trips[i].deliveryTime,
-          trips[j].pickupTime, trips[j].deliveryTime
-        )) {
-          currentOverlap += trips[j].passengers;
+      if (event.type === 'start') {
+        currentOngoing += event.passengers;
+        if (currentOngoing > maxOverlap) {
+          maxOverlap = currentOngoing;
         }
-      }
-      
-      if (currentOverlap > maxOverlap) {
-        maxOverlap = currentOverlap;
+      } 
+      else if (event.type === 'end') {
+        currentOngoing -= event.passengers;
+      } 
+      else if (event.type === 'return') {
+        // Grupper alle returer innenfor RETURN_TRIP_MARGIN fra hverandre (kjede-logikk)
+        let returnGroupTotal = event.passengers;
+        let returnGroupStartTime = event.time;
+        let returnGroupEndTime = event.time;
+        let j = i + 1;
+        let lastReturnTime = event.time;
+        
+        while (j < events.length && events[j].type === 'return') {
+          // Sjekk om denne returen er innenfor margin av forrige i kjeden
+          if (events[j].time <= lastReturnTime + RETURN_TRIP_MARGIN) {
+            returnGroupTotal += events[j].passengers;
+            returnGroupEndTime = events[j].time;
+            lastReturnTime = events[j].time;  // Oppdater for neste i kjeden
+            j++;
+          } else {
+            break;  // Utenfor margin, stopp gruppering
+          }
+        }
+        
+        // Sjekk fremover: Er det start-events innenfor RETURN_TRIP_MARGIN?
+        // (Disse kan overlappe med returgruppen siden vi ikke vet returenes varighet)
+        let overlappingStarts = 0;
+        for (let k = j; k < events.length; k++) {
+          if (events[k].type === 'start' && 
+              events[k].time <= returnGroupEndTime + RETURN_TRIP_MARGIN) {
+            overlappingStarts += events[k].passengers;
+          } else if (events[k].time > returnGroupEndTime + RETURN_TRIP_MARGIN) {
+            break; // For langt frem i tid
+          }
+        }
+        
+        // Test kapasitet: pågående turer + returgruppe + starts innenfor margin
+        const totalCapacity = currentOngoing + returnGroupTotal + overlappingStarts;
+        if (totalCapacity > maxOverlap) {
+          maxOverlap = totalCapacity;
+        }
+        
+        // Hopp over returer vi allerede har telt
+        i = j - 1;
       }
     }
 
     return maxOverlap;
   }
+
 
   // ============================================================
   // ALT+T: TILORDNINGSSTØTTE 2.0
