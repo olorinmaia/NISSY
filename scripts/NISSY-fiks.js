@@ -213,6 +213,108 @@
     runSequentially(urls.slice());
   }
 
+/* ======================================================
+     DEL 1B: ERSTATT OG FORENKLE KONTROLLPANEL-TABELL
+     Kjører tidlig og setter opp event handlers ETTER erstatning
+     Fjerner unødvendige knapper og forenkler layout
+     ====================================================== */
+
+  (() => {
+    console.log("🔧 Forenkler kontrollpanel-tabell...");
+
+    function simplifyControlTable() {
+      // Finn tabellen som inneholder buttonResourceComment (Merknad)
+      const merknadButton = document.getElementById('buttonResourceComment');
+      if (!merknadButton) {
+        console.warn("⚠️ Fant ikke Merknad-knapp, prøver igjen om 500ms...");
+        setTimeout(simplifyControlTable, 500);
+        return;
+      }
+
+      const targetTable = merknadButton.closest('table');
+      if (!targetTable) {
+        console.warn("⚠️ Fant ikke målrette tabell");
+        return;
+      }
+
+      // Sjekk om tabellen allerede er forenklet
+      if (targetTable.hasAttribute('data-nissy-simplified')) {
+        console.log("✅ Kontrollpanel allerede forenklet");
+        return;
+      }
+
+      const tbody = targetTable.querySelector('tbody');
+      if (!tbody) {
+        console.warn("⚠️ Fant ikke tbody i tabell");
+        return;
+      }
+
+      // Erstatt hele tbody-innholdet
+      tbody.innerHTML = `
+        <tr>
+            <td valign="top" align="left"><input id="buttonResourceComment" type="button" value="Merknad" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
+            <td valign="top" align="right">
+                <input id="buttonResourceDeviation" type="button" value="Avvik" class="bigbutton" onclick="ButtonController.onClick(this)" disabled="">
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" align="left"><input id="buttonAssignVopps" type="button" value="Tildel oppdrag" title="Snarvei: Alt+G" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
+            <td valign="top" align="right">
+                <input id="buttonSendSMS" type="button" value="Send SMS" class="bigbutton" onclick="ButtonController.onClick(this)">
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" align="left"><input id="buttonAssignVoppsAssist" type="button" value="Tilordningsstøtte" class="bigbutton" onclick="ButtonController.onClick(this)"></td>
+            <td valign="top" align="right"><input id="buttonShowMap" type="button" value="Vis i kart" title="Snarvei: Alt+W" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
+        </tr>
+        <tr>
+            <td valign="top" align="left"><input id="buttonMeetingplace" type="button" value="Møteplass" title="Snarvei: Alt+M" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
+            <td align="right">
+                <select id="searchType" style="width:150px">
+                    <option value="name">Navn</option>
+                    <option value="bookingNr">Bookingnummer</option>
+                    <option value="ssn">Personnummer</option>
+                    <option value="requisitionNr">Rekvisisjonsnummer</option>
+                    <option value="tripNr">Turnummer</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" align="left"><input id="buttonClearSelection" type="button" value="Blank" title="Snarvei: Alt+B" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
+            <td class="d_right" align="right">
+                <input id="searchPhrase" type="text" title="Snarvei: Alt+F for å komme til søkefeltet" style="width:150px">
+            </td>
+        </tr>
+        <tr>
+            <td class="d_left" valign="bottom">
+                <!-- tom plass for fremtidig bruk -->
+            </td>
+            <td class="d_right" align="right">
+                <input type="button" id="buttonSearch" value="Søk" title="Snarvei: Trykk Enter etter du har skrevet noe i søkefeltet">&nbsp;
+                <input type="button" id="buttonCancelSearch" value="Nullstill" title="Snarvei: Trykk ESC etter søk">
+            </td>
+        </tr>
+      `;
+
+      // Marker som forenklet
+      targetTable.setAttribute('data-nissy-simplified', 'true');
+
+      console.log("✅ Kontrollpanel-tabell forenklet");
+      
+      // Sett opp event handlers ETTER at tabellen er erstattet
+      setupButtonHandlers();
+    }
+
+    // Kjør når DOM er klar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(simplifyControlTable, 300);
+      });
+    } else {
+      setTimeout(simplifyControlTable, 300);
+    }
+  })();
+  
   /* ======================================================
      DEL 2: OVERVÅKING AV NISSY-LOGG FOR SESSION TIMEOUT
      Overvåker NISSY sin interne logg for feilmeldinger
@@ -428,29 +530,64 @@
 
   /* ======================================================
      DEL 5: KNAPP-HÅNDTERING
+     Settes opp AV DEL 1B etter at tabellen er erstattet
      ====================================================== */
 
-  const btnSearch = document.getElementById("buttonSearch");
-  if (btnSearch) {
-    btnSearch.addEventListener("click", () => {
-      waitForAjaxThen('search', () => {
-        openPopp("-1");
-        // Vent litt etter openPopp før highlighting
-        setTimeout(() => {
-          highlightSearchedRequisition();
-        }, 300);
-      });
-    });
-  }
+  function setupButtonHandlers() {
+    console.log("🔧 Setter opp knapp-handlers...");
 
-  const btnCancel = document.getElementById("buttonCancelSearch");
-  if (btnCancel) {
-    btnCancel.addEventListener("click", () => {
-      waitForAjaxThen('cancel', () => {
-        openPopp("-1");
-        removeRequisitionHighlight();
+    const btnSearch = document.getElementById("buttonSearch");
+    if (btnSearch) {
+      btnSearch.addEventListener("click", () => {
+        // Kall original NISSY-funksjon
+        if (typeof performSearch === 'function') {
+          performSearch();
+        }
+        
+        // Deretter vår logikk
+        waitForAjaxThen('search', () => {
+          openPopp("-1");
+          // Vent litt etter openPopp før highlighting
+          setTimeout(() => {
+            highlightSearchedRequisition();
+          }, 300);
+        });
       });
-    });
+    } else {
+      console.warn("⚠️ Fant ikke buttonSearch");
+    }
+
+    const btnCancel = document.getElementById("buttonCancelSearch");
+    if (btnCancel) {
+      btnCancel.addEventListener("click", () => {
+        // Kall original NISSY-funksjon
+        if (typeof cancelSearch === 'function') {
+          cancelSearch();
+        }
+        
+        // Deretter vår logikk
+        waitForAjaxThen('cancel', () => {
+          openPopp("-1");
+          removeRequisitionHighlight();
+        });
+      });
+    } else {
+      console.warn("⚠️ Fant ikke buttonCancelSearch");
+    }
+
+    // Tildel oppdrag handler
+    const btnAssign = document.getElementById("buttonAssignVopps");
+    if (btnAssign) {
+      btnAssign.addEventListener("click", onAssignClick);
+    } else {
+      console.warn("⚠️ Fant ikke buttonAssignVopps");
+    }
+
+    // Tildel oppdrag assist confirm (finnes andre steder, ikke i vår tabell)
+    const btnAssignConfirm = document.getElementById("buttonAssignVoppsAssistConfirm");
+    if (btnAssignConfirm) {
+      btnAssignConfirm.addEventListener("click", onAssignClick);
+    }
   }
 
   /* ======================================================
@@ -519,16 +656,6 @@
       }, 1500);
     });
   }
-
-  [
-    "buttonAssignVopps",
-    "buttonAssignVoppsAssistConfirm"
-  ].forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) {
-      btn.addEventListener("click", onAssignClick);
-    }
-  });
 
     /* ======================================================
      DEL 6: LEGG TIL MANUELLE SCRIPT-KNAPPER (NEDERST)

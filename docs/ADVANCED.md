@@ -9,7 +9,7 @@
 - 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY.
 - 🕐 **Hentetid** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
-- 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up iframe over planleggingsvindu.
+- 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu (fanger også opp møteplass).
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
 - ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
@@ -52,6 +52,7 @@
 | `ALT+R` | Rek-knapper (H, S, K, T, R) Trykk ESC for å lukke manuelt |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
+| `ALT+M` | Møteplass |
 | `ALT+N` | Bestillingsmodul |
 | `ALT+H` | Hent Rekvisisjon |
 | `ALT+A` | Adminmodul |
@@ -109,6 +110,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
 - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
 - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
+- Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
 
 **Skjuler:**
 - Ledig kapasitet (pågående oppdrag)
@@ -177,7 +179,7 @@ Viser hurtigknapper på merkede rader.
 ### 📝 Bestillingsmodul (ALT+N)
 
 Trykk på Alt+N for å få første pop-up med valg om foretrukket bestillingsmodul. Deretter åpnes enten 4-stegs eller ensides i en iframe modal.
-Dette lagres i sesjonen, nullstilles når nettleser lukkes helt.
+Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestilling og trykk Alt+M for å åpne møteplassfunksjonen i samme modal.
 
 ### ⚙️ Adminmodul (ALT+A)
 

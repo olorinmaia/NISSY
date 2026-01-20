@@ -7,6 +7,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [2.9.0] - 19.01.2026
+
+### 🎉 NISSY-fiks forbedrer kontrollpanel-tabellen
+
+#### Hva er nytt?
+- ⌛ **NISSY-fiks** 
+  - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over.
+- 📝 **Bestillingsmodul** 
+  - Møteplass-knappen har fått snarvei Alt+M og åpnes i pop-up over planleggingsvinduet.
+
 ## 🚀 [2.8.0] - 17.01.2026
 
 ### 🎉 Hentetid beregner nå hentetid med egendefinert oppmøtetid og forbedringer til Smart-tildel, Rek-knapper og Sjekk-Bestilling
