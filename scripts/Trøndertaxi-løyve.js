@@ -114,7 +114,7 @@
   if (!loyvenummer) {
     // Fant ikke løyvenummer - åpne generell oversikt
     showToast(
-      "🚖 Fant ikke løyvenummer verken i NISSY eller CTRL. Åpner løyveregister til Trøndertaxi..",
+      "🚖 Fant ikke løyvenummer verken fra markert ressurs i NISSY eller turbehandling i CTRL. Åpner løyveregister til Trøndertaxi..",
       false // Normal melding (grå bakgrunn)
     );
     url = "https://pasientreiser.tronder.taxi/Loyver/Oversikt";
