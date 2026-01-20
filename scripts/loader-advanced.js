@@ -347,6 +347,7 @@
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
           • ALT+H → Hent rekvisisjon<br>
+          • ALT+M → Møteplass<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+S → Smart tildeling (RB/ERS + passasjerregler)<br>
