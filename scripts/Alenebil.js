@@ -9,6 +9,37 @@
   const SELECTED_BG = "rgb(148, 169, 220)";
 
   // ============================================================
+  // MILJØ-BASERT KONFIGURASJON
+  // Forskjellige verdier for TEST, QA og PROD
+  // ============================================================
+  const ENVIRONMENT_CONFIG = {
+    test: {
+      fieldId: '289',      // Alenebil felt-ID i TEST
+      editsValue: ',299'   // Edits-verdi i TEST
+    },
+    qa: {
+      fieldId: '198',      // Alenebil felt-ID i QA
+      editsValue: ',208'   // Edits-verdi i QA
+    },
+    prod: {
+      fieldId: '198',      // Alenebil felt-ID i PROD
+      editsValue: ',208'   // Edits-verdi i PROD
+    }
+  };
+
+  // Detekter miljø basert på URL
+  const hostname = window.location.hostname;
+  let config;
+  
+  if (hostname.includes('test')) {
+    config = ENVIRONMENT_CONFIG.test;
+  } else if (hostname.includes('qa')) {
+    config = ENVIRONMENT_CONFIG.qa;
+  } else {
+    config = ENVIRONMENT_CONFIG.prod;
+  }
+
+  // ============================================================
   // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
   // ============================================================
   let currentErrorToast = null;
@@ -203,7 +234,7 @@
 
         // ============================================================
         // STEG 2: BYGG POST-DATA
-        // Setter kun "Alenebil"-feltet (198) til true
+        // Setter kun "Alenebil"-feltet til true (bruker miljø-spesifikk config)
         // ============================================================
         const fd = new URLSearchParams({
           // Admin-parametere (tomme)
@@ -261,13 +292,13 @@
           callOnArrival: "",
           infoAboutPickup: "",
           
-          // *** VIKTIG: Setter Alenebil-behov ***
-          "198": "true", // ID 198 = Alenebil-behov
+          // *** VIKTIG: Setter Alenebil-behov (miljø-spesifikt) ***
+          [config.fieldId]: "true", // Bruker miljø-spesifikk felt-ID
           
           // Metadata
           selectedIndex: "0",
           action: "save",
-          edits: ",208" // Indikerer hvilke felt som er endret
+          edits: config.editsValue // Bruker miljø-spesifikk edits-verdi
         });
 
         // ============================================================

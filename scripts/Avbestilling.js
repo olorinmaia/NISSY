@@ -91,6 +91,21 @@
       'Transportør': '286',
       'Vergemål': '314'
     },
+    qa: {
+      'Behandler': '191',
+      'Foreldrerepresentasjon': '224',
+      'Fullmektig': '222',
+      'Hjemmesykepleie': '193',
+      'Institusjon': '200',
+      'Omsorgssenter': '194',
+      'Pasient': '188',
+      'Pasientreisekontor': '197',
+      'Pårørende': '189',
+      'Rekvirent': '190',
+      'Skole / Barnehage': '199',
+      'Transportør': '192',
+      'Vergemål': '223'
+    },
     prod: {
       'Behandler': '191',
       'Foreldrerepresentasjon': '224',
@@ -108,9 +123,17 @@
     }
   };
 
-  // Detekter miljø basert på URL
-  const isTestEnvironment = window.location.hostname.includes('test');
-  const currentCodes = isTestEnvironment ? RESPONSIBILITY_CODES.test : RESPONSIBILITY_CODES.prod;
+// Detekter miljø basert på URL
+  const hostname = window.location.hostname;
+  let currentCodes;
+  
+  if (hostname.includes('test')) {
+    currentCodes = RESPONSIBILITY_CODES.test;
+  } else if (hostname.includes('qa')) {
+    currentCodes = RESPONSIBILITY_CODES.qa;
+  } else {
+    currentCodes = RESPONSIBILITY_CODES.prod;
+  }
 
   // ============================================================
   // HOTKEY REGISTRERING: ALT+K
