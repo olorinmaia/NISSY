@@ -443,7 +443,7 @@
     }
 
     /**
-     * Lukker alle modaler
+     * Lukker alle modaler - robust versjon som fjerner alt
      */
     async function closeAll() {
         // Fjern keyboard listener hvis den eksisterer
@@ -452,17 +452,25 @@
             activeKeyboardListener = null;
         }
         
+        // Fjern overlay fra variabel
         if (activeOverlay) {
             activeOverlay.remove();
             activeOverlay = null;
         }
-        // Sjekk om modal finnes i DOM før vi prøver å fjerne den
+        
+        // Fjern alle modaler fra variabel
         activeModals.forEach(modal => {
             if (modal && modal.parentNode) {
                 modal.remove();
             }
         });
         activeModals = [];
+        
+        // EKSTRA CLEANUP: Fjern alle bestillingsmodul-overlays og modaler fra DOM
+        // Dette fanger opp eventuelle "spøkelsesmodaler" som ble opprettet raskt
+        document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
+        document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+        
         disableF5Handler();
         
         // Nullstill bestillingsmodul når modal lukkes
@@ -633,6 +641,9 @@
      */
     async function init() {
         try {
+            // Lukk eventuelt åpne modaler først
+            await closeAll();
+            
             // Steg 1: Nullstill modul
             await resetModule();
             
@@ -663,6 +674,9 @@
      */
     async function openDirectUrl(url) {
         try {
+            // Lukk eventuelt åpne modaler først
+            await closeAll();
+            
             // Steg 1: Nullstill modul
             await resetModule();
             
@@ -788,6 +802,9 @@
             
             // Bygg URL med valgt bestilling
             const url = buildMeetingplaceUrl(reqId);
+            
+            // Lukk eventuelt åpne modaler først
+            await closeAll();
             
             // Nullstill modul
             await resetModule();
