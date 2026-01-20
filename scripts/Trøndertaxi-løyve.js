@@ -109,13 +109,15 @@
   // ============================================================
   // VALIDER OG KOPIER
   // ============================================================
+  let url;
+  
   if (!loyvenummer) {
-    // Fant ikke løyvenummer i noen av stedene
+    // Fant ikke løyvenummer - åpne generell oversikt
     showToast(
-      "🚖 Fant ikke løyvenummer verken i NISSY eller CTRL. Vennligst marker en ressurs i NISSY eller åpne en tur i CTRL og prøv igjen.",
-      true // isError = true (rød bakgrunn)
+      "🚖 Fant ikke løyvenummer verken fra markert ressurs i NISSY eller turbehandling i CTRL. Åpner løyveregister til Trøndertaxi..",
+      false // Normal melding (grå bakgrunn)
     );
-    return; // Stopp her hvis ingen løyvenummer funnet
+    url = "https://pasientreiser.tronder.taxi/Loyver/Oversikt";
   } else {
     // Kopier til clipboard
     navigator.clipboard.writeText(loyvenummer)
@@ -125,13 +127,15 @@
       .catch(() => {
         showToast("Kunne ikke kopiere til clipboard", true);
       });
+    
+    // Åpne med spesifikt løyvenummer
+    url = `https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=${encodeURIComponent(loyvenummer)}`;
   }
   
   // ============================================================
   // ÅPNE TRØNDERTAXI SITT LØYVEREGISTER I NYTT VINDU
   // Åpner pasientreiser.tronder.taxi/Loyver/Oversikt
   // ============================================================
-  const url = `https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=${encodeURIComponent(loyvenummer)}`;
   
   // Beregn vindus-dimensjoner (halvparten av bredde, 90% av høyde)
   const width = Math.floor(window.innerWidth / 2);

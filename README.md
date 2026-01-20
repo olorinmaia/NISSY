@@ -34,7 +34,6 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
-  - WIP: [M] Møteplass
 - 🗺️ **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
 - 🚕 **Ressursinfo (Alt+D)**
@@ -48,6 +47,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
+  - Åpner møteplass-funksjon i pop-up isteden for ny fane.
 - ⚙️ **Adminmodul (Alt+A)**
   - Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
   - Åpner admin-linker i planleggingsvinduet i pop-up isteden for ny fane.
@@ -91,11 +91,11 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ |
 | ⚙️ Adminmodul (ALT+A) | ✅ | ✅ |
-| ✖️ Avbestill (ALT+K) | ❌ | ✅ |
+| ✖️ Avbestill (ALT+K) | ✅ | ✅ |
+| 🕐 Hentetid (ALT+E) | ✅ | ✅ |
+| 🔠 Rek-knapper (ALT+R) | ✅ | ✅ |
 | 🪄 Smart-tildeling (ALT+S) | ❌ | ✅ |
 | 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
-| 🕐 Hentetid (ALT+E) | ❌ | ✅ |
-| 🔠 Rek-knapper (ALT+R) | ❌ | ✅ |
 
 ## 🚀 Installasjon
 
@@ -110,12 +110,12 @@ Velg mellom **Basic** eller **Advanced**
 javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js');eval(await s.text());})();
 ```
 
-**Advanced**
+**Advanced** (OBS! Trenger konfigurasjon for å virke som tiltenkt. Ta kontakt.)
 ```javascript
 javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-advanced.js');eval(await s.text());})();
 ```
 
-3. Gi bokmerket et navn (f.eks. "NISSY-Advanced")
+3. Gi bokmerket et navn (f.eks. "NISSY-Basic")
 4. Klikk på bokmerket når du er inne i NISSY. Dette aktiverer all automatikk, knapper og snarveier og viser en pop-up med liste over snarveier og link til dokumentasjon.
 
 ## ⌨️ Tastatursnarveier
@@ -154,7 +154,10 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+D` | Ressursinfo |
 | `ALT+R` | Rek-knapper |
 | `ALT+N` | Bestillingsmodul |
+| `ALT+A` | Adminmodul |
+| `ALT+M` | Møteplass |
 | `ALT+K` | Avbestilling av turer/bestillinger |
+| `ALT+E` | Hentetid |
 
 ## 🔧 Funksjonalitet
 

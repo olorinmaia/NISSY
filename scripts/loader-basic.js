@@ -19,9 +19,12 @@
     'Ressursinfo.js',
     'Bestillingsmodul.js',
     'Adminmodul.js',
+    'Avbestilling.js',
+    'Hentetid.js',
+    'Rek-knapper.js',
     'Rutekalkulering.js'
   ];
-
+  
   // ============================================================
   // ANONYM BRUKSSTATISTIKK
   // Logger at loader ble brukt (ingen persondata)
@@ -58,10 +61,10 @@
   console.log('✅ NISSY Basic lastet!');
 
   // ============================================================
-  // LEGG TIL BRUKERVEILEDNING-KNAPP ØVERST OG SKJUL DIVERSE SOM IKKE ER I BRUK
+  // LEGG TIL DIVERSE KNAPPER ØVERST OG SKJUL FILTER
   // ============================================================
   (() => {
-    console.log("🔧 Legger til brukerveiledning-knapp...");
+    console.log("🔧 Legger til knapper i header...");
 
     // Skjul filter i header, ikke i bruk
     const efilter = document.getElementById('efilter');
@@ -75,10 +78,10 @@
       td.style.display = 'none';
     }
     
-    function addHelpButton() {
+    function addHeaderButton() {
       // Sjekk om knappen allerede er installert
-      if (document.getElementById('nissy-help-btn')) {
-        console.log("✅ Brukerveiledning-knapp allerede installert");
+      if (document.getElementById('nissy-help-btn') || document.getElementById('nissy-admin-btn')) {
+        console.log("✅ Knapper i header allerede installert");
         return;
       }
 
@@ -95,12 +98,12 @@
         return;
       }
 
-      // Legg til CSS for help-knapp
-      if (!document.getElementById('nissy-help-button-styles')) {
+      // Legg til CSS for header-knapper
+      if (!document.getElementById('nissy-header-button-styles')) {
         const style = document.createElement('style');
-        style.id = 'nissy-help-button-styles';
+        style.id = 'nissy-header-button-styles';
         style.textContent = `
-          .nissy-help-btn {
+          .nissy-header-btn {
             background: linear-gradient(135deg, #6b9bd1 0%, #5a8bc4 100%);
             color: white;
             border: none;
@@ -113,14 +116,14 @@
             white-space: nowrap;
             text-decoration: none;
             display: inline-block;
-            margin-left: 15px;
+            margin-left: 6px;
           }
-          .nissy-help-btn:hover {
+          .nissy-header-btn:hover {
             background: linear-gradient(135deg, #5a8bc4 0%, #4279b8 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           }
-          .nissy-help-btn:active {
+          .nissy-header-btn:active {
             transform: translateY(0);
           }
         `;
@@ -130,23 +133,44 @@
       // Opprett knapp
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
-      helpBtn.className = 'nissy-help-btn';
+      helpBtn.className = 'nissy-header-btn';
       helpBtn.href = 'https://github.com/olorinmaia/NISSY/blob/main/docs/BASIC.md';
       helpBtn.target = '_blank';
       helpBtn.title = 'Åpne brukerveiledning for NISSY Basic';
       helpBtn.textContent = '📖 Brukerveiledning';
 
-      // Legg til knappen etter teksten i første <td>
-      firstTd.appendChild(helpBtn);
+      const adminBtn = document.createElement('button');
+      adminBtn.id = 'nissy-admin-btn';
+      adminBtn.className = 'nissy-header-btn';
+      adminBtn.type = 'button';
+      adminBtn.title = 'Åpne adminmodul';
+      adminBtn.textContent = '⚙️ Adminmodul (Alt+A)';
+      adminBtn.addEventListener('click', () => triggerHotkey('a'));
 
-      console.log("✅ Brukerveiledning-knapp installert");
+      function triggerHotkey(key) {
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key,
+            code: `Key${key.toUpperCase()}`,
+            altKey: true,
+            bubbles: true,
+            cancelable: true
+          })
+        );
+      }
+      
+      // Legg til knappene etter teksten i første <td>
+      firstTd.appendChild(helpBtn);
+      firstTd.appendChild(adminBtn);
+
+      console.log("✅ Knapper i header installert");
     }
 
     // Installer knapp når DOM er klar
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', addHelpButton);
+      document.addEventListener('DOMContentLoaded', addHeaderButton);
     } else {
-      setTimeout(addHelpButton, 300);
+      setTimeout(addHeaderButton, 300);
     }
   })();
 
@@ -228,22 +252,32 @@
       const rowsHTML = `
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
+            <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende og pågående oppdrag (kun status tildelt)">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
+            <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="k" title="Masse-avbestill markerte turer eller bestillinger">
+          </td>
+        </tr>
+        <tr class="nissy-script-row">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
+            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
+          </td>
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
+            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'.">
+                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
-            <input type="button" value="⚙️ Adminmodul (Alt+A)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="a" title="Åpne adminmodul">
+            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
           </td>
         </tr>
       `;
@@ -285,7 +319,6 @@
     popup.innerHTML = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2 style="margin: 0 0 15px 0; color: #333;">🎉 NISSY Basic lastet!</h2>
-        
         <h3 style="margin: 15px 0 8px 0; color: #555;">⌨️ Tastatursnarveier:</h3>
         <div style="font-size: 13px; color: #666;">
           <strong>Grunnleggende:</strong><br>
@@ -304,7 +337,10 @@
           • ALT+M → Møteplass<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
+          • ALT+E → Hentetid<br>
+          • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
+          • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
@@ -354,7 +390,7 @@
       boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
       zIndex: '999999',
       maxWidth: '600px',
-      maxHeight: '80vh',
+      maxHeight: '90vh',
       overflow: 'auto'
     });
 
