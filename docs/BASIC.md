@@ -6,7 +6,7 @@
 
 NISSY Basic er perfekt for deg som:
 - Vil ha grunnleggende tastatursnarveier
-- Trenger rutekalkulering og ressursinfo og andre individuelle scripts uten snarveier
+- Trenger enklere måte å redigere bestillinger på, hurtigknapper på ventende/pågående oppdrag, forbedret avbestilling, rutekalkulering, ressursinfo og andre individuelle scripts uten snarveier
 - Ikke trenger avansert tildelingsfunksjonalitet
 
 ## 📦 Hva får du?
@@ -15,8 +15,11 @@ NISSY Basic er perfekt for deg som:
 - ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
+- 🕐 **Hentetid** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
+- 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu (fanger også opp møteplass).
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
+- ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling** - Sjekker alle bestillinger på valgt filter for duplikater og datofeil, lar deg søke opp disse for å rette opp.
@@ -73,12 +76,15 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 | Snarvei | Funksjon |
 |---------|----------|
+| `ALT+E` | Endre hentetid |
+| `ALT+R` | Rek-knapper (H, S, K, T, R) Trykk ESC for å lukke manuelt |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+M` | Møteplass |
 | `ALT+N` | Bestillingsmodul |
 | `ALT+H` | Hent Rekvisisjon |
 | `ALT+A` | Adminmodul |
+| `ALT+K` | Avbestilling av merkede turer/bestillinger |
 
 ## 📖 Detaljert brukerveiledning
 
@@ -133,6 +139,34 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Spesielle krav (pågående oppdrag)
 - Pasientnavn (pågående oppdrag)
 
+### 🕐 Hentetid (ALT+E)
+
+Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildelt) for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
+"Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Ruteberegning" åpner bestillingene i google maps.
+
+
+### 🔠 Rek-knapper (ALT+R)
+
+Viser hurtigknapper på merkede rader.
+
+**Slik bruker du:**
+1. Merk én eller flere rader
+2. Trykk `ALT+R`
+3. Knapper vises til venstre for hver rad:
+
+| Knapp | Funksjon |
+|-------|----------|
+| **H** | Hendelseslogg |
+| **S** | Manuell statusendring (kun pågående) |
+| **K** | Kopier bestilling |
+| **T** | Lag retur og link sammen |
+| **R** | Rediger |
+
+**Tips:**
+- Klikk ESC for å lukke alle rek-knapper
+- Knappene følger med ved scrolling
+- Automatisk høydetilpasning til rad-bilder
+
 ### 📝 Bestillingsmodul (ALT+N)
 
 Trykk på Alt+N for å få første pop-up med valg om foretrukket bestillingsmodul. Deretter åpnes enten 4-stegs eller ensides i en iframe modal.
@@ -142,6 +176,19 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 
 Trykk på Alt+A for å åpne admin-modulen som setter fokus i person-fanen og telefonnummer. Tips her er å kopiere fra Zisson for å finne pasient så du slipper å spørre om personnummer.
 
+### ✖️ Avbestilling (ALT+K)
+
+Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en.
+
+**Tips:**
+- Trykk ENTER for å avbestille med en gang. Trykk utenfor boksen for å lukke den.
+- Naviger i ansvarlig for avbestilling med piltaster
+
+**Sikkerhetsjekk:**
+- Filtrerer bort turer med statuser som "Startet", "Fremme", "Ikke møtt" osv.
+- Filtrerer bort status "Akseptert" hvis ressursnavn ikke slutter på minst 5 siffer etter siste "-" for å unngå avbestilling av tur etter 3003 men før 4010-1701.
+- Advarsel før du avbestiller og en liste over hvilke ressurser som vil bli avbestilt.
+
 ## 🆙 Oppgradering
 
 Klar for mer funksjonalitet?
@@ -150,9 +197,6 @@ Klar for mer funksjonalitet?
 Legger til:
 - Smart tildeling (ALT+S) **(OBS!! KREVER KONFIGURASJON. TA KONTAKT)**
 - Tilordningsstøtte 2.0 (ALT+T)
-- Rek-knapper (ALT+R)
-- Hentetid (ALT+E)
-- Avbestilling (ALT+K)
 
 [Se ADVANCED.md](ADVANCED.md)
 

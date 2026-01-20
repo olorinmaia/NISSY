@@ -7,6 +7,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [3.0.0] - 20.01.2026
+
+### 🎉 Hentetid, Rek-knapper og Avbestilling-script lagt til Basic-pakken
+
+#### Hva er nytt?
+- **Loader-Basic**
+  - Ytterlig tre script lagt til Basic-pakken.
+- 🚕 **Trøndertaxi-løyve**
+  - Åpner vindu selv om ingen løyve blir funnet, slik at man kan søke i registeret.
+
 ## 🚀 [2.9.0] - 19.01.2026
 
 ### 🎉 NISSY-fiks forbedrer kontrollpanel-tabellen
