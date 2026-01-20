@@ -75,7 +75,7 @@
   
   document.addEventListener('keydown', function(e) {
     // Alt+D (keyCode 68 = D)
-    if (e.altKey && e.key === 'd') {
+    if (e.altKey && e.key.toLowerCase() === 'd') {
       e.preventDefault();
       
       // Sjekk om scriptet allerede kjører

@@ -798,10 +798,10 @@
   // ============================================================
   if (!window.tildelingScript_AltS && !window.tildelingScript_AltT) {
     document.addEventListener("keydown", (e) => {
-      if (e.altKey && e.key === "s") {
+      if (e.altKey && e.key.toLowerCase() === "s") {
         e.preventDefault();
         runSmartAssignment();
-      } else if (e.altKey && e.key === "t") {
+      } else if (e.altKey && e.key.toLowerCase() === "t") {
         e.preventDefault();
         runIndividualAssignment();
       }

@@ -104,6 +104,7 @@
     "Med H Gastro, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Urologisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Fys med og rehab pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Med H Hem, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -126,6 +127,8 @@
     "Recovery / Dagkir, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Fedme pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Mottakelsen, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Med H4, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Allmennpsyk sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
 
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
