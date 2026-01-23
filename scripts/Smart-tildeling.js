@@ -656,11 +656,21 @@
     }
     
     if (resourceRow) {
-      disableRows(vids);
-      
       const rid = resourceRow.getAttribute("name");
       const resourceNameCell = resourceRow.querySelectorAll("td")[1];
       const resourceName = resourceNameCell ? resourceNameCell.textContent.trim() : "Ukjent";
+      
+      // Grå ut bestillinger
+      disableRows(vids);
+      
+      // Fjern alle seleksjoner (inkludert ressurs)
+      if (typeof ButtonController !== 'undefined' && ButtonController.clearAllSelections) {
+        try {
+          ButtonController.clearAllSelections();
+        } catch (e) {
+          console.warn("Kunne ikke fjerne seleksjoner:", e);
+        }
+      }
       
       const xhr = new XMLHttpRequest();
       xhr.open("GET", `/planlegging/ajax-dispatch?did=all&action=assres&rid=${rid}&vid=${encodeURIComponent(vids.join(","))}`);

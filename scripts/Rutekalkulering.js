@@ -94,6 +94,7 @@
     "Endo pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Allmennpsyk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Kir/Ort post 4, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Kir/Ort post 4, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "LMS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Mottakelsen, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
