@@ -7,6 +7,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [3.1.0] - 23.01.2026
+
+### Forbedring til Smart-tildel
+
+#### Hva er nytt?
+- 🪄 **Smart-tildel** 
+  - Forbedret tildeling med Alt+S slik at merket ressurs de-selekteres ved tildeling.
+
 ## 🚀 [3.0.0] - 20.01.2026
 
 ### 🎉 Hentetid, Rek-knapper og Avbestilling-script lagt til Basic-pakken

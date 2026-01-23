@@ -180,11 +180,12 @@ Scriptet teller automatisk:
 - Ledsagere per bestilling
 - Overlappende tidsperioder
 - Maksimalt antall samtidig reisende
+- Hensyntar enkelte spesielle behov som LB (tar 1 ekstra kapasitet)
 
-## 🐛 Kjente Issues
+## 🐛 Kjente feil / ofte stilte spørsmål
 
-- `openPopp()` kan noen ganger trigge feilmelding i konsollen - dette er harmløst
-- Enkelte gamle nettlesere støtter ikke `async/await` i bokmerker
+- F5 er ikke sperret, F5 bruker isteden "Åpne alle"-funksjonen til å oppdatere alle bestillinger/turer og åpne lukkede turer.
+- Hvis F5 trykkes fort etter hverandre inne i en pop-up kan hele siden lastes inn på nytt, script må da aktiveres igjen.
 
 ## 🤝 Bidrag
 
