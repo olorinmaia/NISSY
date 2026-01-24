@@ -53,6 +53,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Åpner admin-linker i planleggingsvinduet i pop-up isteden for ny fane.
 - ✖️ **Avbestilling (Alt+K)**
   - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
+  - Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/63c48b59-f9cc-46cf-b448-c4634793027a" />

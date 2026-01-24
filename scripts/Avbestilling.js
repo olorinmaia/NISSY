@@ -52,7 +52,7 @@
       toast.style.opacity = "1";
     }, 10);
     
-    // Fade out etter 4 sekunder
+    // Fade out etter 5 sekunder
     setTimeout(() => {
       toast.style.opacity = "0";
       setTimeout(() => {
@@ -63,16 +63,76 @@
           currentErrorToast = null;
         }
       }, 300);
-    }, 4000);
+    }, 5000);
+  }
+
+  // ============================================================
+  // SUKSESS-TOAST: Vises nederst på skjermen (grønn bakgrunn)
+  // ============================================================
+  let currentSuccessToast = null;
+  
+  function showSuccessToast(msg) {
+    // Fjern eksisterende suksess-toast
+    if (currentSuccessToast && currentSuccessToast.parentNode) {
+      currentSuccessToast.parentNode.removeChild(currentSuccessToast);
+    }
+    
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    
+    // Styling
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#5cb85c", // Grønn bakgrunn for suksess
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      zIndex: "999999",
+      opacity: "0",
+      transition: "opacity 0.3s ease"
+    });
+    
+    document.body.appendChild(toast);
+    currentSuccessToast = toast;
+    
+    // Fade in
+    setTimeout(() => {
+      toast.style.opacity = "1";
+    }, 10);
+    
+    // Fade out etter 3 sekunder
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+        if (currentSuccessToast === toast) {
+          currentSuccessToast = null;
+        }
+      }, 300);
+    }, 3000);
   }
 
   // ============================================================
   // KONFIGURASJON
   // ============================================================
-  const MIN_DIGITS_AFTER_DASH = 5;
+  const MIN_DIGITS_AFTER_DASH = 6;
   
   // Sperre for å forhindre flere samtidige kjøringer
   let isProcessing = false;
+  
+  // Statuser som ikke skal avbestilles, men fjernes fra planlegging
+  // Disse ressursene er allerede avbestilt/avbrutt
+  const REMOVE_FROM_PLANNING_STATUSES = [
+    'Avbrudd godtatt'
+    // Legg til flere statuser her etter behov
+  ];
   
   // Miljø-baserte "Ansvarlig"-koder
   const RESPONSIBILITY_CODES = {
@@ -146,7 +206,7 @@
   });
 
   // ============================================================
-  // INTERCEPT: Fang opp klikk på NISSY's avbestillingsknapp
+  // INTERCEPT: Fang opp klikk på NISSY's avbestillingsknapper
   // Erstatt standard-dialogen med vår egen popup
   // ============================================================
   document.addEventListener("click", (e) => {
@@ -155,42 +215,324 @@
     // Sjekk om det er remove.gif som ble klikket
     if (target.tagName === "IMG" && 
         target.src && 
-        target.src.includes("remove.gif") &&
-        target.id && 
-        target.id.startsWith("ReqNrDeleteV-")) {
+        target.src.includes("remove.gif")) {
       
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Hent bestillings-ID fra onclick-attributtet
       const onclickAttr = target.getAttribute("onclick");
-      const match = onclickAttr ? onclickAttr.match(/removeVentendeOppdrag\('(\d+)','(\d+)'\)/) : null;
+      if (!onclickAttr) return;
       
-      if (match) {
-        const vid = match[1];
+      // ============================================================
+      // CASE 1: removeResourceStarted - Tur med status "Startet"
+      // ============================================================
+      const startedMatch = onclickAttr.match(/removeResourceStarted\('(\d+)','([^']+)'\)/);
+      if (startedMatch) {
+        e.preventDefault();
+        e.stopPropagation();
+        showErrorToast("⛔ Det er ikke lov å avbestille en tur som har status 'Startet'");
+        return;
+      }
+      
+      // ============================================================
+      // CASE 2: removeResurs - Normal tur/ressurs avbestilling
+      // ============================================================
+      const resursMatch = onclickAttr.match(/removeResurs\('(\d+)','([^']+)'\)/);
+      if (resursMatch) {
+        e.preventDefault();
+        e.stopPropagation();
         
-        // Finn raden for å hente informasjon
+        const rid = resursMatch[1];
+        const turNavn = resursMatch[2];
+        
+        // Finn raden for å hente mer informasjon
         const row = target.closest("tr");
         if (row) {
-          // Parse rad for å få info
-          const rekvNr = row.getAttribute("title") || "";
+          let avtale = turNavn || "(ukjent)";
+          let status = row.querySelector("td[id*='Rxxxstatusxxx']")?.textContent.trim() ?? "";
           
-          const cells = [...row.querySelectorAll("td")];
-          let pasient = cells.find(td => td.textContent.includes(","))?.textContent.trim() ?? "(ukjent)";
-          
-          if (rekvNr) {
-            pasient += ` (${rekvNr})`;
+          // CASE 2A: Bekreftet status med ugyldig ressursnavn = bil er på vei
+          if (status === "Bekreftet" && !isValidResourceName(avtale)) {
+            showErrorToast("⛔ Det er ikke lov å avbestille denne turen, bilen er på vei til hentested! Ring sjåfør slik at det kan lages bomtur!");
+            return;
           }
           
-          const info = cells.find(td => td.innerHTML.includes("<br>"))
-            ?.innerHTML.replace(/<br>/g, " →<br>").trim() ?? "";
+          // CASE 2B: Sjekk om status krever "fjern fra planlegging" i stedet for avbestilling
+          if (REMOVE_FROM_PLANNING_STATUSES.includes(status)) {
+            // Bruk removeFromPlanning for allerede avbestilte/avbrutte turer
+            removeFromPlanning(rid, avtale, status, row);
+          } else {
+            // Normal avbestilling
+            showSingleTurPopup({ rid, avtale, status, row });
+          }
+        }
+        return;
+      }
+      
+      // ============================================================
+      // CASE 3: removeResourceDidNotShow - Fjern fra planlegging (møtte ikke)
+      // ============================================================
+      const didNotShowMatch = onclickAttr.match(/removeResourceDidNotShow\('(\d+)','([^']+)'\)/);
+      if (didNotShowMatch) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const rid = didNotShowMatch[1];
+        const turNavn = didNotShowMatch[2];
+        
+        // Finn raden
+        const row = target.closest("tr");
+        
+        // Send med rad-objekt til removeFromPlanning
+        removeFromPlanning(rid, turNavn, "Møtte ikke", row);
+        return;
+      }
+      
+      // ============================================================
+      // CASE 4: removeResourceCompleted - Fjern fra planlegging (fullført)
+      // ============================================================
+      const completedMatch = onclickAttr.match(/removeResourceCompleted\('(\d+)','([^']+)'\)/);
+      if (completedMatch) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const rid = completedMatch[1];
+        const turNavn = completedMatch[2];
+        
+        // Finn raden
+        const row = target.closest("tr");
+        
+        // Send med rad-objekt til removeFromPlanning
+        removeFromPlanning(rid, turNavn, "Fullført", row);
+        return;
+      }
+      
+      // ============================================================
+      // CASE 5: removeVentendeOppdrag - Bestilling (eksisterende logikk)
+      // ============================================================
+      if (target.id && target.id.startsWith("ReqNrDeleteV-")) {
+        const ventendeMatch = onclickAttr.match(/removeVentendeOppdrag\('(\d+)','(\d+)'\)/);
+        
+        if (ventendeMatch) {
+          e.preventDefault();
+          e.stopPropagation();
           
-          // Vis popup for enkelt-avbestilling
-          showSingleBestillingPopup({ vid, pasient, info });
+          const vid = ventendeMatch[1];
+          
+          // Finn raden for å hente informasjon
+          const row = target.closest("tr");
+          if (row) {
+            // Parse rad for å få info
+            const rekvNr = row.getAttribute("title") || "";
+            
+            const cells = [...row.querySelectorAll("td")];
+            let pasient = cells.find(td => td.textContent.includes(","))?.textContent.trim() ?? "(ukjent)";
+            
+            if (rekvNr) {
+              pasient += ` (${rekvNr})`;
+            }
+            
+            const info = cells.find(td => td.innerHTML.includes("<br>"))
+              ?.innerHTML.replace(/<br>/g, " →<br>").trim() ?? "";
+            
+            // Vis popup for enkelt-avbestilling
+            showSingleBestillingPopup({ vid, pasient, info });
+          }
         }
       }
     }
   }, true); // true = capture phase for å fange før NISSY's handler
+
+  // ============================================================
+  // POPUP: Fjern fra planlegging (for fullført/ikke møtt)
+  // ============================================================
+  function removeFromPlanning(rid, turNavn, årsak, row = null) {
+    // Sjekk sperre
+    if (isProcessing) {
+      console.log("⚠️ Fjerning pågår allerede, vennligst vent...");
+      return;
+    }
+    
+    isProcessing = true;
+    
+    const { overlay, popup } = createPopupBase();
+
+    // Finn raden hvis ikke sendt med
+    if (!row) {
+      row = document.querySelector(`tr[name="${rid}"]`) || 
+            document.querySelector(`tr[id*="${rid}"]`);
+    }
+    
+    let status = "";
+    if (row) {
+      status = row.querySelector("td[id*='Rxxxstatusxxx']")?.textContent.trim() ?? "";
+    }
+
+    popup.innerHTML = `
+      <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
+        🗑️ Fjern fra planlegging
+      </h2>
+      
+      <div style="
+        text-align:left;
+        font-size:14px;
+        padding:12px;
+        border:1px solid #ddd;
+        border-radius:6px;
+        background:#fafafa;
+        margin-bottom:16px;
+      ">
+        <strong>${turNavn}</strong><br>
+        <span style="font-size:13px; color:#666;">Status: ${status || årsak}</span>
+      </div>
+      
+      <div style="background:#e3f2fd; border:1px solid #2196f3; padding:12px; border-radius:6px; margin-bottom:16px;">
+        <p style="margin:0; font-size:13px; color:#1565c0;">
+          <strong>ℹ️</strong> Denne turen kan ikke avbestilles, men kan<br>fjernes fra planleggingsbildet.
+        </p>
+      </div>
+      
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:15px;">
+        <p style="margin:0; font-size:13px; color:#856404;">
+          <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
+        </p>
+      </div>
+      
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button 
+          id="confirmRemove" 
+          style="
+            padding:10px 24px;
+            background:#f39c12;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Fjern
+        </button>
+        
+        <button 
+          id="cancelRemove" 
+          style="
+            padding:10px 24px;
+            background:#95a5a6;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avbryt
+        </button>
+      </div>
+      
+      <div 
+        id="removeStatus" 
+        style="
+          margin:16px 0 0;
+          padding:12px;
+          background:#ecf0f1;
+          border-radius:6px;
+          font-size:13px;
+          color:#555;
+          min-height:24px;
+          display:none;
+        "
+      >
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+    const statusBox = popup.querySelector("#removeStatus");
+    const confirmButton = popup.querySelector("#confirmRemove");
+
+    // Sett fokus på bekreft-knappen
+    setTimeout(() => confirmButton.focus(), 100);
+
+    // Håndter Enter-tast på bekreft-knapp
+    confirmButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    const closePopup = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false;
+    };
+
+    confirmButton.onclick = async () => {
+      statusBox.style.display = "block";
+      confirmButton.style.display = "none";
+      popup.querySelector("#cancelRemove").style.display = "none";
+
+      // Følg systemets mønster: clear selections først, deretter disable
+      if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+        ListSelectionGroup.clearAllSelections();
+      }
+      
+      // Grå ut tur umiddelbart via ListSelectionGroup
+      disableRows([rid], 'tur');
+
+      statusBox.textContent = `Fjerner fra planlegging...`;
+
+      // Send forespørsel
+      const url = `/planlegging/ajax-dispatch?did=all&action=removefromplanning&rid=${encodeURIComponent(rid)}`;
+      
+      await new Promise(resolve => {
+        sendXHR(url, () => {
+          resolve();
+        });
+      });
+
+      statusBox.style.background = "#d4edda";
+      statusBox.style.color = "#155724";
+      statusBox.textContent = "✅ Ferdig! Turen er fjernet fra planlegging.";
+      
+      if (typeof openPopp === "function") openPopp('-1');
+      
+      // Vis Lukk-knapp
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Lukk";
+      Object.assign(closeButton.style, {
+        marginTop: "16px",
+        padding: "10px 24px",
+        background: "#95a5a6",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "14px",
+        cursor: "pointer",
+        fontWeight: "600"
+      });
+      closeButton.onclick = closePopup;
+      popup.appendChild(closeButton);
+      
+      // Sett fokus på Lukk-knappen og håndter Enter
+      setTimeout(() => closeButton.focus(), 100);
+      closeButton.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          closePopup();
+        }
+      });
+    };
+
+    popup.querySelector("#cancelRemove").onclick = closePopup;
+    overlay.onclick = closePopup;
+
+    const escapeHandler = (e) => {
+      if (e.key === "Escape") closePopup();
+    };
+    document.addEventListener("keydown", escapeHandler);
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Valider ressursnavn
@@ -309,7 +651,8 @@
       const turer = highlightedRows
         .map(parseTurRow)
         .filter(Boolean)
-        .filter(item => !["Framme", "Startet", "Bomtur"].includes(item.status));
+        .filter(item => !["Framme", "Startet", "Venter på svar", "Bomtur"].includes(item.status))
+        .filter(item => !REMOVE_FROM_PLANNING_STATUSES.includes(item.status)); // Filtrer bort allerede avbestilte
 
       const bestillinger = highlightedRows
         .map(parseBestillingRow)
@@ -462,7 +805,13 @@
     `;
 
     const listTurer = turer
-      .map(item => `• ${item.avtale}`)
+      .map(item => {
+        let displayText = `• ${item.avtale}`;
+        if (item.status) {
+          displayText += ` (${item.status})`;
+        }
+        return displayText;
+      })
       .join("\n");
 
     popup.innerHTML = `
@@ -478,7 +827,7 @@
 ${listTurer}
       </pre>
       
-      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:15px;">
         <p style="margin:0; font-size:13px; color:#856404;">
           <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
         </p>
@@ -562,7 +911,12 @@ ${listTurer}
       confirmButton.style.display = "none";
       popup.querySelector("#cancelRemove").style.display = "none";
 
-      // Grå ut turer umiddelbart
+      // Følg systemets mønster: clear selections først, deretter disable
+      if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+        ListSelectionGroup.clearAllSelections();
+      }
+      
+      // Grå ut turer umiddelbart via ListSelectionGroup
       disableRows(turer.map(t => t.rid), 'tur');
 
       let completed = 0;
@@ -581,6 +935,183 @@ ${listTurer}
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
       statusBox.textContent = "✅ Ferdig! Alle avbestillinger er sendt.";
+      
+      if (typeof openPopp === "function") openPopp('-1');
+      
+      // Vis Lukk-knapp
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Lukk";
+      Object.assign(closeButton.style, {
+        marginTop: "16px",
+        padding: "10px 24px",
+        background: "#95a5a6",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "14px",
+        cursor: "pointer",
+        fontWeight: "600"
+      });
+      closeButton.onclick = closePopup;
+      popup.appendChild(closeButton);
+      
+      // Sett fokus på Lukk-knappen og håndter Enter
+      setTimeout(() => closeButton.focus(), 100);
+      closeButton.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          closePopup();
+        }
+      });
+    };
+
+    popup.querySelector("#cancelRemove").onclick = closePopup;
+    overlay.onclick = closePopup;
+
+    const escapeHandler = (e) => {
+      if (e.key === "Escape") closePopup();
+    };
+    document.addEventListener("keydown", escapeHandler);
+  }
+
+  // ============================================================
+  // POPUP: Avbestill enkelt tur (fra remove-knapp)
+  // ============================================================
+  function showSingleTurPopup(tur) {
+    // Sjekk sperre
+    if (isProcessing) {
+      console.log("⚠️ Avbestilling pågår allerede, vennligst vent...");
+      return;
+    }
+    
+    isProcessing = true;
+    
+    const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&rid=";
+    const { overlay, popup } = createPopupBase();
+
+    popup.innerHTML = `
+      <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
+        ✖️ Avbestill tur
+      </h2>
+      
+      <div style="
+        text-align:left;
+        font-size:14px;
+        padding:12px;
+        border:1px solid #ddd;
+        border-radius:6px;
+        background:#fafafa;
+        margin-bottom:16px;
+      ">
+        <strong>${tur.avtale}</strong><br>
+        <span style="font-size:13px; color:#666;">Status: ${tur.status || 'Ukjent'}</span>
+      </div>
+      
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:15px;">
+        <p style="margin:0; font-size:13px; color:#856404;">
+          <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
+        </p>
+      </div>
+      
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button 
+          id="confirmRemove" 
+          style="
+            padding:10px 24px;
+            background:#e74c3c;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avbestill
+        </button>
+        
+        <button 
+          id="cancelRemove" 
+          style="
+            padding:10px 24px;
+            background:#95a5a6;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avbryt
+        </button>
+      </div>
+      
+      <div 
+        id="removeStatus" 
+        style="
+          margin:16px 0 0;
+          padding:12px;
+          background:#ecf0f1;
+          border-radius:6px;
+          font-size:13px;
+          color:#555;
+          min-height:24px;
+          display:none;
+        "
+      >
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+    const statusBox = popup.querySelector("#removeStatus");
+    const confirmButton = popup.querySelector("#confirmRemove");
+
+    // Sett fokus på bekreft-knappen
+    setTimeout(() => confirmButton.focus(), 100);
+
+    // Håndter Enter-tast på bekreft-knapp
+    confirmButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    const closePopup = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false;
+    };
+
+    confirmButton.onclick = async () => {
+      statusBox.style.display = "block";
+      confirmButton.style.display = "none";
+      popup.querySelector("#cancelRemove").style.display = "none";
+
+      // Følg systemets mønster: clear selections først, deretter disable
+      if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+        ListSelectionGroup.clearAllSelections();
+      }
+      
+      // Grå ut tur umiddelbart via ListSelectionGroup
+      disableRows([tur.rid], 'tur');
+
+      statusBox.textContent = `Sender avbestilling...`;
+
+      // Send avbestilling
+      await new Promise(resolve => {
+        const url = baseUrl + encodeURIComponent(tur.rid);
+        sendXHR(url, () => {
+          resolve();
+        });
+      });
+
+      statusBox.style.background = "#d4edda";
+      statusBox.style.color = "#155724";
+      statusBox.textContent = "✅ Ferdig! Avbestilling er sendt.";
       
       if (typeof openPopp === "function") openPopp('-1');
       
@@ -682,7 +1213,7 @@ ${listBestillinger}
         </p>
       </div>
       
-      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:15px;">
         <p style="margin:0; font-size:13px; color:#856404;">
           <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
         </p>
@@ -895,7 +1426,7 @@ ${listBestillinger}
         </select>
       </div>
       
-      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:20px;">
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:15px;">
         <p style="margin:0; font-size:13px; color:#856404;">
           <strong>⚠️ OBS:</strong> Denne handlingen kan ikke angres!
         </p>
@@ -1102,31 +1633,45 @@ ${listBestillinger}
   // Bruker systemets innebygde ListSelectionGroup.disableSelection
   // ============================================================
   function disableRows(ids, type = 'bestilling') {
-    if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.disableSelection) {
-      let elementsToDisable;
+    if (typeof ListSelectionGroup === 'undefined' || !ListSelectionGroup.disableSelection) {
+      console.warn("ListSelectionGroup.disableSelection er ikke tilgjengelig");
+      return;
+    }
+    
+    let elementsToDisable;
+    let targetList;
+    
+    if (type === 'bestilling') {
+      // Bestillinger bruker V-prefix og er i sourceSelectionLists
+      elementsToDisable = ids.map(id => 'V-' + id);
+      targetList = ListSelectionGroup.sourceSelectionLists[0];
+    } else if (type === 'tur') {
+      // Turer/ressurser har to formater i systemet:
+      // - Ressurs-liste: Rxxx{rid} (i targetSelectionLists eller resourceSelectionLists)
+      // - Pågående oppdrag-liste: P-{rid} (i targetSelectionLists)
       
-      if (type === 'bestilling') {
-        // Bestillinger trenger V-prefix
-        elementsToDisable = ids.map(id => 'V-' + id);
-      } else if (type === 'tur') {
-        // Turer bruker ID direkte (eller R-prefix hvis nødvendig)
-        elementsToDisable = ids.map(id => {
-          const idStr = id.toString();
-          // Hvis ID allerede starter med R, bruk som den er
-          if (idStr.startsWith('R')) return idStr;
-          // Ellers legg til R-prefix
-          return 'R-' + idStr;
-        });
-      }
+      // Vi må gråe ut begge, og de bruker forskjellige lister
+      elementsToDisable = ids.flatMap(id => {
+        const idStr = id.toString();
+        return [
+          'Rxxx' + idStr,  // Ressurs-rad
+          'P-' + idStr     // Pågående oppdrag-rad
+        ];
+      });
       
-      try {
-        ListSelectionGroup.disableSelection(
-          elementsToDisable, 
-          ListSelectionGroup.sourceSelectionLists[0]
-        );
-      } catch (e) {
-        console.warn("Kunne ikke bruke ListSelectionGroup.disableSelection:", e);
-      }
+      // Prøv først med targetSelectionLists (for ressurser og pågående oppdrag)
+      targetList = ListSelectionGroup.targetSelectionLists && ListSelectionGroup.targetSelectionLists[0] 
+        ? ListSelectionGroup.targetSelectionLists[0]
+        : (ListSelectionGroup.resourceSelectionLists && ListSelectionGroup.resourceSelectionLists[0]
+          ? ListSelectionGroup.resourceSelectionLists[0]
+          : ListSelectionGroup.sourceSelectionLists[0]);
+    }
+    
+    try {
+      // Bruk systemets innebygde funksjon for å gråe ut
+      ListSelectionGroup.disableSelection(elementsToDisable, targetList);
+    } catch (e) {
+      console.warn("Kunne ikke bruke ListSelectionGroup.disableSelection:", e);
     }
   }
 

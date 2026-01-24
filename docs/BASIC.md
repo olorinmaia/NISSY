@@ -178,7 +178,7 @@ Trykk på Alt+A for å åpne admin-modulen som setter fokus i person-fanen og te
 
 ### ✖️ Avbestilling (ALT+K)
 
-Lar deg merke turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en.
+Lar deg merke bestillinger/turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en. Eller du skal avbestille en tur/retur bestilling.
 
 **Tips:**
 - Trykk ENTER for å avbestille med en gang. Trykk utenfor boksen for å lukke den.
