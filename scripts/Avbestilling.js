@@ -1773,7 +1773,7 @@ ${listBestillinger}
       ${oppdrag.erSamkjort ? `
       <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:16px;">
         <p style="margin:0; font-size:13px; color:#856404;">
-          <strong>⚠️ OBS:</strong> Bestillingen er samkjørt!<br>Juster andre bestillinger manuelt hvis nødvendig<br>${oppdrag.erFremtidig ? ' eller informer turplanlegger' : ''}.
+          <strong>⚠️ OBS:</strong> Bestillingen er samkjørt!<br>Juster andre bestillinger manuelt hvis nødvendig${oppdrag.erFremtidig ? '<br>eller informer turplanlegger' : ''}.
         </p>
       </div>
       ` : ''}
