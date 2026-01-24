@@ -134,6 +134,13 @@
     // Legg til flere statuser her etter behov
   ];
   
+  // Statuser som ikke kan avplanlegges fra pågående oppdrag
+  const NO_AVPLANLEGGING_STATUSES = [
+    'Framme',
+    'Startet'
+    // Legg til flere statuser her etter behov
+  ];
+  
   // Miljø-baserte "Ansvarlig"-koder
   const RESPONSIBILITY_CODES = {
     test: {
@@ -250,7 +257,7 @@
           
           // CASE 2A: Bekreftet status med ugyldig ressursnavn = bil er på vei
           if (status === "Bekreftet" && !isValidResourceName(avtale)) {
-            showErrorToast("⛔ Det er ikke lov å avbestille denne turen, bilen er på vei til hentested! Ring sjåfør slik at det kan lages bomtur!");
+            showErrorToast("⛔ Det er ikke lov å avbestille en tur etter mottatt løyvenummer! Kontakt sjåfør for å lage bomtur!");
             return;
           }
           
@@ -305,7 +312,154 @@
       }
       
       // ============================================================
-      // CASE 5: removeVentendeOppdrag - Bestilling (eksisterende logikk)
+      // CASE 5: removePaagaaendeOppdrag - Avplanlegging av pågående oppdrag
+      // ============================================================
+      const paagaaendeMatch = onclickAttr.match(/removePaagaaendeOppdrag\('(\d+)','(\d+)'\)/);
+      if (paagaaendeMatch) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const pid = paagaaendeMatch[1]; // Bestillings-ID
+        const rid = paagaaendeMatch[2]; // Ressurs-ID
+        
+        // Finn raden for å hente informasjon
+        const row = target.closest("tr");
+        if (row) {
+          // Sjekk om dette er multi-bestilling (har div.row-image) eller single-bestilling
+          const parentDiv = target.closest("div.row-image");
+          const allColumns = [...row.querySelectorAll("td")];
+          
+          let pasient = "";
+          let rekvNr = "";
+          let fraAdresse = "";
+          let tilAdresse = "";
+          let status = "";
+          
+          if (parentDiv) {
+            // ============================================================
+            // MULTI-BESTILLING: Data er i div.row-image elementer
+            // ============================================================
+            let bestillingIndex = 0;
+            
+            // Finn hvilken index denne bestillingen har
+            const actionColumn = row.querySelector("td.dr:last-child");
+            if (actionColumn) {
+              const allActionDivs = [...actionColumn.querySelectorAll("div.row-image")];
+              bestillingIndex = allActionDivs.indexOf(parentDiv);
+            }
+            
+            // Funksjon for å hente data fra riktig div i en kolonne
+            const getDataFromColumn = (columnIndex) => {
+              if (columnIndex >= allColumns.length) return "";
+              const column = allColumns[columnIndex];
+              const divs = [...column.querySelectorAll("div.row-image")];
+              if (bestillingIndex < divs.length) {
+                return divs[bestillingIndex].textContent.trim();
+              }
+              return "";
+            };
+            
+            // Kolonneindekser: 5=Pasient, 8=Fra, 9=Til, 10=Status
+            pasient = getDataFromColumn(5) || "(ukjent)";
+            fraAdresse = getDataFromColumn(8);
+            tilAdresse = getDataFromColumn(9);
+            status = getDataFromColumn(10);
+            
+            // Hent rekvNr fra spørsmålstegn-ikonet i samme div
+            const questionImg = parentDiv.querySelector("img[src*='question.gif']");
+            if (questionImg) {
+              const onclickMatch = questionImg.getAttribute("onclick")?.match(/nr=(\d+)/);
+              if (onclickMatch) {
+                rekvNr = onclickMatch[1];
+              }
+            }
+          } else {
+            // ============================================================
+            // SINGLE-BESTILLING: Data er direkte i td elementer
+            // ============================================================
+            
+            // Finn pasientnavn (inneholder komma, typisk kolonne 5)
+            pasient = allColumns[5]?.textContent.trim() || "(ukjent)";
+            
+            // Fra-adresse er kolonne 8, til-adresse er kolonne 9, status er kolonne 10
+            fraAdresse = allColumns[8]?.textContent.trim() || "";
+            tilAdresse = allColumns[9]?.textContent.trim() || "";
+            status = allColumns[10]?.textContent.trim() || "";
+            
+            // Hent rekvNr fra spørsmålstegn-ikonet (direkte i siste td)
+            const questionImg = row.querySelector("img[src*='question.gif']");
+            if (questionImg) {
+              const onclickMatch = questionImg.getAttribute("onclick")?.match(/nr=(\d+)/);
+              if (onclickMatch) {
+                rekvNr = onclickMatch[1];
+              }
+            }
+          }
+          
+          // Valider status - sjekk om bestillingen kan avplanlegges
+          if (NO_AVPLANLEGGING_STATUSES.includes(status)) {
+            showErrorToast(`⛔ Det er ikke lov å avplanlegge en bestilling som har status '${status}'`);
+            return;
+          }
+          
+          // Sjekk om det er samkjøring (flere bestillinger på ressursen)
+          // Dette kan vi se ved å sjekke om det finnes div.row-image elementer
+          const erSamkjort = !!parentDiv; // Hvis parentDiv finnes, er det multi-bestilling = samkjørt
+          
+          // Hent ressursnavn fra kolonne 1 for å validere
+          const ressursNavn = allColumns[1]?.textContent.trim() || "";
+          
+          // Sjekk om dette er siste bestilling på en tur med løyvenummer
+          // (bil er på vei = !isValidResourceName og ikke samkjørt)
+          if (!erSamkjort && !isValidResourceName(ressursNavn)) {
+            showErrorToast("⛔ Det er ikke lov å avplanlegge den siste bestillingen på en tur etter mottatt løyvenummer! Kontakt sjåfør for å lage bomtur!");
+            return;
+          }
+          
+          // Legg til rekvNr hvis funnet
+          if (rekvNr) {
+            pasient += ` (${rekvNr})`;
+          }
+          
+          const info = fraAdresse && tilAdresse 
+            ? `${fraAdresse} →<br> ${tilAdresse}` 
+            : "";
+          
+          // Sjekk om turen er i fremtiden (for å tilpasse OBS-tekst)
+          let erFremtidig = false;
+          if (erSamkjort && parentDiv) {
+            // Hent hentetid fra kolonne 3
+            const actionColumn = row.querySelector("td.dr:last-child");
+            let bestillingIndex = 0;
+            if (actionColumn) {
+              const allActionDivs = [...actionColumn.querySelectorAll("div.row-image")];
+              bestillingIndex = allActionDivs.indexOf(parentDiv);
+            }
+            
+            const hentetidColumn = allColumns[3];
+            if (hentetidColumn) {
+              const divs = [...hentetidColumn.querySelectorAll("div.row-image")];
+              if (bestillingIndex < divs.length) {
+                const hentetid = divs[bestillingIndex].textContent.trim();
+                // Hvis hentetid inneholder punktum (.), er det en dato (dd.mm format)
+                // Hvis ikke punktum, er det kun klokkeslett = dagens dato
+                erFremtidig = hentetid.includes('.');
+              }
+            }
+          } else if (erSamkjort && !parentDiv) {
+            // Single bestilling format - sjekk direkte i td
+            const hentetid = allColumns[3]?.textContent.trim() || "";
+            erFremtidig = hentetid.includes('.');
+          }
+          
+          // Vis popup for avplanlegging
+          showAvplanleggingPopup({ pid, rid, pasient, info, erSamkjort, erFremtidig });
+        }
+        return;
+      }
+      
+      // ============================================================
+      // CASE 6: removeVentendeOppdrag - Bestilling (eksisterende logikk)
       // ============================================================
       if (target.id && target.id.startsWith("ReqNrDeleteV-")) {
         const ventendeMatch = onclickAttr.match(/removeVentendeOppdrag\('(\d+)','(\d+)'\)/);
@@ -1569,6 +1723,183 @@ ${listBestillinger}
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
+    overlay.onclick = closePopup;
+
+    const escapeHandler = (e) => {
+      if (e.key === "Escape") closePopup();
+    };
+    document.addEventListener("keydown", escapeHandler);
+  }
+
+  // ============================================================
+  // POPUP: Avplanlegg pågående oppdrag
+  // ============================================================
+  function showAvplanleggingPopup(oppdrag) {
+    // Sjekk sperre
+    if (isProcessing) {
+      console.log("⚠️ Avplanlegging pågår allerede, vennligst vent...");
+      return;
+    }
+    
+    isProcessing = true;
+    
+    const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&pid=";
+    const { overlay, popup } = createPopupBase();
+
+    popup.innerHTML = `
+      <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
+        ↩️ Avplanlegg bestilling
+      </h2>
+      
+      <div style="
+        text-align:left;
+        font-size:14px;
+        padding:12px;
+        border:1px solid #ddd;
+        border-radius:6px;
+        background:#fafafa;
+        margin-bottom:16px;
+      ">
+        <strong>${oppdrag.pasient}</strong><br>
+        <span style="font-size:13px; color:#666;">${oppdrag.info}</span>
+      </div>
+      
+      <div style="background:#e3f2fd; border:1px solid #2196f3; padding:12px; border-radius:6px; margin-bottom:16px;">
+        <p style="margin:0; font-size:13px; color:#1565c0;">
+          <strong>ℹ️</strong> Bestillingen vil fjernes fra ressursen og<br>flyttes til ventende oppdrag.
+        </p>
+      </div>
+      
+      ${oppdrag.erSamkjort ? `
+      <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:16px;">
+        <p style="margin:0; font-size:13px; color:#856404;">
+          <strong>⚠️ OBS:</strong> Bestillingen er samkjørt!<br>Juster andre bestillinger manuelt hvis nødvendig<br>${oppdrag.erFremtidig ? ' eller informer turplanlegger' : ''}.
+        </p>
+      </div>
+      ` : ''}
+      
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button 
+          id="confirmAvplanlegg" 
+          style="
+            padding:10px 24px;
+            background:#3498db;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avplanlegg
+        </button>
+        
+        <button 
+          id="cancelAvplanlegg" 
+          style="
+            padding:10px 24px;
+            background:#95a5a6;
+            color:#fff;
+            border:none;
+            border-radius:6px;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+          "
+        >
+          Avbryt
+        </button>
+      </div>
+      
+      <div 
+        id="avplanleggStatus" 
+        style="
+          margin:16px 0 0;
+          padding:12px;
+          background:#ecf0f1;
+          border-radius:6px;
+          font-size:13px;
+          color:#555;
+          min-height:24px;
+          display:none;
+        "
+      >
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+    const statusBox = popup.querySelector("#avplanleggStatus");
+    const confirmButton = popup.querySelector("#confirmAvplanlegg");
+
+    // Sett fokus på bekreft-knappen
+    setTimeout(() => confirmButton.focus(), 100);
+
+    // Håndter Enter-tast på bekreft-knapp
+    confirmButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    const closePopup = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false;
+    };
+
+    confirmButton.onclick = async () => {
+      statusBox.style.display = "block";
+      confirmButton.style.display = "none";
+      popup.querySelector("#cancelAvplanlegg").style.display = "none";
+
+      statusBox.textContent = `Avplanlegger bestilling...`;
+
+      // Send avplanlegging
+      await new Promise(resolve => {
+        const url = baseUrl + encodeURIComponent(oppdrag.pid);
+        sendXHR(url, () => {
+          resolve();
+        });
+      });
+
+      statusBox.style.background = "#d4edda";
+      statusBox.style.color = "#155724";
+      statusBox.textContent = "✅ Ferdig! Bestillingen er avplanlagt.";
+      
+      if (typeof openPopp === "function") openPopp('-1');
+      
+      // Vis Lukk-knapp
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Lukk";
+      Object.assign(closeButton.style, {
+        marginTop: "16px",
+        padding: "10px 24px",
+        background: "#95a5a6",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "14px",
+        cursor: "pointer",
+        fontWeight: "600"
+      });
+      closeButton.onclick = closePopup;
+      popup.appendChild(closeButton);
+      
+      // Sett fokus på Lukk-knappen og håndter Enter
+      setTimeout(() => closeButton.focus(), 100);
+      closeButton.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          closePopup();
+        }
+      });
+    };
+
+    popup.querySelector("#cancelAvplanlegg").onclick = closePopup;
     overlay.onclick = closePopup;
 
     const escapeHandler = (e) => {
