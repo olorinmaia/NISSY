@@ -618,6 +618,13 @@
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      isProcessing = false;
+    };
+    
+    const closePopupWithRefresh = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -652,6 +659,9 @@
       
       if (typeof openPopp === "function") openPopp('-1');
       
+      // Nå kan overlay lukke med refresh
+      overlay.onclick = closePopupWithRefresh;
+      
       // Vis Lukk-knapp
       const closeButton = document.createElement("button");
       closeButton.textContent = "Lukk";
@@ -666,7 +676,7 @@
         cursor: "pointer",
         fontWeight: "600"
       });
-      closeButton.onclick = closePopup;
+      closeButton.onclick = closePopupWithRefresh;
       popup.appendChild(closeButton);
       
       // Sett fokus på Lukk-knappen og håndter Enter
@@ -674,13 +684,14 @@
       closeButton.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          closePopup();
+          closePopupWithRefresh();
         }
       });
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
-    overlay.onclick = closePopup;
+    overlay.onclick = closePopup; // Før operasjon - lukker uten refresh
+    // overlay.onclick endres til closePopupWithRefresh etter suksess
 
     const escapeHandler = (e) => {
       if (e.key === "Escape") closePopup();
@@ -1056,8 +1067,15 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
-      if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false; // Frigi sperre når popup lukkes
+    };
+    
+    const closePopupWithRefresh = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false;
     };
 
     confirmButton.onclick = async () => {
@@ -1092,6 +1110,9 @@ ${listTurer}
       
       if (typeof openPopp === "function") openPopp('-1');
       
+      // Nå kan overlay lukke med refresh
+      overlay.onclick = closePopupWithRefresh;
+      
       // Vis Lukk-knapp
       const closeButton = document.createElement("button");
       closeButton.textContent = "Lukk";
@@ -1106,7 +1127,7 @@ ${listTurer}
         cursor: "pointer",
         fontWeight: "600"
       });
-      closeButton.onclick = closePopup;
+      closeButton.onclick = closePopupWithRefresh;
       popup.appendChild(closeButton);
       
       // Sett fokus på Lukk-knappen og håndter Enter
@@ -1114,13 +1135,14 @@ ${listTurer}
       closeButton.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          closePopup();
+          closePopupWithRefresh();
         }
       });
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
-    overlay.onclick = closePopup;
+    overlay.onclick = closePopup; // Før operasjon - lukker uten refresh
+    // overlay.onclick endres til closePopupWithRefresh etter suksess
 
     const escapeHandler = (e) => {
       if (e.key === "Escape") closePopup();
@@ -1236,6 +1258,13 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      isProcessing = false;
+    };
+    
+    const closePopupWithRefresh = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1269,6 +1298,9 @@ ${listTurer}
       
       if (typeof openPopp === "function") openPopp('-1');
       
+      // Nå kan overlay lukke med refresh
+      overlay.onclick = closePopupWithRefresh;
+      
       // Vis Lukk-knapp
       const closeButton = document.createElement("button");
       closeButton.textContent = "Lukk";
@@ -1283,7 +1315,7 @@ ${listTurer}
         cursor: "pointer",
         fontWeight: "600"
       });
-      closeButton.onclick = closePopup;
+      closeButton.onclick = closePopupWithRefresh;
       popup.appendChild(closeButton);
       
       // Sett fokus på Lukk-knappen og håndter Enter
@@ -1291,13 +1323,14 @@ ${listTurer}
       closeButton.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          closePopup();
+          closePopupWithRefresh();
         }
       });
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
-    overlay.onclick = closePopup;
+    overlay.onclick = closePopup; // Før operasjon - lukker uten refresh
+    // overlay.onclick endres til closePopupWithRefresh etter suksess
 
     const escapeHandler = (e) => {
       if (e.key === "Escape") closePopup();
@@ -1451,8 +1484,15 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
-      if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false; // Frigi sperre når popup lukkes
+    };
+    
+    const closePopupWithRefresh = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
+      if (typeof openPopp === 'function') openPopp('-1');
+      isProcessing = false;
     };
 
     confirmButton.onclick = async () => {
@@ -1487,6 +1527,9 @@ ${listBestillinger}
       
       if (typeof openPopp === "function") openPopp('-1');
       
+      // Nå kan overlay lukke med refresh
+      overlay.onclick = closePopupWithRefresh;
+      
       // Vis Lukk-knapp
       const closeButton = document.createElement("button");
       closeButton.textContent = "Lukk";
@@ -1501,7 +1544,7 @@ ${listBestillinger}
         cursor: "pointer",
         fontWeight: "600"
       });
-      closeButton.onclick = closePopup;
+      closeButton.onclick = closePopupWithRefresh;
       popup.appendChild(closeButton);
       
       // Sett fokus på Lukk-knappen og håndter Enter
@@ -1509,13 +1552,14 @@ ${listBestillinger}
       closeButton.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          closePopup();
+          closePopupWithRefresh();
         }
       });
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
-    overlay.onclick = closePopup;
+    overlay.onclick = closePopup; // Før operasjon - lukker uten refresh
+    // overlay.onclick endres til closePopupWithRefresh etter suksess
 
     const escapeHandler = (e) => {
       if (e.key === "Escape") closePopup();
@@ -1664,6 +1708,13 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      isProcessing = false;
+    };
+    
+    const closePopupWithRefresh = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1695,6 +1746,9 @@ ${listBestillinger}
       
       if (typeof openPopp === "function") openPopp('-1');
       
+      // Nå kan overlay lukke med refresh
+      overlay.onclick = closePopupWithRefresh;
+      
       // Vis Lukk-knapp
       const closeButton = document.createElement("button");
       closeButton.textContent = "Lukk";
@@ -1709,7 +1763,7 @@ ${listBestillinger}
         cursor: "pointer",
         fontWeight: "600"
       });
-      closeButton.onclick = closePopup;
+      closeButton.onclick = closePopupWithRefresh;
       popup.appendChild(closeButton);
       
       // Sett fokus på Lukk-knappen og håndter Enter
@@ -1717,13 +1771,14 @@ ${listBestillinger}
       closeButton.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          closePopup();
+          closePopupWithRefresh();
         }
       });
     };
 
     popup.querySelector("#cancelRemove").onclick = closePopup;
-    overlay.onclick = closePopup;
+    overlay.onclick = closePopup; // Før operasjon - lukker uten refresh
+    // overlay.onclick endres til closePopupWithRefresh etter suksess
 
     const escapeHandler = (e) => {
       if (e.key === "Escape") closePopup();
@@ -1847,6 +1902,13 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      isProcessing = false;
+    };
+    
+    const closePopupWithRefresh = () => {
+      popup.parentNode?.removeChild(popup);
+      overlay.parentNode?.removeChild(overlay);
+      document.removeEventListener('keydown', escapeHandler);
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1872,6 +1934,9 @@ ${listBestillinger}
       
       if (typeof openPopp === "function") openPopp('-1');
       
+      // Nå kan overlay lukke med refresh
+      overlay.onclick = closePopupWithRefresh;
+      
       // Vis Lukk-knapp
       const closeButton = document.createElement("button");
       closeButton.textContent = "Lukk";
@@ -1886,7 +1951,7 @@ ${listBestillinger}
         cursor: "pointer",
         fontWeight: "600"
       });
-      closeButton.onclick = closePopup;
+      closeButton.onclick = closePopupWithRefresh;
       popup.appendChild(closeButton);
       
       // Sett fokus på Lukk-knappen og håndter Enter
@@ -1894,13 +1959,14 @@ ${listBestillinger}
       closeButton.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          closePopup();
+          closePopupWithRefresh();
         }
       });
     };
 
     popup.querySelector("#cancelAvplanlegg").onclick = closePopup;
-    overlay.onclick = closePopup;
+    overlay.onclick = closePopup; // Før operasjon - lukker uten refresh
+    // overlay.onclick endres til closePopupWithRefresh etter suksess
 
     const escapeHandler = (e) => {
       if (e.key === "Escape") closePopup();

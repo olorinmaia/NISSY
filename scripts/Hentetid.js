@@ -783,14 +783,39 @@
       const oppTimeInput = popup.querySelector(`#opptime_${displayId}`);
       
       if (oppTimeInput) {
-        // Auto-select ved klikk
+        // Smart select: enkelt-klikk velger alt, dobbelklikk velger timer/minutter
+        let lastClickPos = -1;
+        
+        // Auto-select ved enkelt-klikk
         oppTimeInput.addEventListener('focus', (e) => {
           e.target.select();
         });
         
-        // Auto-select ved museklikk (for å sikre at det fungerer i alle tilfeller)
         oppTimeInput.addEventListener('mouseup', (e) => {
           e.preventDefault();
+        });
+        
+        // Dobbelklikk velger timer eller minutter
+        oppTimeInput.addEventListener('dblclick', (e) => {
+          const input = e.target;
+          const value = input.value;
+          const colonPos = value.indexOf(':');
+          
+          if (colonPos !== -1) {
+            // Finn ut hvor klikket var basert på musens X-posisjon
+            const rect = input.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const inputWidth = rect.width;
+            const colonRelativePos = colonPos / value.length;
+            
+            // Hvis klikket var i venstre halvdel (timer)
+            if (clickX < inputWidth * colonRelativePos) {
+              input.setSelectionRange(0, colonPos);
+            } else {
+              // Høyre halvdel (minutter)
+              input.setSelectionRange(colonPos + 1, value.length);
+            }
+          }
         });
         
         // Auto-formatering mens du skriver
@@ -915,14 +940,38 @@
       const input = popup.querySelector(`#time_${displayId}`);
       if (!input) return;
       
-      // Auto-select ved klikk
+      // Smart select: enkelt-klikk velger alt, dobbelklikk velger timer/minutter
+      
+      // Auto-select ved enkelt-klikk
       input.addEventListener('focus', (e) => {
         e.target.select();
       });
       
-      // Auto-select ved museklikk (for å sikre at det fungerer i alle tilfeller)
       input.addEventListener('mouseup', (e) => {
         e.preventDefault();
+      });
+      
+      // Dobbelklikk velger timer eller minutter
+      input.addEventListener('dblclick', (e) => {
+        const inputEl = e.target;
+        const value = inputEl.value;
+        const colonPos = value.indexOf(':');
+        
+        if (colonPos !== -1) {
+          // Finn ut hvor klikket var basert på musens X-posisjon
+          const rect = inputEl.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const inputWidth = rect.width;
+          const colonRelativePos = colonPos / value.length;
+          
+          // Hvis klikket var i venstre halvdel (timer)
+          if (clickX < inputWidth * colonRelativePos) {
+            inputEl.setSelectionRange(0, colonPos);
+          } else {
+            // Høyre halvdel (minutter)
+            inputEl.setSelectionRange(colonPos + 1, value.length);
+          }
+        }
       });
       
       // Auto-formatering mens du skriver
