@@ -58,6 +58,36 @@
     let activeOverlay = null;
     let activeModals = [];
     let activeKeyboardListener = null;
+    
+    /**
+     * Aktiverer modal-modus (blokkerer CTRL+F søk i bakgrunnen)
+     */
+    function enableModalMode() {
+        document.body.classList.add('bestillingsmodul-active');
+        
+        // Sett inert på alle direkte barn av body som ikke er overlay/modal
+        // Dette blokkerer CTRL+F søk i bakgrunnen, men beholder synlighet
+        Array.from(document.body.children).forEach(child => {
+            if (!child.classList.contains('bestillingsmodul-overlay') && 
+                !child.classList.contains('bestillingsmodul-modal')) {
+                child.setAttribute('inert', '');
+                child.setAttribute('data-bestillingsmodul-inert', 'true');
+            }
+        });
+    }
+    
+    /**
+     * Deaktiverer modal-modus
+     */
+    function disableModalMode() {
+        document.body.classList.remove('bestillingsmodul-active');
+        
+        // Fjern inert fra alle elementer
+        document.querySelectorAll('[data-bestillingsmodul-inert]').forEach(el => {
+            el.removeAttribute('inert');
+            el.removeAttribute('data-bestillingsmodul-inert');
+        });
+    }
 
     /**
      * Nullstiller bestillingsmodulen via XHR
@@ -430,6 +460,7 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                        
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -438,6 +469,9 @@
         });
 
         activeModals = [selectionModal, fourStepModal, onePageModal];
+        
+        // Aktiver modal-modus
+        enableModalMode();
 
         return { overlay, selectionModal, fourStepModal, onePageModal };
     }
@@ -470,6 +504,9 @@
         // Dette fanger opp eventuelle "spøkelsesmodaler" som ble opprettet raskt
         document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
         document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+        
+        // Deaktiver modal-modus
+        disableModalMode();
         
         disableF5Handler();
         
@@ -704,6 +741,9 @@
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
             activeModals = [modal];
+            
+            // Aktiver modal-modus
+            enableModalMode();
 
             const iframe = modal.querySelector('iframe');
             
@@ -731,6 +771,7 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                        
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -833,6 +874,9 @@
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
             activeModals = [modal];
+            
+            // Aktiver modal-modus
+            enableModalMode();
 
             const iframe = modal.querySelector('iframe');
             
@@ -860,6 +904,7 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                        
                         
                         // Override window.close() i iframe for å lukke modal istedenfor
                         iframeWin.close = function() {
@@ -1039,6 +1084,9 @@
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
             activeModals = [modal];
+            
+            // Aktiver modal-modus
+            enableModalMode();
 
             const iframe = modal.querySelector('iframe');
             
@@ -1066,6 +1114,7 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+                        
                         
                         // Klikk på "Rediger klar fra" knappen hvis den finnes og er synlig
                         setTimeout(() => {
