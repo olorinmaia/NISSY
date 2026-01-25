@@ -14,6 +14,27 @@
   console.log("🚀 Starter Rek-knapper-script");
 
   // ============================================================
+  // INERT-HÅNDTERING: Blokkerer CTRL+F søk i bakgrunnen
+  // ============================================================
+  function enableModalMode() {
+    // Sett inert på alle direkte barn av body som ikke er modal
+    Array.from(document.body.children).forEach(child => {
+      if (child.id !== 'iframeModal') {
+        child.setAttribute('inert', '');
+        child.setAttribute('data-rekknapper-inert', 'true');
+      }
+    });
+  }
+  
+  function disableModalMode() {
+    // Fjern inert fra alle elementer
+    document.querySelectorAll('[data-rekknapper-inert]').forEach(el => {
+      el.removeAttribute('inert');
+      el.removeAttribute('data-rekknapper-inert');
+    });
+  }
+
+  // ============================================================
   // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
   // ============================================================
   let currentErrorToast = null;
@@ -360,7 +381,10 @@
       // Scenario 1: Åpne direkte URL (hendelseslogg, manuell status, etc.)
       if (url) {
         iframe.src = url;
-        if (modal) modal.style.display = "flex";
+        if (modal) {
+          modal.style.display = "flex";
+          enableModalMode();
+        }
 
         // Hvis det er rediger-knappen, klikk automatisk på "Rediger klar fra" og fokuser hentetid
         if (isEditButton) {
@@ -384,7 +408,10 @@
       }
       // Scenario 2: POST requisitionNumber (for T-knappen - lag retur)
       else if (requisitionNumber) {
-        if (modal) modal.style.display = "flex";
+        if (modal) {
+          modal.style.display = "flex";
+          enableModalMode();
+        }
         
         let firstLoad = true;
         iframe.onload = function() {
@@ -442,7 +469,10 @@
       const modal = document.getElementById("iframeModal");
       const iframe = document.getElementById("iframeModalContent");
 
-      if (modal) modal.style.display = "none";
+      if (modal) {
+        modal.style.display = "none";
+        disableModalMode();
+      }
       if (iframe) {
         iframe.src = "about:blank";
         iframe.onload = null;

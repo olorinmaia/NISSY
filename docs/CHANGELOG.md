@@ -9,7 +9,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## 🚀 [3.2.0] - 26.01.2026
 
-### Ny funksjonalitet og forbedringer til Avbestilling + liten forbedring til Hentetid og Adminmodul!
+### Ny funksjonalitet og forbedringer til Avbestilling + forbedringer til flere andre script!
 
 #### Hva er nytt?
 - ✖️ **Avbestilling** 
@@ -23,7 +23,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Smart-select av tidspunkt, TT eller MM ved dobbelklikk, tab/enkeltklikk velger hele TT:MM.
 - ⚙️ **Adminmodul** 
   - Forbedret auto-søk for tur/bestilling: Velger nå øverste rad og scroller ned til resultatet automatisk
-- 📝 **Bestillingsmodul** 
+- 📝 **Bestillingsmodul** + 🔠 **Rek-knapper**
   - Ved søk med CTRL+F så søkes det kun i inneholdet i pop-up, ikke i bakgrunnen. TIPS: Lukk CTRL+F med ESC for bedre opplevelse etter søk.
 
 ## 🚀 [3.1.0] - 23.01.2026
