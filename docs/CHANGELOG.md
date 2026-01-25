@@ -23,8 +23,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Smart-select av tidspunkt, TT eller MM ved dobbelklikk, tab/enkeltklikk velger hele TT:MM.
 - ⚙️ **Adminmodul** 
   - Forbedret auto-søk for tur/bestilling: Velger nå øverste rad og scroller ned til resultatet automatisk
-- 📝 **Bestillingsmodul** + 🔠 **Rek-knapper**
-  - Ved søk med CTRL+F så søkes det kun i inneholdet i pop-up, ikke i bakgrunnen. TIPS: Lukk CTRL+F med ESC for bedre opplevelse etter søk.
+- 📝 **Bestillingsmodul** + 🔠 **Rek-knapper** + ⚙️ **Adminmodul** 
+  - Ved søk med CTRL+F så søkes det kun i inneholdet i pop-up/modal, ikke i bakgrunnen. Tips: Lukk CTRL+F med ESC for bedre opplevelse etter søk.
 
 ## 🚀 [3.1.0] - 23.01.2026
 

@@ -35,6 +35,31 @@
     let currentIframe = null;
 
     /**
+     * Aktiverer modal-modus (blokkerer CTRL+F søk i bakgrunnen)
+     */
+    function enableModalMode() {
+        // Sett inert på alle direkte barn av body som ikke er overlay/modal
+        Array.from(document.body.children).forEach(child => {
+            if (!child.classList.contains('adminmodul-overlay') && 
+                !child.classList.contains('adminmodul-modal')) {
+                child.setAttribute('inert', '');
+                child.setAttribute('data-adminmodul-inert', 'true');
+            }
+        });
+    }
+    
+    /**
+     * Deaktiverer modal-modus
+     */
+    function disableModalMode() {
+        // Fjern inert fra alle elementer
+        document.querySelectorAll('[data-adminmodul-inert]').forEach(el => {
+            el.removeAttribute('inert');
+            el.removeAttribute('data-adminmodul-inert');
+        });
+    }
+
+    /**
      * Injiserer CSS-stiler for modal
      */
     function injectStyles() {
@@ -178,6 +203,9 @@
         document.body.appendChild(modal);
 
         activeModal = modal;
+        
+        // Aktiver modal-modus
+        enableModalMode();
 
         // Håndter F5 på modal-nivå
         const iframe = modal.querySelector('iframe');
@@ -246,6 +274,9 @@
             activeModal.remove();
             activeModal = null;
         }
+        
+        // Deaktiver modal-modus
+        disableModalMode();
         
         disableF5Handler();
     }
@@ -362,6 +393,9 @@
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
             activeModal = modal;
+            
+            // Aktiver modal-modus
+            enableModalMode();
 
             const iframe = modal.querySelector('iframe');
             modal.addEventListener('keydown', handleF5, true);
