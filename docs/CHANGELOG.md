@@ -7,6 +7,25 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [3.2.0] - 26.01.2026
+
+### Ny funksjonalitet og forbedringer til Avbestilling + forbedringer til flere andre script!
+
+#### Hva er nytt?
+- ✖️ **Avbestilling** 
+  - Forbedret utgråingslogikk ved avbestilling av turer/bestillinger, bruker NISSY sin egen funksjon riktig.
+  - Ny funksjon: Avplanlegging og Fjern fra planlegging.
+    - Fanger opp klikk på kryss i pågående oppdrag og i ressurser i ny forbedret pop-up.
+  - Sperrer av muligheten for å avbestille ved kryss etter 3003 XML.
+  - Gir advarsler til bruker ved avplanlegging av samkjørte bestillinger.
+  - Forbedret lukking av pop-up og oppdatering av bestilling/turer.
+- 🕐 **Hentetid** 
+  - Smart-select av tidspunkt, TT eller MM ved dobbelklikk, tab/enkeltklikk velger hele TT:MM.
+- ⚙️ **Adminmodul** 
+  - Forbedret auto-søk for tur/bestilling: Velger nå øverste rad og scroller ned til resultatet automatisk
+- 📝 **Bestillingsmodul** + 🔠 **Rek-knapper** + ⚙️ **Adminmodul** 
+  - Ved søk med CTRL+F så søkes det kun i inneholdet i pop-up/modal, ikke i bakgrunnen. Tips: Lukk CTRL+F med ESC for bedre opplevelse etter søk.
+
 ## 🚀 [3.1.0] - 23.01.2026
 
 ### Forbedring til Smart-tildel

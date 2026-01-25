@@ -35,6 +35,31 @@
     let currentIframe = null;
 
     /**
+     * Aktiverer modal-modus (blokkerer CTRL+F søk i bakgrunnen)
+     */
+    function enableModalMode() {
+        // Sett inert på alle direkte barn av body som ikke er overlay/modal
+        Array.from(document.body.children).forEach(child => {
+            if (!child.classList.contains('adminmodul-overlay') && 
+                !child.classList.contains('adminmodul-modal')) {
+                child.setAttribute('inert', '');
+                child.setAttribute('data-adminmodul-inert', 'true');
+            }
+        });
+    }
+    
+    /**
+     * Deaktiverer modal-modus
+     */
+    function disableModalMode() {
+        // Fjern inert fra alle elementer
+        document.querySelectorAll('[data-adminmodul-inert]').forEach(el => {
+            el.removeAttribute('inert');
+            el.removeAttribute('data-adminmodul-inert');
+        });
+    }
+
+    /**
      * Injiserer CSS-stiler for modal
      */
     function injectStyles() {
@@ -178,6 +203,9 @@
         document.body.appendChild(modal);
 
         activeModal = modal;
+        
+        // Aktiver modal-modus
+        enableModalMode();
 
         // Håndter F5 på modal-nivå
         const iframe = modal.querySelector('iframe');
@@ -246,6 +274,9 @@
             activeModal.remove();
             activeModal = null;
         }
+        
+        // Deaktiver modal-modus
+        disableModalMode();
         
         disableF5Handler();
     }
@@ -362,6 +393,9 @@
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
             activeModal = modal;
+            
+            // Aktiver modal-modus
+            enableModalMode();
 
             const iframe = modal.querySelector('iframe');
             modal.addEventListener('keydown', handleF5, true);
@@ -390,21 +424,48 @@
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
                         
-                        // Hvis vi venter på søkeresultater, scroll nå
+                        // Hvis vi venter på søkeresultater, klikk på første rad og scroll
                         if (waitingForSearchResults) {
                             waitingForSearchResults = false;
                             setTimeout(() => {
                                 try {
-                                    // Scroll til bunnen av siden
-                                    iframeWin.scrollTo({
-                                        top: iframeDoc.body.scrollHeight,
-                                        behavior: 'smooth'
-                                    });
-                                    iframeDoc.documentElement.scrollTop = iframeDoc.documentElement.scrollHeight;
+                                    // Finn søkeresultattabellen
+                                    const searchResultTable = iframeDoc.getElementById('searchResultTable');
+                                    
+                                    if (searchResultTable) {
+                                        // Finn første klikkbare rad i tbody (med onclick attributt)
+                                        const firstRow = searchResultTable.querySelector('tbody tr[onclick]');
+                                        
+                                        if (firstRow) {
+                                            // Klikk på første rad
+                                            firstRow.click();
+                                        } else {
+                                            console.log('⚠️ Fant ikke noen klikkbare rader i søkeresultatet');
+                                        }
+                                        
+                                        // Scroll slik at toppen av fieldset/tabellen vises
+                                        setTimeout(() => {
+                                            // Prøv først å finne fieldset som inneholder tabellen
+                                            let scrollTarget = searchResultTable.closest('fieldset');
+                                            
+                                            // Hvis ikke fieldset finnes, bruk tabellen direkte
+                                            if (!scrollTarget) {
+                                                scrollTarget = searchResultTable;
+                                            }
+                                            
+                                            const targetTop = scrollTarget.getBoundingClientRect().top + iframeWin.scrollY;
+                                            iframeWin.scrollTo({
+                                                top: targetTop - 20, // 20px margin fra toppen
+                                                behavior: 'smooth'
+                                            });
+                                        }, 200);
+                                    } else {
+                                        console.log('⚠️ Fant ikke searchResultTable');
+                                    }
                                 } catch (scrollErr) {
-                                    console.error('Scroll error:', scrollErr);
+                                    console.error('Scroll/click error:', scrollErr);
                                 }
-                            }, 200);
+                            }, 300);
                         }
                         // Automatisk søk basert på URL-parameter - kun første gang
                         else if (!autoSearchPerformed) {
