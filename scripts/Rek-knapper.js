@@ -336,7 +336,7 @@
     // Sjekk om et bilde er en slett-knapp
     const isDeleteButton = (img) => {
       const onclick = img.getAttribute("onclick");
-      return onclick && (onclick.includes("removeResurs") || onclick.includes("removePaagaaendeOppdrag"));
+      return onclick && (onclick.includes("removeResurs") || onclick.includes("removePaagaaendeOppdrag") || onclick.includes("removeVentendeOppdrag"));
     };
 
     // Lukker rek-knapper når følgende funksjoner brukes
