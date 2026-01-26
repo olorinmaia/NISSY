@@ -1,6 +1,6 @@
 # NISSY Basic - Veiledning
 
-![NISSY Basic](https://img.shields.io/badge/NISSY-Basic-blue)
+## [📝 Endringslogg](CHANGELOG.md)
 
 ## 🎯 For hvem?
 
@@ -238,7 +238,6 @@ Legger til:
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
 - Se [README](../README.md) for mer utfyllende informasjon
-- Se [CHANGELOG](CHANGELOG.md) for endringslogg
 
 ---
 

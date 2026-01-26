@@ -1,6 +1,6 @@
 # NISSY Advanced - Brukerveiledning
 
-![NISSY Advanced](https://img.shields.io/badge/NISSY-Advanced-orange)
+## [📝 Endringslogg](CHANGELOG.md)
 
 ### Inkluderte scripts:
 - ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
@@ -246,7 +246,6 @@ Lar deg merke bestillinger/turer og trykke på snarvei Alt+K for å masse-avbest
 Fant du en bug eller har forslag?
 - Åpne et issue på [GitHub](https://github.com/olorinmaia/NISSY/issues)
 - Se [README](../README.md) for mer utfyllende informasjon
-- Se [CHANGELOG](CHANGELOG.md) for endringslogg
 
 ---
 
