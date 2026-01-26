@@ -25,6 +25,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Forbedret auto-søk for tur/bestilling: Velger nå øverste rad og scroller ned til resultatet automatisk
 - 📝 **Bestillingsmodul** + 🔠 **Rek-knapper** + ⚙️ **Adminmodul** 
   - Ved søk med CTRL+F så søkes det kun i inneholdet i pop-up/modal, ikke i bakgrunnen. Tips: Lukk CTRL+F med ESC for bedre opplevelse etter søk.
+- 🔠 **Rek-knapper**
+  - Forbedre lukking av rek-knapper ytterligere ved klikk på diverse elementer som kan forandre rekkefølgen av bestillinger/turer
 
 ## 🚀 [3.1.0] - 23.01.2026
 
