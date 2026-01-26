@@ -266,7 +266,7 @@
     // ============================================================
     const setupTildelingListeners = () => {
       // Lytt på tildelingsknapper i dialogen
-      ["buttonAssignVoppsAssistConfirm", "buttonAssignVopps", "buttonSearch", "buttonCancelSearch"].forEach((btnId) => {
+      ["buttonAssignVoppsAssistConfirm", "buttonAssignVopps", "buttonSearch", "buttonCancelSearch", "buttonMeetingplace"].forEach((btnId) => {
         const btn = document.getElementById(btnId);
         if (btn) {
           const handler = () => setTimeout(() => cleanupSnippet(), 500);
@@ -285,6 +285,52 @@
           }
         }
       }, true);
+
+      // Lytt på klikk på rekvisisjonslenker og kjør cleanup
+      document.addEventListener("click", (e) => {
+        if (!window.snippetActive) return;
+        
+        const target = e.target;
+        
+        // Sjekk direkte klikk på lenke
+        if (target.tagName === "A") {
+          const href = target.getAttribute("href") || "";
+          const targetAttr = target.getAttribute("target");
+          
+          if (targetAttr === "_blank" && 
+              (href.includes("/rekvisisjon/requisition/") || 
+               href.includes("redit?id=") ||
+               target.id === "linkToRequisition")) {
+            setTimeout(() => cleanupSnippet(), 300);
+            return;
+          }
+        }
+        
+        // Sjekk klikk på bilde med onclick
+        if (target.tagName === "IMG") {
+          const onclick = target.getAttribute("onclick") || "";
+          if (onclick.includes("window.open") && 
+              onclick.includes("/rekvisisjon/requisition/patient?copyReqId=")) {
+            setTimeout(() => cleanupSnippet(), 300);
+            return;
+          }
+          
+          // Sjekk om bildet er inne i en lenke (1 nivå opp)
+          const parent = target.parentElement;
+          if (parent && parent.tagName === "A") {
+            const href = parent.getAttribute("href") || "";
+            const targetAttr = parent.getAttribute("target");
+            
+            if (targetAttr === "_blank" && 
+                (href.includes("/rekvisisjon/requisition/") || 
+                 href.includes("redit?id=") ||
+                 parent.id === "linkToRequisition")) {
+              setTimeout(() => cleanupSnippet(), 300);
+              return;
+            }
+          }
+        }
+      }, true);
     };
 
     // Sjekk om et bilde er en slett-knapp
@@ -294,8 +340,8 @@
     };
 
     // Lukker rek-knapper når følgende funksjoner brukes
-    // Smart-tildel (Alt+S), Tilordning (Alt+T), Avbestill (Alt+K) og Hentetid (Alt+E)
-    const CLEANUP_HOTKEYS = new Set(["s", "t", "k", "e"]);
+    // Smart-tildel (Alt+S), Tilordning (Alt+T), Avbestill (Alt+K), Hentetid (Alt+E), Bestillingsmodul (Alt+N), Hent rekvisisjon (Alt+H) og Møteplass (Alt+M)
+    const CLEANUP_HOTKEYS = new Set(["s", "t", "k", "e", "n", "h", "m"]);
     
     document.addEventListener("keydown", (e) => {
       if (!window.snippetActive) return;
@@ -585,7 +631,7 @@
         fontFamily: "Arial",
         fontSize: "12px",
         borderRadius: "4px",
-        zIndex: "999999",
+        zIndex: "9997",
         whiteSpace: "nowrap",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
       });
