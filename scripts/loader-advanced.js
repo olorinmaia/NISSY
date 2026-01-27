@@ -255,7 +255,7 @@
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="s" title="Smart-tildeling med RB/ERS + passasjerregler uten behov for å velge avtale">
+                   data-hotkey="s" title="Smart-tildeling med RB/ERS + passasjerregler uten behov for å velge avtale, kan også tildele til merket ressurs">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
@@ -350,7 +350,7 @@
           • ALT+M → Møteplass<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
-          • ALT+S → Smart tildeling (RB/ERS + passasjerregler)<br>
+          • ALT+S → Smart-tildeling (RB/ERS + passasjerregler)<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+E → Hentetid<br>
           • ALT+R → Rek-knapper (ESC lukker)<br>
