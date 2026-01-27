@@ -7,6 +7,10 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [3.2.1] - 27.01.2026
+
+### ⌛ NISSY-fiks fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
+
 ## 🚀 [3.2.0] - 26.01.2026
 
 ### Ny funksjonalitet og forbedringer til Avbestilling + forbedringer til flere andre script!

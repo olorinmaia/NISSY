@@ -170,6 +170,34 @@
   
   }, true);
 
+  /* ======================================================
+     DEL 0B: FORBEDRET KARTVINDU (matcher Rutekalkulering)
+     ====================================================== */
+  
+  (function setupMapWindowImprovement() {
+    const originalWindowOpen = window.open;
+    
+    window.open = function(url, target, features) {
+      // Sjekk om dette er "Vis i kart" (Alt+W)
+      const isMap = url && (url.includes('mapDisplay') || url.includes('showmap') || url.includes('vis-i-kart'));
+      
+      if (isMap) {
+        // Bruk SAMME vindu-features som Rutekalkulering.js:
+        // - Halvparten av skjermbredden
+        // - 90% av skjermhøyden
+        // - Plassert på venstre side
+        // Dette gir en side-ved-side layout med NISSY
+        const mapFeatures = `width=${innerWidth / 2},height=${innerHeight * 0.9},left=0,top=50,resizable=yes,scrollbars=yes`;
+        
+        // Åpne vinduet med de nye features
+        return originalWindowOpen.call(this, url, '_blank', mapFeatures);
+      }
+      
+      // For andre URLs (inkludert Google Maps/rutekalkulering), bruk original
+      return originalWindowOpen.call(this, url, target, features);
+    };
+
+  })();
 
   /* ======================================================
      DEL 1: KJØR KOLONNE-ENDRINGER (KUN ÉN GANG)
