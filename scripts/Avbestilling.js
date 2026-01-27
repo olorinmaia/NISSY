@@ -1819,12 +1819,6 @@ ${listBestillinger}
         <span style="font-size:13px; color:#666;">${oppdrag.info}</span>
       </div>
       
-      <div style="background:#e3f2fd; border:1px solid #2196f3; padding:12px; border-radius:6px; margin-bottom:16px;">
-        <p style="margin:0; font-size:13px; color:#1565c0;">
-          <strong>ℹ️</strong> Bestillingen vil fjernes fra ressursen og<br>flyttes til ventende oppdrag.
-        </p>
-      </div>
-      
       ${oppdrag.erSamkjort ? `
       <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:16px;">
         <p style="margin:0; font-size:13px; color:#856404;">
