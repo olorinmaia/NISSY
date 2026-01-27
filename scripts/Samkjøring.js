@@ -1,4 +1,5 @@
-// Samkjøringsforslag (UNDER UTVIKLING)
+// NISSY Samkjøringsforslag Snippet
+// Kjør i Console eller via loader
 // Snarvei: Alt+X
 
 (function() {
@@ -73,9 +74,13 @@
     function getSelectedVentendeOppdrag() {
         const selected = [];
         // Merkede rader har inline style med background-color: rgb(148, 169, 220)
-        const rows = document.querySelectorAll('#ventendeoppdrag tbody tr[style*="background-color"]');
+        const rows = document.querySelectorAll('#ventendeoppdrag tbody tr');
         
         rows.forEach(row => {
+            // Sjekk om raden har riktig bakgrunnsfarge (merket)
+            const bgColor = row.style.backgroundColor;
+            if (bgColor !== 'rgb(148, 169, 220)') return;
+            
             const cells = row.querySelectorAll('td');
             if (cells.length < 7) return;
             
