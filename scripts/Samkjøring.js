@@ -14,6 +14,59 @@
     // Marker scriptet som lastet
     window.nissySamkjoringLoaded = true;
 
+    // ============================================================
+    // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
+    // ============================================================
+    let currentErrorToast = null;
+    
+    function showErrorToast(msg) {
+        // Fjern eksisterende feilmelding-toast
+        if (currentErrorToast && currentErrorToast.parentNode) {
+            currentErrorToast.parentNode.removeChild(currentErrorToast);
+        }
+        
+        const toast = document.createElement("div");
+        toast.textContent = msg;
+        
+        // Styling
+        Object.assign(toast.style, {
+            position: "fixed",
+            bottom: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#d9534f", // Rød bakgrunn for feil
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            fontFamily: "Arial, sans-serif",
+            zIndex: "999999",
+            opacity: "0",
+            transition: "opacity 0.3s ease"
+        });
+        
+        document.body.appendChild(toast);
+        currentErrorToast = toast;
+        
+        // Fade in
+        setTimeout(() => {
+            toast.style.opacity = "1";
+        }, 10);
+        
+        // Fade out etter 4 sekunder
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+                if (currentErrorToast === toast) {
+                    currentErrorToast = null;
+                }
+            }, 300);
+        }, 4000);
+    }
+
     // Konstanter for tidsjusteringer
     const SHORT_DISTANCE_POSTNR_DIFF = 30;
     const SHORT_DISTANCE_TIME_BUFFER = 30; // minutter
@@ -492,14 +545,14 @@
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white;">
                             <tbody>
                                 <tr style="background: #f0f8ff;">
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 15%;"><strong>Navn</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 21%;"><strong>Navn</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Hentetid</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Oppmøte</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Fra</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Til</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 27.5%;"><strong>Fra</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 27.5%;"><strong>Til</strong></td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}${result.ventende.isReturnTrip ? ' (Retur)' : ''}">${result.ventende.patientName}${result.ventende.isReturnTrip ? ' <span style="color: #ff8800; font-size: 0.9em;">(Retur)</span>' : ''}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}${result.ventende.isReturnTrip ? ' (Retur)' : ''}">${result.ventende.patientName}${result.ventende.isReturnTrip ? ' <span style="color: #ff8800; font-size: 0.9em;">(R)</span>' : ''}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripStartTime}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripTreatmentTime}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
@@ -630,12 +683,21 @@
         `;
         document.body.appendChild(overlay);
 
+        // Sett fokus på første "Velg ressurs"-knapp
+        setTimeout(() => {
+            const firstButton = popup.querySelector('button[onclick^="window.selectSamkjoringResource"]');
+            if (firstButton) {
+                firstButton.focus();
+            }
+        }, 100);
+
         // Funksjon for å lukke popup
         const closePopup = () => {
             popup.remove();
             overlay.remove();
             window.samkjoringRunning = false;
             document.removeEventListener('keydown', escHandler);
+            document.removeEventListener('keydown', tabTrapHandler);
         };
 
         // ESC-handler
@@ -646,12 +708,36 @@
         };
         document.addEventListener('keydown', escHandler);
 
+        // TAB-trap: Hold TAB-navigasjon innenfor popup
+        const tabTrapHandler = (e) => {
+            if (e.key !== 'Tab') return;
+            
+            // Finn alle fokuserbare elementer i popup
+            const focusableElements = popup.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+            
+            // Hvis Shift+Tab på første element, gå til siste
+            if (e.shiftKey && document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            }
+            // Hvis Tab på siste element, gå til første
+            else if (!e.shiftKey && document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        };
+        document.addEventListener('keydown', tabTrapHandler);
+
         // Global funksjon for å velge ressurs
         window.selectSamkjoringResource = (ventendeId, resourceId) => {
             if (selectResourceAndBooking(ventendeId, resourceId)) {
                 closePopup();
             } else {
-                alert('Kunne ikke velge ressurs. Vennligst prøv igjen.');
+                showErrorToast('🚐 Kunne ikke velge ressurs. Vennligst prøv igjen.');
             }
         };
 
@@ -671,7 +757,7 @@
         const selectedVentende = getSelectedVentendeOppdrag();
         
         if (selectedVentende.length === 0) {
-            alert('Vennligst merk minst én bestilling på ventende oppdrag først.');
+            showErrorToast('🚐 Ingen bestillinger er valgt. Vennligst marker én eller flere bestillinger på ventende oppdrag og trykk på Samkjøring-knappen eller Alt+X igjen.');
             return;
         }
 
