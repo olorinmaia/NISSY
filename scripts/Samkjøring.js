@@ -4,16 +4,47 @@
 
 (function() {
     'use strict';
+    
+    // Sjekk om scriptet allerede er lastet
+    if (window.nissySamkjoringLoaded) {
+        console.log('⚠️ NISSY Samkjøringsforslag er allerede aktivt.');
+        return;
+    }
+    
+    // Marker scriptet som lastet
+    window.nissySamkjoringLoaded = true;
 
     // Konstanter for tidsjusteringer
     const SHORT_DISTANCE_POSTNR_DIFF = 30;
     const SHORT_DISTANCE_TIME_BUFFER = 30; // minutter
     const LONG_DISTANCE_TIME_BUFFER = 120; // minutter (2 timer)
-    
-    // Sperre for å forhindre flere popups samtidig
-    let isAnalyseRunning = false;
 
-    // Funksjon for å parse postnummer fra adresse
+    // Funksjon for å velge ressurs og merke bestilling
+    function selectResourceAndBooking(ventendeId, resourceId) {
+        try {
+            // Clear alle selections først
+            if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+                ListSelectionGroup.clearAllSelections();
+            }
+            
+            // Merk ventende bestilling
+            const ventendeRow = document.getElementById('V-' + ventendeId);
+            if (ventendeRow && typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+                selectRow('V-' + ventendeId, g_voppLS);
+            }
+            
+            // Merk pågående ressurs
+            const resourceRow = document.getElementById('P-' + resourceId);
+            if (resourceRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                selectRow('P-' + resourceId, g_poppLS);
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Feil ved merking:', error);
+            return false;
+        }
+    }
     function parsePostnummer(address) {
         if (!address) return null;
         const match = address.match(/\b(\d{4})\b/);
@@ -90,10 +121,12 @@
             const fromAddress = cells[6].innerHTML.split('<br>')[0].trim();
             const toAddress = cells[6].innerHTML.split('<br>')[1]?.trim() || '';
             
-            const reqId = row.id.replace('V-', '');
+            const reqId = row.getAttribute('name') || row.id.replace('V-', '');
+            const rowId = row.id.replace('V-', '');
             
             const order = {
                 id: reqId,
+                rowId: rowId,
                 patientName,
                 tripStartTime,
                 tripTreatmentTime,
@@ -121,31 +154,72 @@
             if (cells.length < 11) return;
             
             const resource = cells[1].textContent.trim();
-            const tripStartTime = cells[3].textContent.trim();
-            const tripTreatmentTime = cells[4].textContent.trim();
-            const patientName = cells[5].textContent.trim();
-            const fromAddress = cells[8].textContent.trim();
-            const toAddress = cells[9].textContent.trim();
-            const status = cells[10].textContent.trim();
+            const rowId = row.id.replace('P-', '');
             
-            const reqId = row.id.replace('P-', '');
+            // Sjekk om ressursen har flere bestillinger (row-image divs)
+            const rowImageDivs = cells[3].querySelectorAll('div.row-image');
             
-            const order = {
-                id: reqId,
-                resource,
-                patientName,
-                tripStartTime,
-                tripTreatmentTime,
-                fromAddress,
-                toAddress,
-                status,
-                postnrHent: parsePostnummer(fromAddress),
-                postnrLever: parsePostnummer(toAddress),
-                startDateTime: parseDateTime(tripStartTime),
-                treatmentDateTime: parseDateTime(tripTreatmentTime)
-            };
-            
-            oppdrag.push(normalizeReturnTrip(order));
+            if (rowImageDivs.length > 0) {
+                // Ressurs med flere bestillinger
+                rowImageDivs.forEach((div, index) => {
+                    const tripStartTime = cells[3].querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const tripTreatmentTime = cells[4].querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const patientName = cells[5].querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const fromAddress = cells[8].querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const toAddress = cells[9].querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const status = cells[10].querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    
+                    const reqId = rowId + '-' + index;
+                    
+                    const order = {
+                        id: reqId,
+                        rowId: rowId,
+                        resource,
+                        patientName,
+                        tripStartTime,
+                        tripTreatmentTime,
+                        fromAddress,
+                        toAddress,
+                        status,
+                        postnrHent: parsePostnummer(fromAddress),
+                        postnrLever: parsePostnummer(toAddress),
+                        startDateTime: parseDateTime(tripStartTime),
+                        treatmentDateTime: parseDateTime(tripTreatmentTime),
+                        multiBooking: true,
+                        bookingIndex: index + 1,
+                        totalBookings: rowImageDivs.length
+                    };
+                    
+                    oppdrag.push(normalizeReturnTrip(order));
+                });
+            } else {
+                // Ressurs med én bestilling
+                const tripStartTime = cells[3].textContent.trim();
+                const tripTreatmentTime = cells[4].textContent.trim();
+                const patientName = cells[5].textContent.trim();
+                const fromAddress = cells[8].textContent.trim();
+                const toAddress = cells[9].textContent.trim();
+                const status = cells[10].textContent.trim();
+                
+                const order = {
+                    id: rowId,
+                    rowId: rowId,
+                    resource,
+                    patientName,
+                    tripStartTime,
+                    tripTreatmentTime,
+                    fromAddress,
+                    toAddress,
+                    status,
+                    postnrHent: parsePostnummer(fromAddress),
+                    postnrLever: parsePostnummer(toAddress),
+                    startDateTime: parseDateTime(tripStartTime),
+                    treatmentDateTime: parseDateTime(tripTreatmentTime),
+                    multiBooking: false
+                };
+                
+                oppdrag.push(normalizeReturnTrip(order));
+            }
         });
         
         return oppdrag;
@@ -323,22 +397,50 @@
         const results = [];
 
         ventendeList.forEach(ventende => {
-            const candidates = [];
+            const resourceMatches = new Map(); // Grupperer per ressurs
             
             pagaendeList.forEach(pagaende => {
                 const match = checkSamkjoring(ventende, pagaende);
+                
+                // Initialiser ressurs hvis den ikke finnes
+                if (!resourceMatches.has(pagaende.resource)) {
+                    resourceMatches.set(pagaende.resource, {
+                        resource: pagaende.resource,
+                        bookings: [],
+                        hasMatch: false,
+                        bestScore: 0
+                    });
+                }
+                
+                const resourceData = resourceMatches.get(pagaende.resource);
+                
                 if (match) {
-                    candidates.push({
+                    resourceData.hasMatch = true;
+                    resourceData.bestScore = Math.max(resourceData.bestScore, match.score);
+                    
+                    resourceData.bookings.push({
                         ...pagaende,
                         matchType: match.type,
                         timeDiff: match.timeDiff,
-                        score: match.score
+                        absTimeDiff: match.absTimeDiff,
+                        direction: match.direction,
+                        waitDescription: match.waitDescription,
+                        score: match.score,
+                        hasMatch: true
+                    });
+                } else {
+                    // Legg til bestilling uten match også, for å vise full ressurs
+                    resourceData.bookings.push({
+                        ...pagaende,
+                        hasMatch: false
                     });
                 }
             });
 
-            // Sorter kandidater etter score (beste først)
-            candidates.sort((a, b) => b.score - a.score);
+            // Filtrer kun ressurser som har minst én match
+            const candidates = Array.from(resourceMatches.values())
+                .filter(r => r.hasMatch)
+                .sort((a, b) => b.bestScore - a.bestScore); // Sorter etter beste score
 
             if (candidates.length > 0) {
                 results.push({
@@ -378,7 +480,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         `;
 
-        let html = '<h2 style="margin-top: 0;">Samkjøringsforslag</h2>';
+        let html = '<h2 style="margin-top: 0;">🚐 Samkjøringsforslag</h2>';
 
         if (results.length === 0) {
             html += '<p>Ingen samkjøringskandidater funnet.</p>';
@@ -386,73 +488,121 @@
             results.forEach(result => {
                 html += `
                     <div style="margin-bottom: 25px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
-                        <h3 style="margin-top: 0; color: #0066cc;">Merkede bestilling:</h3>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 5px;"><strong>Pasient:</strong></td>
-                                <td style="padding: 5px;">${result.ventende.patientName}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 5px;"><strong>Henting:</strong></td>
-                                <td style="padding: 5px;">${result.ventende.tripStartTime}${result.ventende.isReturnTrip ? ' <span style="color: #ff8800;">(Retur)</span>' : ''}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 5px;"><strong>Levering:</strong></td>
-                                <td style="padding: 5px;">${result.ventende.tripTreatmentTime}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 5px;"><strong>Fra:</strong></td>
-                                <td style="padding: 5px;">${result.ventende.fromAddress}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 5px;"><strong>Til:</strong></td>
-                                <td style="padding: 5px;">${result.ventende.toAddress}</td>
-                            </tr>
+                        <h3 style="margin-top: 0; color: #0066cc;">Merket bestilling:</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white;">
+                            <tbody>
+                                <tr style="background: #f0f8ff;">
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 15%;"><strong>Navn</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Hentetid</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Oppmøte</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Fra</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Til</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}${result.ventende.isReturnTrip ? ' (Retur)' : ''}">${result.ventende.patientName}${result.ventende.isReturnTrip ? ' <span style="color: #ff8800; font-size: 0.9em;">(Retur)</span>' : ''}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripStartTime}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripTreatmentTime}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.toAddress}">${result.ventende.toAddress}</td>
+                                </tr>
+                            </tbody>
                         </table>
                         
-                        <h4 style="margin-top: 15px; color: #006400;">Potensielle samkjøringer (${result.candidates.length}):</h4>
+                        <h4 style="margin-top: 15px; color: #006400;">Potensielle samkjøringer (${result.candidates.length} ressurs${result.candidates.length !== 1 ? 'er' : ''}):</h4>
                 `;
 
-                result.candidates.forEach((candidate, index) => {
-                    let directionText = '';
-                    let directionColor = '#555';
-                    let matchTypeLabel = '';
+                result.candidates.forEach((resourceCandidate, resIndex) => {
+                    // Finn beste match for denne ressursen
+                    const matchedBookings = resourceCandidate.bookings.filter(b => b.hasMatch);
+                    const bestMatch = matchedBookings.length > 0 ? matchedBookings[0] : null;
+                    
+                    let resourceBadge = '';
                     let borderColor = '#006400';
                     
-                    if (candidate.matchType === 'returutnyttelse') {
-                        matchTypeLabel = '<span style="background: #9b59b6; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">RETURUTNYTTELSE</span> ';
-                        directionText = ` (${candidate.waitDescription})`;
-                        directionColor = '#9b59b6';
-                        borderColor = '#9b59b6';
-                    } else if (candidate.matchType === 'paa-vei-forbi') {
-                        matchTypeLabel = '<span style="background: #e67e22; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">PÅ VEI FORBI</span> ';
-                        directionText = '';
-                        directionColor = '#e67e22';
-                        borderColor = '#e67e22';
-                    } else if (candidate.direction === 'fremover') {
-                        directionText = ` (+${candidate.absTimeDiff} min)`;
-                        directionColor = '#006400';
-                    } else if (candidate.direction === 'bakover') {
-                        directionText = ` (-${candidate.absTimeDiff} min)`;
-                        directionColor = '#ff8800';
-                    } else {
-                        directionText = ' (samme tid)';
-                        directionColor = '#0066cc';
+                    if (bestMatch) {
+                        if (bestMatch.matchType === 'returutnyttelse') {
+                            resourceBadge = '<span style="background: #9b59b6; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">RETURUTNYTTELSE</span>';
+                            borderColor = '#9b59b6';
+                        } else if (bestMatch.matchType === 'paa-vei-forbi') {
+                            resourceBadge = '<span style="background: #e67e22; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">PÅ VEI FORBI</span>';
+                            borderColor = '#e67e22';
+                        } else {
+                            resourceBadge = '<span style="background: #006400; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
+                        }
                     }
                     
+                    // Hent rowId fra første booking (alle har samme ressurs)
+                    const resourceRowId = resourceCandidate.bookings[0].rowId;
+                    
                     html += `
-                        <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid ${borderColor}; border-radius: 3px;">
-                            <div style="font-weight: bold; margin-bottom: 5px;">
-                                ${index + 1}. ${matchTypeLabel}${candidate.resource} - ${candidate.patientName}${candidate.isReturnTrip ? ' <span style="color: #ff8800;">(Retur)</span>' : ''}
+                        <div style="margin: 15px 0; padding: 12px; background: white; border-left: 4px solid ${borderColor}; border-radius: 3px;">
+                            <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    ${resIndex + 1}. ${resourceCandidate.resource}${resourceBadge}
+                                    <span style="color: ${borderColor}; font-size: 0.95em; margin-left: 10px;">Score: ${Math.round(resourceCandidate.bestScore)}</span>
+                                </div>
+                                <button 
+                                    onclick="window.selectSamkjoringResource('${result.ventende.rowId}', '${resourceRowId}')"
+                                    style="background: ${borderColor}; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em;"
+                                    onmouseover="this.style.opacity='0.8'"
+                                    onmouseout="this.style.opacity='1'"
+                                >
+                                    Velg ressurs
+                                </button>
                             </div>
-                            <div style="font-size: 0.9em; color: #555;">
-                                <div>Start: ${candidate.tripStartTime}${directionText ? ' <span style="color: ' + directionColor + '; font-weight: bold;">' + directionText + '</span>' : ''}</div>
-                                <div>Oppmøte: ${candidate.tripTreatmentTime}</div>
-                                <div>Fra: ${candidate.fromAddress}</div>
-                                <div>Til: ${candidate.toAddress}</div>
-                                <div>Status: ${candidate.status}</div>
-                                <div style="color: ${borderColor}; font-weight: bold;">Match score: ${Math.round(candidate.score)}</div>
-                            </div>
+                            
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                                <thead>
+                                    <tr style="background: #f9f9f9; border-bottom: 2px solid #ddd;">
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Match</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Navn</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    resourceCandidate.bookings.forEach((booking, bookingIndex) => {
+                        const rowBg = bookingIndex % 2 === 0 ? '#fff' : '#f9f9f9';
+                        let matchIcon = '';
+                        let timeInfo = '';
+                        
+                        if (booking.hasMatch) {
+                            matchIcon = '<span style="color: green; font-weight: bold;">✓</span>';
+                            
+                            if (booking.matchType === 'returutnyttelse') {
+                                timeInfo = ` <span style="color: #9b59b6;">(${booking.waitDescription})</span>`;
+                            } else if (booking.matchType === 'paa-vei-forbi') {
+                                timeInfo = '';
+                            } else if (booking.direction === 'fremover') {
+                                timeInfo = ` <span style="color: #006400;">(+${booking.absTimeDiff} min)</span>`;
+                            } else if (booking.direction === 'bakover') {
+                                timeInfo = ` <span style="color: #ff8800;">(-${booking.absTimeDiff} min)</span>`;
+                            } else if (booking.direction === 'identisk') {
+                                timeInfo = ` <span style="color: #0066cc;">(samme tid)</span>`;
+                            }
+                        } else {
+                            matchIcon = '<span style="color: #ccc;">-</span>';
+                        }
+                        
+                        html += `
+                            <tr style="background: ${rowBg}; ${booking.hasMatch ? 'font-weight: 500;' : 'color: #666;'}">
+                                <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${matchIcon}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}${booking.isReturnTrip ? ' (Retur)' : ''}">${booking.patientName}${booking.isReturnTrip ? ' <span style="color: #ff8800;">(Retur)</span>' : ''}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}${timeInfo}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
                         </div>
                     `;
                 });
@@ -480,24 +630,40 @@
         `;
         document.body.appendChild(overlay);
 
-        // Lukk-funksjonalitet
-        document.getElementById('close-samkjoring-popup').addEventListener('click', () => {
+        // Funksjon for å lukke popup
+        const closePopup = () => {
             popup.remove();
             overlay.remove();
-            isAnalyseRunning = false; // Frigjør sperren
-        });
+            window.samkjoringRunning = false;
+            document.removeEventListener('keydown', escHandler);
+        };
 
-        overlay.addEventListener('click', () => {
-            popup.remove();
-            overlay.remove();
-            isAnalyseRunning = false; // Frigjør sperren
-        });
+        // ESC-handler
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closePopup();
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+
+        // Global funksjon for å velge ressurs
+        window.selectSamkjoringResource = (ventendeId, resourceId) => {
+            if (selectResourceAndBooking(ventendeId, resourceId)) {
+                closePopup();
+            } else {
+                alert('Kunne ikke velge ressurs. Vennligst prøv igjen.');
+            }
+        };
+
+        // Lukk-funksjonalitet
+        document.getElementById('close-samkjoring-popup').addEventListener('click', closePopup);
+        overlay.addEventListener('click', closePopup);
     }
 
     // Hovedfunksjon
     function runSamkjoringAnalyse() {
-        // Sjekk om analyse allerede kjører
-        if (isAnalyseRunning) {
+        // Sjekk global sperre
+        if (window.samkjoringRunning) {
             console.log('Samkjøringsanalyse kjører allerede...');
             return;
         }
@@ -510,7 +676,7 @@
         }
 
         // Sett sperre
-        isAnalyseRunning = true;
+        window.samkjoringRunning = true;
 
         const results = findCandidates(selectedVentende);
         showResultsPopup(results);
