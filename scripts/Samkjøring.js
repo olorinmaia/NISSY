@@ -1,6 +1,8 @@
-// NISSY Samkjøringsforslag Snippet
-// Kjør i Console eller via loader
+// ============================================================
+// Samkjøringsforslag-script 
+// Ser etter potensielle samkjøringskandidater for merkede bestillinger
 // Snarvei: Alt+X
+// ============================================================
 
 (function() {
     'use strict';
@@ -594,14 +596,25 @@
                                     ${resIndex + 1}. ${resourceCandidate.resource}${resourceBadge}
                                     <span style="color: ${borderColor}; font-size: 0.95em; margin-left: 10px;">Score: ${Math.round(resourceCandidate.bestScore)}</span>
                                 </div>
-                                <button 
-                                    onclick="window.selectSamkjoringResource('${result.ventende.rowId}', '${resourceRowId}')"
-                                    style="background: ${borderColor}; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em;"
-                                    onmouseover="this.style.opacity='0.8'"
-                                    onmouseout="this.style.opacity='1'"
-                                >
-                                    Velg ressurs
-                                </button>
+                                <div>
+                                    <button 
+                                        onclick="window.showSamkjoringInMap('${result.ventende.rowId}', '${resourceRowId}')"
+                                        style="background: #2980b9; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; margin-right: 8px; height: 36px;"
+                                        onmouseover="this.style.opacity='0.8'"
+                                        onmouseout="this.style.opacity='1'"
+                                        tabindex="-1"
+                                    >
+                                        🗺️ Vis i kart
+                                    </button>
+                                    <button 
+                                        onclick="window.selectSamkjoringResource('${result.ventende.rowId}', '${resourceRowId}')"
+                                        style="background: ${borderColor}; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; height: 36px;"
+                                        onmouseover="this.style.opacity='0.8'"
+                                        onmouseout="this.style.opacity='1'"
+                                    >
+                                        🚐 Velg ressurs
+                                    </button>
+                                </div>
                             </div>
                             
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
@@ -712,10 +725,13 @@
         const tabTrapHandler = (e) => {
             if (e.key !== 'Tab') return;
             
-            // Finn alle fokuserbare elementer i popup
-            const focusableElements = popup.querySelectorAll(
+            // Finn alle fokuserbare elementer i popup (unntatt de med tabindex="-1")
+            const focusableElements = Array.from(popup.querySelectorAll(
                 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            );
+            )).filter(el => el.tabIndex !== -1);
+            
+            if (focusableElements.length === 0) return;
+            
             const firstElement = focusableElements[0];
             const lastElement = focusableElements[focusableElements.length - 1];
             
@@ -738,6 +754,25 @@
                 closePopup();
             } else {
                 showErrorToast('🚐 Kunne ikke velge ressurs. Vennligst prøv igjen.');
+            }
+        };
+
+        // Global funksjon for å vise i kart
+        window.showSamkjoringInMap = (ventendeId, resourceId) => {
+            if (selectResourceAndBooking(ventendeId, resourceId)) {
+                // Trigger Alt+W for å åpne kart
+                setTimeout(() => {
+                    document.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: 'w',
+                        code: 'KeyW',
+                        altKey: true,
+                        bubbles: true,
+                        cancelable: true
+                    }));
+                }, 100);
+                // Popup forblir åpen slik at bruker kan velge flere ressurser
+            } else {
+                showErrorToast('🚐 Kunne ikke åpne kart. Vennligst prøv igjen.');
             }
         };
 
