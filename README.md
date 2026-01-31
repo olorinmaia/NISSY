@@ -56,6 +56,9 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
   - Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
   - Hindrer bruker fra å gjøre ting som ikke er i henhold til SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
+- 🚐 **Samkjøring (Alt+X)**
+  - Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
+  - Baseres utelukket på tidspunkt hent/oppmøte og postnummer fra/til, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/63c48b59-f9cc-46cf-b448-c4634793027a" />
@@ -99,6 +102,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🔠 Rek-knapper (ALT+R) | ✅ | ✅ |
 | 🪄 Smart-tildeling (ALT+S) | ❌ | ✅ |
 | 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
+| 🚐 Samkjøring (ALT+X) | ❌ | ✅ |
 
 ## 🚀 Installasjon
 
@@ -161,6 +165,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+M` | Møteplass |
 | `ALT+K` | Avbestilling av turer/bestillinger |
 | `ALT+E` | Hentetid |
+| `ALT+X` | Samkjøring |
 
 ## 🔧 Funksjonalitet
 

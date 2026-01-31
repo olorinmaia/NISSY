@@ -7,6 +7,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ser på mulighetene for enkel samkjøringsalgoritme
 
 ---
+## 🚀 [3.3.0] - 31.01.2026
+
+### Nytt script: 🚐 Samkjøring
+
+#### Hva er nytt?
+- 🚐 **Samkjøring (Alt+X)** 
+  - Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
+  - Baseres utelukket på tidspunkt hent/oppmøte og postnummer fra/til, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
+
 ## 🚀 [3.2.1] - 27.01.2026
 
 ### ⌛ NISSY-fiks fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
