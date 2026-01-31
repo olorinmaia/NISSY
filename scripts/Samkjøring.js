@@ -69,10 +69,22 @@
         }, 4000);
     }
 
-    // Konstanter for tidsjusteringer
-    const SHORT_DISTANCE_POSTNR_DIFF = 30;
-    const SHORT_DISTANCE_TIME_BUFFER = 30; // minutter
-    const LONG_DISTANCE_TIME_BUFFER = 120; // minutter (2 timer)
+    // ============================================================
+    // KONSTANTER
+    // ============================================================
+    
+    // Tidsrelaterte konstanter
+    const SHORT_DISTANCE_POSTNR_DIFF = 30;          // Grense mellom kort og lang tur (postnr diff)
+    const SHORT_DISTANCE_TIME_BUFFER = 30;          // Tidsbuffer for korte turer (minutter)
+    const LONG_DISTANCE_TIME_BUFFER = 120;          // Tidsbuffer for lange turer (minutter - 2 timer)
+    
+    // Postnummer-toleranser
+    const POSTNR_TOLERANCE_DELIVERY = 11;           // ±10 postnr for leveringssted
+    const POSTNR_TOLERANCE_PICKUP = 11;             // ±10 postnr for hentested
+    
+    // Tidsmessige krav
+    const MAX_START_DIFF_SHORT = 30;                // Maks startdiff for korte turer (minutter)
+    const MIN_OVERLAP_MINUTES = 0;                  // Minimum overlapp for tidsvinduer (minutter)
 
     // ============================================================
     // BLOKKERINGS-LISTE: Postnummer-kombinasjoner som ALDRI skal matches
@@ -306,6 +318,55 @@
         return oppdrag;
     }
 
+    // Funksjon for å beregne faktisk leveringsvindu for en ressurs
+    // Når en ressurs har flere bestillinger, blir leveringsvinduet begrenset av alle bestillingene
+    function calculateActualDeliveryWindow(resourceBookings) {
+        // Filtrer kun bestillinger til behandling (ikke returer)
+        const toTreatment = resourceBookings.filter(b => !b.isReturnTrip);
+        
+        if (toTreatment.length === 0) {
+            return null;
+        }
+        
+        // For hver bestilling, beregn tidligste og seneste leveringstid
+        let globalEarliestDelivery = null;
+        let globalLatestDelivery = null;
+        
+        toTreatment.forEach(booking => {
+            const postnrDiff = Math.abs(booking.postnrHent - booking.postnrLever);
+            const timeBuffer = postnrDiff < SHORT_DISTANCE_POSTNR_DIFF 
+                ? SHORT_DISTANCE_TIME_BUFFER 
+                : LONG_DISTANCE_TIME_BUFFER;
+            
+            // Tidligste levering = oppmøtetid - buffer
+            const earliestDelivery = new Date(booking.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
+            // Seneste levering = oppmøtetid
+            const latestDelivery = booking.treatmentDateTime;
+            
+            // Det faktiske vinduet er der ALLE bestillinger kan leveres
+            // Tidligste må være det SENESTE av alle tidligste (kan ikke levere før alle er klare)
+            if (!globalEarliestDelivery || earliestDelivery > globalEarliestDelivery) {
+                globalEarliestDelivery = earliestDelivery;
+            }
+            
+            // Seneste må være det SENESTE av alle seneste (kan levere når som helst frem til siste oppmøte)
+            if (!globalLatestDelivery || latestDelivery > globalLatestDelivery) {
+                globalLatestDelivery = latestDelivery;
+            }
+        });
+        
+        // Sjekk om vinduet er gyldig (tidligste må være før seneste)
+        if (globalEarliestDelivery >= globalLatestDelivery) {
+            return null; // Ingen overlapp - ressursen kan ikke ta alle bestillingene
+        }
+        
+        return {
+            earliestDelivery: globalEarliestDelivery,
+            latestDelivery: globalLatestDelivery,
+            bookingsCount: toTreatment.length
+        };
+    }
+
     // Funksjon for å sjekke om to bestillinger kan samkjøres
     function checkSamkjoring(ventende, pagaende) {
         // ============================================================
@@ -412,71 +473,109 @@
         const leverPostnrDiff = Math.abs(ventende.postnrLever - pagaende.postnrLever);
         const hentePostnrDiff = Math.abs(ventende.postnrHent - pagaende.postnrHent);
         
-        if (leverPostnrDiff <= 10 && hentePostnrDiff <= 10) {
-            // Sjekk om begge reiser i samme retning (nord eller sør)
-            const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
-            const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
+        if (leverPostnrDiff <= POSTNR_TOLERANCE_DELIVERY && hentePostnrDiff <= POSTNR_TOLERANCE_PICKUP) {
+            const debug = true;
+            if (debug) console.log('→ SCENARIO 1A: Nært hente- og leveringssted');
             
-            if (pagaendeRetning !== ventendeRetning) {
-                return null;
-            }
+            // Spesialtilfelle: Hvis en av turene er lokal (hente = lever), hopp over initial retningssjekk
+            const ventendeIsLocal = ventende.postnrHent === ventende.postnrLever;
+            const pagaendeIsLocal = pagaende.postnrHent === pagaende.postnrLever;
             
-            // Sjekk tidsmessig kompatibilitet
-            if (pagaende.startDateTime && ventende.startDateTime && pagaende.treatmentDateTime) {
-                const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
-                const leverDiff = (pagaende.treatmentDateTime - ventende.startDateTime) / (1000 * 60);
+            let passDirectionCheck = ventendeIsLocal || pagaendeIsLocal;
+            
+            if (!passDirectionCheck) {
+                // Sjekk om begge reiser i samme retning
+                const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
+                const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
                 
-                // Pågående må starte før ventende (eller maks 30 min etter)
-                // Ventende må hentes før pågående leverer
-                if (startDiff >= -30 && leverDiff >= 0) {
-                    return {
-                        type: 'samkjøring',
-                        timeDiff: Math.round(startDiff),
-                        absTimeDiff: Math.abs(Math.round(startDiff)),
-                        direction: pagaendeRetning,
-                        score: 70 - Math.abs(startDiff)
-                    };
+                if (debug) {
+                    console.log('  Ventende retning:', ventendeRetning);
+                    console.log('  Ressurs retning:', pagaendeRetning);
                 }
                 
-                // For lange turer - sjekk tidsvindu-overlapp
-                const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
-                const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
-                
-                if (ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF) {
-                    // Begge er lange turer: Sjekk retning også her
-                    const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
-                    const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
+                if (pagaendeRetning === ventendeRetning) {
+                    passDirectionCheck = true;
+                } else {
+                    if (debug) console.log('  Forskjellig retning - prøver neste scenario');
+                }
+            } else {
+                if (debug) console.log('  En eller begge er lokale - hopper over retningssjekk');
+            }
+            
+            if (passDirectionCheck) {
+                // Sjekk tidsmessig kompatibilitet
+                if (pagaende.startDateTime && ventende.startDateTime && pagaende.treatmentDateTime) {
+                    const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
+                    const leverDiff = (pagaende.treatmentDateTime - ventende.startDateTime) / (1000 * 60);
                     
-                    // Må reise i samme retning
-                    if (pagaendeRetning !== ventendeRetning) {
-                        return null;
+                    if (debug) console.log('  Startdiff:', startDiff, 'min, LeverDiff:', leverDiff, 'min');
+                    
+                    // Pågående må starte før ventende (eller maks 30 min etter)
+                    // Ventende må hentes før pågående leverer
+                    if (startDiff >= -MAX_START_DIFF_SHORT && leverDiff >= 0) {
+                        if (debug) console.log('✓ MATCH i SCENARIO 1A');
+                        
+                        const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
+                        
+                        // Gi bonus for eksakt leveringssted match
+                        let scoreBonus = 0;
+                        if (ventende.postnrLever === pagaende.postnrLever) {
+                            scoreBonus = 10; // +10 poeng for samme leveringssted
+                            if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
+                        }
+                        
+                        return {
+                            type: 'samkjøring',
+                            timeDiff: Math.round(startDiff),
+                            absTimeDiff: Math.abs(Math.round(startDiff)),
+                            direction: pagaendeRetning,
+                            score: 95 - Math.abs(startDiff) + scoreBonus
+                        };
                     }
                     
-                    // Beregn tidsvinduer
-                    const ventendeTidligst = new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
-                    const ventendeSenest = ventende.treatmentDateTime;
+                    // For lange turer - sjekk tidsvindu-overlapp
+                    const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
+                    const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
                     
-                    const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
-                    const pagaendeSenest = pagaende.treatmentDateTime;
-                    
-                    // Sjekk om tidsvinduer overlapper
-                    const overlapper = ventendeTidligst <= pagaendeSenest && pagaendeTidligst <= ventendeSenest;
-                    
-                    if (overlapper && pagaende.startDateTime <= ventende.startDateTime) {
-                        const overlapStart = ventendeTidligst > pagaendeTidligst ? ventendeTidligst : pagaendeTidligst;
-                        const overlapEnd = ventendeSenest < pagaendeSenest ? ventendeSenest : pagaendeSenest;
-                        const overlapMinutter = (overlapEnd - overlapStart) / (1000 * 60);
+                    if (ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF) {
+                        // Begge er lange turer: Sjekk retning også her
+                        const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
+                        const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
                         
-                        if (overlapMinutter >= 30) {
-                            const tidDiffFraOptimal = Math.abs((pagaende.treatmentDateTime - ventende.treatmentDateTime) / (1000 * 60));
+                        // Må reise i samme retning
+                        if (pagaendeRetning !== ventendeRetning) {
+                            if (debug) console.log('  Lang tur - forskjellig retning');
+                            return null;
+                        }
+                        
+                        // Beregn tidsvinduer
+                        const ventendeTidligst = new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
+                        const ventendeSenest = ventende.treatmentDateTime;
+                        
+                        const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
+                        const pagaendeSenest = pagaende.treatmentDateTime;
+                        
+                        // Sjekk om tidsvinduer overlapper
+                        const overlapper = ventendeTidligst <= pagaendeSenest && pagaendeTidligst <= ventendeSenest;
+                        
+                        if (overlapper && pagaende.startDateTime <= ventende.startDateTime) {
+                            const overlapStart = ventendeTidligst > pagaendeTidligst ? ventendeTidligst : pagaendeTidligst;
+                            const overlapEnd = ventendeSenest < pagaendeSenest ? ventendeSenest : pagaendeSenest;
+                            const overlapMinutter = (overlapEnd - overlapStart) / (1000 * 60);
                             
-                            return {
-                                type: 'samkjøring',
-                                timeDiff: Math.round(startDiff),
-                                absTimeDiff: Math.round(tidDiffFraOptimal),
-                                direction: pagaendeRetning,
-                                score: 65 - (tidDiffFraOptimal / 4)
-                            };
+                            if (overlapMinutter >= MIN_OVERLAP_MINUTES) {
+                                const tidDiffFraOptimal = Math.abs((pagaende.treatmentDateTime - ventende.treatmentDateTime) / (1000 * 60));
+                                
+                                if (debug) console.log('✓ MATCH i SCENARIO 1A (lang tur)');
+                                
+                                return {
+                                    type: 'samkjøring',
+                                    timeDiff: Math.round(startDiff),
+                                    absTimeDiff: Math.round(tidDiffFraOptimal),
+                                    direction: pagaendeRetning,
+                                    score: 65 - (tidDiffFraOptimal / 4)
+                                };
+                            }
                         }
                     }
                 }
@@ -487,7 +586,7 @@
         // SCENARIO 1B: Kun nært leveringssted (±10 postnr) - lange turer samme retning
         // Forskjellige hentesteder, men begge lange turer til nær samme sted
         // ============================================================
-        if (leverPostnrDiff <= 10 && hentePostnrDiff > 10) {
+        if (leverPostnrDiff <= POSTNR_TOLERANCE_DELIVERY && hentePostnrDiff > POSTNR_TOLERANCE_PICKUP) {
             const debug = true; // Sett til true for logging
             if (debug) console.log('→ SCENARIO 1B: Kun nært leveringssted');
             
@@ -532,22 +631,27 @@
                             
                             if (debug) console.log('  Overlapp minutter:', overlapMinutter);
                             
-                            // Krev minst 30 min overlapp
-                            if (overlapMinutter >= 30) {
+                            // Krev at vinduer overlapper (0 min er OK)
+                            if (overlapMinutter >= MIN_OVERLAP_MINUTES) {
                                 const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
                                 const tidDiffFraOptimal = Math.abs((pagaende.treatmentDateTime - ventende.treatmentDateTime) / (1000 * 60));
                                 
                                 if (debug) console.log('✓ MATCH i SCENARIO 1B');
+                                
+                                // Gi bonus for eksakt leveringssted match
+                                let scoreBonus = 0;
+                                if (ventende.postnrLever === pagaende.postnrLever) {
+                                    scoreBonus = 10;
+                                    if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
+                                }
                                 
                                 return {
                                     type: 'samkjøring',
                                     timeDiff: Math.round(startDiff),
                                     absTimeDiff: Math.round(tidDiffFraOptimal),
                                     direction: startDiff > 0 ? 'fremover' : (startDiff < 0 ? 'bakover' : 'identisk'),
-                                    score: 100 - tidDiffFraOptimal // Høyere score siden de skal til samme sted
+                                    score: 100 - tidDiffFraOptimal + scoreBonus
                                 };
-                            } else {
-                                if (debug) console.log('  Overlapp for liten (<30 min)');
                             }
                         }
                     }
@@ -563,7 +667,7 @@
         // SCENARIO 1C: Nært hente- og leveringssted (±10 postnr begge) - korte turer
         // For korte turer der både hentested og leveringssted er nært hverandre
         // ============================================================
-        if (leverPostnrDiff <= 10 && hentePostnrDiff <= 10) {
+        if (leverPostnrDiff <= POSTNR_TOLERANCE_DELIVERY && hentePostnrDiff <= POSTNR_TOLERANCE_PICKUP) {
             const debug = true;
             if (debug) console.log('→ SCENARIO 1C: Nært hente- og leveringssted (korte turer)');
             
@@ -577,17 +681,28 @@
             
             // Sjekk om begge er korte turer
             if (ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF) {
-                // Sjekk om begge reiser i samme retning
-                const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
-                const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
+                // Spesialtilfelle: Hvis en av turene er lokal (hente = lever), hopp over retningssjekk
+                const ventendeIsLocal = ventende.postnrHent === ventende.postnrLever;
+                const pagaendeIsLocal = pagaende.postnrHent === pagaende.postnrLever;
                 
-                if (debug) {
-                    console.log('  Ventende retning:', ventendeRetning);
-                    console.log('  Ressurs retning:', pagaendeRetning);
-                    console.log('  Samme retning?', pagaendeRetning === ventendeRetning);
+                let sameDirection = true; // Default til sann for lokale turer
+                
+                if (!ventendeIsLocal && !pagaendeIsLocal) {
+                    // Begge har retning - sjekk om samme
+                    const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
+                    const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
+                    sameDirection = (pagaendeRetning === ventendeRetning);
+                    
+                    if (debug) {
+                        console.log('  Ventende retning:', ventendeRetning);
+                        console.log('  Ressurs retning:', pagaendeRetning);
+                        console.log('  Samme retning?', sameDirection);
+                    }
+                } else {
+                    if (debug) console.log('  En eller begge er lokale - hopper over retningssjekk');
                 }
                 
-                if (pagaendeRetning === ventendeRetning) {
+                if (sameDirection) {
                     // For korte turer: Bruk 30 min tidsvindu
                     if (pagaende.startDateTime && ventende.startDateTime) {
                         const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
@@ -598,12 +713,19 @@
                         if (Math.abs(startDiff) <= SHORT_DISTANCE_TIME_BUFFER) {
                             if (debug) console.log('✓ MATCH i SCENARIO 1C');
                             
+                            // Gi bonus for eksakt leveringssted match
+                            let scoreBonus = 0;
+                            if (ventende.postnrLever === pagaende.postnrLever) {
+                                scoreBonus = 10; // +10 poeng for samme leveringssted
+                                if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
+                            }
+                            
                             return {
                                 type: 'samkjøring',
                                 timeDiff: Math.round(startDiff),
                                 absTimeDiff: Math.abs(Math.round(startDiff)),
                                 direction: startDiff > 0 ? 'fremover' : (startDiff < 0 ? 'bakover' : 'identisk'),
-                                score: 100 - Math.abs(startDiff)
+                                score: 100 - Math.abs(startDiff) + scoreBonus
                             };
                         } else {
                             if (debug) console.log('  Tidsdiff for stor (>' + SHORT_DISTANCE_TIME_BUFFER + ' min)');
@@ -618,11 +740,59 @@
         }
         
         // ============================================================
+        // SCENARIO 1E: Lokale turer - både hente- og leveringssted veldig nært (±10 postnr)
+        // Eksempel: Ventende 7725→7725, Ressurs 7715→7725
+        // ============================================================
+        if (leverPostnrDiff <= POSTNR_TOLERANCE_DELIVERY) {
+            const debug = true;
+            if (debug) console.log('→ SCENARIO 1E: Sjekker lokale turer (hente og lever nært)');
+            
+            // Sjekk om også hentested er nært (±10)
+            if (hentePostnrDiff <= POSTNR_TOLERANCE_PICKUP) {
+                if (debug) {
+                    console.log('  Hentested diff:', hentePostnrDiff);
+                    console.log('  Leveringssted diff:', leverPostnrDiff);
+                }
+                
+                // Begge må være korte turer
+                const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
+                const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
+                
+                if (ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF) {
+                    if (debug) console.log('  Begge korte turer - sjekker tidsvindu');
+                    
+                    // Sjekk tidsmessig - maks 30 min forskjell på start
+                    if (pagaende.startDateTime && ventende.startDateTime) {
+                        const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
+                        
+                        if (debug) console.log('  Startdiff:', startDiff, 'min');
+                        
+                        if (Math.abs(startDiff) <= SHORT_DISTANCE_TIME_BUFFER) {
+                            if (debug) console.log('✓ MATCH i SCENARIO 1E (lokale turer)');
+                            
+                            return {
+                                type: 'samkjøring',
+                                timeDiff: Math.round(startDiff),
+                                absTimeDiff: Math.abs(Math.round(startDiff)),
+                                direction: startDiff > 0 ? 'fremover' : (startDiff < 0 ? 'bakover' : 'identisk'),
+                                score: 90 - Math.abs(startDiff) // Høy score for lokale turer
+                            };
+                        } else {
+                            if (debug) console.log('  Tidsdiff for stor');
+                        }
+                    }
+                } else {
+                    if (debug) console.log('  Ikke begge korte turer');
+                }
+            }
+        }
+        
+        // ============================================================
         // SCENARIO 1D: Hentested på veien - samme leveringssted
         // Ventende sitt hentested ligger mellom ressurs sitt hentested og felles leveringssted
         // Eksempel: Ressurs 7620→7603, Ventende 7608→7603 (7608 er mellom 7620 og 7603)
         // ============================================================
-        if (leverPostnrDiff <= 10) {
+        if (leverPostnrDiff <= POSTNR_TOLERANCE_DELIVERY) {
             const debug = true;
             if (debug) console.log('→ SCENARIO 1D: Sjekker om hentested er på veien');
             
@@ -668,11 +838,11 @@
                         // Sjekk om dette er kort eller lang tur
                         const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
                         const isShortTrip = ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF;
+                        const timeBuffer = isShortTrip ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
                         
                         if (isShortTrip) {
                             // Kort tur: Maks 30 min tidlig levering
-                            // Ventende kan leveres tidligst 30 min før oppmøtetid
-                            const ventendeTidligstLevering = new Date(ventende.treatmentDateTime.getTime() - (SHORT_DISTANCE_TIME_BUFFER * 60 * 1000));
+                            const ventendeTidligstLevering = new Date(ventende.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
                             const leveringOK = pagaende.treatmentDateTime >= ventendeTidligstLevering && pagaende.treatmentDateTime <= ventende.treatmentDateTime;
                             
                             if (debug) {
@@ -681,7 +851,7 @@
                                 console.log('  Levering OK?', leveringOK);
                             }
                             
-                            if (leveringOK && startDiff >= -30) {
+                            if (leveringOK && startDiff >= -timeBuffer) {
                                 if (debug) console.log('✓ MATCH i SCENARIO 1D (kort tur)');
                                 
                                 return {
@@ -695,8 +865,17 @@
                                 if (debug) console.log('  Levering utenfor vindu eller ressurs starter for sent');
                             }
                         } else {
-                            // Lang tur: Ressurs må starte før ventende (eller maks 30 min etter)
-                            if (startDiff >= -30) {
+                            // Lang tur: Maks 120 min tidlig levering
+                            const ventendeTidligstLevering = new Date(ventende.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
+                            const leveringOK = pagaende.treatmentDateTime >= ventendeTidligstLevering && pagaende.treatmentDateTime <= ventende.treatmentDateTime;
+                            
+                            if (debug) {
+                                console.log('  Lang tur - ventende kan leveres:', ventendeTidligstLevering.toTimeString().substr(0,5), '-', ventende.treatmentDateTime.toTimeString().substr(0,5));
+                                console.log('  Ressurs leverer:', pagaende.treatmentDateTime.toTimeString().substr(0,5));
+                                console.log('  Levering OK?', leveringOK);
+                            }
+                            
+                            if (leveringOK && startDiff >= -timeBuffer) {
                                 if (debug) console.log('✓ MATCH i SCENARIO 1D (lang tur)');
                                 
                                 return {
@@ -707,7 +886,7 @@
                                     score: 75 - Math.abs(startDiff)
                                 };
                             } else {
-                                if (debug) console.log('  Ressurs starter for sent');
+                                if (debug) console.log('  Levering utenfor vindu eller ressurs starter for sent');
                             }
                         }
                     }
@@ -767,18 +946,24 @@
             return null;
         }
         
-        // Begge må være lange turer
         const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
         const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
         
-        if (pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF || ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF) {
+        // Sjekk om begge er lange turer ELLER korte turer
+        const bothLong = pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && 
+                        ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF;
+        const bothShort = pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF && 
+                         ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF;
+        
+        if (!bothLong && !bothShort) {
+            // En lang og en kort - ikke returutnyttelse
             return null;
         }
         
         // Sjekk returutnyttelse:
         // 1. Ventende hentes nær der ressurs leverer (±10 postnr)
         // 2. De reiser i MOTSATT retning (ressurs gikk sør, retur går nord eller vice versa)
-        const henteMatcherLever = Math.abs(ventende.postnrHent - pagaende.postnrLever) <= 10;
+        const henteMatcherLever = Math.abs(ventende.postnrHent - pagaende.postnrLever)  <= POSTNR_TOLERANCE_DELIVERY;
         
         if (!henteMatcherLever) {
             return null;
@@ -793,16 +978,16 @@
             return null;
         }
 
-        // Retur kan vente i opptil 2 timer etter at ressurs leverer
-        const waitBuffer = LONG_DISTANCE_TIME_BUFFER;
+        // Bestem tidsvindu basert på om det er lang eller kort tur
+        const waitBuffer = bothLong ? LONG_DISTANCE_TIME_BUFFER : SHORT_DISTANCE_TIME_BUFFER;
 
         if (pagaende.treatmentDateTime && ventende.startDateTime) {
             // Tid fra ressurs leverer til ventende retur skal hentes
             const timeDiffMinutes = (ventende.startDateTime - pagaende.treatmentDateTime) / (1000 * 60);
             
-            // Sjekk om ventetiden er innenfor buffer (maks 2 timer i begge retninger)
-            // - Positiv: Ressurs leverer FØR retur hentes (ressurs venter)
-            // - Negativ: Ressurs leverer ETTER retur skulle hentes (retur venter)
+            // Sjekk om ventetiden er innenfor buffer
+            // For korte turer: maks 30 min
+            // For lange turer: maks 120 min
             if (Math.abs(timeDiffMinutes) <= waitBuffer) {
                 let waitDescription = '';
                 
@@ -876,8 +1061,55 @@
             });
 
             // Filtrer kun ressurser som har minst én match
+            // For ressurser med flere bestillinger: valider mot faktisk leveringsvindu
             const candidates = Array.from(resourceMatches.values())
-                .filter(r => r.hasMatch)
+                .filter(r => {
+                    if (!r.hasMatch) return false;
+                    
+                    // Hvis ressursen har flere bestillinger til behandling, sjekk faktisk vindu
+                    const toTreatmentBookings = r.bookings.filter(b => !b.isReturnTrip);
+                    
+                    if (toTreatmentBookings.length > 1) {
+                        const actualWindow = calculateActualDeliveryWindow(r.bookings);
+                        
+                        if (!actualWindow) {
+                            // Ressursen har ugyldige overlappende vinduer - ingen match
+                            return false;
+                        }
+                        
+                        // Sjekk om ventende kan leveres innenfor det faktiske vinduet
+                        // Beregn ventende sitt leveringsvindu
+                        const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
+                        const ventendeTimeBuffer = ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF 
+                            ? SHORT_DISTANCE_TIME_BUFFER 
+                            : LONG_DISTANCE_TIME_BUFFER;
+                        
+                        const ventendeEarliest = new Date(ventende.treatmentDateTime.getTime() - (ventendeTimeBuffer * 60 * 1000));
+                        const ventendeLatest = ventende.treatmentDateTime;
+                        
+                        // Sjekk om vinduene overlapper
+                        const overlaps = ventendeEarliest <= actualWindow.latestDelivery && 
+                                       actualWindow.earliestDelivery <= ventendeLatest;
+                        
+                        if (!overlaps) {
+                            // Ventende passer ikke inn i det faktiske vinduet
+                            return false;
+                        }
+                        
+                        // Oppdater alle matches med info om faktisk vindu
+                        r.bookings.forEach(booking => {
+                            if (booking.hasMatch) {
+                                booking.actualWindowInfo = {
+                                    earliest: actualWindow.earliestDelivery,
+                                    latest: actualWindow.latestDelivery,
+                                    bookingsCount: actualWindow.bookingsCount
+                                };
+                            }
+                        });
+                    }
+                    
+                    return true;
+                })
                 .sort((a, b) => b.bestScore - a.bestScore); // Sorter etter beste score
 
             if (candidates.length > 0) {
@@ -962,10 +1194,11 @@
                             resourceBadge = '<span style="background: #9b59b6; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">RETURUTNYTTELSE</span>';
                             borderColor = '#9b59b6';
                         } else if (bestMatch.matchType === 'samkjøring') {
-                            resourceBadge = '<span style="background: #e67e22; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
-                            borderColor = '#e67e22';
+                            resourceBadge = '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
+                            borderColor = '#28a745';
                         } else {
-                            resourceBadge = '<span style="background: #006400; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
+                            resourceBadge = '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
+                            borderColor = '#28a745';
                         }
                     }
                     
@@ -1017,21 +1250,22 @@
                     resourceCandidate.bookings.forEach((booking, bookingIndex) => {
                         const rowBg = bookingIndex % 2 === 0 ? '#fff' : '#f9f9f9';
                         let matchIcon = '';
-                        let timeInfo = '';
+                        let matchInfo = '';
                         
                         if (booking.hasMatch) {
                             matchIcon = '<span style="color: green; font-weight: bold;">✓</span>';
                             
                             if (booking.matchType === 'returutnyttelse') {
-                                timeInfo = ` <span style="color: #9b59b6;">(${booking.waitDescription})</span>`;
+                                matchInfo = ` <span style="color: #9b59b6; font-size: 0.85em;">(${booking.waitDescription})</span>`;
                             } else if (booking.matchType === 'samkjøring') {
-                                timeInfo = '';
+                                // Samkjøring uten ekstra info i Match-kolonnen
+                                matchInfo = '';
                             } else if (booking.direction === 'fremover') {
-                                timeInfo = ` <span style="color: #006400;">(+${booking.absTimeDiff} min)</span>`;
+                                matchInfo = ` <span style="color: #28a745; font-size: 0.85em;">(+${booking.absTimeDiff} min)</span>`;
                             } else if (booking.direction === 'bakover') {
-                                timeInfo = ` <span style="color: #ff8800;">(-${booking.absTimeDiff} min)</span>`;
+                                matchInfo = ` <span style="color: #ff8800; font-size: 0.85em;">(-${booking.absTimeDiff} min)</span>`;
                             } else if (booking.direction === 'identisk') {
-                                timeInfo = ` <span style="color: #0066cc;">(samme tid)</span>`;
+                                matchInfo = ` <span style="color: #0066cc; font-size: 0.85em;">(samme tid)</span>`;
                             }
                         } else {
                             matchIcon = '<span style="color: #ccc;">-</span>';
@@ -1039,9 +1273,9 @@
                         
                         html += `
                             <tr style="background: ${rowBg}; ${booking.hasMatch ? 'font-weight: 500;' : 'color: #666;'}">
-                                <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${matchIcon}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; text-align: left;">${matchIcon}${matchInfo}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}${booking.isReturnTrip ? ' (Retur)' : ''}">${booking.patientName}${booking.isReturnTrip ? ' <span style="color: #ff8800;">(Retur)</span>' : ''}</td>
-                                <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}${timeInfo}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
