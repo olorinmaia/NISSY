@@ -442,6 +442,17 @@
                 
                 let matchType = 'samkjøring';
                 let direction = '';
+
+                // Gi bonus for eksakt leveringssted eller hentested match
+                let scoreBonus = 0;
+                if (ventende.postnrLever === pagaende.postnrLever) {
+                    scoreBonus = 10; // +10 poeng for samme leveringssted
+                    if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
+                }
+                if (ventende.postnrHent === pagaende.postnrHent) {
+                    scoreBonus = 10; // +10 poeng for samme hentested
+                    if (debug) console.log('  Bonus +10 for eksakt hentested match');
+                }
                 
                 if (timeDiffMinutes > 0) {
                     direction = 'fremover'; // Pågående starter senere, kan forskyves fremover
@@ -456,7 +467,7 @@
                     timeDiff: Math.round(timeDiffMinutes),
                     absTimeDiff: Math.round(absTimeDiff),
                     direction: direction,
-                    score: 100 - absTimeDiff // Høyere score for mindre tidsdifferanse
+                    score: 100 - absTimeDiff + scoreBonus // Høyere score for mindre tidsdifferanse
                 };
             }
         }
