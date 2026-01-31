@@ -79,8 +79,8 @@
     const LONG_DISTANCE_TIME_BUFFER = 120;          // Tidsbuffer for lange turer (minutter - 2 timer)
     
     // Postnummer-toleranser
-    const POSTNR_TOLERANCE_DELIVERY = 11;           // ±10 postnr for leveringssted
-    const POSTNR_TOLERANCE_PICKUP = 11;             // ±10 postnr for hentested
+    const POSTNR_TOLERANCE_DELIVERY = 11;           // ±11 postnr for leveringssted
+    const POSTNR_TOLERANCE_PICKUP = 11;             // ±11 postnr for hentested
     
     // Tidsmessige krav
     const MAX_START_DIFF_SHORT = 30;                // Maks startdiff for korte turer (minutter)
@@ -446,11 +446,11 @@
                 // Gi bonus for eksakt leveringssted eller hentested match
                 let scoreBonus = 0;
                 if (ventende.postnrLever === pagaende.postnrLever) {
-                    scoreBonus = 10; // +10 poeng for samme leveringssted
+                    scoreBonus += 10; // +10 poeng for samme leveringssted
                     if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
                 }
                 if (ventende.postnrHent === pagaende.postnrHent) {
-                    scoreBonus = 10; // +10 poeng for samme hentested
+                    scoreBonus += 10; // +10 poeng for samme hentested
                     if (debug) console.log('  Bonus +10 for eksakt hentested match');
                 }
                 
@@ -1145,27 +1145,45 @@
         // Opprett popup
         const popup = document.createElement('div');
         popup.id = 'samkjoring-popup';
-        popup.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            z-index: 10000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        `;
-
+        
         let html = '<h2 style="margin-top: 0;">🚐 Samkjøringsforslag</h2>';
 
         if (results.length === 0) {
+            // Ingen min-width for tom popup
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #333;
+                border-radius: 8px;
+                padding: 20px;
+                max-width: 500px;
+                max-height: 80vh;
+                overflow-y: auto;
+                z-index: 10000;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            `;
             html += '<p>Ingen samkjøringskandidater funnet.</p>';
         } else {
+            // Med min-width for resultater
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #333;
+                border-radius: 8px;
+                padding: 20px;
+                min-width: 1000px;
+                max-width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                z-index: 10000;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            `;
             results.forEach(result => {
                 html += `
                     <div style="margin-bottom: 25px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
@@ -1173,18 +1191,18 @@
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white;">
                             <tbody>
                                 <tr style="background: #f0f8ff;">
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 21%;"><strong>Navn</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 15%;"><strong>Navn</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Hentetid</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Oppmøte</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 27.5%;"><strong>Fra</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 27.5%;"><strong>Til</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Fra</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Til</strong></td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}${result.ventende.isReturnTrip ? ' (Retur)' : ''}">${result.ventende.patientName}${result.ventende.isReturnTrip ? ' <span style="color: #ff8800; font-size: 0.9em;">(R)</span>' : ''}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}">${result.ventende.patientName}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripStartTime}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripTreatmentTime}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.toAddress}">${result.ventende.toAddress}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.toAddress}">${result.ventende.toAddress}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1247,12 +1265,13 @@
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
                                 <thead>
                                     <tr style="background: #f9f9f9; border-bottom: 2px solid #ddd;">
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Match</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Navn</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 8%;">Match</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 15%;">Navn</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 10%;">Hentetid</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 10%;">Oppmøte</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 25%;">Fra</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 25%;">Til</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 7%;">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1265,19 +1284,7 @@
                         
                         if (booking.hasMatch) {
                             matchIcon = '<span style="color: green; font-weight: bold;">✓</span>';
-                            
-                            if (booking.matchType === 'returutnyttelse') {
-                                matchInfo = ` <span style="color: #9b59b6; font-size: 0.85em;">(${booking.waitDescription})</span>`;
-                            } else if (booking.matchType === 'samkjøring') {
-                                // Samkjøring uten ekstra info i Match-kolonnen
-                                matchInfo = '';
-                            } else if (booking.direction === 'fremover') {
-                                matchInfo = ` <span style="color: #28a745; font-size: 0.85em;">(+${booking.absTimeDiff} min)</span>`;
-                            } else if (booking.direction === 'bakover') {
-                                matchInfo = ` <span style="color: #ff8800; font-size: 0.85em;">(-${booking.absTimeDiff} min)</span>`;
-                            } else if (booking.direction === 'identisk') {
-                                matchInfo = ` <span style="color: #0066cc; font-size: 0.85em;">(samme tid)</span>`;
-                            }
+                            matchInfo = ''; // Ingen ekstra tekst
                         } else {
                             matchIcon = '<span style="color: #ccc;">-</span>';
                         }
@@ -1285,11 +1292,12 @@
                         html += `
                             <tr style="background: ${rowBg}; ${booking.hasMatch ? 'font-weight: 500;' : 'color: #666;'}">
                                 <td style="padding: 6px; border: 1px solid #ddd; text-align: left;">${matchIcon}${matchInfo}</td>
-                                <td style="padding: 6px; border: 1px solid #ddd; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}${booking.isReturnTrip ? ' (Retur)' : ''}">${booking.patientName}${booking.isReturnTrip ? ' <span style="color: #ff8800;">(Retur)</span>' : ''}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}">${booking.patientName}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
-                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
-                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; white-space: nowrap;" title="${booking.status}">${booking.status}</td>
                             </tr>
                         `;
                     });
