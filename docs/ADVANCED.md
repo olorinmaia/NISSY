@@ -209,7 +209,7 @@ Lar deg merke bestillinger/turer og trykke på snarvei Alt+K for å masse-avbest
 ### 🚐 Samkjøring (ALT+X)
 
 Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
-  - Baseres utelukket på tidspunkt hent/oppmøte og postnummer fra/til, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
+  - Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
 
 ## ❓ Feilsøking
 

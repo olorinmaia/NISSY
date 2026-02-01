@@ -257,9 +257,41 @@
         return order;
     }
 
+    // ============================================================
+    // HJELPEFUNKSJON: Finn kolonne-indeks basert på header-link
+    // ============================================================
+    function findColumnIndex(tableSelector, headerLink) {
+        const headers = document.querySelectorAll(`${tableSelector} thead th`);
+        for (let i = 0; i < headers.length; i++) {
+            const link = headers[i].querySelector(`a[href*="${headerLink}"]`);
+            if (link) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     // Funksjon for å hente merkede bestillinger fra ventende oppdrag
     function getSelectedVentendeOppdrag() {
         const selected = [];
+
+        // Finn kolonne-indekser dynamisk fra header
+        const reiseTidIndex  = findColumnIndex('#ventendeoppdrag', 'tripStartDate');
+        const oppTidIndex    = findColumnIndex('#ventendeoppdrag', 'tripTreatmentDate');
+        const adresseIndex   = findColumnIndex('#ventendeoppdrag', 'tripFromAddress'); // Fra+Til i samme kolonne
+        const nameIndex      = findColumnIndex('#ventendeoppdrag', 'patientName');     // valgfri
+
+        // Valider kritiske kolonner
+        const missingVentende = [];
+        if (reiseTidIndex === -1) missingVentende.push("'Reisetid'");
+        if (oppTidIndex   === -1) missingVentende.push("'Oppmøtetid'");
+        if (adresseIndex  === -1) missingVentende.push("'Fra / Til'");
+
+        if (missingVentende.length > 0) {
+            showErrorToast(`❌ Mangler kolonne(r) på ventende oppdrag: ${missingVentende.join(', ')}. Vennligst legg til i tabellen.`);
+            return null; // signal: kolonne-feil, ikke "ingen valgt"
+        }
+
         // Merkede rader har inline style med background-color: rgb(148, 169, 220)
         const rows = document.querySelectorAll('#ventendeoppdrag tbody tr');
         
@@ -269,13 +301,14 @@
             if (bgColor !== 'rgb(148, 169, 220)') return;
             
             const cells = row.querySelectorAll('td');
-            if (cells.length < 7) return;
-            
-            const patientName = cells[1].textContent.trim();
-            const tripStartTime = cells[2].textContent.trim();
-            const tripTreatmentTime = cells[3].textContent.trim();
-            const fromAddress = cells[6].innerHTML.split('<br>')[0].trim();
-            const toAddress = cells[6].innerHTML.split('<br>')[1]?.trim() || '';
+
+            const patientName       = nameIndex !== -1 ? (cells[nameIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
+            const tripStartTime     = cells[reiseTidIndex]?.textContent.trim();
+            const tripTreatmentTime = cells[oppTidIndex]?.textContent.trim();
+            // Fra og Til ligger i samme celle, splittet på <br>
+            const adresseCell       = cells[adresseIndex]?.innerHTML || '';
+            const fromAddress       = adresseCell.split('<br>')[0].trim();
+            const toAddress         = (adresseCell.split('<br>')[1] || '').trim();
             
             const reqId = row.getAttribute('name') || row.id.replace('V-', '');
             const rowId = row.id.replace('V-', '');
@@ -303,27 +336,51 @@
     // Funksjon for å hente alle pågående oppdrag
     function getPaagaendeOppdrag() {
         const oppdrag = [];
+
+        // Finn kolonne-indekser dynamisk fra header
+        const startTimeIndex = findColumnIndex('#pagaendeoppdrag', 'tripStartTime');
+        const oppTidIndex    = findColumnIndex('#pagaendeoppdrag', 'tripTreatmentDate');
+        const nameIndex      = findColumnIndex('#pagaendeoppdrag', 'patientName');      // valgfri
+        const fromIndex      = findColumnIndex('#pagaendeoppdrag', 'tripFromAddress');
+        const toIndex        = findColumnIndex('#pagaendeoppdrag', 'tripToAddress');
+        const statusIndex    = findColumnIndex('#pagaendeoppdrag', 'resourceStatus');   // valgfri
+
+        // Valider kritiske kolonner
+        const missingPagaende = [];
+        if (startTimeIndex === -1) missingPagaende.push("'Start' (hentetid)");
+        if (oppTidIndex    === -1) missingPagaende.push("'Oppmøtetid'");
+        if (fromIndex      === -1) missingPagaende.push("'Fra'");
+        if (toIndex        === -1) missingPagaende.push("'Til'");
+
+        if (missingPagaende.length > 0) {
+            showErrorToast(`❌ Mangler kolonne(r) på pågående oppdrag: ${missingPagaende.join(', ')}. Vennligst legg til i tabellen.`);
+            return null; // signal: kolonne-feil
+        }
+
         const rows = document.querySelectorAll('#pagaendeoppdrag tbody tr');
         
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            if (cells.length < 11) return;
             
-            const resource = cells[1].textContent.trim();
+            const resource = cells[1]?.textContent.trim();
             const rowId = row.id.replace('P-', '');
             
             // Sjekk om ressursen har flere bestillinger (row-image divs)
-            const rowImageDivs = cells[3].querySelectorAll('div.row-image');
+            const rowImageDivs = cells[startTimeIndex]?.querySelectorAll('div.row-image');
             
-            if (rowImageDivs.length > 0) {
+            if (rowImageDivs && rowImageDivs.length > 0) {
                 // Ressurs med flere bestillinger
                 rowImageDivs.forEach((div, index) => {
-                    const tripStartTime = cells[3].querySelectorAll('div.row-image')[index]?.textContent.trim();
-                    const tripTreatmentTime = cells[4].querySelectorAll('div.row-image')[index]?.textContent.trim();
-                    const patientName = cells[5].querySelectorAll('div.row-image')[index]?.textContent.trim();
-                    const fromAddress = cells[8].querySelectorAll('div.row-image')[index]?.textContent.trim();
-                    const toAddress = cells[9].querySelectorAll('div.row-image')[index]?.textContent.trim();
-                    const status = cells[10].querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const tripStartTime     = cells[startTimeIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const tripTreatmentTime = cells[oppTidIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const patientName       = nameIndex !== -1
+                        ? (cells[nameIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '(Ukjent)')
+                        : '(Ukjent)';
+                    const fromAddress       = cells[fromIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const toAddress         = cells[toIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                    const status            = statusIndex !== -1
+                        ? (cells[statusIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '(Ukjent)')
+                        : '(Ukjent)';
                     
                     const reqId = rowId + '-' + index;
                     
@@ -350,12 +407,12 @@
                 });
             } else {
                 // Ressurs med én bestilling
-                const tripStartTime = cells[3].textContent.trim();
-                const tripTreatmentTime = cells[4].textContent.trim();
-                const patientName = cells[5].textContent.trim();
-                const fromAddress = cells[8].textContent.trim();
-                const toAddress = cells[9].textContent.trim();
-                const status = cells[10].textContent.trim();
+                const tripStartTime     = cells[startTimeIndex]?.textContent.trim();
+                const tripTreatmentTime = cells[oppTidIndex]?.textContent.trim();
+                const patientName       = nameIndex   !== -1 ? (cells[nameIndex]?.textContent.trim()   || '(Ukjent)') : '(Ukjent)';
+                const fromAddress       = cells[fromIndex]?.textContent.trim();
+                const toAddress         = cells[toIndex]?.textContent.trim();
+                const status            = statusIndex !== -1 ? (cells[statusIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
                 
                 const order = {
                     id: rowId,
@@ -1147,13 +1204,18 @@
                     waitDescription = 'ingen ventetid';
                 }
                 
+                // Bonus for eksakt postnr-match (speilet: hent↔lever)
+                let scoreBonus = 0;
+                if (ventende.postnrHent === pagaende.postnrLever) scoreBonus += 10;
+                if (ventende.postnrLever === pagaende.postnrHent) scoreBonus += 10;
+
                 return {
                     type: 'returutnyttelse',
                     timeDiff: Math.round(timeDiffMinutes),
                     absTimeDiff: Math.abs(Math.round(timeDiffMinutes)),
                     direction: 'retur',
                     waitDescription: waitDescription,
-                    score: 80 - Math.abs(timeDiffMinutes)
+                    score: 80 - Math.abs(timeDiffMinutes) + scoreBonus
                 };
             }
         }
@@ -1165,6 +1227,9 @@
     function findCandidates(ventendeList) {
         const pagaendeList = getPaagaendeOppdrag();
         const results = [];
+
+        // null = kolonne-validering feilt (toast er allerede vist)
+        if (pagaendeList === null) return null;
 
         ventendeList.forEach(ventende => {
             const resourceMatches = new Map(); // Grupperer per ressurs
@@ -1581,6 +1646,9 @@
         }
         
         const selectedVentende = getSelectedVentendeOppdrag();
+
+        // null = kolonne-validering feilt (toast er allerede vist)
+        if (selectedVentende === null) return;
         
         if (selectedVentende.length === 0) {
             showErrorToast('🚐 Ingen bestillinger er valgt. Vennligst marker én eller flere bestillinger på ventende oppdrag og trykk på Samkjøring-knappen eller Alt+X igjen.');
@@ -1591,6 +1659,13 @@
         window.samkjoringRunning = true;
 
         const results = findCandidates(selectedVentende);
+
+        // null = kolonne-validering feilt (toast er allerede vist)
+        if (results === null) {
+            window.samkjoringRunning = false;
+            return;
+        }
+
         showResultsPopup(results);
     }
 
