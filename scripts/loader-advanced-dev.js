@@ -23,7 +23,8 @@
     'Bestillingsmodul.js',
     'Adminmodul.js',
     'Hentetid.js',
-    'Ressursinfo.js'
+    'Ressursinfo.js',
+    'Samkjøring.js'
   ];
   
   console.log('📦 Laster NISSY Advanced DEV...');
@@ -119,6 +120,14 @@
       helpBtn.title = 'Åpne brukerveiledning for NISSY Advanced';
       helpBtn.textContent = '📖 Brukerveiledning';
 
+      const bestillingsBtn = document.createElement('button');
+      bestillingsBtn.id = 'nissy-bestilling-btn';
+      bestillingsBtn.className = 'nissy-header-btn';
+      bestillingsBtn.type = 'button';
+      bestillingsBtn.title = 'Åpne bestillingsmodul';
+      bestillingsBtn.textContent = '📝 Bestillingsmodul (Alt+N)';
+      bestillingsBtn.addEventListener('click', () => triggerHotkey('n'));
+
       const adminBtn = document.createElement('button');
       adminBtn.id = 'nissy-admin-btn';
       adminBtn.className = 'nissy-header-btn';
@@ -141,6 +150,7 @@
       
       // Legg til knappene etter teksten i første <td>
       firstTd.appendChild(helpBtn);
+      firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);
 
       console.log("✅ Knapper i header installert");
@@ -267,8 +277,8 @@
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
-            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'">
+            <input type="button" value="🚐 Samkjøring (Alt+X)" class="bigbutton nissy-script-btn" 
+                   data-hotkey="x" title="Finn potensielle samkjøringsforslag på pågående oppdrag for merkede bestillinger på ventende oppdrag for valgte filter">
           </td>
         </tr>
       `;
@@ -333,6 +343,7 @@
           <strong>Avanserte funksjoner:</strong><br>
           • ALT+S → Smart-tildeling (RB/ERS + passasjerregler)<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
+          • ALT+X → Samkjøring<br>
           • ALT+E → Hentetid<br>
           • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
@@ -352,7 +363,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.2.1):</strong><br>
+          <strong>📝 Endringslogg (V3.3.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

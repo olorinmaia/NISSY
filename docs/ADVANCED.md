@@ -12,6 +12,7 @@
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
 - ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
+- 🚐 **Samkjøring** -  (Alt+X) Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling** - Sjekker alle bestillinger på valgt filter for duplikater og datofeil, lar deg søke opp disse for å rette opp.
@@ -57,6 +58,7 @@
 | `ALT+H` | Hent Rekvisisjon |
 | `ALT+A` | Adminmodul |
 | `ALT+K` | Avbestilling av merkede turer/bestillinger |
+| `ALT+X` | Søk etter samkjøringsforslag |
 
 ## 📥 Installasjon
 
@@ -203,6 +205,11 @@ Lar deg merke bestillinger/turer og trykke på snarvei Alt+K for å masse-avbest
 - Filtrerer bort turer med statuser som "Startet", "Fremme", "Ikke møtt" osv.
 - Filtrerer bort status "Akseptert" hvis ressursnavn ikke slutter på minst 5 siffer etter siste "-" for å unngå avbestilling av tur etter 3003 men før 4010-1701.
 - Advarsel før du avbestiller og en liste over hvilke ressurser som vil bli avbestilt.
+
+### 🚐 Samkjøring (ALT+X)
+
+Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
+  - Baseres utelukket på tidspunkt hent/oppmøte og postnummer fra/til, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
 
 ## ❓ Feilsøking
 
