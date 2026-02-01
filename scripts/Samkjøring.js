@@ -87,23 +87,86 @@
     const MIN_OVERLAP_MINUTES = 0;                  // Minimum overlapp for tidsvinduer (minutter)
 
     // ============================================================
-    // BLOKKERINGS-LISTE: Postnummer-kombinasjoner som ALDRI skal matches
+    // BLOKKERINGS-LISTE: Hente-par som ALDRI skal samkjøres
     // ============================================================
-    // Format: [postnr1, postnr2] - rekkefølge spiller ingen rolle
-    const BLOCKED_POSTNR_COMBINATIONS = [
-        [7760, 7740],  // Eksempel: 7760 og 7740 skal aldri samkjøres
+    // Rekkefølge på hent1/hent2 spiller ingen rolle.
+    // lever: eksakt match på leveringssted
+    // leverMin/leverMax: rekkevidde på leveringssted (brukes i stedet av lever)
+    const BLOCKED_PAIRS = [
+        { hent1: 7760, hent2: 7740, lever: 7803 },
+        { hent1: 7670, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7710, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7712, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7713, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7716, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7718, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7650, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7656, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7690, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7760, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7790, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7890, hent2: 7633, leverMin: 7600, leverMax: 7606 },
         // Legg til flere her:
-        // [7800, 7850],
-        // [7600, 7650],
     ];
 
-    // Funksjon for å sjekke om en postnummer-kombinasjon er blokkert
-    function isBlockedCombination(postnr1, postnr2) {
-        if (!postnr1 || !postnr2) return false;
+    // Felles lever-sjekk: støtter eksakt `lever` eller rekkevidde `leverMin`/`leverMax`
+    function matchesLever(rule, postnrLever1, postnrLever2) {
+        if (rule.lever !== undefined) {
+            return postnrLever1 === rule.lever && postnrLever2 === rule.lever;
+        }
+        if (rule.leverMin !== undefined && rule.leverMax !== undefined) {
+            return postnrLever1 >= rule.leverMin && postnrLever1 <= rule.leverMax &&
+                   postnrLever2 >= rule.leverMin && postnrLever2 <= rule.leverMax;
+        }
+        return false;
+    }
+
+    function isBlockedCombination(ventende, pagaende) {
+        if (!ventende.postnrHent || !ventende.postnrLever || !pagaende.postnrHent || !pagaende.postnrLever) return false;
         
-        return BLOCKED_POSTNR_COMBINATIONS.some(([a, b]) => 
-            (postnr1 === a && postnr2 === b) || (postnr1 === b && postnr2 === a)
-        );
+        return BLOCKED_PAIRS.some(rule => {
+            if (!matchesLever(rule, ventende.postnrLever, pagaende.postnrLever)) return false;
+            
+            const retning1 = ventende.postnrHent === rule.hent1 && pagaende.postnrHent === rule.hent2;
+            const retning2 = ventende.postnrHent === rule.hent2 && pagaende.postnrHent === rule.hent1;
+            
+            return retning1 || retning2;
+        });
+    }
+
+    // ============================================================
+    // WHITELIST: Hente-par som skal samkjøres til samme leveringssted
+    // ============================================================
+    // Rekkefølge på hent1/hent2 spiller ingen rolle.
+    // lever: eksakt match på leveringssted
+    // leverMin/leverMax: rekkevidde på leveringssted (brukes i stedet av lever)
+    const WHITELISTED_PAIRS = [
+        { hent1: 7870, hent2: 7760, lever: 7803 },
+        { hent1: 7500, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7503, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7504, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7506, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7509, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7510, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7514, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7517, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7520, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7530, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        // Legg til flere her:
+        // { hent1: 7600, hent2: 7500, leverMin: 7700, leverMax: 7710 },
+    ];
+
+    function isWhitelistedCombination(ventende, pagaende) {
+        if (!ventende.postnrHent || !ventende.postnrLever || !pagaende.postnrHent || !pagaende.postnrLever) return false;
+        
+        return WHITELISTED_PAIRS.some(rule => {
+            if (!matchesLever(rule, ventende.postnrLever, pagaende.postnrLever)) return false;
+            
+            const retning1 = ventende.postnrHent === rule.hent1 && pagaende.postnrHent === rule.hent2;
+            const retning2 = ventende.postnrHent === rule.hent2 && pagaende.postnrHent === rule.hent1;
+            
+            return retning1 || retning2;
+        });
     }
 
     // Funksjon for å velge ressurs og merke bestilling
@@ -370,19 +433,15 @@
     // Funksjon for å sjekke om to bestillinger kan samkjøres
     function checkSamkjoring(ventende, pagaende) {
         // ============================================================
-        // BLOKKERINGS-SJEKK: Sjekk om postnummer-kombinasjoner er blokkert
+        // BLOKKERINGS-SJEKK
         // ============================================================
-        // Sjekk alle fire kombinasjoner (hent-hent, hent-lever, lever-hent, lever-lever)
-        if (isBlockedCombination(ventende.postnrHent, pagaende.postnrHent) ||
-            isBlockedCombination(ventende.postnrHent, pagaende.postnrLever) ||
-            isBlockedCombination(ventende.postnrLever, pagaende.postnrHent) ||
-            isBlockedCombination(ventende.postnrLever, pagaende.postnrLever)) {
+        if (isBlockedCombination(ventende, pagaende)) {
             const debug = true;
             if (debug) {
                 console.log('=== checkSamkjoring ===');
                 console.log('Ventende:', ventende.postnrHent, '→', ventende.postnrLever, ventende.tripStartTime);
                 console.log('Ressurs:', pagaende.postnrHent, '→', pagaende.postnrLever, pagaende.tripStartTime);
-                console.log('🚫 BLOKKERT: Denne postnummer-kombinasjonen er på blokkeringslisten');
+                console.log('🚫 BLOKKERT: Denne kombinasjonen er på blokkeringslisten');
             }
             return null;
         }
@@ -393,6 +452,56 @@
             console.log('\n=== checkSamkjoring ===');
             console.log('Ventende:', ventende.postnrHent, '→', ventende.postnrLever, ventende.tripStartTime);
             console.log('Ressurs:', pagaende.postnrHent, '→', pagaende.postnrLever, pagaende.tripStartTime);
+        }
+        
+        // ============================================================
+        // WHITELIST-SJEKK: Overstyrer normal match-logikk
+        // ============================================================
+        const whitelisted = isWhitelistedCombination(ventende, pagaende);
+        if (whitelisted) {
+            if (debug) console.log('→ ⭐ WHITELISTED kombinasjon funnet — sjekker leveringsvindu');
+            
+            // For whitelisted kombinasjoner: kun sjekk at leveringsvinduer overlapper
+            if (ventende.treatmentDateTime && pagaende.treatmentDateTime) {
+                const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
+                const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
+                
+                const ventendeBuffer = ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
+                const pagaendeBuffer = pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
+                
+                const ventendeTidligst = new Date(ventende.treatmentDateTime.getTime() - (ventendeBuffer * 60 * 1000));
+                const ventendeSenest = ventende.treatmentDateTime;
+                
+                const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (pagaendeBuffer * 60 * 1000));
+                const pagaendeSenest = pagaende.treatmentDateTime;
+                
+                if (debug) {
+                    console.log('  Ventende leveringsvindu:', ventendeTidligst.toTimeString().substr(0,5), '-', ventendeSenest.toTimeString().substr(0,5));
+                    console.log('  Ressurs leveringsvindu:', pagaendeTidligst.toTimeString().substr(0,5), '-', pagaendeSenest.toTimeString().substr(0,5));
+                }
+                
+                const overlapper = ventendeTidligst <= pagaendeSenest && pagaendeTidligst <= ventendeSenest;
+                
+                if (overlapper) {
+                    const overlapStart = ventendeTidligst > pagaendeTidligst ? ventendeTidligst : pagaendeTidligst;
+                    const overlapEnd = ventendeSenest < pagaendeSenest ? ventendeSenest : pagaendeSenest;
+                    const overlapMinutter = (overlapEnd - overlapStart) / (1000 * 60);
+                    const tidDiffFraOptimal = Math.abs((pagaende.treatmentDateTime - ventende.treatmentDateTime) / (1000 * 60));
+                    
+                    if (debug) console.log('  Overlapp:', overlapMinutter, 'min →  ✓ MATCH (whitelist)');
+                    
+                    return {
+                        type: 'samkjøring',
+                        timeDiff: Math.round((ventende.startDateTime - pagaende.startDateTime) / (1000 * 60)),
+                        absTimeDiff: Math.round(tidDiffFraOptimal),
+                        direction: 'whitelist',
+                        score: 70 - (tidDiffFraOptimal / 4)
+                    };
+                }
+                
+                if (debug) console.log('  Ingen overlapp i leveringsvinduer — ingen match');
+            }
+            // Hvis ingen overlapp, la normal logikk løpe videre (kan fremdeles matche via andre scenarioer)
         }
         
         // Sjekk om postnummer matcher eksakt
@@ -515,67 +624,55 @@
             
             if (passDirectionCheck) {
                 // Sjekk tidsmessig kompatibilitet
-                if (pagaende.startDateTime && ventende.startDateTime && pagaende.treatmentDateTime) {
+                if (pagaende.startDateTime && ventende.startDateTime && pagaende.treatmentDateTime && ventende.treatmentDateTime) {
                     const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
                     const leverDiff = (pagaende.treatmentDateTime - ventende.startDateTime) / (1000 * 60);
                     
-                    if (debug) console.log('  Startdiff:', startDiff, 'min, LeverDiff:', leverDiff, 'min');
-                    
-                    // Pågående må starte før ventende (eller maks 30 min etter)
-                    // Ventende må hentes før pågående leverer
-                    if (startDiff >= -MAX_START_DIFF_SHORT && leverDiff >= 0) {
-                        if (debug) console.log('✓ MATCH i SCENARIO 1A');
-                        
-                        const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
-                        
-                        // Gi bonus for eksakt leveringssted match
-                        let scoreBonus = 0;
-                        if (ventende.postnrLever === pagaende.postnrLever) {
-                            scoreBonus = 10; // +10 poeng for samme leveringssted
-                            if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
-                        }
-                        
-                        return {
-                            type: 'samkjøring',
-                            timeDiff: Math.round(startDiff),
-                            absTimeDiff: Math.abs(Math.round(startDiff)),
-                            direction: pagaendeRetning,
-                            score: 95 - Math.abs(startDiff) + scoreBonus
-                        };
-                    }
-                    
-                    // For lange turer - sjekk tidsvindu-overlapp
                     const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
                     const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
+                    const bothLong = ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF;
                     
-                    if (ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF) {
-                        // Begge er lange turer: Sjekk retning også her
+                    if (debug) console.log('  Startdiff:', startDiff, 'min, LeverDiff:', leverDiff, 'min, BothLong:', bothLong);
+                    
+                    if (bothLong) {
+                        // === LANGE TURER: Startdiff er ikke relevant — leveringsvinduer avgjør ===
                         const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
                         const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
                         
-                        // Må reise i samme retning
                         if (pagaendeRetning !== ventendeRetning) {
                             if (debug) console.log('  Lang tur - forskjellig retning');
                             return null;
                         }
                         
-                        // Beregn tidsvinduer
+                        // Beregn leveringsvinduer: oppmøtetid ± LONG_DISTANCE_TIME_BUFFER
                         const ventendeTidligst = new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
                         const ventendeSenest = ventende.treatmentDateTime;
                         
                         const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
                         const pagaendeSenest = pagaende.treatmentDateTime;
                         
-                        // Sjekk om tidsvinduer overlapper
+                        if (debug) {
+                            console.log('  Ventende leveringsvindu:', ventendeTidligst.toTimeString().substr(0,5), '-', ventendeSenest.toTimeString().substr(0,5));
+                            console.log('  Ressurs leveringsvindu:', pagaendeTidligst.toTimeString().substr(0,5), '-', pagaendeSenest.toTimeString().substr(0,5));
+                        }
+                        
                         const overlapper = ventendeTidligst <= pagaendeSenest && pagaendeTidligst <= ventendeSenest;
                         
-                        if (overlapper && pagaende.startDateTime <= ventende.startDateTime) {
+                        if (overlapper) {
                             const overlapStart = ventendeTidligst > pagaendeTidligst ? ventendeTidligst : pagaendeTidligst;
                             const overlapEnd = ventendeSenest < pagaendeSenest ? ventendeSenest : pagaendeSenest;
                             const overlapMinutter = (overlapEnd - overlapStart) / (1000 * 60);
                             
+                            if (debug) console.log('  Overlapp:', overlapMinutter, 'min');
+                            
                             if (overlapMinutter >= MIN_OVERLAP_MINUTES) {
                                 const tidDiffFraOptimal = Math.abs((pagaende.treatmentDateTime - ventende.treatmentDateTime) / (1000 * 60));
+                                
+                                let scoreBonus = 0;
+                                if (ventende.postnrLever === pagaende.postnrLever) {
+                                    scoreBonus = 10;
+                                    if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
+                                }
                                 
                                 if (debug) console.log('✓ MATCH i SCENARIO 1A (lang tur)');
                                 
@@ -584,9 +681,34 @@
                                     timeDiff: Math.round(startDiff),
                                     absTimeDiff: Math.round(tidDiffFraOptimal),
                                     direction: pagaendeRetning,
-                                    score: 65 - (tidDiffFraOptimal / 4)
+                                    score: 65 - (tidDiffFraOptimal / 4) + scoreBonus
                                 };
                             }
+                        }
+                        
+                        if (debug) console.log('  Ingen overlapp i leveringsvinduer');
+                    } else {
+                        // === KORTE TURER: Bruk startdiff-logikk ===
+                        if (debug) console.log('  Kort tur - sjekker startdiff');
+                        
+                        if (startDiff >= -MAX_START_DIFF_SHORT && leverDiff >= 0) {
+                            if (debug) console.log('✓ MATCH i SCENARIO 1A (kort tur)');
+                            
+                            const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
+                            
+                            let scoreBonus = 0;
+                            if (ventende.postnrLever === pagaende.postnrLever) {
+                                scoreBonus = 10;
+                                if (debug) console.log('  Bonus +10 for eksakt leveringssted match');
+                            }
+                            
+                            return {
+                                type: 'samkjøring',
+                                timeDiff: Math.round(startDiff),
+                                absTimeDiff: Math.abs(Math.round(startDiff)),
+                                direction: pagaendeRetning,
+                                score: 95 - Math.abs(startDiff) + scoreBonus
+                            };
                         }
                     }
                 }
@@ -1152,9 +1274,6 @@
             // Ingen min-width for tom popup
             popup.style.cssText = `
                 position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
                 background: white;
                 border: 2px solid #333;
                 border-radius: 8px;
@@ -1167,17 +1286,15 @@
             `;
             html += '<p>Ingen samkjøringskandidater funnet.</p>';
         } else {
-            // Med min-width for resultater
+            // Bredde tilpasser seg innholdet
             popup.style.cssText = `
                 position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
                 background: white;
                 border: 2px solid #333;
                 border-radius: 8px;
                 padding: 20px;
-                min-width: 1000px;
+                width: fit-content;
+                min-width: 800px;
                 max-width: 90%;
                 max-height: 80vh;
                 overflow-y: auto;
@@ -1191,11 +1308,11 @@
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white;">
                             <tbody>
                                 <tr style="background: #f0f8ff;">
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 15%;"><strong>Navn</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Hentetid</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 12%;"><strong>Oppmøte</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Fra</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; width: 30.5%;"><strong>Til</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Navn</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Hentetid</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Oppmøte</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fra</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Til</strong></td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}">${result.ventende.patientName}</td>
@@ -1265,13 +1382,13 @@
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
                                 <thead>
                                     <tr style="background: #f9f9f9; border-bottom: 2px solid #ddd;">
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 8%;">Match</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 15%;">Navn</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 10%;">Hentetid</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 10%;">Oppmøte</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 25%;">Fra</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 25%;">Til</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd; width: 7%;">Status</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Match</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Navn</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1317,6 +1434,21 @@
 
         popup.innerHTML = html;
         document.body.appendChild(popup);
+
+        // Sentrér popup over col2
+        const col2 = document.getElementById("col2");
+        if (col2) {
+            const rect = col2.getBoundingClientRect();
+            const centerX = rect.left + (rect.width / 2);
+            const centerY = rect.top + (rect.height / 2);
+            popup.style.left = `${centerX}px`;
+            popup.style.top = `${centerY}px`;
+            popup.style.transform = "translate(-50%, -50%)";
+        } else {
+            popup.style.left = "50%";
+            popup.style.top = "50%";
+            popup.style.transform = "translate(-50%, -50%)";
+        }
 
         // Legg til overlay
         const overlay = document.createElement('div');
