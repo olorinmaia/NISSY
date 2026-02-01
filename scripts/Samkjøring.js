@@ -1217,6 +1217,12 @@
                     const toTreatmentBookings = r.bookings.filter(b => !b.isReturnTrip);
                     
                     if (toTreatmentBookings.length > 1) {
+                        // Hvis match er på en retur, er den uavhengig av de andre bestillingene
+                        const hasMatchOnReturn = r.bookings.some(b => b.hasMatch && b.isReturnTrip);
+                        if (hasMatchOnReturn) {
+                            return true;
+                        }
+                        
                         const actualWindow = calculateActualDeliveryWindow(r.bookings);
                         
                         if (!actualWindow) {
