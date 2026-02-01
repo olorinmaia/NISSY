@@ -469,7 +469,9 @@
                 const ventendeBuffer = ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
                 const pagaendeBuffer = pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
                 
-                const ventendeTidligst = new Date(ventende.treatmentDateTime.getTime() - (ventendeBuffer * 60 * 1000));
+                const ventendeTidligst = ventende.isReturnTrip
+                    ? ventende.startDateTime
+                    : new Date(ventende.treatmentDateTime.getTime() - (ventendeBuffer * 60 * 1000));
                 const ventendeSenest = ventende.treatmentDateTime;
                 
                 const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (pagaendeBuffer * 60 * 1000));
@@ -645,7 +647,10 @@
                         }
                         
                         // Beregn leveringsvinduer: oppmøtetid ± LONG_DISTANCE_TIME_BUFFER
-                        const ventendeTidligst = new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
+                        // For returer: kan ikke hentes før startDateTime
+                        const ventendeTidligst = ventende.isReturnTrip
+                            ? ventende.startDateTime
+                            : new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
                         const ventendeSenest = ventende.treatmentDateTime;
                         
                         const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
@@ -746,7 +751,10 @@
                 if (pagaendeRetning === ventendeRetning) {
                     // Beregn tidsvinduer
                     if (pagaende.startDateTime && ventende.startDateTime && pagaende.treatmentDateTime && ventende.treatmentDateTime) {
-                        const ventendeTidligst = new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
+                        // For returer: kan ikke hentes før startDateTime
+                        const ventendeTidligst = ventende.isReturnTrip
+                            ? ventende.startDateTime
+                            : new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
                         const ventendeSenest = ventende.treatmentDateTime;
                         
                         const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
@@ -975,7 +983,10 @@
                         
                         if (isShortTrip) {
                             // Kort tur: Maks 30 min tidlig levering
-                            const ventendeTidligstLevering = new Date(ventende.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
+                            // For returer: kan ikke hentes før startDateTime
+                            const ventendeTidligstLevering = ventende.isReturnTrip
+                                ? ventende.startDateTime
+                                : new Date(ventende.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
                             const leveringOK = pagaende.treatmentDateTime >= ventendeTidligstLevering && pagaende.treatmentDateTime <= ventende.treatmentDateTime;
                             
                             if (debug) {
@@ -999,7 +1010,10 @@
                             }
                         } else {
                             // Lang tur: Maks 120 min tidlig levering
-                            const ventendeTidligstLevering = new Date(ventende.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
+                            // For returer: kan ikke hentes før startDateTime
+                            const ventendeTidligstLevering = ventende.isReturnTrip
+                                ? ventende.startDateTime
+                                : new Date(ventende.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
                             const leveringOK = pagaende.treatmentDateTime >= ventendeTidligstLevering && pagaende.treatmentDateTime <= ventende.treatmentDateTime;
                             
                             if (debug) {
@@ -1217,7 +1231,10 @@
                             ? SHORT_DISTANCE_TIME_BUFFER 
                             : LONG_DISTANCE_TIME_BUFFER;
                         
-                        const ventendeEarliest = new Date(ventende.treatmentDateTime.getTime() - (ventendeTimeBuffer * 60 * 1000));
+                        // For returer: kan ikke hentes før startDateTime
+                        const ventendeEarliest = ventende.isReturnTrip
+                            ? ventende.startDateTime
+                            : new Date(ventende.treatmentDateTime.getTime() - (ventendeTimeBuffer * 60 * 1000));
                         const ventendeLatest = ventende.treatmentDateTime;
                         
                         // Sjekk om vinduene overlapper
