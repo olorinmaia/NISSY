@@ -1470,7 +1470,7 @@
       }
       
       const id = getIdFromPaagaaende(row);
-      const name = getCellText(cells[nameIndex]);
+      const name = (nameIndex !== -1 && cells[nameIndex]) ? getCellText(cells[nameIndex]) : '(ukjent)';
       
       // Fra/Til kan være i samme celle med <br>
       let fromAddress = '';
@@ -1539,7 +1539,7 @@
         if (!id) continue;
         
         // Hent data for denne bestillingen basert på index
-        const name = nameDivs[i] ? nameDivs[i].textContent.trim() : '';
+        const name = nameDivs[i] ? nameDivs[i].textContent.trim() : '(ukjent)';
         const fromAddress = fromDivs[i] ? fromDivs[i].textContent.trim() : '';
         const toAddress = toDivs[i] ? toDivs[i].textContent.trim() : '';
         const existingTime = startTimeDivs[i] ? extractTimeOnly(startTimeDivs[i].textContent.trim()) : '';
@@ -2302,13 +2302,18 @@
       const nameIndex = findColumnIndex('.ventendeoppdrag', 'patientName');
       
       // Valider kritiske kolonner
-      if (reiseTidIndex === -1) {
-        showErrorToast("❌ Mangler kolonnen 'Reisetid' på ventende oppdrag. Vennligst legg til kolonnen i tabellen.");
+      const missingVentende = [];
+      if (reiseTidIndex === -1) missingVentende.push("'Reisetid'");
+      if (oppTidIndex === -1) missingVentende.push("'Oppmøtetid'");
+      
+      if (missingVentende.length > 0) {
+        showErrorToast(`❌ Mangler kolonne(r) på ventende oppdrag: ${missingVentende.join(', ')}. Vennligst legg til i tabellen.`);
         return;
       }
+      
+      // Navn er ikke påkrevd – viser "(ukjent)" hvis kolonnene ikke finnes
       if (nameIndex === -1) {
-        showErrorToast("❌ Mangler kolonnen 'Pnavn' på ventende oppdrag. Vennligst legg til kolonnen i tabellen.");
-        return;
+        console.log("\u2139\ufe0f Kolonne 'Pnavn' finnes ikke på ventende oppdrag – bruker '(ukjent)' som navn.");
       }
       
       const ventendeBestillinger = ventendeRows.map(row => 
@@ -2329,8 +2334,13 @@
       // Valider kritiske kolonner
       const missingColumns = [];
       if (startTimeIndex === -1) missingColumns.push("'Start' (hentetid)");
-      if (nameIndex === -1) missingColumns.push("'Pnavn' (pasientnavn)");
+      if (oppTidIndex === -1) missingColumns.push("'Oppmøtetid'");
       if (statusIndex === -1) missingColumns.push("'Status'");
+      
+      // Navn er ikke påkrevd – viser "(ukjent)" hvis kolonnene ikke finnes
+      if (nameIndex === -1) {
+        console.log("\u2139\ufe0f Kolonne 'Pnavn' finnes ikke på pågående oppdrag – bruker '(ukjent)' som navn.");
+      }
       
       if (missingColumns.length > 0) {
         showErrorToast(`❌ Mangler kolonne(r) på pågående oppdrag: ${missingColumns.join(', ')}. Vennligst legg til i tabellen.`);
