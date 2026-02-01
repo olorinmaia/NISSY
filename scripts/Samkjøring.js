@@ -1204,13 +1204,18 @@
                     waitDescription = 'ingen ventetid';
                 }
                 
+                // Bonus for eksakt postnr-match (speilet: hent↔lever)
+                let scoreBonus = 0;
+                if (ventende.postnrHent === pagaende.postnrLever) scoreBonus += 10;
+                if (ventende.postnrLever === pagaende.postnrHent) scoreBonus += 10;
+
                 return {
                     type: 'returutnyttelse',
                     timeDiff: Math.round(timeDiffMinutes),
                     absTimeDiff: Math.abs(Math.round(timeDiffMinutes)),
                     direction: 'retur',
                     waitDescription: waitDescription,
-                    score: 80 - Math.abs(timeDiffMinutes)
+                    score: 80 - Math.abs(timeDiffMinutes) + scoreBonus
                 };
             }
         }
