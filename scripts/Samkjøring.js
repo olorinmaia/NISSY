@@ -94,31 +94,73 @@
     // leverMin/leverMax: rekkevidde på leveringssted (brukes i stedet av lever)
     const BLOCKED_PAIRS = [
         { hent1: 7760, hent2: 7740, lever: 7803 },
-        { hent1: 7670, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7710, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7712, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7713, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7716, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7718, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7650, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7656, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7690, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7760, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7790, hent2: 7633, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7890, hent2: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7670, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7710, hent1Max: 7732, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7650, hent1Max: 7660, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7690, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7760, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7790, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7800, hent1Max: 7994, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        //{ hent1: 7633, hent2Min: 7600, hent2Max: 7606, leverMin: 7713, leverMax: 7716 },
         // Legg til flere her:
     ];
 
+    // ============================================================
+    // BLOKKERING FOR RETURUTNYTTELSE: Speilet format
+    // ============================================================
+    // Ved returutnyttelse er matchinga speilet: ventende.hent ≈ ressurs.lever og omvendt.
+    // Regler defineres dermed i den speilte rekkefølgen — ingen flipping.
+    // Støtter eksakt eller rekkevidde på hver side, same as BLOCKED_PAIRS.
+    //   ressursHent / ressursLever: der ressursen henter/leverer
+    //   ventendeHent / ventendeLever: der ventende henter/leverer
+    const BLOCKED_RETURN_PAIRS = [
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7710, max: 7732 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7790, max: 7797 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7650, max: 7660 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7740, max: 7777 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7670, max: 7670 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7690, max: 7690 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7900, max: 7994 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7800, max: 7822 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7856, max: 7877 } },
+        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7882, max: 7898 } },
+        // Legg til flere her:
+    ];
+
+    // Sjekk én side mot regel: eksakt (tall) eller rekkevidde ({ min, max })
+    function matchesReturnSide(spec, postnr) {
+        if (typeof spec === 'number') return postnr === spec;
+        if (typeof spec === 'object' && spec !== null) return postnr >= spec.min && postnr <= spec.max;
+        return false;
+    }
+
+    function isBlockedReturnCombination(ventende, pagaende) {
+        return BLOCKED_RETURN_PAIRS.some(rule =>
+            matchesReturnSide(rule.ressursHent,    pagaende.postnrHent)  &&
+            matchesReturnSide(rule.ressursLever,   pagaende.postnrLever) &&
+            matchesReturnSide(rule.ventendeHent,   ventende.postnrHent)  &&
+            matchesReturnSide(rule.ventendeLever,  ventende.postnrLever)
+        );
+    }
+
+    // Sjekk om én postnr er innenfor en regel-side:
+    //   eksakt:    { lever: 7803 }          → postnr === 7803
+    //   rekkevidde: { leverMin: 7600, leverMax: 7606 } → 7600 <= postnr <= 7606
+    function matchesSide(exact, min, max, postnr) {
+        if (exact !== undefined) return postnr === exact;
+        if (min !== undefined && max !== undefined) return postnr >= min && postnr <= max;
+        return false;
+    }
+
     // Felles lever-sjekk: støtter eksakt `lever` eller rekkevidde `leverMin`/`leverMax`
     function matchesLever(rule, postnrLever1, postnrLever2) {
-        if (rule.lever !== undefined) {
-            return postnrLever1 === rule.lever && postnrLever2 === rule.lever;
-        }
-        if (rule.leverMin !== undefined && rule.leverMax !== undefined) {
-            return postnrLever1 >= rule.leverMin && postnrLever1 <= rule.leverMax &&
-                   postnrLever2 >= rule.leverMin && postnrLever2 <= rule.leverMax;
-        }
-        return false;
+        return matchesSide(rule.lever, rule.leverMin, rule.leverMax, postnrLever1) &&
+               matchesSide(rule.lever, rule.leverMin, rule.leverMax, postnrLever2);
+    }
+
+    // Sjekk én hent-side mot regel: eksakt via `hentX`, rekkevidde via `hentXMin`/`hentXMax`
+    function matchesHentSide(exact, min, max, postnr) {
+        return matchesSide(exact, min, max, postnr);
     }
 
     function isBlockedCombination(ventende, pagaende) {
@@ -127,8 +169,12 @@
         return BLOCKED_PAIRS.some(rule => {
             if (!matchesLever(rule, ventende.postnrLever, pagaende.postnrLever)) return false;
             
-            const retning1 = ventende.postnrHent === rule.hent1 && pagaende.postnrHent === rule.hent2;
-            const retning2 = ventende.postnrHent === rule.hent2 && pagaende.postnrHent === rule.hent1;
+            // Retning 1: ventende = side1, pagaende = side2
+            const retning1 = matchesHentSide(rule.hent1, rule.hent1Min, rule.hent1Max, ventende.postnrHent) &&
+                             matchesHentSide(rule.hent2, rule.hent2Min, rule.hent2Max, pagaende.postnrHent);
+            // Retning 2: ventende = side2, pagaende = side1
+            const retning2 = matchesHentSide(rule.hent2, rule.hent2Min, rule.hent2Max, ventende.postnrHent) &&
+                             matchesHentSide(rule.hent1, rule.hent1Min, rule.hent1Max, pagaende.postnrHent);
             
             return retning1 || retning2;
         });
@@ -162,8 +208,10 @@
         return WHITELISTED_PAIRS.some(rule => {
             if (!matchesLever(rule, ventende.postnrLever, pagaende.postnrLever)) return false;
             
-            const retning1 = ventende.postnrHent === rule.hent1 && pagaende.postnrHent === rule.hent2;
-            const retning2 = ventende.postnrHent === rule.hent2 && pagaende.postnrHent === rule.hent1;
+            const retning1 = matchesHentSide(rule.hent1, rule.hent1Min, rule.hent1Max, ventende.postnrHent) &&
+                             matchesHentSide(rule.hent2, rule.hent2Min, rule.hent2Max, pagaende.postnrHent);
+            const retning2 = matchesHentSide(rule.hent2, rule.hent2Min, rule.hent2Max, ventende.postnrHent) &&
+                             matchesHentSide(rule.hent1, rule.hent1Min, rule.hent1Max, pagaende.postnrHent);
             
             return retning1 || retning2;
         });
@@ -1147,6 +1195,11 @@
     function checkReturutnyttelse(ventende, pagaende) {
         // Ventende må være en retur for at dette skal gi mening
         if (!ventende.isReturnTrip) {
+            return null;
+        }
+
+        // Blokkering spesifisert for returutnyttelse
+        if (isBlockedReturnCombination(ventende, pagaende)) {
             return null;
         }
         
