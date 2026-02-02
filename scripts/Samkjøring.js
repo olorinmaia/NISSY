@@ -93,13 +93,17 @@
     // lever: eksakt match på leveringssted
     // leverMin/leverMax: rekkevidde på leveringssted (brukes i stedet av lever)
     const BLOCKED_PAIRS = [
-        { hent1: 7760, hent2: 7740, lever: 7803 },
+        { hent1: 7760, hent2: 7740, leverMin: 7800, leverMax: 7804 },
+        { hent1: 7870, hent2: 7900, leverMin: 7800, leverMax: 7804 },
+        { hent1: 7890, hent2: 7900, leverMin: 7800, leverMax: 7804 },
+        { hent1: 7890, hent2Min: 7882, hent2Max: 7884, leverMin: 7800, leverMax: 7804 },
         { hent1: 7670, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7710, hent1Max: 7732, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7650, hent1Max: 7660, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
         { hent1: 7690, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
         { hent1: 7760, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
         { hent1: 7790, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
+        { hent1: 7690, hent2Min: 7710, hent2Max: 7732, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7800, hent1Max: 7994, hent2Min: 7630, hent2Max: 7633, leverMin: 7600, leverMax: 7606 },
         //{ hent1: 7633, hent2Min: 7600, hent2Max: 7606, leverMin: 7713, leverMax: 7716 },
         // Legg til flere her:
@@ -254,6 +258,47 @@
         const match = lastPart.match(/\b(\d{4})\b/);
         return match ? parseInt(match[1]) : null;
     }
+
+    // ============================================================
+    // POSTSTED-GRUPPER FOR SCENARIO 1F
+    // ============================================================
+    // Poster i samme gruppe har lov til å samkjøre med hverandre i Scenario 1F.
+    // Poster som ikke er i noen gruppe kan kun matche med seg selv eksakt.
+    const POSTSTED_GRUPPER = [
+        ['Rørvik', 'Kolvereid'],
+        ['Namsskogan', 'Trones', 'Harran'],
+        ['Nordli', 'Sørli'],
+        ['Meråker', 'Hegra', 'Stjørdal'],
+        ['Levanger', 'Skogn', 'Åsen', 'Ekne', 'Ronglan'],
+        ['Steinkjer', 'Sparbu'],
+        ['Malm', 'Follafoss', 'Beistad'],
+        ['Verdal', 'Vuku'],
+        ['Inderøy', 'Mosvik'],
+        // Legg til flere grupper her:
+    ];
+
+    // Parse poststed fra adresse: "Straaten 2, 7900 Rørvik" → "rørvik"
+    function parsePoststed(address) {
+        if (!address) return null;
+        const parts = address.split(',');
+        const lastPart = parts[parts.length - 1].trim();
+        const match = lastPart.match(/\b\d{4}\s+(.+)/);
+        return match ? match[1].trim().toLowerCase() : null;
+    }
+
+    // Sjekk om to poststeder har lov til å samkjøre i Scenario 1F:
+    //   - Eksakt match → alltid OK
+    //   - Begge i samme gruppe → OK
+    //   - Ellers (ikke i noen gruppe, eller forskjellige grupper) → nei
+    function canSamkjorePoststed(poststed1, poststed2) {
+        if (!poststed1 || !poststed2) return false;
+        if (poststed1 === poststed2) return true;
+        const g1 = POSTSTED_GRUPPER.findIndex(g => g.some(p => p.toLowerCase() === poststed1));
+        const g2 = POSTSTED_GRUPPER.findIndex(g => g.some(p => p.toLowerCase() === poststed2));
+        if (g1 === -1 || g2 === -1) return false;
+        return g1 === g2;
+    }
+
 
     // Funksjon for å parse dato og tid
     function parseDateTime(dateTimeStr) {
@@ -1033,6 +1078,121 @@
             }
         }
         
+        // Begge er lange turer, reiser i samme retning, og tidsperiodene overlapper
+        // ============================================================
+        // Beregn postnr-differanser for å sjekke om begge er lange turer
+        const ventendePostnrDiff_1F = Math.abs(ventende.postnrHent - ventende.postnrLever);
+        const pagaendePostnrDiff_1F = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
+        
+        // Begge må være lange turer, og ingen av dem kan være returer
+        if (ventendePostnrDiff_1F >= SHORT_DISTANCE_POSTNR_DIFF && 
+            pagaendePostnrDiff_1F >= SHORT_DISTANCE_POSTNR_DIFF &&
+            !ventende.isReturnTrip && 
+            !pagaende.isReturnTrip) {
+            const debug = true;
+            if (debug) console.log('→ SCENARIO 1F: Lange turer i samme retning med overlappende tidsrom');
+            
+            // Sjekk retninger
+            const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
+            const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
+            
+            if (debug) {
+                console.log('  Ventende retning:', ventendeRetning);
+                console.log('  Ressurs retning:', pagaendeRetning);
+            }
+            
+            // Må reise i samme retning
+            if (pagaendeRetning === ventendeRetning) {
+                if (debug) console.log('  Samme retning ✓');
+
+                // Sjekk poststed på henteadresse
+                const ventendePoststed = parsePoststed(ventende.fromAddress);
+                const pagaendePoststed = parsePoststed(pagaende.fromAddress);
+                if (debug) console.log('  Poststed hent — ventende:', ventendePoststed, '| ressurs:', pagaendePoststed);
+
+                if (!canSamkjorePoststed(ventendePoststed, pagaendePoststed)) {
+                    if (debug) console.log('  Poststed matcher ikke — ikke i samme gruppe');
+                } else {
+                if (debug) console.log('  Poststed OK ✓');
+                
+                // Sjekk om tidsperiodene overlapper
+                // Overlapp hvis: ventende starter før ressurs leverer OG ressurs starter før ventende leverer
+                if (pagaende.startDateTime && ventende.startDateTime && pagaende.treatmentDateTime && ventende.treatmentDateTime) {
+                    const ventendeStart = ventende.startDateTime;
+                    const ventendeEnd = ventende.treatmentDateTime;
+                    const pagaendeStart = pagaende.startDateTime;
+                    const pagaendeEnd = pagaende.treatmentDateTime;
+                    
+                    const overlapper = ventendeStart < pagaendeEnd && pagaendeStart < ventendeEnd;
+                    
+                    if (debug) {
+                        console.log('  Ventende:', ventendeStart.toTimeString().substr(0,5), '→', ventendeEnd.toTimeString().substr(0,5));
+                        console.log('  Ressurs:', pagaendeStart.toTimeString().substr(0,5), '→', pagaendeEnd.toTimeString().substr(0,5));
+                        console.log('  Tidsrom overlapper?', overlapper);
+                    }
+                    
+                    if (overlapper) {
+                        // Beregn overlapp-vindu
+                        const overlapStart = ventendeStart > pagaendeStart ? ventendeStart : pagaendeStart;
+                        const overlapEnd = ventendeEnd < pagaendeEnd ? ventendeEnd : pagaendeEnd;
+                        const overlapMinutter = (overlapEnd - overlapStart) / (1000 * 60);
+                        
+                        if (debug) console.log('  Overlapp:', overlapMinutter, 'min');
+                        
+                        // Krav: den som reiser lengre (største postnr-diff) må levere LATER
+                        // enn den som reiser kortere. Maks 3 timer (180 min) forskjell.
+                        const leveringsDiff = (pagaendeEnd - ventendeEnd) / (1000 * 60); // positiv = ressurs leverer later
+                        const absLeveringsDiff = Math.abs(leveringsDiff);
+                        
+                        // Hvem reiser lengre?
+                        const ventendeReiserLengre = ventendePostnrDiff_1F > pagaendePostnrDiff_1F;
+                        const pagaendeReiserLengre = pagaendePostnrDiff_1F > ventendePostnrDiff_1F;
+                        
+                        // Den som reiser lengre må levere later (eller like tid ved like distanse)
+                        let leveringsrekkefølgeOK = true;
+                        if (ventendeReiserLengre && leveringsDiff > 0) {
+                            // Ventende reiser lengre men ressurs leverer later → feil
+                            leveringsrekkefølgeOK = false;
+                        } else if (pagaendeReiserLengre && leveringsDiff < 0) {
+                            // Ressurs reiser lengre men ventende leverer later → feil
+                            leveringsrekkefølgeOK = false;
+                        }
+                        
+                        if (debug) {
+                            console.log('  Ventende distanse:', ventendePostnrDiff_1F, '| Ressurs distanse:', pagaendePostnrDiff_1F);
+                            console.log('  LeveringsDiff:', leveringsDiff, 'min (positiv = ressurs later)');
+                            console.log('  Leveringsrekkefølge OK?', leveringsrekkefølgeOK);
+                        }
+                        
+                        if (leveringsrekkefølgeOK && absLeveringsDiff <= 180) {
+                            if (debug) console.log('✓ MATCH i SCENARIO 1F');
+                            
+                            const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
+                            
+                            return {
+                                type: 'samkjøring',
+                                scenario: '1F',
+                                timeDiff: Math.round(startDiff),
+                                absTimeDiff: Math.round(absLeveringsDiff),
+                                direction: pagaendeRetning,
+                                score: 70 - (absLeveringsDiff / 4)
+                            };
+                        } else {
+                            if (debug) console.log('  Leveringsrekkefølge feil eller for stor differanse (>' + 180 + ' min)');
+                        }
+                    } else {
+                        if (debug) console.log('  Tidsrom overlapper ikke');
+                    }
+                } else {
+                    if (debug) console.log('  Mangler tidsinformasjon');
+                }
+                } // end poststed check
+            } else {
+                if (debug) console.log('  Forskjellig retning');
+            }
+        }
+
+        
         // ============================================================
         // SCENARIO 1D: Hentested på veien - samme leveringssted
         // Ventende sitt hentested ligger mellom ressurs sitt hentested og felles leveringssted
@@ -1309,6 +1469,7 @@
                     resourceData.bookings.push({
                         ...pagaende,
                         matchType: match.type,
+                        scenario: match.scenario,
                         timeDiff: match.timeDiff,
                         absTimeDiff: match.absTimeDiff,
                         direction: match.direction,
@@ -1335,11 +1496,13 @@
                     const toTreatmentBookings = r.bookings.filter(b => !b.isReturnTrip);
                     
                     if (toTreatmentBookings.length > 1) {
-                        // Hvis match er på en retur (ressurs er retur) eller returutnyttelse (ventende er retur),
-                        // er matchen uavhengig av de andre bestillingene til behandling
+                        // Hvis match er på en retur (ressurs er retur), returutnyttelse (ventende er retur),
+                        // eller overlappende tidsrom (scenario 1F), er matchen uavhengig av andre bestillinger.
                         const hasMatchOnReturn = r.bookings.some(b => b.hasMatch && b.isReturnTrip);
                         const hasMatchReturutnyttelse = r.bookings.some(b => b.hasMatch && b.matchType === 'returutnyttelse');
-                        if (hasMatchOnReturn || hasMatchReturutnyttelse) {
+                        const hasMatchOverlappingTime = r.bookings.some(b => b.hasMatch && b.scenario === '1F');
+                        
+                        if (hasMatchOnReturn || hasMatchReturutnyttelse || hasMatchOverlappingTime) {
                             return true;
                         }
                         

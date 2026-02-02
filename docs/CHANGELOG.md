@@ -6,6 +6,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig
 
 ---
+## 🚀 [3.3.1] - 01.02.2026
+
+### Forbedringer til Samkjøring
+
+#### Hva er nytt?
+- 🚐 **Samkjøring** (Kun tilgjengelig på ADVANCED-pakke i første omgang)
+  - Får nå treff på samkjøringsforslag på overlappende reiser f.eks. fra Rørvik til Namsos/Levanger/Trondheim innenfor visse tidsgrenser.
+
 ## 🚀 [3.3.0] - 01.02.2026
 
 ### Nytt script: 🚐 Samkjøring
