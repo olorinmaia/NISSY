@@ -1335,9 +1335,11 @@
                     const toTreatmentBookings = r.bookings.filter(b => !b.isReturnTrip);
                     
                     if (toTreatmentBookings.length > 1) {
-                        // Hvis match er på en retur, er den uavhengig av de andre bestillingene
+                        // Hvis match er på en retur (ressurs er retur) eller returutnyttelse (ventende er retur),
+                        // er matchen uavhengig av de andre bestillingene til behandling
                         const hasMatchOnReturn = r.bookings.some(b => b.hasMatch && b.isReturnTrip);
-                        if (hasMatchOnReturn) {
+                        const hasMatchReturutnyttelse = r.bookings.some(b => b.hasMatch && b.matchType === 'returutnyttelse');
+                        if (hasMatchOnReturn || hasMatchReturutnyttelse) {
                             return true;
                         }
                         
