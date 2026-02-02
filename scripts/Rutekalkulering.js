@@ -107,6 +107,7 @@
     "Fys med og rehab pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Med H Hem, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Med. overvåking (MOA), 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Med A Lunge, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
