@@ -6,7 +6,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig
 
 ---
-## 🚀 [3.3.1] - 01.02.2026
+## 🚀 [3.3.1] - 03.02.2026
 
 ### Forbedringer til Samkjøring
 
