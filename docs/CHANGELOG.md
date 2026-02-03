@@ -4,14 +4,24 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## Planlagt
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig
+- Lage script for sjekk av fritekst-felt på plakater "Sjekk-Plakat"
+- Lage script for overvåking av ventende oppdrag, varsle om nye bestillinger, endringer på tider osv.
 
 ---
+## 🚀 [3.3.2] - 04.02.2026
+
+### Forbedringer til Samkjøring
+
+#### Hva er nytt?
+- 🚐 **Samkjøring**
+  - Viser nå spesielle behov og antall ledsagere i pop-up for merket bestilling og ressurser. Planen er å hensynta enkelte behov på sikt i algoritmen.
+
 ## 🚀 [3.3.1] - 03.02.2026
 
 ### Forbedringer til Samkjøring
 
 #### Hva er nytt?
-- 🚐 **Samkjøring** (Kun tilgjengelig på ADVANCED-pakke i første omgang)
+- 🚐 **Samkjøring**
   - Får nå treff på samkjøringsforslag på overlappende reiser f.eks. fra Rørvik til Namsos/Levanger/Trondheim innenfor visse tidsgrenser.
   - Fikset slik at Verran/Flatanger/Statland -> Namsos og Frosta -> Levanger blir klassifisert som en lang reise. Overstyrer enkelte serier med postnummer som har kort avstand, men som i realiteten er lange reiser.
 
