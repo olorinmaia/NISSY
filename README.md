@@ -29,9 +29,11 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🕐 **Hentetid (Alt+E)** 
   - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
   - Kan beregne hentetid mot en annen oppmøtetid, men ny oppmøtetid lagres ikke om du glemmer å endre tilbake.
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/9c97ce59-4c4e-4dcb-819f-4cc0395d578f" />
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
   - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling.
+    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/38dc474e-7fba-4314-9886-fd94debfdca8" />
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
@@ -41,9 +43,10 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
   - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
   - WIP: Når NISSY kan ta imot 5021 XML (bilens nåværende posisjon) kan dette vises i samme bilde.
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8011143e-8647-4530-9783-31bb27960fbe" />
 - 📝 **Bestillingsmodul (Alt+N)**
   - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
-    - <img width="400" alt="image" src="https://github.com/user-attachments/assets/be203274-df7b-4799-8caa-76d3af2bbd3c" />
+    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/be203274-df7b-4799-8caa-76d3af2bbd3c" />
 
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
@@ -56,12 +59,16 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
   - Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
   - Hindrer bruker fra å gjøre ting som ikke er i henhold til beste-praksis / SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
+  - <img width="250" alt="image" src="https://github.com/user-attachments/assets/24464cf1-e838-446c-8e4a-69607869bea8" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/aa169114-34a7-42e4-b2ef-5c5b1776f751" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/08d00111-24cd-4206-8f27-3d825554a02f" />
+
+
 - 🚐 **Samkjøring (Alt+X)**
   - Merk bestilling(er) på ventende oppdrag, velg aktuelle filter og trykk på Samkjøring-knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
   - Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3ebda51d-813d-49e8-9592-3888c40e0719" />
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/63c48b59-f9cc-46cf-b448-c4634793027a" />
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
 
 ### Individuelle script
 - 🚗 **Alenebil**
