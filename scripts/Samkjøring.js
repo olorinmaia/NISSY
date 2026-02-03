@@ -399,6 +399,17 @@
         return -1;
     }
 
+    // Finn kolonne-indeks basert på header-tekst (for kolonner uten link)
+    function findColumnIndexByText(tableSelector, headerText) {
+        const headers = document.querySelectorAll(`${tableSelector} thead th`);
+        for (let i = 0; i < headers.length; i++) {
+            if (headers[i].textContent.trim() === headerText) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     // Funksjon for å hente merkede bestillinger fra ventende oppdrag
     function getSelectedVentendeOppdrag() {
         const selected = [];
@@ -408,6 +419,8 @@
         const oppTidIndex    = findColumnIndex('#ventendeoppdrag', 'tripTreatmentDate');
         const adresseIndex   = findColumnIndex('#ventendeoppdrag', 'tripFromAddress'); // Fra+Til i samme kolonne
         const nameIndex      = findColumnIndex('#ventendeoppdrag', 'patientName');     // valgfri
+        const behovIndex     = findColumnIndexByText('#ventendeoppdrag', 'Behov');     // valgfri
+        const ledsagerIndex  = findColumnIndexByText('#ventendeoppdrag', 'L');         // valgfri
 
         // Valider kritiske kolonner
         const missingVentende = [];
@@ -433,6 +446,8 @@
             const patientName       = nameIndex !== -1 ? (cells[nameIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
             const tripStartTime     = cells[reiseTidIndex]?.textContent.trim();
             const tripTreatmentTime = cells[oppTidIndex]?.textContent.trim();
+            const behov             = behovIndex !== -1 ? (cells[behovIndex]?.textContent.trim() || '') : '';
+            const ledsager          = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
             // Fra og Til ligger i samme celle, splittet på <br>
             const adresseCell       = cells[adresseIndex]?.innerHTML || '';
             const fromAddress       = adresseCell.split('<br>')[0].trim();
@@ -447,6 +462,8 @@
                 patientName,
                 tripStartTime,
                 tripTreatmentTime,
+                behov,
+                ledsager,
                 fromAddress,
                 toAddress,
                 postnrHent: parsePostnummer(fromAddress),
@@ -472,6 +489,8 @@
         const fromIndex      = findColumnIndex('#pagaendeoppdrag', 'tripFromAddress');
         const toIndex        = findColumnIndex('#pagaendeoppdrag', 'tripToAddress');
         const statusIndex    = findColumnIndex('#pagaendeoppdrag', 'resourceStatus');   // valgfri
+        const behovIndex     = findColumnIndexByText('#pagaendeoppdrag', 'Behov');      // valgfri
+        const ledsagerIndex  = findColumnIndexByText('#pagaendeoppdrag', 'L');          // valgfri
 
         // Valider kritiske kolonner
         const missingPagaende = [];
@@ -509,6 +528,12 @@
                     const status            = statusIndex !== -1
                         ? (cells[statusIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '(Ukjent)')
                         : '(Ukjent)';
+                    const behov             = behovIndex !== -1
+                        ? (cells[behovIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '')
+                        : '';
+                    const ledsager          = ledsagerIndex !== -1
+                        ? (cells[ledsagerIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '')
+                        : '';
                     
                     const reqId = rowId + '-' + index;
                     
@@ -519,6 +544,8 @@
                         patientName,
                         tripStartTime,
                         tripTreatmentTime,
+                        behov,
+                        ledsager,
                         fromAddress,
                         toAddress,
                         status,
@@ -541,6 +568,8 @@
                 const fromAddress       = cells[fromIndex]?.textContent.trim();
                 const toAddress         = cells[toIndex]?.textContent.trim();
                 const status            = statusIndex !== -1 ? (cells[statusIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
+                const behov             = behovIndex  !== -1 ? (cells[behovIndex]?.textContent.trim()  || '') : '';
+                const ledsager          = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
                 
                 const order = {
                     id: rowId,
@@ -549,6 +578,8 @@
                     patientName,
                     tripStartTime,
                     tripTreatmentTime,
+                    behov,
+                    ledsager,
                     fromAddress,
                     toAddress,
                     status,
@@ -1650,6 +1681,8 @@
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Navn</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Hentetid</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Oppmøte</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Behov</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" title="Antall ledsagere"><strong>L</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fra</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Til</strong></td>
                                 </tr>
@@ -1657,6 +1690,8 @@
                                     <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}">${result.ventende.patientName}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripStartTime}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripTreatmentTime}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${result.ventende.behov || ''}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${result.ventende.ledsager || '-'}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.toAddress}">${result.ventende.toAddress}</td>
                                 </tr>
@@ -1725,6 +1760,8 @@
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Navn</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Behov</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;" title="Antall ledsagere">L</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Status</th>
@@ -1751,6 +1788,8 @@
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}">${booking.patientName}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${booking.ledsager || '-'}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; white-space: nowrap;" title="${booking.status}">${booking.status}</td>

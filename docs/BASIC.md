@@ -203,6 +203,7 @@ Klar for mer funksjonalitet?
 Legger til:
 - Smart tildeling (ALT+S) **(OBS!! KREVER KONFIGURASJON. TA KONTAKT)**
 - Tilordningsstøtte 2.0 (ALT+T)
+- Samkjøring (ALT+X) (Fungerer best for Nord-Trøndelag eller områder der postnummer stiger eller synker fra nord til sør)
 
 [Se ADVANCED.md](ADVANCED.md)
 
