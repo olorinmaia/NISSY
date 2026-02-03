@@ -118,16 +118,16 @@
     //   ressursHent / ressursLever: der ressursen henter/leverer
     //   ventendeHent / ventendeLever: der ventende henter/leverer
     const BLOCKED_RETURN_PAIRS = [
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7710, max: 7732 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7790, max: 7797 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7650, max: 7660 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7740, max: 7777 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7670, max: 7670 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7690, max: 7690 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7900, max: 7994 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7800, max: 7822 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7856, max: 7877 } },
-        { ressursHent: 7633, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7882, max: 7898 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7710, max: 7732 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7790, max: 7797 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7650, max: 7660 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7740, max: 7777 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7670, max: 7670 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7690, max: 7690 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7900, max: 7994 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7800, max: 7822 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7856, max: 7877 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7882, max: 7898 } },
         // Legg til flere her:
     ];
 
