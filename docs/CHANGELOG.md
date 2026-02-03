@@ -13,6 +13,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 #### Hva er nytt?
 - 🚐 **Samkjøring** (Kun tilgjengelig på ADVANCED-pakke i første omgang)
   - Får nå treff på samkjøringsforslag på overlappende reiser f.eks. fra Rørvik til Namsos/Levanger/Trondheim innenfor visse tidsgrenser.
+  - Fikset slik at Verran/Flatanger/Statland -> Namsos og Frosta -> Levanger blir klassifisert som en lang reise. Overstyrer enkelte serier med postnummer som har kort avstand, men som i realiteten er lange reiser.
 
 ## 🚀 [3.3.0] - 01.02.2026
 
