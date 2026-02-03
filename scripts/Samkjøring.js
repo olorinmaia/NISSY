@@ -75,6 +75,33 @@
     
     // Tidsrelaterte konstanter
     const SHORT_DISTANCE_POSTNR_DIFF = 30;          // Grense mellom kort og lang tur (postnr diff)
+
+    // ============================================================
+    // LONG_DISTANCE_OVERRIDE: Reiser som er geografisk lange
+    // selv om postnr-differansen er < SHORT_DISTANCE_POSTNR_DIFF.
+    // Rekkefølge spiller ingen rolle. Støtter eksakt eller rekkevidde på begge sider.
+    // ============================================================
+    const LONG_DISTANCE_OVERRIDE = [
+        { hentMin: 7770, hentMax: 7797, leverMin: 7800, leverMax: 7805 },
+        { hentMin: 7633, hentMax: 7634, leverMin: 7603, leverMax: 7630 },
+        // Legg til flere her:
+    ];
+
+    // Sjekk om en reise er lang: overstyring løper først, ellers normal postnr-diff
+    function isLongTrip(postnrHent, postnrLever) {
+        if (postnrHent == null || postnrLever == null) return false;
+        // Sjekk overstyringer (bidireksjonelt: hent↔lever i begge retninger)
+        const overridden = LONG_DISTANCE_OVERRIDE.some(rule => {
+            const side1 = (postnrHent  >= rule.hentMin  && postnrHent  <= rule.hentMax &&
+                           postnrLever >= rule.leverMin && postnrLever <= rule.leverMax);
+            const side2 = (postnrLever >= rule.hentMin  && postnrLever <= rule.hentMax &&
+                           postnrHent  >= rule.leverMin && postnrHent  <= rule.leverMax);
+            return side1 || side2;
+        });
+        if (overridden) return true;
+        // Normal klassifisering
+        return Math.abs(postnrHent - postnrLever) >= SHORT_DISTANCE_POSTNR_DIFF;
+    }
     const SHORT_DISTANCE_TIME_BUFFER = 30;          // Tidsbuffer for korte turer (minutter)
     const LONG_DISTANCE_TIME_BUFFER = 120;          // Tidsbuffer for lange turer (minutter - 2 timer)
     
@@ -546,10 +573,9 @@
         let globalLatestDelivery = null;
         
         toTreatment.forEach(booking => {
-            const postnrDiff = Math.abs(booking.postnrHent - booking.postnrLever);
-            const timeBuffer = postnrDiff < SHORT_DISTANCE_POSTNR_DIFF 
-                ? SHORT_DISTANCE_TIME_BUFFER 
-                : LONG_DISTANCE_TIME_BUFFER;
+            const timeBuffer = isLongTrip(booking.postnrHent, booking.postnrLever)
+                ? LONG_DISTANCE_TIME_BUFFER 
+                : SHORT_DISTANCE_TIME_BUFFER;
             
             // Tidligste levering = oppmøtetid - buffer
             const earliestDelivery = new Date(booking.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
@@ -616,8 +642,8 @@
                 const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
                 const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
                 
-                const ventendeBuffer = ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
-                const pagaendeBuffer = pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
+                const ventendeBuffer = isLongTrip(ventende.postnrHent, ventende.postnrLever) ? LONG_DISTANCE_TIME_BUFFER : SHORT_DISTANCE_TIME_BUFFER;
+                const pagaendeBuffer = isLongTrip(pagaende.postnrHent, pagaende.postnrLever) ? LONG_DISTANCE_TIME_BUFFER : SHORT_DISTANCE_TIME_BUFFER;
                 
                 const ventendeTidligst = ventende.isReturnTrip
                     ? ventende.startDateTime
@@ -680,11 +706,10 @@
 
         if (debug) console.log('→ Postnr matcher eksakt, sjekker direkte samkjøring...');
 
-        // Beregn postnummer-differanse for å bestemme tidsbuffer
-        const postnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
-        const timeBuffer = postnrDiff < SHORT_DISTANCE_POSTNR_DIFF 
-            ? SHORT_DISTANCE_TIME_BUFFER 
-            : LONG_DISTANCE_TIME_BUFFER;
+        // Bestemme tidsbuffer basert på tur-lengde
+        const timeBuffer = isLongTrip(ventende.postnrHent, ventende.postnrLever)
+            ? LONG_DISTANCE_TIME_BUFFER 
+            : SHORT_DISTANCE_TIME_BUFFER;
 
         // For returer: sammenlign hentetid med hentetid (behandlingstid er samme som hentetid)
         const ventendeCompareTime = ventende.isReturnTrip ? ventende.startDateTime : ventende.startDateTime;
@@ -782,7 +807,7 @@
                     
                     const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
                     const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
-                    const bothLong = ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF;
+                    const bothLong = isLongTrip(ventende.postnrHent, ventende.postnrLever) && isLongTrip(pagaende.postnrHent, pagaende.postnrLever);
                     
                     if (debug) console.log('  Startdiff:', startDiff, 'min, LeverDiff:', leverDiff, 'min, BothLong:', bothLong);
                     
@@ -887,7 +912,7 @@
             }
             
             // Begge må være lange turer
-            if (ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF) {
+            if (isLongTrip(ventende.postnrHent, ventende.postnrLever) && isLongTrip(pagaende.postnrHent, pagaende.postnrLever)) {
                 // Sjekk om begge reiser i samme retning (nord eller sør)
                 const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
                 const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
@@ -971,7 +996,7 @@
             }
             
             // Sjekk om begge er korte turer
-            if (ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF) {
+            if (!isLongTrip(ventende.postnrHent, ventende.postnrLever) && !isLongTrip(pagaende.postnrHent, pagaende.postnrLever)) {
                 // Spesialtilfelle: Hvis en av turene er lokal (hente = lever), hopp over retningssjekk
                 const ventendeIsLocal = ventende.postnrHent === ventende.postnrLever;
                 const pagaendeIsLocal = pagaende.postnrHent === pagaende.postnrLever;
@@ -1049,7 +1074,7 @@
                 const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
                 const pagaendePostnrDiff = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
                 
-                if (ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF && pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF) {
+                if (!isLongTrip(ventende.postnrHent, ventende.postnrLever) && !isLongTrip(pagaende.postnrHent, pagaende.postnrLever)) {
                     if (debug) console.log('  Begge korte turer - sjekker tidsvindu');
                     
                     // Sjekk tidsmessig - maks 30 min forskjell på start
@@ -1085,8 +1110,8 @@
         const pagaendePostnrDiff_1F = Math.abs(pagaende.postnrHent - pagaende.postnrLever);
         
         // Begge må være lange turer, og ingen av dem kan være returer
-        if (ventendePostnrDiff_1F >= SHORT_DISTANCE_POSTNR_DIFF && 
-            pagaendePostnrDiff_1F >= SHORT_DISTANCE_POSTNR_DIFF &&
+        if (isLongTrip(ventende.postnrHent, ventende.postnrLever) && 
+            isLongTrip(pagaende.postnrHent, pagaende.postnrLever) &&
             !ventende.isReturnTrip && 
             !pagaende.isReturnTrip) {
             const debug = true;
@@ -1243,7 +1268,7 @@
                         
                         // Sjekk om dette er kort eller lang tur
                         const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
-                        const isShortTrip = ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF;
+                        const isShortTrip = !isLongTrip(ventende.postnrHent, ventende.postnrLever);
                         const timeBuffer = isShortTrip ? SHORT_DISTANCE_TIME_BUFFER : LONG_DISTANCE_TIME_BUFFER;
                         
                         if (isShortTrip) {
@@ -1367,10 +1392,10 @@
         const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
         
         // Sjekk om begge er lange turer ELLER korte turer
-        const bothLong = pagaendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF && 
-                        ventendePostnrDiff >= SHORT_DISTANCE_POSTNR_DIFF;
-        const bothShort = pagaendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF && 
-                         ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF;
+        const bothLong = isLongTrip(pagaende.postnrHent, pagaende.postnrLever) && 
+                        isLongTrip(ventende.postnrHent, ventende.postnrLever);
+        const bothShort = !isLongTrip(pagaende.postnrHent, pagaende.postnrLever) && 
+                         !isLongTrip(ventende.postnrHent, ventende.postnrLever);
         
         if (!bothLong && !bothShort) {
             // En lang og en kort - ikke returutnyttelse
@@ -1516,9 +1541,9 @@
                         // Sjekk om ventende kan leveres innenfor det faktiske vinduet
                         // Beregn ventende sitt leveringsvindu
                         const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
-                        const ventendeTimeBuffer = ventendePostnrDiff < SHORT_DISTANCE_POSTNR_DIFF 
-                            ? SHORT_DISTANCE_TIME_BUFFER 
-                            : LONG_DISTANCE_TIME_BUFFER;
+                        const ventendeTimeBuffer = isLongTrip(ventende.postnrHent, ventende.postnrLever)
+                            ? LONG_DISTANCE_TIME_BUFFER 
+                            : SHORT_DISTANCE_TIME_BUFFER;
                         
                         // For returer: kan ikke hentes før startDateTime
                         const ventendeEarliest = ventende.isReturnTrip
