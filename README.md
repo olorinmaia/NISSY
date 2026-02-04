@@ -87,7 +87,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🚕 **Trøndertaxi-løyve**
   - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 - **Installeres som knapper nederst i footer i NISSY planlegging via script-pakke:**
-  - <img width="800" alt="image" src="https://github.com/user-attachments/assets/a886f2b2-3c03-4880-a73f-6759c8aef3df" />
+  - <img width="800" alt="image" src="https://github.com/user-attachments/assets/bb22d6d9-125b-4fe8-a85b-f797e5385366" />
 
 ## 📊 Oversikt alle features i script-pakker
 Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 
