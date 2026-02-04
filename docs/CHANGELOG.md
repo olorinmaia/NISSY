@@ -10,11 +10,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## 🚀 [3.3.2] - 04.02.2026
 
-### Forbedringer til Samkjøring
+### Forbedringer til Samkjøring og NISSY-fiks
 
 #### Hva er nytt?
 - 🚐 **Samkjøring**
   - Viser nå spesielle behov og antall ledsagere i pop-up for merket bestilling og ressurser. Planen er å hensynta enkelte behov på sikt i algoritmen.
+- ⌛ **NISSY-fiks** 
+  - Lukker nå også ventetid-, filterinfo- og kapasitetsinfo-popuper ved klikk utenfor.
 
 ## 🚀 [3.3.1] - 03.02.2026
 
