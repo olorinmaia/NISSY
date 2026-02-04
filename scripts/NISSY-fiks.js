@@ -857,7 +857,10 @@
     const reqPoster = document.getElementById('reqposter');
     const resPoster = document.getElementById('resposter');
     const showCost = document.getElementById('showcost');
-    
+    const showFilter = document.getElementById('showfilter');
+    const showWait = document.getElementById('showwait');
+    const showCapacity = document.getElementById('showcapacity');
+
     // Sjekk rekvisisjon-plakat
     if (reqPoster && reqPoster.style.display !== 'none') {
       // Sjekk om klikket var utenfor plakaten
@@ -879,7 +882,40 @@
         }
       }
     }
-    
+
+    // Sjekk filter-info plakat
+    if (showFilter && showFilter.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!showFilter.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof closeFilterInfo === 'function') {
+          closeFilterInfo();
+        }
+      }
+    }
+
+    // Sjekk venteliste-plakat
+    if (showWait && showWait.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!showWait.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof closeRequisitionWait === 'function') {
+          closeRequisitionWait();
+        }
+      }
+    }
+
+    // Sjekk kapasitet-redigering plakat
+    if (showCapacity && showCapacity.style.display !== 'none') {
+      // Sjekk om klikket var utenfor plakaten
+      if (!showCapacity.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof hideEditCapacity === 'function') {
+          hideEditCapacity();
+        }
+      }
+    }
+
     // Sjekk ressurs-plakat
     if (resPoster && resPoster.style.display !== 'none') {
       // Sjekk om klikket var utenfor plakaten
