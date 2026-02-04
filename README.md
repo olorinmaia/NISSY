@@ -77,6 +77,9 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling**
   - Sjekker alle bestillinger på valgt filter for duplikater eller om de har forskjellig dato på "klar fra" og "oppmøte", lar deg søke opp disse for å rette opp.
+- 🚩 **Sjekk-Plakat**
+  - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
+  - Eksempel på problematisk tekst: 'alenebil','hentes','adresse','framsete','rullestol','rullator','lav bil','liten bil','forsete','direktebil','må ha med seg'.
 - 📞 **Sjekk-Telefon**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
 - 📊 **Statistikk**
@@ -97,6 +100,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🚗 Alenebil | ✅ | ✅ |
 | 🤖 Auto-Bestill | ✅ | ✅ |
 | 🔍 Sjekk-Bestilling | ✅ | ✅ |
+| 🚩 Sjekk-Plakat (Kun Nord-Trøndelag) | ✅ | ✅ |
 | 📞 Sjekk-Telefon | ✅ | ✅ |
 | 📊 Statistikk | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ |
