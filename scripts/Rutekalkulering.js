@@ -108,6 +108,7 @@
     "Med H Hem, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Med. overvåking (MOA), 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Med A Lunge, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "PD pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -134,11 +135,13 @@
     "Allmennpsyk sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Dialyse dagbehandling [NA], 7803 Namsos": "Sykehuset Namsos, 7803 Namsos", 
     "Fysio- og ergoterapi, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Gyn/Føde/Barsel sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "KVB 6. Gynekologi kreft, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "BVS 1. ort pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    ".../Gastro 4. Sengeområde Seksjon lindrende behandling, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
