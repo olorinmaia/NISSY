@@ -692,6 +692,38 @@
   (() => {
     console.log("🔧 Legger til manuelle script-knapper...");
 
+    // ============================================================
+    // HJELPEFUNKSJON: Sjekk hvilket kontor brukeren er på
+    // ============================================================
+    function getCurrentOffice() {
+      const topframeCell = document.querySelector('.topframe_small');
+      if (!topframeCell) return null;
+      
+      const text = topframeCell.textContent;
+      const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/)
+      
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+      
+      return null;
+    }
+
+    // ============================================================
+    // LISTE OVER KONTORER MED TILGANG TIL SJEKK-PLAKAT
+    // ============================================================
+    const SJEKK_PLAKAT_OFFICES = [
+      'Pasientreiser Nord-Trøndelag'
+      // Legg til flere kontorer her etter hvert
+      // 'Pasientreiser Sør-Trøndelag',
+      // 'Pasientreiser Oslo',
+    ];
+
+    function hasSjekkPlakatAccess() {
+      const office = getCurrentOffice();
+      return office && SJEKK_PLAKAT_OFFICES.includes(office);
+    }
+
     function addManualButtons() {
       // Finn bottomframe tabellen
       const bottomTable = document.querySelector('.bottomframe table tbody tr');
@@ -763,6 +795,11 @@
           <button class="nissy-manual-btn" data-script="sjekk-duplikat" title="Sjekk alle bestillinger på valgt filter for duplikater og forskjellig dato på hent og levering">
             🔍 Sjekk-Bestilling
           </button>
+          ${hasSjekkPlakatAccess() ? `
+          <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først">
+            🚩 Sjekk-Plakat
+          </button>
+          ` : ''}
           <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
             📞 Sjekk-Telefon
           </button>
@@ -799,6 +836,9 @@
                 break;
               case 'sjekk-duplikat':
                 scriptFile = 'Sjekk-duplikat.js';
+                break;
+              case 'sjekk-plakat':
+                scriptFile = 'Sjekk-plakat.js';
                 break;
               case 'sjekk-telefon':
                 scriptFile = 'Sjekk-telefon.js';
