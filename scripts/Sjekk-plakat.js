@@ -16,6 +16,68 @@
   let overlayDiv = null;
 
   // ============================================================
+  // PROBLEMATISKE ORD/FRASER SOM SKAL FLAGGES
+  // ============================================================
+  const PROBLEMATIC_KEYWORDS = [
+    'alenebil',
+    'hentes',
+    'adresse',
+    'framsete',
+    'rullestol',
+    'rullator',
+    'lav bil',
+    'liten bil',
+    'forsete',
+    'direktebil',
+    'må ha med seg'
+  ];
+
+  // ============================================================
+  // HJELPEFUNKSJON: Sjekk om fritekst inneholder problematiske ord
+  // ============================================================
+  function hasProblematicText(freetext) {
+    if (!freetext) return false;
+    
+    const allText = [
+      freetext.amtp || '',
+      freetext.amtt || '',
+      freetext.mohts || ''
+    ].join(' ').toLowerCase();
+    
+    return PROBLEMATIC_KEYWORDS.some(keyword => allText.includes(keyword.toLowerCase()));
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Finn hvilke problematiske ord som finnes
+  // ============================================================
+  function findProblematicKeywords(freetext) {
+    if (!freetext) return [];
+    
+    const allText = [
+      freetext.amtp || '',
+      freetext.amtt || '',
+      freetext.mohts || ''
+    ].join(' ').toLowerCase();
+    
+    return PROBLEMATIC_KEYWORDS.filter(keyword => 
+      allText.includes(keyword.toLowerCase())
+    );
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Bryt lang tekst til flere linjer
+  // ============================================================
+  function breakLongText(text, maxLength = 130) {
+    if (!text || text.length <= maxLength) return text;
+    
+    // Finn mellomrom nærmest maxLength
+    let breakPoint = text.lastIndexOf(' ', maxLength);
+    if (breakPoint === -1) breakPoint = maxLength;
+    
+    return text.substring(0, breakPoint) + '<br>' + breakLongText(text.substring(breakPoint + 1), maxLength);
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Hent bestillingsdata fra server
   // ============================================================
   async function fetchRequisitionData(requisitionId) {
@@ -147,15 +209,13 @@
     const table = container.querySelector('table');
     if (!table) return [];
     
-    // Finn kolonne-indekser dynamisk
+    // Finn kolonne-indekser dynamisk (alle valgfrie bortsett fra plakat-kolonnen)
     const navnIndex = findColumnIndex(table, 'Pnavn');
     const reiseIndex = findColumnIndex(table, 'Reise');
     const oppIndex = findColumnIndex(table, 'Opp');
     const fraIndex = findColumnIndex(table, 'Fra');
     const behovIndex = findColumnIndexByText('#ventendeoppdrag', 'Behov');
     const ledsagerIndex = findColumnIndexByText('#ventendeoppdrag', 'L');
-    
-    if (navnIndex === -1 || reiseIndex === -1) return [];
     
     const rows = [...container.querySelectorAll('tr[id^="V-"]')];
     const results = [];
@@ -191,11 +251,19 @@
       if (!requisitionId) continue;
       
       const reknr = row.getAttribute('title') || '';
-      const navn = cells[navnIndex]?.textContent.trim() || '';
-      const hentetid = cells[reiseIndex]?.textContent.trim() || '';
-      const leveringstid = cells[oppIndex]?.textContent.trim() || '';
-      const adresseCell = cells[fraIndex]?.innerHTML || '';
-      const [fra, til] = adresseCell.split('<br>').map(s => s.trim());
+      const navn = navnIndex !== -1 ? (cells[navnIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
+      const hentetid = reiseIndex !== -1 ? (cells[reiseIndex]?.textContent.trim() || '-') : '-';
+      const leveringstid = oppIndex !== -1 ? (cells[oppIndex]?.textContent.trim() || '-') : '-';
+      
+      let fra = '';
+      let til = '';
+      if (fraIndex !== -1) {
+        const adresseCell = cells[fraIndex]?.innerHTML || '';
+        const parts = adresseCell.split('<br>').map(s => s.trim());
+        fra = parts[0] || '';
+        til = parts[1] || '';
+      }
+      
       const behov = behovIndex !== -1 ? (cells[behovIndex]?.textContent.trim() || '') : '';
       const ledsager = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
       
@@ -205,8 +273,8 @@
         navn,
         hentetid,
         leveringstid,
-        fra: fra || '',
-        til: til || '',
+        fra,
+        til,
         behov,
         ledsager,
         type: 'Ventende'
@@ -226,7 +294,7 @@
     const table = container.querySelector('table');
     if (!table) return [];
     
-    // Finn kolonne-indekser dynamisk
+    // Finn kolonne-indekser dynamisk (alle valgfrie bortsett fra toggle/plakat-kolonnen)
     const navnIndex = findColumnIndex(table, 'Pnavn');
     const startIndex = findColumnIndex(table, 'Start');
     const oppIndex = findColumnIndex(table, 'Oppm');
@@ -236,7 +304,8 @@
     const behovIndex = findColumnIndexByText('#pagaendeoppdrag', 'Behov');
     const ledsagerIndex = findColumnIndexByText('#pagaendeoppdrag', 'L');
     
-    if (navnIndex === -1 || startIndex === -1) return [];
+    // Toggle-kolonnen MÅ finnes (der ligger plakaten)
+    if (toggleIndex === -1) return [];
     
     const rows = [...container.querySelectorAll('tr[id^="P-"]')];
     const results = [];
@@ -277,12 +346,12 @@
           
           if (!requisitionId) continue;
           
-          // Hent data fra tilsvarende div i andre kolonner
-          const navnDivs = cells[navnIndex]?.querySelectorAll('div.row-image') || [];
-          const hentetidDivs = cells[startIndex]?.querySelectorAll('div.row-image') || [];
-          const leveringstidDivs = cells[oppIndex]?.querySelectorAll('div.row-image') || [];
-          const fraDivs = cells[fraIndex]?.querySelectorAll('div.row-image') || [];
-          const tilDivs = cells[tilIndex]?.querySelectorAll('div.row-image') || [];
+          // Hent data fra tilsvarende div i andre kolonner (alle valgfrie)
+          const navnDivs = navnIndex !== -1 ? (cells[navnIndex]?.querySelectorAll('div.row-image') || []) : [];
+          const hentetidDivs = startIndex !== -1 ? (cells[startIndex]?.querySelectorAll('div.row-image') || []) : [];
+          const leveringstidDivs = oppIndex !== -1 ? (cells[oppIndex]?.querySelectorAll('div.row-image') || []) : [];
+          const fraDivs = fraIndex !== -1 ? (cells[fraIndex]?.querySelectorAll('div.row-image') || []) : [];
+          const tilDivs = tilIndex !== -1 ? (cells[tilIndex]?.querySelectorAll('div.row-image') || []) : [];
           const behovDivs = behovIndex !== -1 ? (cells[behovIndex]?.querySelectorAll('div.row-image') || []) : [];
           const ledsagerDivs = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.querySelectorAll('div.row-image') || []) : [];
           
@@ -308,9 +377,9 @@
             }
           }
           
-          const navn = navnDivs[i]?.textContent.trim() || '';
-          const hentetid = hentetidDivs[i]?.textContent.trim() || '';
-          const leveringstid = leveringstidDivs[i]?.textContent.trim() || '';
+          const navn = navnDivs[i]?.textContent.trim() || '(Ukjent)';
+          const hentetid = hentetidDivs[i]?.textContent.trim() || '-';
+          const leveringstid = leveringstidDivs[i]?.textContent.trim() || '-';
           const fra = fraDivs[i]?.textContent.trim() || '';
           const til = tilDivs[i]?.textContent.trim() || '';
           const behov = behovDivs[i]?.textContent.trim() || '';
@@ -322,8 +391,8 @@
             navn,
             hentetid,
             leveringstid,
-            fra: fra || '',
-            til: til || '',
+            fra,
+            til,
             behov,
             ledsager,
             type: 'Pågående'
@@ -331,12 +400,14 @@
         }
       } else {
         // Single booking struktur
-        const firstCell = cells[0];
-        const redPosters = firstCell.querySelectorAll('img[src*="poster-red"]');
+        const toggleCell = cells[toggleIndex];
+        if (!toggleCell) continue;
+        
+        const redPosters = toggleCell.querySelectorAll('img[src*="poster-red"]');
         
         if (redPosters.length === 0) continue;
         
-        // Finn requisitionId
+        // Finn requisitionId fra onmouseover="showReq(this,XXXXXXXX,1320)"
         let requisitionId = null;
         for (const img of redPosters) {
           const onmouseover = img.getAttribute('onmouseover');
@@ -356,20 +427,23 @@
         
         if (!requisitionId) continue;
         
-        // Finn reknr
+        // Finn reknr fra action cell (siste celle)
         let reknr = '';
-        const questionImg = firstCell.querySelector('img[onclick*="searchStatus"]');
-        if (questionImg) {
-          const onclick = questionImg.getAttribute('onclick');
-          const reknrMatch = onclick?.match(/nr=(\d+)/);
-          if (reknrMatch) reknr = reknrMatch[1];
+        const actionCell = cells[cells.length - 1];
+        if (actionCell) {
+          const questionImg = actionCell.querySelector('img[onclick*="searchStatus"]');
+          if (questionImg) {
+            const onclick = questionImg.getAttribute('onclick');
+            const reknrMatch = onclick?.match(/nr=(\d+)/);
+            if (reknrMatch) reknr = reknrMatch[1];
+          }
         }
         
-        const navn = cells[navnIndex]?.textContent.trim() || '';
-        const hentetid = cells[startIndex]?.textContent.trim() || '';
-        const leveringstid = cells[oppIndex]?.textContent.trim() || '';
-        const fra = cells[fraIndex]?.textContent.trim() || '';
-        const til = cells[tilIndex]?.textContent.trim() || '';
+        const navn = navnIndex !== -1 ? (cells[navnIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
+        const hentetid = startIndex !== -1 ? (cells[startIndex]?.textContent.trim() || '-') : '-';
+        const leveringstid = oppIndex !== -1 ? (cells[oppIndex]?.textContent.trim() || '-') : '-';
+        const fra = fraIndex !== -1 ? (cells[fraIndex]?.textContent.trim() || '') : '';
+        const til = tilIndex !== -1 ? (cells[tilIndex]?.textContent.trim() || '') : '';
         const behov = behovIndex !== -1 ? (cells[behovIndex]?.textContent.trim() || '') : '';
         const ledsager = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
         
@@ -379,8 +453,8 @@
           navn,
           hentetid,
           leveringstid,
-          fra: fra || '',
-          til: til || '',
+          fra,
+          til,
           behov,
           ledsager,
           type: 'Pågående'
@@ -401,7 +475,7 @@
     const allPosters = [...ventende, ...pagaende];
     
     if (allPosters.length === 0) {
-      return [];
+      return { all: [], problematic: [] };
     }
     
     console.log(`🔍 Fant ${allPosters.length} røde plakater, henter fritekst...`);
@@ -415,14 +489,27 @@
       
       // Legg kun til hvis det faktisk er fritekst
       if (freetext && (freetext.amtp || freetext.amtt || freetext.mohts)) {
+        const isProblematic = hasProblematicText(freetext);
+        const keywords = isProblematic ? findProblematicKeywords(freetext) : [];
+        
         results.push({
           ...poster,
-          freetext
+          freetext,
+          isProblematic,
+          problematicKeywords: keywords
         });
       }
     }
     
-    return results;
+    // Sorter: problematiske først
+    const problematic = results.filter(r => r.isProblematic);
+    const normal = results.filter(r => !r.isProblematic);
+    
+    return {
+      all: results,
+      problematic,
+      normal
+    };
   }
 
   // ============================================================
@@ -462,7 +549,9 @@
   // ============================================================
   // HJELPEFUNKSJON: Vis modal med resultater
   // ============================================================
-  function showModal(postersWithFreetext) {
+  function showModal(data) {
+    const { all, problematic, normal } = data;
+    
     // Fjern eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
       document.body.removeChild(overlayDiv);
@@ -498,16 +587,37 @@
       <div style="padding: 20px;">
     `;
     
-    if (postersWithFreetext.length === 0) {
+    if (all.length === 0) {
       html += `
         <div style="text-align: center; padding: 40px 20px;">
           <p style="font-size: 16px; color: #28a745; font-weight: 500; margin: 0;">✓ Ingen røde plakater med fritekst funnet</p>
         </div>
       `;
     } else {
-      html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 16px; border-left: 4px solid #dc3545;">🚩 ${postersWithFreetext.length} bestilling${postersWithFreetext.length === 1 ? '' : 'er'} med rød plakat og fritekst</div>`;
+      // Vis totalt antall
+      html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">
+        🚩 ${all.length} bestilling${all.length === 1 ? '' : 'er'} med rød plakat og fritekst
+      </div>`;
       
-      html += renderPosters(postersWithFreetext);
+      // Vis antall problematiske hvis det finnes noen
+      if (problematic.length > 0) {
+        html += `<div style="background: #fff3cd; color: #856404; padding: 10px 12px; border-radius: 4px; margin-bottom: 16px; border-left: 4px solid #ffc107;">
+          ⚠️ ${problematic.length} bestilling${problematic.length === 1 ? '' : 'er'} med problematisk fritekst (alenebil, rullestol osv.)
+        </div>`;
+        // ⚠️ ${problematic.length} bestilling${problematic.length === 1 ? '' : 'er'} med problematisk fritekst (${PROBLEMATIC_KEYWORDS.join(', ')})
+        
+        // Vis problematiske først
+        html += '<h3 style="color: #856404; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⚠️ Problematisk fritekst</h3>';
+        html += renderPosters(problematic, true);
+      }
+      
+      // Vis normale bestillinger
+      if (normal.length > 0) {
+        if (problematic.length > 0) {
+          html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">📝 Øvrig fritekst</h3>';
+        }
+        html += renderPosters(normal, false);
+      }
     }
     
     html += '</div></div>';
@@ -538,19 +648,31 @@
   // ============================================================
   // HJELPEFUNKSJON: Render poster-cards med tabell
   // ============================================================
-  function renderPosters(posters) {
+  function renderPosters(posters, isProblematic = false) {
     let html = '';
     
     for (const poster of posters) {
-      const { requisitionId, reknr, navn, hentetid, leveringstid, fra, til, type, behov, ledsager, freetext } = poster;
+      const { requisitionId, reknr, navn, hentetid, leveringstid, fra, til, type, behov, ledsager, freetext, problematicKeywords } = poster;
+      
+      const borderColor = isProblematic ? '#ffc107' : '#dc3545';
       
       html += `
-        <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid #dc3545;">
+        <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${borderColor};">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div>
+            <div style="flex: 1;">
               <div style="font-weight: 600; color: #333; font-size: 15px; margin-bottom: 2px;">
                 ${navn} 
                 <span style="background: ${type === 'Ventende' ? '#ffc107' : '#17a2b8'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 6px;">${type}</span>
+      `;
+      
+      // Vis problematiske nøkkelord hvis de finnes
+      if (isProblematic && problematicKeywords && problematicKeywords.length > 0) {
+        html += `
+                <span style="background: #ffc107; color: #856404; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 6px; font-weight: 600;">⚠️ ${problematicKeywords.join(', ')}</span>
+        `;
+      }
+      
+      html += `
               </div>
               <div style="font-size: 12px; color: #666;">Reknr: ${reknr || 'N/A'}</div>
             </div>
@@ -589,28 +711,31 @@
       `;
       
       if (freetext.amtp) {
+        const brokenText = breakLongText(freetext.amtp);
         html += `
           <div style="margin-bottom: 6px; padding: 6px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 2px;">
             <div style="font-size: 11px; font-weight: 600; color: #856404; margin-bottom: 2px;">Melding til pasientreisekontoret:</div>
-            <div style="font-size: 12px; color: #856404;">${freetext.amtp}</div>
+            <div style="font-size: 12px; color: #856404;">${brokenText}</div>
           </div>
         `;
       }
       
       if (freetext.amtt) {
+        const brokenText = breakLongText(freetext.amtt);
         html += `
           <div style="margin-bottom: 6px; padding: 6px; background: #d1ecf1; border-left: 3px solid #17a2b8; border-radius: 2px;">
             <div style="font-size: 11px; font-weight: 600; color: #0c5460; margin-bottom: 2px;">Melding til transportøren:</div>
-            <div style="font-size: 12px; color: #0c5460;">${freetext.amtt}</div>
+            <div style="font-size: 12px; color: #0c5460;">${brokenText}</div>
           </div>
         `;
       }
       
       if (freetext.mohts) {
+        const brokenText = breakLongText(freetext.mohts);
         html += `
           <div style="margin-bottom: 6px; padding: 6px; background: #f8d7da; border-left: 3px solid #dc3545; border-radius: 2px;">
             <div style="font-size: 11px; font-weight: 600; color: #721c24; margin-bottom: 2px;">Merknad om hentested:</div>
-            <div style="font-size: 12px; color: #721c24;">${freetext.mohts}</div>
+            <div style="font-size: 12px; color: #721c24;">${brokenText}</div>
           </div>
         `;
       }
@@ -630,10 +755,10 @@
   (async () => {
     console.log('🚀 Starter Sjekk-plakat script...');
     
-    const postersWithFreetext = await fetchAllRedPosterData();
+    const data = await fetchAllRedPosterData();
     
-    console.log(`✅ Ferdig! Fant ${postersWithFreetext.length} bestillinger med fritekst`);
+    console.log(`✅ Ferdig! Fant ${data.all.length} bestillinger med fritekst (${data.problematic.length} problematiske)`);
     
-    showModal(postersWithFreetext);
+    showModal(data);
   })();
 })();
