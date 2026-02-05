@@ -1885,7 +1885,7 @@
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Hentetid</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Oppmøte</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Behov</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>L</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;" title="Antall ledsagere"><strong>L</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fra</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Til</strong></td>
                                 </tr>
@@ -1958,7 +1958,7 @@
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Behov</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">L</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;" title="Antall ledsagere">L</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Status</th>
@@ -2132,7 +2132,7 @@
                                             <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
                                             <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
                                             <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Behov</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;" title="Antall ledsagere">L</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;" title="Antall ledsagere">L</th>
                                             <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
                                             <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
                                             <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Status</th>
@@ -2157,7 +2157,7 @@
                                     <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}">${booking.patientName}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
-                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${booking.ledsager || '-'}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
@@ -2354,20 +2354,28 @@
             return;
         }
         
-        const selectedVentende = getSelectedVentendeOppdrag();
+        // Sjekk først om en ressurs er merket
         const selectedResource = getSelectedResourceOppdrag();
-
-        // null = kolonne-validering feilt (toast er allerede vist)
-        if (selectedVentende === null) return;
         
-        // Sjekk om både ventende og ressurs er merket
-        if (selectedVentende.length > 0 && selectedResource !== null) {
-            showErrorToast('❌ Du må velge ENTEN bestillinger fra ventende oppdrag ELLER en ressurs fra pågående oppdrag — ikke begge samtidig.');
-            return;
-        }
-        
-        // MODUS 1: Ressurs-modus (replanlegging)
+        // Hvis ressurs er merket, sjekk om ventende også er merket (uten å validere kolonner)
         if (selectedResource !== null) {
+            // Quick check: er noen ventende rows merket? (uten kolonne-validering)
+            const ventendeRows = document.querySelectorAll('#ventendeoppdrag tbody tr');
+            let hasSelectedVentende = false;
+            for (const row of ventendeRows) {
+                const bgColor = row.style.backgroundColor;
+                if (bgColor === 'rgb(148, 169, 220)') {
+                    hasSelectedVentende = true;
+                    break;
+                }
+            }
+            
+            if (hasSelectedVentende) {
+                showErrorToast('❌ Du må velge ENTEN bestillinger fra ventende oppdrag ELLER en ressurs fra pågående oppdrag — ikke begge samtidig.');
+                return;
+            }
+            
+            // OK, kun ressurs er merket
             if (selectedResource.bookings.length === 0) {
                 showErrorToast('🚐 Den merkede ressursen har ingen bestillinger.');
                 return;
@@ -2387,7 +2395,12 @@
             return;
         }
         
-        // MODUS 2: Ventende-modus (normal)
+        // MODUS 2: Ventende-modus (normal) - kun nå sjekker vi ventende kolonner
+        const selectedVentende = getSelectedVentendeOppdrag();
+
+        // null = kolonne-validering feilt (toast er allerede vist)
+        if (selectedVentende === null) return;
+        
         if (selectedVentende.length === 0) {
             showErrorToast('🚐 Ingen bestillinger eller ressurser er valgt. Vennligst marker én eller flere bestillinger på ventende oppdrag, eller én ressurs på pågående oppdrag.');
             return;
