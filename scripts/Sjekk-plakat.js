@@ -33,6 +33,8 @@
     'hjelp',
     'yrkesskade',
     'følges',
+    'ledsager',
+    'pårørende',
     'må ha med seg'
   ];
 
