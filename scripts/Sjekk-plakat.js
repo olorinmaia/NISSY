@@ -20,12 +20,14 @@
   // ============================================================
   const PROBLEMATIC_KEYWORDS = [
     'alenebil',
-    'hentes',
+    'smitte',
+    'hente',
     'adresse',
     'framsete',
     'rullestol',
     'rullator',
     'lav bil',
+    'høy bil',
     'liten bil',
     'forsete',
     'direktebil',
@@ -33,7 +35,10 @@
     'hjelp',
     'yrkesskade',
     'følges',
-    'må ha med seg'
+    'ledsager',
+    'pårørende',
+    'dopause',
+    'toalett'
   ];
 
   // ============================================================
