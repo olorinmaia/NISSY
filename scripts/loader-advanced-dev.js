@@ -278,7 +278,7 @@
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="🚐 Samkjøring (Alt+X)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="x" title="Finn potensielle samkjøringsforslag på pågående oppdrag for merkede bestillinger på ventende oppdrag for valgte filter">
+                   data-hotkey="x" title="Finn potensielle samkjøringsforslag på pågående oppdrag for merkede bestillinger / ressurs innad i valgte filter">
           </td>
         </tr>
       `;
