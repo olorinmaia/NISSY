@@ -163,6 +163,7 @@
         { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7800, max: 7822 } },
         { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7856, max: 7877 } },
         { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7882, max: 7898 } },
+        { ressursHent: { min: 7856, max: 7856 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7856, max: 7995 } },
         // Legg til flere her:
     ];
 
