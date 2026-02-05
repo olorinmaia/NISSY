@@ -21,7 +21,7 @@
   const PROBLEMATIC_KEYWORDS = [
     'alenebil',
     'smitte',
-    'hente',
+    'hentes',
     'adresse',
     'framsete',
     'rullestol',
