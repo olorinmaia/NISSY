@@ -7,6 +7,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Lage script for overvåking av ventende oppdrag, varsle om nye bestillinger, endringer på tider osv.
 
 ---
+## 🚀 [3.4.1] - 06.02.2026
+
+### Sjekk-Bestilling forbedret
+
+#### Hva er nytt?
+- 🔍 **Sjekk-Bestilling**
+  - Finner nå bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
+  - Forbedret sjekk av duplikate bestillinger, slik at 2 bestillinger med lik fra- ELLER til-adresse slår ut. Tidligere måtte begge være like.
+  - Lagt til kolonnevalidering, slik at scriptet alltid vil virke, hvis nødvendige kolonner mangler kastes feilmelding.
+
 ## 🚀 [3.4.0] - 05.02.2026
 
 ### Nytt script: 🚩 Sjekk-Plakat (Kun synlig for Nord-Trøndelag i første omgang) og Samkjøring kan nå replanlegge ressurs

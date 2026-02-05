@@ -79,6 +79,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling**
   - Sjekker alle bestillinger på valgt filter for duplikater eller om de har forskjellig dato på "klar fra" og "oppmøte", lar deg søke opp disse for å rette opp.
+  - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
 - 🚩 **Sjekk-Plakat**
   - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
   - Eksempel på problematisk tekst: 'alenebil','hentes','adresse','framsete','rullestol','rullator','lav bil','liten bil','forsete','direktebil','må ha med seg'.
