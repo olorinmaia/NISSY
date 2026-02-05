@@ -792,7 +792,7 @@
           <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
             🤖 Auto-Bestill
           </button>
-          <button class="nissy-manual-btn" data-script="sjekk-duplikat" title="Sjekk alle bestillinger på valgt filter for duplikater og forskjellig dato på hent og levering">
+          <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater og forskjellig dato på hent og levering og andre feil som kan forårsake problemer">
             🔍 Sjekk-Bestilling
           </button>
           ${hasSjekkPlakatAccess() ? `
@@ -834,8 +834,8 @@
               case 'auto-bestill':
                 scriptFile = 'Auto-Bestill.js';
                 break;
-              case 'sjekk-duplikat':
-                scriptFile = 'Sjekk-duplikat.js';
+              case 'sjekk-bestilling':
+                scriptFile = 'Sjekk-bestilling.js';
                 break;
               case 'sjekk-plakat':
                 scriptFile = 'Sjekk-plakat.js';

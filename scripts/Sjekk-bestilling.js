@@ -1,15 +1,15 @@
 // ================================================================================
-// Script som sjekker for duplikater og forskjellig dato på hent/lever blant alle bestillinger på valgt filter
+// Script som sjekker bestillinger for duplikater og forskjellig dato på hent/lever og andre feil på valgt filter
 // Sjekker ventende og pågående oppdrag, lar deg søke etter feil for å rette opp
 // ================================================================================
 
 (() => {
   // --- SPERRE MOT DUPLIKAT KJØRING ---
-  if (window.__sjekkDuplikatActive) {
-    console.warn("⚠️ Sjekk-duplikat er allerede aktiv - ignorerer ny forespørsel");
+  if (window.__sjekkBestillingActive) {
+    console.warn("⚠️ Sjekk-bestilling er allerede aktiv - ignorerer ny forespørsel");
     return;
   }
-  window.__sjekkDuplikatActive = true;
+  window.__sjekkBestillingActive = true;
 
   let modalDiv = null;
   let overlayDiv = null;
@@ -366,7 +366,7 @@
     modalDiv = null;
     
     // Frigjør sperre ETTER at modalen er fjernet
-    window.__sjekkDuplikatActive = false;
+    window.__sjekkBestillingActive = false;
   }
 
   function handleEscape(e) {
@@ -417,7 +417,7 @@
     if (totalIssues === 0) {
       html += `
         <div style="text-align: center; padding: 40px 20px;">
-          <p style="font-size: 16px; color: #28a745; font-weight: 500; margin: 0;">✓ Ingen duplikater eller datofeil funnet</p>
+          <p style="font-size: 16px; color: #28a745; font-weight: 500; margin: 0;">✓ Ingen duplikater eller andre feil funnet</p>
         </div>
       `;
     } else {
