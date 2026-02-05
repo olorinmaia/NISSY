@@ -598,6 +598,121 @@
         return oppdrag;
     }
 
+    // Funksjon for å hente merket ressurs (hvis noen)
+    // Merkede ressurser har inline style med background-color: rgb(148, 169, 220)
+    function getSelectedResourceOppdrag() {
+        const rows = document.querySelectorAll('#pagaendeoppdrag tbody tr');
+        
+        for (const row of rows) {
+            const bgColor = row.style.backgroundColor;
+            if (bgColor === 'rgb(148, 169, 220)') {
+                // Fant merket ressurs — parse alle dens bookinger
+                const rowId = row.id.replace('P-', '');
+                const cells = row.querySelectorAll('td');
+                const resource = cells[1]?.textContent.trim();
+                
+                // Samme parsing som getPaagaendeOppdrag
+                const startTimeIndex = findColumnIndex('#pagaendeoppdrag', 'tripStartTime');
+                const oppTidIndex    = findColumnIndex('#pagaendeoppdrag', 'tripTreatmentDate');
+                const nameIndex      = findColumnIndex('#pagaendeoppdrag', 'patientName');
+                const fromIndex      = findColumnIndex('#pagaendeoppdrag', 'tripFromAddress');
+                const toIndex        = findColumnIndex('#pagaendeoppdrag', 'tripToAddress');
+                const statusIndex    = findColumnIndex('#pagaendeoppdrag', 'resourceStatus');
+                const behovIndex     = findColumnIndexByText('#pagaendeoppdrag', 'Behov');
+                const ledsagerIndex  = findColumnIndexByText('#pagaendeoppdrag', 'L');
+                
+                const bookings = [];
+                const rowImageDivs = cells[startTimeIndex]?.querySelectorAll('div.row-image');
+                
+                if (rowImageDivs && rowImageDivs.length > 0) {
+                    // Multi-booking
+                    rowImageDivs.forEach((div, index) => {
+                        const tripStartTime     = cells[startTimeIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                        const tripTreatmentTime = cells[oppTidIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                        const patientName       = nameIndex !== -1
+                            ? (cells[nameIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '(Ukjent)')
+                            : '(Ukjent)';
+                        const fromAddress       = cells[fromIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                        const toAddress         = cells[toIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim();
+                        const status            = statusIndex !== -1
+                            ? (cells[statusIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '(Ukjent)')
+                            : '(Ukjent)';
+                        const behov             = behovIndex !== -1
+                            ? (cells[behovIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '')
+                            : '';
+                        const ledsager          = ledsagerIndex !== -1
+                            ? (cells[ledsagerIndex]?.querySelectorAll('div.row-image')[index]?.textContent.trim() || '')
+                            : '';
+                        
+                        const reqId = rowId + '-' + index;
+                        
+                        const order = {
+                            id: reqId,
+                            rowId: rowId,
+                            resource,
+                            patientName,
+                            tripStartTime,
+                            tripTreatmentTime,
+                            behov,
+                            ledsager,
+                            fromAddress,
+                            toAddress,
+                            status,
+                            postnrHent: parsePostnummer(fromAddress),
+                            postnrLever: parsePostnummer(toAddress),
+                            startDateTime: parseDateTime(tripStartTime),
+                            treatmentDateTime: parseDateTime(tripTreatmentTime),
+                            multiBooking: true,
+                            bookingIndex: index + 1,
+                            totalBookings: rowImageDivs.length
+                        };
+                        
+                        bookings.push(normalizeReturnTrip(order));
+                    });
+                } else {
+                    // Single booking
+                    const tripStartTime     = cells[startTimeIndex]?.textContent.trim();
+                    const tripTreatmentTime = cells[oppTidIndex]?.textContent.trim();
+                    const patientName       = nameIndex   !== -1 ? (cells[nameIndex]?.textContent.trim()   || '(Ukjent)') : '(Ukjent)';
+                    const fromAddress       = cells[fromIndex]?.textContent.trim();
+                    const toAddress         = cells[toIndex]?.textContent.trim();
+                    const status            = statusIndex !== -1 ? (cells[statusIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
+                    const behov             = behovIndex  !== -1 ? (cells[behovIndex]?.textContent.trim()  || '') : '';
+                    const ledsager          = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
+                    
+                    const order = {
+                        id: rowId,
+                        rowId: rowId,
+                        resource,
+                        patientName,
+                        tripStartTime,
+                        tripTreatmentTime,
+                        behov,
+                        ledsager,
+                        fromAddress,
+                        toAddress,
+                        status,
+                        postnrHent: parsePostnummer(fromAddress),
+                        postnrLever: parsePostnummer(toAddress),
+                        startDateTime: parseDateTime(tripStartTime),
+                        treatmentDateTime: parseDateTime(tripTreatmentTime),
+                        multiBooking: false
+                    };
+                    
+                    bookings.push(normalizeReturnTrip(order));
+                }
+                
+                return {
+                    resource,
+                    rowId,
+                    bookings
+                };
+            }
+        }
+        
+        return null; // Ingen merket ressurs
+    }
+
     // Funksjon for å beregne faktisk leveringsvindu for en ressurs
     // Når en ressurs har flere bestillinger, blir leveringsvinduet begrenset av alle bestillingene
     function calculateActualDeliveryWindow(resourceBookings) {
@@ -1627,8 +1742,93 @@
         return results;
     }
 
+    // Funksjon for å finne kandidater for en merket ressurs (replanlegging)
+    // Behandler ressursens bookinger som "ventende", søker blant ANDRE ressurser
+    function findCandidatesForResource(selectedResource) {
+        const pagaendeList = getPaagaendeOppdrag();
+        
+        if (pagaendeList === null) return null;
+        
+        // Filtrer bort den merkede ressursen selv
+        const otherResources = pagaendeList.filter(p => p.rowId !== selectedResource.rowId);
+        
+        if (otherResources.length === 0) {
+            showErrorToast('🚐 Ingen andre ressurser funnet å sammenligne med.');
+            return null;
+        }
+        
+        // Bygg én Map per target-ressurs som samler alle matches
+        const resourceMatches = new Map();
+        
+        // For hver booking på den merkede ressursen
+        selectedResource.bookings.forEach(ventende => {
+            // Søk blant alle andre ressurser
+            otherResources.forEach(pagaende => {
+                const match = checkSamkjoring(ventende, pagaende);
+                
+                if (match) {
+                    const key = pagaende.resource;
+                    
+                    // Initialiser ressurs hvis den ikke finnes
+                    if (!resourceMatches.has(key)) {
+                        resourceMatches.set(key, {
+                            resource: pagaende.resource,
+                            rowId: pagaende.rowId,
+                            bookings: [],
+                            matches: [],  // Liste over alle source-bookinger som matcher
+                            bestScore: 0
+                        });
+                    }
+                    
+                    const resourceData = resourceMatches.get(key);
+                    resourceData.bestScore = Math.max(resourceData.bestScore, match.score);
+                    
+                    // Legg til den matchende source-bookingen (fra selected resource)
+                    resourceData.matches.push({
+                        sourceBooking: ventende,
+                        matchType: match.type,
+                        scenario: match.scenario,
+                        score: match.score,
+                        timeDiff: match.timeDiff,
+                        absTimeDiff: match.absTimeDiff,
+                        direction: match.direction,
+                        waitDescription: match.waitDescription
+                    });
+                    
+                    // Legg til target-ressursens booking hvis ikke allerede der
+                    const alreadyHasBooking = resourceData.bookings.some(b => b.id === pagaende.id);
+                    if (!alreadyHasBooking) {
+                        resourceData.bookings.push({
+                            ...pagaende,
+                            matchType: match.type,
+                            scenario: match.scenario,
+                            timeDiff: match.timeDiff,
+                            absTimeDiff: match.absTimeDiff,
+                            direction: match.direction,
+                            waitDescription: match.waitDescription,
+                            score: match.score,
+                            hasMatch: true
+                        });
+                    }
+                }
+            });
+        });
+        
+        // Konverter til array og sorter etter beste score
+        const candidates = Array.from(resourceMatches.values())
+            .sort((a, b) => b.bestScore - a.bestScore);
+        
+        // Returner som én entry med alle kandidater
+        // selectedResource inneholder alle source-bookingene
+        return {
+            selectedResource,  // Original ressurs med alle dens bookinger
+            candidates         // Liste over target-ressurser med deres matches
+        };
+    }
+
+
     // Funksjon for å vise resultat popup
-    function showResultsPopup(results) {
+    function showResultsPopup(results, isResourceMode = false) {
         // Fjern eksisterende popup hvis den finnes
         const existingPopup = document.getElementById('samkjoring-popup');
         if (existingPopup) {
@@ -1641,41 +1841,43 @@
         
         let html = '<h2 style="margin-top: 0;">🚐 Samkjøringsforslag</h2>';
 
-        if (results.length === 0) {
-            // Ingen min-width for tom popup
-            popup.style.cssText = `
-                position: fixed;
-                background: white;
-                border: 2px solid #333;
-                border-radius: 8px;
-                padding: 20px;
-                max-width: 500px;
-                max-height: 80vh;
-                overflow-y: auto;
-                z-index: 10000;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            `;
-            html += '<p>Ingen samkjøringskandidater funnet.</p>';
-        } else {
-            // Bredde tilpasser seg innholdet
-            popup.style.cssText = `
-                position: fixed;
-                background: white;
-                border: 2px solid #333;
-                border-radius: 8px;
-                padding: 20px;
-                width: fit-content;
-                min-width: 800px;
-                max-width: 90%;
-                max-height: 80vh;
-                overflow-y: auto;
-                z-index: 10000;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            `;
-            results.forEach(result => {
+        // RESSURSMODUS: Helt annen struktur
+        if (isResourceMode) {
+            if (!results || !results.candidates || results.candidates.length === 0) {
+                popup.style.cssText = `
+                    position: fixed;
+                    background: white;
+                    border: 2px solid #333;
+                    border-radius: 8px;
+                    padding: 20px;
+                    max-width: 500px;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    z-index: 10000;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                `;
+                html += '<p>Ingen samkjøringskandidater funnet.</p>';
+            } else {
+                popup.style.cssText = `
+                    position: fixed;
+                    background: white;
+                    border: 2px solid #333;
+                    border-radius: 8px;
+                    padding: 20px;
+                    width: fit-content;
+                    min-width: 800px;
+                    max-width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    z-index: 10000;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                `;
+                
+                // Show source resource header and ALL its bookings
                 html += `
                     <div style="margin-bottom: 25px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
-                        <h3 style="margin-top: 0; color: #0066cc;">Merket bestilling:</h3>
+                        <h3 style="margin-top: 0; color: #0066cc;">Merket ressurs:</h3>
+                        <p style="margin: 5px 0 10px 0; font-weight: bold; color: #333;">🚐 ${results.selectedResource.resource}</p>
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white;">
                             <tbody>
                                 <tr style="background: #f0f8ff;">
@@ -1683,59 +1885,53 @@
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Hentetid</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Oppmøte</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Behov</strong></td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;" title="Antall ledsagere"><strong>L</strong></td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>L</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fra</strong></td>
                                     <td style="padding: 8px; border: 1px solid #ddd;"><strong>Til</strong></td>
                                 </tr>
-                                <tr>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}">${result.ventende.patientName}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripStartTime}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripTreatmentTime}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${result.ventende.behov || ''}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${result.ventende.ledsager || '-'}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.toAddress}">${result.ventende.toAddress}</td>
+                `;
+                
+                // Loop through ALL bookings on the selected resource
+                results.selectedResource.bookings.forEach((booking, idx) => {
+                    const rowBg = idx % 2 === 0 ? '#fff' : '#f9f9f9';
+                    html += `
+                                <tr style="background: ${rowBg};">
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em;">${booking.patientName}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${booking.tripStartTime}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${booking.ledsager || '-'}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em;">${booking.fromAddress}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em;">${booking.toAddress}</td>
                                 </tr>
+                    `;
+                });
+                
+                html += `
                             </tbody>
                         </table>
                         
-                        <h4 style="margin-top: 15px; color: #006400;">Potensielle samkjøringer (${result.candidates.length} ressurs${result.candidates.length !== 1 ? 'er' : ''}):</h4>
+                        <h4 style="margin-top: 15px; color: #006400;">Potensielle samkjøringer (${results.candidates.length} ressurs${results.candidates.length !== 1 ? 'er' : ''}):</h4>
                 `;
-
-                result.candidates.forEach((resourceCandidate, resIndex) => {
-                    // Finn beste match for denne ressursen
-                    const matchedBookings = resourceCandidate.bookings.filter(b => b.hasMatch);
-                    const bestMatch = matchedBookings.length > 0 ? matchedBookings[0] : null;
-                    
-                    let resourceBadge = '';
-                    let borderColor = '#006400';
-                    
-                    if (bestMatch) {
-                        if (bestMatch.matchType === 'returutnyttelse') {
-                            resourceBadge = '<span style="background: #9b59b6; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">RETURUTNYTTELSE</span>';
-                            borderColor = '#9b59b6';
-                        } else if (bestMatch.matchType === 'samkjøring') {
-                            resourceBadge = '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
-                            borderColor = '#28a745';
-                        } else {
-                            resourceBadge = '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
-                            borderColor = '#28a745';
-                        }
-                    }
-                    
-                    // Hent rowId fra første booking (alle har samme ressurs)
-                    const resourceRowId = resourceCandidate.bookings[0].rowId;
+                
+                // Get pagaendeList once outside the loop
+                const pagaendeList = getPaagaendeOppdrag();
+                
+                // Show each candidate resource
+                results.candidates.forEach((candidate, candIdx) => {
+                    const borderColor = '#28a745';
                     
                     html += `
                         <div style="margin: 15px 0; padding: 12px; background: white; border-left: 4px solid ${borderColor}; border-radius: 3px;">
                             <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center;">
                                 <div>
-                                    ${resIndex + 1}. ${resourceCandidate.resource}${resourceBadge}
-                                    <span style="color: ${borderColor}; font-size: 0.95em; margin-left: 10px;">Score: ${Math.round(resourceCandidate.bestScore)}</span>
+                                    ${candIdx + 1}. ${candidate.resource}
+                                    <span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>
+                                    <span style="color: ${borderColor}; font-size: 0.95em; margin-left: 10px;">Score: ${Math.round(candidate.bestScore)}</span>
                                 </div>
                                 <div>
                                     <button 
-                                        onclick="window.showSamkjoringInMap('${result.ventende.rowId}', '${resourceRowId}')"
+                                        onclick="window.showSamkjoringInMapResource('${results.selectedResource.rowId}', '${candidate.rowId}')"
                                         style="background: #2980b9; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; margin-right: 8px; height: 36px;"
                                         onmouseover="this.style.opacity='0.8'"
                                         onmouseout="this.style.opacity='1'"
@@ -1744,17 +1940,17 @@
                                         🗺️ Vis i kart
                                     </button>
                                     <button 
-                                        onclick="window.selectSamkjoringResource('${result.ventende.rowId}', '${resourceRowId}')"
+                                        onclick="window.selectSamkjoringResourcePair('${results.selectedResource.rowId}', '${candidate.rowId}')"
                                         style="background: ${borderColor}; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; height: 36px;"
                                         onmouseover="this.style.opacity='0.8'"
                                         onmouseout="this.style.opacity='1'"
                                     >
-                                        🚐 Velg ressurs
+                                        🚐 Velg ressurser
                                     </button>
                                 </div>
                             </div>
                             
-                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 10px;">
                                 <thead>
                                     <tr style="background: #f9f9f9; border-bottom: 2px solid #ddd;">
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Match</th>
@@ -1762,7 +1958,7 @@
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Behov</th>
-                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;" title="Antall ledsagere">L</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">L</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
                                         <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Status</th>
@@ -1771,21 +1967,32 @@
                                 <tbody>
                     `;
                     
-                    resourceCandidate.bookings.forEach((booking, bookingIndex) => {
-                        const rowBg = bookingIndex % 2 === 0 ? '#fff' : '#f9f9f9';
-                        let matchIcon = '';
-                        let matchInfo = '';
+                    // Get all bookings for this target resource
+                    const allResourceBookings = [];
+                    if (pagaendeList) {
+                        // For multi-booking resources, there are multiple entries with same rowId
+                        // We need to collect ALL of them
+                        const allEntriesForResource = pagaendeList.filter(p => p.rowId === candidate.rowId);
                         
-                        if (booking.hasMatch) {
-                            matchIcon = '<span style="color: green; font-weight: bold;">✓</span>';
-                            matchInfo = ''; // Ingen ekstra tekst
-                        } else {
-                            matchIcon = '<span style="color: #ccc;">-</span>';
-                        }
+                        allEntriesForResource.forEach(entry => {
+                            const hasMatch = candidate.bookings && candidate.bookings.some(b => b.id === entry.id);
+                            allResourceBookings.push({
+                                ...entry,
+                                hasMatch
+                            });
+                        });
+                    }
+                    
+                    // Build table rows
+                    allResourceBookings.forEach((booking, bookingIndex) => {
+                        const rowBg = bookingIndex % 2 === 0 ? '#fff' : '#f9f9f9';
+                        const matchIcon = booking.hasMatch 
+                            ? '<span style="color: green; font-weight: bold;">✓</span>'
+                            : '<span style="color: #ccc;">-</span>';
                         
                         html += `
                             <tr style="background: ${rowBg}; ${booking.hasMatch ? 'font-weight: 500;' : 'color: #666;'}">
-                                <td style="padding: 6px; border: 1px solid #ddd; text-align: left;">${matchIcon}${matchInfo}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; text-align: left;">${matchIcon}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}">${booking.patientName}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
@@ -1804,9 +2011,171 @@
                         </div>
                     `;
                 });
-
+                
                 html += '</div>';
-            });
+            }
+        } 
+        // VENTENDE MODE: Original structure
+        else {
+            if (results.length === 0) {
+                popup.style.cssText = `
+                    position: fixed;
+                    background: white;
+                    border: 2px solid #333;
+                    border-radius: 8px;
+                    padding: 20px;
+                    max-width: 500px;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    z-index: 10000;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                `;
+                html += '<p>Ingen samkjøringskandidater funnet.</p>';
+            } else {
+                popup.style.cssText = `
+                    position: fixed;
+                    background: white;
+                    border: 2px solid #333;
+                    border-radius: 8px;
+                    padding: 20px;
+                    width: fit-content;
+                    min-width: 800px;
+                    max-width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    z-index: 10000;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                `;
+                
+                results.forEach(result => {
+                    html += `
+                        <div style="margin-bottom: 25px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
+                            <h3 style="margin-top: 0; color: #0066cc;">Merket bestilling:</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white;">
+                                <tbody>
+                                    <tr style="background: #f0f8ff;">
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Navn</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Hentetid</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Oppmøte</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Behov</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;" title="Antall ledsagere"><strong>L</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Fra</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Til</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.patientName}">${result.ventende.patientName}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripStartTime}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripTreatmentTime}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${result.ventende.behov || ''}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${result.ventende.ledsager || '-'}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.toAddress}">${result.ventende.toAddress}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <h4 style="margin-top: 15px; color: #006400;">Potensielle samkjøringer (${result.candidates.length} ressurs${result.candidates.length !== 1 ? 'er' : ''}):</h4>
+                    `;
+
+                    result.candidates.forEach((resourceCandidate, resIndex) => {
+                        const matchedBookings = resourceCandidate.bookings.filter(b => b.hasMatch);
+                        const bestMatch = matchedBookings.length > 0 ? matchedBookings[0] : null;
+                        
+                        let resourceBadge = '';
+                        let borderColor = '#006400';
+                        
+                        if (bestMatch) {
+                            if (bestMatch.matchType === 'returutnyttelse') {
+                                resourceBadge = '<span style="background: #9b59b6; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">RETURUTNYTTELSE</span>';
+                                borderColor = '#9b59b6';
+                            } else {
+                                resourceBadge = '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>';
+                                borderColor = '#28a745';
+                            }
+                        }
+                        
+                        const resourceRowId = resourceCandidate.bookings[0].rowId;
+                        
+                        html += `
+                            <div style="margin: 15px 0; padding: 12px; background: white; border-left: 4px solid ${borderColor}; border-radius: 3px;">
+                                <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        ${resIndex + 1}. ${resourceCandidate.resource}${resourceBadge}
+                                        <span style="color: ${borderColor}; font-size: 0.95em; margin-left: 10px;">Score: ${Math.round(resourceCandidate.bestScore)}</span>
+                                    </div>
+                                    <div>
+                                        <button 
+                                            onclick="window.showSamkjoringInMap('${result.ventende.rowId}', '${resourceRowId}')"
+                                            style="background: #2980b9; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; margin-right: 8px; height: 36px;"
+                                            onmouseover="this.style.opacity='0.8'"
+                                            onmouseout="this.style.opacity='1'"
+                                            tabindex="-1"
+                                        >
+                                            🗺️ Vis i kart
+                                        </button>
+                                        <button 
+                                            onclick="window.selectSamkjoringResource('${result.ventende.rowId}', '${resourceRowId}')"
+                                            style="background: ${borderColor}; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; height: 36px;"
+                                            onmouseover="this.style.opacity='0.8'"
+                                            onmouseout="this.style.opacity='1'"
+                                        >
+                                            🚐 Velg ressurs
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                                    <thead>
+                                        <tr style="background: #f9f9f9; border-bottom: 2px solid #ddd;">
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Match</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Navn</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Hentetid</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Oppmøte</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Behov</th>
+                                        <th style="padding: 6px; text-align: left; border: 1px solid #ddd;" title="Antall ledsagere">L</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Fra</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Til</th>
+                                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        
+                        resourceCandidate.bookings.forEach((booking, bookingIndex) => {
+                            const rowBg = bookingIndex % 2 === 0 ? '#fff' : '#f9f9f9';
+                            let matchIcon = '';
+                            
+                            if (booking.hasMatch) {
+                                matchIcon = '<span style="color: green; font-weight: bold;">✓</span>';
+                            } else {
+                                matchIcon = '<span style="color: #ccc;">-</span>';
+                            }
+                            
+                            html += `
+                                <tr style="background: ${rowBg}; ${booking.hasMatch ? 'font-weight: 500;' : 'color: #666;'}">
+                                    <td style="padding: 6px; border: 1px solid #ddd; text-align: left;">${matchIcon}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.9em; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.patientName}">${booking.patientName}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripStartTime}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${booking.ledsager || '-'}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; white-space: nowrap;" title="${booking.status}">${booking.status}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                });
+            }
         }
 
         html += '<button id="close-samkjoring-popup" style="margin-top: 15px; padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer;">Lukk</button>';
@@ -1843,9 +2212,9 @@
         `;
         document.body.appendChild(overlay);
 
-        // Sett fokus på første "Velg ressurs"-knapp
+        // Sett fokus på første knapp
         setTimeout(() => {
-            const firstButton = popup.querySelector('button[onclick^="window.selectSamkjoringResource"]');
+            const firstButton = popup.querySelector('button[onclick^="window.select"]');
             if (firstButton) {
                 firstButton.focus();
             }
@@ -1868,11 +2237,10 @@
         };
         document.addEventListener('keydown', escHandler);
 
-        // TAB-trap: Hold TAB-navigasjon innenfor popup
+        // TAB-trap
         const tabTrapHandler = (e) => {
             if (e.key !== 'Tab') return;
             
-            // Finn alle fokuserbare elementer i popup (unntatt de med tabindex="-1")
             const focusableElements = Array.from(popup.querySelectorAll(
                 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
             )).filter(el => el.tabIndex !== -1);
@@ -1882,20 +2250,17 @@
             const firstElement = focusableElements[0];
             const lastElement = focusableElements[focusableElements.length - 1];
             
-            // Hvis Shift+Tab på første element, gå til siste
             if (e.shiftKey && document.activeElement === firstElement) {
                 e.preventDefault();
                 lastElement.focus();
-            }
-            // Hvis Tab på siste element, gå til første
-            else if (!e.shiftKey && document.activeElement === lastElement) {
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
                 e.preventDefault();
                 firstElement.focus();
             }
         };
         document.addEventListener('keydown', tabTrapHandler);
 
-        // Global funksjon for å velge ressurs
+        // Global functions for button clicks
         window.selectSamkjoringResource = (ventendeId, resourceId) => {
             if (selectResourceAndBooking(ventendeId, resourceId)) {
                 closePopup();
@@ -1904,10 +2269,33 @@
             }
         };
 
-        // Global funksjon for å vise i kart
+        window.selectSamkjoringResourcePair = (sourceResourceId, targetResourceId) => {
+            try {
+                // Clear all selections first
+                if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+                    ListSelectionGroup.clearAllSelections();
+                }
+                
+                // Select both resources
+                const sourceRow = document.getElementById('P-' + sourceResourceId);
+                const targetRow = document.getElementById('P-' + targetResourceId);
+                
+                if (sourceRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                    selectRow('P-' + sourceResourceId, g_poppLS);
+                }
+                if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                    selectRow('P-' + targetResourceId, g_poppLS);
+                }
+                
+                closePopup();
+            } catch (error) {
+                console.error('Feil ved merking:', error);
+                showErrorToast('🚐 Kunne ikke velge ressurser. Vennligst prøv igjen.');
+            }
+        };
+
         window.showSamkjoringInMap = (ventendeId, resourceId) => {
             if (selectResourceAndBooking(ventendeId, resourceId)) {
-                // Trigger Alt+W for å åpne kart
                 setTimeout(() => {
                     document.dispatchEvent(new KeyboardEvent('keydown', {
                         key: 'w',
@@ -1917,8 +2305,38 @@
                         cancelable: true
                     }));
                 }, 100);
-                // Popup forblir åpen slik at bruker kan velge flere ressurser
             } else {
+                showErrorToast('🚐 Kunne ikke åpne kart. Vennligst prøv igjen.');
+            }
+        };
+
+        window.showSamkjoringInMapResource = (sourceResourceId, targetResourceId) => {
+            try {
+                if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+                    ListSelectionGroup.clearAllSelections();
+                }
+                
+                const sourceRow = document.getElementById('P-' + sourceResourceId);
+                const targetRow = document.getElementById('P-' + targetResourceId);
+                
+                if (sourceRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                    selectRow('P-' + sourceResourceId, g_poppLS);
+                }
+                if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                    selectRow('P-' + targetResourceId, g_poppLS);
+                }
+                
+                setTimeout(() => {
+                    document.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: 'w',
+                        code: 'KeyW',
+                        altKey: true,
+                        bubbles: true,
+                        cancelable: true
+                    }));
+                }, 100);
+            } catch (error) {
+                console.error('Feil ved kart:', error);
                 showErrorToast('🚐 Kunne ikke åpne kart. Vennligst prøv igjen.');
             }
         };
@@ -1937,12 +2355,41 @@
         }
         
         const selectedVentende = getSelectedVentendeOppdrag();
+        const selectedResource = getSelectedResourceOppdrag();
 
         // null = kolonne-validering feilt (toast er allerede vist)
         if (selectedVentende === null) return;
         
+        // Sjekk om både ventende og ressurs er merket
+        if (selectedVentende.length > 0 && selectedResource !== null) {
+            showErrorToast('❌ Du må velge ENTEN bestillinger fra ventende oppdrag ELLER en ressurs fra pågående oppdrag — ikke begge samtidig.');
+            return;
+        }
+        
+        // MODUS 1: Ressurs-modus (replanlegging)
+        if (selectedResource !== null) {
+            if (selectedResource.bookings.length === 0) {
+                showErrorToast('🚐 Den merkede ressursen har ingen bestillinger.');
+                return;
+            }
+            
+            // Sett sperre
+            window.samkjoringRunning = true;
+            
+            const results = findCandidatesForResource(selectedResource);
+            
+            if (results === null) {
+                window.samkjoringRunning = false;
+                return;
+            }
+            
+            showResultsPopup(results, true); // true = ressurs-modus
+            return;
+        }
+        
+        // MODUS 2: Ventende-modus (normal)
         if (selectedVentende.length === 0) {
-            showErrorToast('🚐 Ingen bestillinger er valgt. Vennligst marker én eller flere bestillinger på ventende oppdrag og trykk på Samkjøring-knappen eller Alt+X igjen.');
+            showErrorToast('🚐 Ingen bestillinger eller ressurser er valgt. Vennligst marker én eller flere bestillinger på ventende oppdrag, eller én ressurs på pågående oppdrag.');
             return;
         }
 
@@ -1957,7 +2404,7 @@
             return;
         }
 
-        showResultsPopup(results);
+        showResultsPopup(results, false); // false = ventende-modus
     }
 
     // Legg til keyboard shortcut (Alt+X)

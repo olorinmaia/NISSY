@@ -9,12 +9,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## 🚀 [3.4.0] - 05.02.2026
 
-### Nytt script: 🚩 Sjekk-Plakat (Kun synlig for Nord-Trøndelag i første omgang)
+### Nytt script: 🚩 Sjekk-Plakat (Kun synlig for Nord-Trøndelag i første omgang) og Samkjøring kan nå replanlegge ressurs
 
 #### Hva er nytt?
 - 🚩 **Sjekk-Plakat**
   - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først
   - Problematisk tekst: 'alenebil','hentes','adresse','framsete','rullestol','rullator','lav bil','liten bil','forsete','direktebil','må ha med seg'
+- 🚐 **Samkjøring**
+  - Kan nå merke en ressurs og søke etter andre ressurser på samme filter for replanlegging. F.eks. for å se om ressursen kan slåes sammen med andre ressurser.
+  - Kan ikke merke bestilling på ventende og ressurs på pågående samtidig. Det er to forskjellige moduser.
 
 ## 🚀 [3.3.1] - 03.02.2026
 
