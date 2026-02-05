@@ -63,8 +63,10 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
 
 - 🚐 **Samkjøring (Alt+X)**
-  - Merk bestilling(er) på ventende oppdrag, velg aktuelle filter og trykk på Samkjøring-knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
+  - Velg aktuelle filter. Merk bestilling(er) på ventende eller en ressurs på pågående oppdrag og trykk på Samkjøring-knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
   - Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
+  - Kan merke en ressurs og søke etter andre ressurser på samme filter for replanlegging. F.eks. for å se om ressursen kan slåes sammen med andre ressurser.
+  - Kan ikke merke bestilling på ventende og ressurs på pågående samtidig. Det er to forskjellige moduser.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3ebda51d-813d-49e8-9592-3888c40e0719" />
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
