@@ -29,6 +29,10 @@
     'liten bil',
     'forsete',
     'direktebil',
+    'sitte',
+    'hjelp',
+    'yrkesskade',
+    'følges',
     'må ha med seg'
   ];
 
