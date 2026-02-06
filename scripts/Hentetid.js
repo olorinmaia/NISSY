@@ -119,6 +119,21 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Fjern problematiske husnummer-suffikser (H0123, U0123 etc)
+  // ============================================================
+  /**
+   * Fjerner problematiske husnummer-suffikser (H0123, U0123 etc)
+   * @param {string} address - Original adresse
+   * @returns {string} - Adresse uten suffikser
+   */
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Sorter bestillinger basert på hentetid
   // ============================================================
   function sortBestillingerByTime(bestillinger, popup) {
@@ -194,20 +209,6 @@
       console.error("Feil ved henting av bestillingsdata:", error);
       return null;
     }
-  }
-
-  // ============================================================
-  // NY: Fjern problematiske husnummer-suffikser (H0123, U0123 etc)
-  // ============================================================
-  /**
-   * Fjerner problematiske husnummer-suffikser (H0123, U0123 etc)
-   * @param {string} address - Original adresse
-   * @returns {string} - Adresse uten suffikser
-   */
-  function cleanAddressSuffixes(address) {
-    // Fjern space etterfulgt av H eller U og 4 siffer
-    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
-    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
   // ============================================================
@@ -585,8 +586,8 @@
     // Bygg ny HTML
     const bestillingRows = sorted.map((b, index) => {
       const displayName = truncateText(b.name, MAX_NAME_LENGTH);
-      const displayFrom = truncateText(b.fromAddress, MAX_ADDRESS_LENGTH);
-      const displayTo = truncateText(b.toAddress, MAX_ADDRESS_LENGTH);
+      const displayFrom = truncateText(cleanAddressSuffixes(b.fromAddress), MAX_ADDRESS_LENGTH);
+      const displayTo = truncateText(cleanAddressSuffixes(b.toAddress), MAX_ADDRESS_LENGTH);
       
       // Bruk uniqueId hvis det finnes, ellers id
       const displayId = b.uniqueId || b.id;
@@ -639,7 +640,7 @@
             font-size: 12px;
             color: #666;
             line-height: 1.3;
-          " title="${b.fromAddress} → ${b.toAddress}">
+          " title="${cleanAddressSuffixes(b.fromAddress)} → ${cleanAddressSuffixes(b.toAddress)}">
             ${displayFrom} →<br>${displayTo}
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
@@ -1602,8 +1603,8 @@
     // Bygg HTML for hver bestilling
     const bestillingRows = sortedBestillinger.map((b, index) => {
       const displayName = truncateText(b.name, MAX_NAME_LENGTH);
-      const displayFrom = truncateText(b.fromAddress, MAX_ADDRESS_LENGTH);
-      const displayTo = truncateText(b.toAddress, MAX_ADDRESS_LENGTH);
+      const displayFrom = truncateText(cleanAddressSuffixes(b.fromAddress), MAX_ADDRESS_LENGTH);
+      const displayTo = truncateText(cleanAddressSuffixes(b.toAddress), MAX_ADDRESS_LENGTH);
       
       // Bruk uniqueId hvis det finnes, ellers id
       const displayId = b.uniqueId || b.id;
@@ -1646,7 +1647,7 @@
             font-size: 12px;
             color: #666;
             line-height: 1.3;
-          " title="${b.fromAddress} → ${b.toAddress}">
+          " title="${cleanAddressSuffixes(b.fromAddress)} → ${cleanAddressSuffixes(b.toAddress)}">
             ${displayFrom} →<br>${displayTo}
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">

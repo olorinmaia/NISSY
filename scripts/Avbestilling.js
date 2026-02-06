@@ -120,6 +120,21 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Fjern problematiske husnummer-suffikser (H0123, U0123 etc)
+  // ============================================================
+  /**
+   * Fjerner problematiske husnummer-suffikser (H0123, U0123 etc)
+   * @param {string} address - Original adresse
+   * @returns {string} - Adresse uten suffikser
+   */
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  // ============================================================
   // KONFIGURASJON
   // ============================================================
   const MIN_DIGITS_AFTER_DASH = 6;
@@ -422,7 +437,7 @@
           }
           
           const info = fraAdresse && tilAdresse 
-            ? `${fraAdresse} →<br> ${tilAdresse}` 
+            ? `${cleanAddressSuffixes(fraAdresse)} →<br> ${cleanAddressSuffixes(tilAdresse)}` 
             : "";
           
           // Sjekk om turen er i fremtiden (for å tilpasse OBS-tekst)
@@ -483,11 +498,12 @@
               pasient += ` (${rekvNr})`;
             }
             
-            const info = cells.find(td => td.innerHTML.includes("<br>"))
-              ?.innerHTML.replace(/<br>/g, " →<br>").trim() ?? "";
+            const rawInfo = cells.find(td => td.innerHTML.includes("<br>"))
+              ?.innerHTML.trim() ?? "";
+            const cleanedInfo = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " →<br>");
             
             // Vis popup for enkelt-avbestilling
-            showSingleBestillingPopup({ vid, pasient, info });
+            showSingleBestillingPopup({ vid, pasient, info: cleanedInfo });
           }
         }
       }
@@ -796,9 +812,12 @@
       }
 
       // Hent adresse/info
-      let info = Array.from(row.querySelectorAll("td"))
+      const rawInfo = Array.from(row.querySelectorAll("td"))
         .find(td => td.innerHTML.includes("<br>"))
-        ?.innerHTML.replace(/<br>/g, " → ").trim() ?? "";
+        ?.innerHTML.trim() ?? "";
+      
+      // Rens først for problematiske suffikser, deretter erstatt <br> med pil
+      let info = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " → ");
 
       return { type: 'bestilling', vid, pasient, info, row };
     }

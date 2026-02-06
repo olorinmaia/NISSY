@@ -7,6 +7,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Lage script for overvåking av ventende oppdrag, varsle om nye bestillinger, endringer på tider osv.
 
 ---
+## 🚀 [3.4.2] - 07.02.2026
+
+### Filtrer bort H0101, U0101 osv fra adresser i flere script
+
+#### Hva er nytt?
+- **🔍 Sjekk-Bestilling / 🚩 Sjekk-Plakat / 🚐 Samkjøring / 🕐 Hentetid / ✖️ Avbestilling** 
+  - Filtrer bort H0101 / U0101 osv fra adressene som vises i pop-uper da det tar unødvendig plass og er irrelevant.
+
 ## 🚀 [3.4.1] - 06.02.2026
 
 ### Sjekk-Bestilling forbedret
