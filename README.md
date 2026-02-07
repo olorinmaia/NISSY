@@ -73,6 +73,11 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
 
 ### Individuelle script
+- 🔔 **Overvåk-Ventende**
+  - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
+  - Teller også antall bestillinger på ventende oppdrag og viser i parentes i fanen.
+  - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk etter loadere-popup lukkes.
+  - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
 - 🚗 **Alenebil**
   - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill**
@@ -100,6 +105,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | Features | Basic | Advanced |
 |---------|-------|----------|
 | ⌛ NISSY-fiks | ✅ | ✅ |
+| 🔔 Overvåk-Ventende | ❌ | ❌ |
 | 🚗 Alenebil | ✅ | ✅ |
 | 🤖 Auto-Bestill | ✅ | ✅ |
 | 🔍 Sjekk-Bestilling | ✅ | ✅ |
