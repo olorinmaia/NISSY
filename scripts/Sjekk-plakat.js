@@ -27,6 +27,7 @@
     'framsete',
     'rullestol',
     'rullator',
+    'prekestol',
     'lav bil',
     'høy bil',
     'liten bil',
@@ -38,9 +39,7 @@
     'yrkesskade',
     'følges',
     'ledsager',
-    'pårørende',
-    'dopause',
-    'toalett'
+    'pårørende'
   ];
 
   // ============================================================

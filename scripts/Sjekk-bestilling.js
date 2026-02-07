@@ -28,6 +28,7 @@
   const PROBLEMATIC_NEED_COMBINATIONS = [
     { needs: ['ERS', 'RB'], description: 'ERS + RB (Elektrisk rullestol + Rullestolbil)' },
     { needs: ['LB', 'LF'], description: 'LB + LF (Trenger hele baksetet + God benplass og regulerbart sete)' },
+    { needs: ['HI', 'LI'], description: 'HI + LI (Høyt innsteg og Lavt innsteg)' },
     // Legg til flere kombinasjoner her etter behov
     // { needs: ['X', 'Y'], description: 'X + Y beskrivelse' },
   ];
