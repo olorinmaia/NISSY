@@ -5,9 +5,9 @@
 ## 🎯 For hvem?
 
 NISSY Basic er perfekt for deg som:
-- Vil ha grunnleggende tastatursnarveier
+- Vil ha grunnleggende tastatursnarveier, bugfixer og forbedringer til NISSY
 - Trenger enklere måte å redigere bestillinger på, hurtigknapper på ventende/pågående oppdrag, forbedret avbestilling, rutekalkulering, ressursinfo og andre individuelle scripts uten snarveier
-- Ikke trenger avansert tildelingsfunksjonalitet
+- Ikke trenger avansert tildelingsfunksjonalitet eller samkjøringsfunksjon
 
 ## 📦 Hva får du?
 

@@ -12,7 +12,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 #### Hva er nytt?
 - **Ny loader for AMK**
-  - Ny tilpasset loader for AMK med nytt script som overvåker ventende oppdrag og eksisterende script som er nyttig for deres bruk.
+  - Ny tilpasset loader for AMK som inneholder nytt script for overvåking av ventende oppdrag og eksisterende script som er nyttig for deres bruk.
 - **Nytt script 🔔 Overvåk-Ventende** (Kun loader-AMK i første omgang)
   - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. Teller også antall bestillinger på ventende oppdrag i parentes.
   - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk for loader-AMK.
