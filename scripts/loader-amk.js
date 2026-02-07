@@ -12,7 +12,7 @@
     return;
   }
 
-  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
   
   const scripts = [
     'NISSY-fiks.js',
