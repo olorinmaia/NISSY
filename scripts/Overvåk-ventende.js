@@ -31,13 +31,15 @@ function showMonitorPopup(isStarting) {
 
             <h3 style="margin: 15px 0 8px 0; color: #555;">Slik bekrefter du varsler:</h3>
             <div style="font-size: 13px; color: #666;">
-              • Klikk på grønn banner øverst på siden, ELLER<br>
-              • Planlegg en av de nye bestillingene<br>
-              → Favicon og banner forsvinner automatisk
+              • <strong>Klikk på grønn banner</strong> → Merker de nye bestillingene automatisk + nullstiller varsel, ELLER<br>
+              • Planlegg en av de nye bestillingene → Nullstiller varsel automatisk
             </div>
 
             <div style="margin-top: 20px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-              <strong>💡 Tips:</strong> Bestillinger som var der ved oppstart gir ikke varsel, men hvis de planlegges og kommer tilbake vil du få nytt varsel!
+              <strong>💡 Tips:</strong><br>
+              • Bestillinger som var der ved oppstart gir ikke varsel<br>
+              • Hvis de planlegges og kommer tilbake får du nytt varsel<br>
+              • Klikk på toast-varsel merker automatisk de nye bestillingene
             </div>
 
             <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -375,11 +377,63 @@ class VentendeOppdragMonitor {
     }
     
     // -------------------------------------------------------------------------
+    // Merk nye bestillinger på ventende oppdrag
+    // -------------------------------------------------------------------------
+    selectNewOrders() {
+        const container = document.getElementById('ventendeoppdrag');
+        if (!container) {
+            console.warn('⚠️ Kunne ikke finne ventendeoppdrag-container');
+            return 0;
+        }
+        
+        let selectedCount = 0;
+        
+        // Gå gjennom alle nye bestillinger
+        this.newOrders.forEach((timestamp, reqNr) => {
+            // Finn <tr> med title=reqNr
+            const row = container.querySelector(`tr[title="${reqNr}"]`);
+            if (row) {
+                const rowId = row.getAttribute('id'); // Format: V-18787423
+                if (rowId && typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+                    // Kall selectRow for å merke raden
+                    selectRow(rowId, g_voppLS);
+                    selectedCount++;
+                    console.log(`✓ Merket bestilling: ${reqNr} (${rowId})`);
+                } else {
+                    console.warn(`⚠️ Kunne ikke merke bestilling ${reqNr} - mangler ID eller selectRow-funksjon`);
+                }
+            } else {
+                console.warn(`⚠️ Kunne ikke finne rad for bestilling ${reqNr}`);
+            }
+        });
+        
+        if (selectedCount > 0) {
+            console.log(`✅ Merket ${selectedCount} nye bestilling(er)`);
+        }
+        
+        return selectedCount;
+    }
+    
+    // -------------------------------------------------------------------------
     // Bruker har acknowledged de nye bestillingene
     // -------------------------------------------------------------------------
-    acknowledgeNewOrders() {
+    acknowledgeNewOrders(selectOrders = false) {
+        // Merk bestillingene først hvis forespurt
+        if (selectOrders) {
+            this.selectNewOrders();
+        }
+        
         this.userAcknowledged = true;
         this.currentNewCount = 0;
+        
+        // Flytt acknowledged bestillinger til initialOrderIds så de ikke blir "nye" igjen
+        this.newOrders.forEach((timestamp, reqNr) => {
+            this.initialOrderIds.add(reqNr);
+            console.log(`📌 Flyttet ${reqNr} til initial tracking (acknowledged)`);
+        });
+        
+        // Clear alle nye bestillinger siden brukeren har acknowledged
+        this.newOrders.clear();
         
         // Fjern popup
         const existingAlert = document.getElementById('new-order-alert');
@@ -636,7 +690,7 @@ class VentendeOppdragMonitor {
             animation: slideDown 0.3s ease-out;
             cursor: pointer;
         `;
-        alert.innerHTML = `⚠️ ${newCount} ny(e) bestilling(er) mottatt! Klikk her for å bekrefte.`;
+        alert.innerHTML = `⚠️ ${newCount} ny(e) bestilling(er) mottatt! Klikk her for å bekrefte og merke.`;
         
         const style = document.createElement('style');
         style.textContent = `
@@ -651,9 +705,9 @@ class VentendeOppdragMonitor {
         `;
         document.head.appendChild(style);
         
-        // Klikk på popup = acknowledge
+        // Klikk på popup = acknowledge OG merk bestillinger
         alert.onclick = () => {
-            this.acknowledgeNewOrders();
+            this.acknowledgeNewOrders(true);  // true = merk bestillingene
         };
         
         document.body.insertBefore(alert, document.body.firstChild);
@@ -709,8 +763,8 @@ Logikk:
 
 Brukerinteraksjon:
 ✓ Popup forsvinner IKKE automatisk
-✓ Klikk på popup → Nullstiller favicon og lukker popup
-✓ Planlegg en ny bestilling → Nullstiller favicon og lukker popup
+✓ Klikk på popup → Merker nye bestillinger + nullstiller varsel
+✓ Planlegg en ny bestilling → Nullstiller varsel automatisk
 
 Aktive varsler:
 ✓ Blinkende fanetittel ved nye bestillinger
