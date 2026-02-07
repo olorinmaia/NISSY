@@ -41,7 +41,7 @@ function showMonitorPopup(isStarting) {
             </div>
 
             <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
-              <strong>🛑 Stopp overvåking:</strong> Kjør scriptet på nytt for å stoppe, eller bruk <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">stopMonitor()</code> i konsollen.
+              <strong>🛑 Stopp overvåking:</strong> Trykk på knappen Overvåk-Ventende på nytt for å stoppe.
             </div>
 
             <button id="closeMonitorPopup" style="
