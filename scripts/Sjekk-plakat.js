@@ -619,20 +619,20 @@
         </div>
       `;
     } else {
-      // Vis totalt antall
-      html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">
+      // Vis totalt antall 
+      html += `<div style="background: #fff3cd; color: #856404; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #ffc107;">
         🚩 ${all.length} bestilling${all.length === 1 ? '' : 'er'} med rød plakat og fritekst
       </div>`;
       
       // Vis antall problematiske hvis det finnes noen
       if (problematic.length > 0) {
-        html += `<div style="background: #fff3cd; color: #856404; padding: 10px 12px; border-radius: 4px; margin-bottom: 16px; border-left: 4px solid #ffc107;">
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 16px; border-left: 4px solid #dc3545;">
           ⚠️ ${problematic.length} bestilling${problematic.length === 1 ? '' : 'er'} med problematisk fritekst (alenebil, rullestol osv.)
         </div>`;
         // ⚠️ ${problematic.length} bestilling${problematic.length === 1 ? '' : 'er'} med problematisk fritekst (${PROBLEMATIC_KEYWORDS.join(', ')})
         
         // Vis problematiske først
-        html += '<h3 style="color: #856404; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⚠️ Problematisk fritekst</h3>';
+        html += '<h3 style="color: #721c24; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⚠️ Problematisk fritekst</h3>';
         html += renderPosters(problematic, true);
       }
       
@@ -679,7 +679,7 @@
     for (const poster of posters) {
       const { requisitionId, reknr, navn, hentetid, leveringstid, fra, til, type, behov, ledsager, freetext, problematicKeywords } = poster;
       
-      const borderColor = isProblematic ? '#ffc107' : '#dc3545';
+      const borderColor = isProblematic ? '#dc3545' : '#ffc107';
       
       html += `
         <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${borderColor};">
@@ -693,7 +693,7 @@
       // Vis problematiske nøkkelord hvis de finnes
       if (isProblematic && problematicKeywords && problematicKeywords.length > 0) {
         html += `
-                <span style="background: #ffc107; color: #856404; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 6px; font-weight: 600;">⚠️ ${problematicKeywords.join(', ')}</span>
+                <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 6px; font-weight: 600;">⚠️ ${problematicKeywords.join(', ')}</span>
         `;
       }
       
