@@ -32,7 +32,7 @@ NISSY AMK er perfekt for deg som:
 
 1. Høyreklikk på bokmerkeslinjen i nettleseren din
 2. Velg "Legg til bokmerke" / "Add bookmark"
-3. Gi det et navn: `NISSY AMK`
+3. Gi det et navn f.eks.: `NISSY AMK`
 
 ### Steg 2: Lim inn kode
 
@@ -177,9 +177,8 @@ Fanger opp "?"-linker i planleggingsvinduet og søker frem tur/bestilling velger
 ## 💡 Tips og triks
 
 1. **Lagre bokmerket i bokmerkeslinjen** for rask tilgang
-2. **Bruk F5** i stedet for Ctrl+R for å refreshe (Ctrl+R er blokkert)
-3. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
-4. **ESC er din venn**: Nullstiller søk og setter fokus tilbake
+2. **F5 har ny funksjon**: Når du trykker på F5 refreshes alle bestillinger/turer og alle turer åpnes. Ikke hele siden.
+3. **Benytt riktig URL til NISSY** Benytt: https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
 
 ## 📞 Support
 

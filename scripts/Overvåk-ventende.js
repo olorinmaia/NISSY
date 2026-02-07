@@ -41,7 +41,7 @@ function showMonitorPopup(isStarting) {
             </div>
 
             <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
-              <strong>🛑 Stopp overvåking:</strong> Trykk på knappen Overvåk-Ventende på nytt for å stoppe.
+              <strong>🛑 Stopp overvåking:</strong> Trykk på knappen "🔔 Overvåk-Ventende" på nytt for å stoppe.
             </div>
 
             <button id="closeMonitorPopup" style="
@@ -71,7 +71,7 @@ function showMonitorPopup(isStarting) {
 
             <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 6px;">
               <div style="font-size: 13px; color: #666;">
-                For å starte på nytt, kjør scriptet igjen.
+                For å starte på nytt, trykk på knappen "🔔 Overvåk-Ventende".
               </div>
             </div>
 
@@ -346,7 +346,7 @@ class VentendeOppdragMonitor {
         
         // Oppdater tittel med totalt antall bestillinger
         if (CONFIG.enableBadge) {
-            if (currentCount > 0) {
+            if (currentCount >= 0) {
                 document.title = `(${currentCount}) ${this.originalTitle}`;
             } else {
                 document.title = this.originalTitle;
