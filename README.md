@@ -101,27 +101,27 @@ Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plas
 Hvis du hard-refresher siden eller lukker nettleser må du aktivere script-pakken på nytt.
 Under er en oversikt over de features som følger med i hver pakke.
 
-| Features | Basic | Advanced |
-|---------|-------|----------|
-| ⌛ NISSY-fiks | ✅ | ✅ |
-| 🔔 Overvåk-Ventende | ❌ | ❌ |
-| 🚗 Alenebil | ✅ | ✅ |
-| 🤖 Auto-Bestill | ✅ | ✅ |
-| 🔍 Sjekk-Bestilling | ✅ | ✅ |
-| 🚩 Sjekk-Plakat (Kun Nord-Trøndelag) | ✅ | ✅ |
-| 📞 Sjekk-Telefon | ✅ | ✅ |
-| 📊 Statistikk | ✅ | ✅ |
-| 🚖 Trøndertaxi-løyve | ✅ | ✅ |
-| 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ |
-| 🚕 Ressursinfo (ALT+D) | ✅ | ✅ |
-| 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ |
-| ⚙️ Adminmodul (ALT+A) | ✅ | ✅ |
-| ✖️ Avbestill (ALT+K) | ✅ | ✅ |
-| 🕐 Hentetid (ALT+E) | ✅ | ✅ |
-| 🔠 Rek-knapper (ALT+R) | ✅ | ✅ |
-| 🪄 Smart-tildeling (ALT+S) | ❌ | ✅ |
-| 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ✅ |
-| 🚐 Samkjøring (ALT+X) | ❌ | ✅ |
+| Features | AMK | Basic | Advanced |
+|---------|-------|-------|----------|
+| ⌛ NISSY-fiks | ✅ | ✅ | ✅ |
+| 🔔 Overvåk-Ventende | ✅ | ❌ | ❌ |
+| 🚗 Alenebil | ✅ | ✅ | ✅ |
+| 🤖 Auto-Bestill | ✅ | ✅ | ✅ |
+| 🔍 Sjekk-Bestilling | ✅ | ✅ | ✅ |
+| 🚩 Sjekk-Plakat (Kun Nord-Trøndelag) | ✅ | ✅ | ✅ |
+| 📞 Sjekk-Telefon | ✅ | ✅ | ✅ |
+| 📊 Statistikk | ✅ | ✅ | ✅ |
+| 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
+| 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
+| 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
+| 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
+| ⚙️ Adminmodul (ALT+A) | ✅ | ✅ | ✅ |
+| ✖️ Avbestill (ALT+K) | ❌ | ✅ | ✅ |
+| 🕐 Hentetid (ALT+E) | ❌ | ✅ | ✅ |
+| 🔠 Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |
+| 🪄 Smart-tildeling (ALT+S) | ❌ | ❌ | ✅ |
+| 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ❌ | ✅ |
+| 🚐 Samkjøring (ALT+X) | ❌ | ❌ | ✅ |
 
 ## 🚀 Installasjon
 
@@ -130,6 +130,11 @@ Velg mellom **Basic** eller **Advanced**
 
 1. Opprett et nytt bokmerke i nettleseren din
 2. Lim inn følgende kode som URL:
+
+**AMK**
+```javascript
+javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-amk.js');eval(await s.text());})();
+```
 
 **Basic**
 ```javascript
