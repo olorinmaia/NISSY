@@ -77,20 +77,26 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
   - Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
   - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/767bffcc-416d-469e-9965-e1ba4020037f" />
 - 🚗 **Alenebil**
   - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill**
   - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/bba0705e-e731-4d40-a6dc-9a0eb7f2a169" />
 - 🔍 **Sjekk-Bestilling**
   - Sjekker alle bestillinger på valgt filter for duplikater eller om de har forskjellig dato på "klar fra" og "oppmøte", lar deg søke opp disse for å rette opp.
   - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 - 🚩 **Sjekk-Plakat**
   - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
   - Eksempel på problematisk tekst: 'alenebil','hentes','adresse','framsete','rullestol','rullator','lav bil','liten bil','forsete','direktebil','må ha med seg'.
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
 - 📞 **Sjekk-Telefon**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/545d6093-74d8-4766-8b9d-5e7047fbf5ee" />
 - 📊 **Statistikk**
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0e1684da-dc52-49c4-9b3d-9f08c126c100" />
 - 🚕 **Trøndertaxi-løyve**
   - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 - **Installeres som knapper nederst i footer i NISSY planlegging via script-pakke:**
