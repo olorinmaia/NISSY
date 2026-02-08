@@ -244,7 +244,7 @@
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="s" title="Smart-tildeling med RB/ERS + passasjerregler uten behov for å velge avtale, kan også tildele til merket ressurs">
+                   data-hotkey="s" title="Smart-tildeling med RB/ERS + passasjerregler uten behov for å velge avtale, kan også tildele til merket ressurs eller avtale">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 

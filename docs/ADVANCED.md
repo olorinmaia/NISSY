@@ -6,7 +6,7 @@
 - ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
-- 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY. Kan også tildele til merket ressurs.
+- 🪄 **Smart-tildeling** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY. Kan også tildele til merket ressurs eller avtale.
 - 🕐 **Hentetid** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu.
@@ -144,8 +144,8 @@ Intelligent tildeling som automatisk:
    - Velger riktig avtale automatisk
    - Viser resultat i toast-melding
 
-**Tildeling til ressurs:**
-- Merk også en ressurs → tildeles direkte til ressursen
+**Tildeling til ressurs/avtale:**
+- Merk også en ressurs eller avtale → tildeles direkte til ressursen/avtalen
 
 
 ### 📆 Tilordningsstøtte 2.0 (ALT+T)
