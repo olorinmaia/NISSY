@@ -32,8 +32,8 @@ NISSY Basic er perfekt for deg som:
 
 ### Steg 1: Opprett bokmerke
 
-1. Høyreklikk på bokmerkeslinjen i nettleseren din
-2. Velg "Legg til bokmerke" / "Add bookmark"
+1. Høyreklikk på bokmerkelinjen i nettleseren din
+2. Lag ett nytt bokmerke eller kopier og endre et eksisterende bokmerke.
 3. Gi det et navn: `NISSY Basic`
 
 ### Steg 2: Lim inn kode
