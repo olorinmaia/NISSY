@@ -1,13 +1,13 @@
-# NISSY Basic - Veiledning
+# NISSY AMK - Veiledning
 
 ## [📝 Endringslogg](CHANGELOG.md)
 
 ## 🎯 For hvem?
 
-NISSY Basic er perfekt for deg som:
+NISSY AMK er perfekt for deg som:
 - Vil ha grunnleggende tastatursnarveier, bugfixer og forbedringer til NISSY
-- Trenger enklere måte å redigere bestillinger på, hurtigknapper på ventende/pågående oppdrag, forbedret avbestilling, rutekalkulering, ressursinfo og andre individuelle scripts uten snarveier
-- Ikke trenger avansert tildelingsfunksjonalitet eller samkjøringsfunksjon
+- Trenger enklere måte å redigere bestillinger på, rutekalkulering, ressursinfo og andre individuelle scripts uten snarveier
+- Overvåking av nye bestillinger på ventende oppdrag
 
 ## 📦 Hva får du?
 
@@ -15,11 +15,9 @@ NISSY Basic er perfekt for deg som:
 - ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
-- 🕐 **Hentetid** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
-- 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
-- ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
+- 🔔 **Overvåk-Ventende** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og datofeil, lar deg søke opp disse for å rette opp.
@@ -34,19 +32,19 @@ NISSY Basic er perfekt for deg som:
 
 1. Høyreklikk på bokmerkeslinjen i nettleseren din
 2. Velg "Legg til bokmerke" / "Add bookmark"
-3. Gi det et navn: `NISSY Basic`
+3. Gi det et navn f.eks.: `NISSY AMK`
 
 ### Steg 2: Lim inn kode
 
 Kopier og lim inn denne koden som **URL**:
 ```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js');eval(await s.text());})();
+javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-amk.js');eval(await s.text());})();
 ```
 
 ### Steg 3: Bruk bokmerket
 
 1. Åpne NISSY i nettleseren
-2. Klikk på `NISSY Basic` bokmerket
+2. Klikk på `NISSY AMK` bokmerket
 3. Vent til popup vises med bekreftelse
 4. Ferdig! Alle knapper og funksjoner er lagt til
 
@@ -77,17 +75,20 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 | Snarvei | Funksjon |
 |---------|----------|
-| `ALT+E` | Endre hentetid |
-| `ALT+R` | Rek-knapper (H, S, K, T, R) Trykk ESC for å lukke manuelt |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+M` | Møteplass |
 | `ALT+N` | Bestillingsmodul |
 | `ALT+H` | Hent Rekvisisjon |
 | `ALT+A` | Adminmodul |
-| `ALT+K` | Avbestilling av merkede turer/bestillinger |
 
 ## 📖 Detaljert brukerveiledning
+
+### 🔔 Overvåk-Ventende 
+  - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
+  - Teller også antall bestillinger på ventende oppdrag og viser i parentes i fanen.
+  - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk etter loader-popup lukkes.
+  - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
 
 ### 🗺 Rutekalkulering (ALT+Q)
 
@@ -141,34 +142,6 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Spesielle krav (pågående oppdrag)
 - Pasientnavn (pågående oppdrag)
 
-### 🕐 Hentetid (ALT+E)
-
-Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildelt) for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
-"Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Ruteberegning" åpner bestillingene i google maps.
-
-
-### 🔠 Rek-knapper (ALT+R)
-
-Viser hurtigknapper på merkede rader.
-
-**Slik bruker du:**
-1. Merk én eller flere rader
-2. Trykk `ALT+R`
-3. Knapper vises til venstre for hver rad:
-
-| Knapp | Funksjon |
-|-------|----------|
-| **H** | Hendelseslogg |
-| **S** | Manuell statusendring (kun pågående) |
-| **K** | Kopier bestilling |
-| **T** | Lag retur og link sammen |
-| **R** | Rediger |
-
-**Tips:**
-- Klikk ESC for å lukke alle rek-knapper
-- Knappene følger med ved scrolling
-- Automatisk høydetilpasning til rad-bilder
-
 ### 📝 Bestillingsmodul (ALT+N)
 
 Trykk på Alt+N for å få første pop-up med valg om foretrukket bestillingsmodul. Deretter åpnes enten 4-stegs eller ensides i en iframe modal.
@@ -181,32 +154,6 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 Trykk på Alt+A for å åpne admin-modulen som setter fokus i person-fanen og telefonnummer. Tips her er å kopiere fra Zisson for å finne pasient så du slipper å spørre om personnummer.
 Fanger opp "?"-linker i planleggingsvinduet og søker frem tur/bestilling velger øverste rad og scroller ned til resultatet automatisk
 
-### ✖️ Avbestilling (ALT+K)
-
-Lar deg merke bestillinger/turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en. Eller du skal avbestille en tur/retur bestilling.
-- Fanger opp klikk på "X"-knappene i ventende/pågående oppdrag og ressurser og lager en pop-up med mer informasjon om hva du er i ferd med å gjøre
-- Hindrer bruker fra å gjøre ting som ikke er i henhold til SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
-
-**Tips:**
-- Trykk ENTER for å avbestille med en gang. Trykk utenfor boksen for å lukke den.
-- Naviger i ansvarlig for avbestilling med piltaster
-
-**Sikkerhetsjekk:**
-- Filtrerer bort turer med statuser som "Startet", "Fremme", "Ikke møtt" osv.
-- Filtrerer bort status "Akseptert" hvis ressursnavn ikke slutter på minst 5 siffer etter siste "-" for å unngå avbestilling av tur etter 3003 men før 4010-1701.
-- Advarsel før du avbestiller og en liste over hvilke ressurser som vil bli avbestilt.
-
-## 🆙 Oppgradering
-
-Klar for mer funksjonalitet?
-
-### NISSY Advanced
-Legger til:
-- Smart tildeling (ALT+S) **(OBS!! KREVER KONFIGURASJON. TA KONTAKT)**
-- Tilordningsstøtte 2.0 (ALT+T)
-- Samkjøring (ALT+X) (Fungerer best for Nord-Trøndelag eller områder der postnummer stiger eller synker fra nord til sør)
-
-[Se ADVANCED.md](ADVANCED.md)
 
 ## ❓ Feilsøking
 
@@ -218,7 +165,7 @@ Legger til:
 
 ### Snarveier virker ikke
 
-- Bekreft at scriptet er lastet (åpne konsoll, skal se "✅ NISSY Basic lastet!")
+- Bekreft at scriptet er lastet (åpne konsoll, skal se "✅ NISSY AMK lastet!")
 - Prøv å laste siden på nytt
 - Klikk bokmerket igjen
 
@@ -231,9 +178,8 @@ Legger til:
 ## 💡 Tips og triks
 
 1. **Lagre bokmerket i bokmerkeslinjen** for rask tilgang
-2. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
-3. **ESC er din venn**: Lukker alle pop-ups
-4. **F5 har ny funksjon**: Når du trykker på F5 refreshes alle bestillinger/turer og alle turer åpnes. Ikke hele siden.
+2. **F5 har ny funksjon**: Når du trykker på F5 refreshes alle bestillinger/turer og alle turer åpnes. Ikke hele siden.
+3. **Benytt riktig URL til NISSY** Benytt: https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
 
 ## 📞 Support
 

@@ -142,6 +142,7 @@
     "KVB 6. Gynekologi kreft, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "BVS 1. ort pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     ".../Gastro 4. Sengeområde Seksjon lindrende behandling, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "Nevro 1. Hovedinngang vest, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",

@@ -1,132 +1,619 @@
-// Konfigurasjon
+// =============================================================================
+// VENTENDE OPPDRAG MONITOR 
+// Overvåker nye bestillinger på ventende oppdrag og varsler med lyd, blinkende tittel, favicon-badge og desktop-notifikasjoner.
+// =============================================================================
+
+// ============================================================
+// HJELPEFUNKSJON: VIS POP-UP
+// ============================================================
+function showMonitorPopup(isStarting) {
+    const popup = document.createElement('div');
+    
+    if (isStarting) {
+        // START-POPUP
+        popup.innerHTML = `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2 style="margin: 0 0 15px 0; color: #333;">🔔 Overvåking av ventende oppdrag startet!</h2>
+            
+            <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
+              Dette scriptet overvåker kontinuerlig ventende oppdrag og varsler deg når nye bestillinger kommer inn.
+            </div>
+
+            <h3 style="margin: 15px 0 8px 0; color: #555;">Hvordan det fungerer:</h3>
+            <div style="font-size: 13px; color: #666;">
+              • Sjekker hvert 10. sekund for nye bestillinger<br>
+              • Viser <strong style="color: #FF6600;">🟠 oransje favicon</strong> med antall nye bestillinger<br>
+              • Etter 60 sekunder uhåndtert: <strong style="color: #FF0000;">🔴 rød favicon</strong> (urgent!)<br>
+              • Blinkende fanetittel i 30 sekunder<br>
+              • Lyd-signal ved nye bestillinger<br>
+              • Persistent varselbanner øverst på siden<br>
+            </div>
+
+            <h3 style="margin: 15px 0 8px 0; color: #555;">Slik bekrefter du varsler:</h3>
+            <div style="font-size: 13px; color: #666;">
+              • <strong>Klikk på grønn banner</strong> → Merker de nye bestillingene automatisk + nullstiller varsel, ELLER<br>
+              • Planlegg en av de nye bestillingene → Nullstiller varsel automatisk
+            </div>
+
+            <div style="margin-top: 20px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+              <strong>💡 Tips:</strong><br>
+              • Bestillinger som var der ved oppstart gir ikke varsel<br>
+              • Hvis de planlegges og kommer tilbake får du nytt varsel<br>
+              • Klikk på toast-varsel merker automatisk de nye bestillingene
+            </div>
+
+            <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
+              <strong>🛑 Stopp overvåking:</strong> Trykk på knappen "🔔 Overvåk-Ventende" på nytt for å stoppe.
+            </div>
+
+            <button id="closeMonitorPopup" style="
+              margin-top: 20px;
+              padding: 10px 24px;
+              background: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 14px;
+              font-weight: bold;
+              width: 100%;
+            ">Start overvåking →</button>
+          </div>
+        `;
+    } else {
+        // STOPP-POPUP
+        popup.innerHTML = `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; text-align: center;">
+            <h2 style="margin: 0 0 15px 0; color: #333;">🛑 Overvåking stoppet</h2>
+            
+            <div style="font-size: 14px; color: #666; margin-bottom: 20px;">
+              Overvåking av ventende oppdrag er nå deaktivert.<br>
+              Du vil ikke lenger få varsler om nye bestillinger.
+            </div>
+
+            <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+              <div style="font-size: 13px; color: #666;">
+                For å starte på nytt, trykk på knappen "🔔 Overvåk-Ventende".
+              </div>
+            </div>
+
+            <button id="closeMonitorPopup" style="
+              margin-top: 10px;
+              padding: 10px 24px;
+              background: #6c757d;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 14px;
+              font-weight: bold;
+              width: 100%;
+            ">Lukk</button>
+          </div>
+        `;
+    }
+    
+    Object.assign(popup.style, {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      background: 'white',
+      padding: '25px',
+      borderRadius: '10px',
+      boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+      zIndex: '999999',
+      maxWidth: '600px',
+      maxHeight: '90vh',
+      overflow: 'auto'
+    });
+
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      width: '100vw',
+      height: '100vh',
+      background: 'rgba(0,0,0,0.5)',
+      zIndex: '999998'
+    });
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
+
+    const closePopup = () => {
+      if (popup && popup.parentNode) {
+        popup.parentNode.removeChild(popup);
+      }
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+      document.removeEventListener('keydown', escHandler);
+    };
+
+    popup.querySelector('#closeMonitorPopup').onclick = closePopup;
+    overlay.onclick = closePopup;
+
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        closePopup();
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// ============================================================
+// SJEKK OM SCRIPTET ALLEREDE KJØRER
+// ============================================================
+if (window.ventendeMonitor) {
+    // Scriptet kjører allerede - STOPP DET
+    console.log('🛑 Stopper ventende oppdrag monitor...');
+    
+    if (window.ventendeMonitor.intervalId) {
+        clearInterval(window.ventendeMonitor.intervalId);
+    }
+    if (window.ventendeMonitor.blinkInterval) {
+        clearInterval(window.ventendeMonitor.blinkInterval);
+    }
+    if (window.ventendeMonitor.blinkTimeout) {
+        clearTimeout(window.ventendeMonitor.blinkTimeout);
+    }
+    
+    window.ventendeMonitor.newOrders.clear();
+    document.title = window.ventendeMonitor.originalTitle;
+    
+    const link = document.querySelector("link[rel*='icon']");
+    if (link) link.href = window.ventendeMonitor.originalFavicon;
+    
+    // Fjern toast-varsel hvis det finnes
+    const alert = document.getElementById('new-order-alert');
+    if (alert) alert.remove();
+    
+    delete window.ventendeMonitor;
+    
+    // Vis stopp-popup
+    showMonitorPopup(false);
+    
+    throw new Error('Monitor stopped by user');
+}
+
 const CONFIG = {
-    checkInterval: 10000, // Sjekk hvert 10. sekund
-    enableSound: true,
-    enableTitleBlink: true,
-    enableNotification: true,
-    enableBadge: true,
-    soundVolume: 0.3 // 30% volum for diskret varsel
+    checkInterval: 10000,           // Sjekk hvert 10. sekund
+    enableSound: true,              // Spill lyd ved nye bestillinger
+    enableTitleBlink: true,         // Blink fanetittel
+    enableFaviconBlink: true,       // Vis favicon-badge
+    enableNotification: true,       // Desktop-notifikasjoner
+    enableBadge: true,              // Vis antall i fanetittel
+    soundVolume: 0.3,               // Lydstyrke (0-1)
+    urgentThreshold: 60000          // Millisekunder før oransje → rød (60 sek = 1 min)
 };
 
 class VentendeOppdragMonitor {
+    
     constructor() {
-        this.previousCount = this.getCurrentCount();
         this.originalTitle = document.title;
         this.blinkInterval = null;
+        this.blinkTimeout = null;
+        this.originalFavicon = this.getFaviconUrl();
         this.soundEnabled = CONFIG.enableSound;
+        
+        // Map for å tracke nye bestillinger: reqNr → timestamp
+        this.newOrders = new Map();
+        
+        // Set for bestillinger ved oppstart (skal ikke gi varsel)
+        this.initialOrderIds = new Set();
+        
+        // Set for bestillinger som har blitt fjernet (men som var initielle)
+        this.removedOrderIds = new Set();
+        
+        this.captureInitialOrders();
+        
+        // Flag for om brukeren har acknowledged varselet
+        this.userAcknowledged = false;
+        
+        // Antall nye i siste varsel (for favicon)
+        this.currentNewCount = 0;
         
         this.init();
     }
     
     init() {
-        // Be om tillatelse for notifikasjoner
         if (CONFIG.enableNotification && 'Notification' in window) {
             Notification.requestPermission();
         }
         
-        // Start overvåking
-        setInterval(() => this.checkForNewOrders(), CONFIG.checkInterval);
+        this.intervalId = setInterval(
+            () => this.checkForChanges(), 
+            CONFIG.checkInterval
+        );
         
-        console.log('Ventende oppdrag monitor startet');
+        console.log('✅ Overvåking startet - sjekker hvert', CONFIG.checkInterval / 1000, 'sekund');
     }
     
-    getCurrentCount() {
+    // -------------------------------------------------------------------------
+    // Hent initielle bestillinger (skal ikke gi varsel)
+    // -------------------------------------------------------------------------
+    captureInitialOrders() {
         const container = document.getElementById('ventendeoppdrag');
-        if (!container) return 0;
+        if (!container) return;
         
-        // Sjekk om listen er tom
-        const emptyMessage = container.querySelector('td.d center');
-        if (emptyMessage && emptyMessage.textContent.includes('listen er tom')) {
+        const rows = container.querySelectorAll('tbody.scrollContent tr[id^="V-"]');
+        rows.forEach(row => {
+            const reqNr = row.getAttribute('title');
+            if (reqNr) {
+                this.initialOrderIds.add(reqNr);
+            }
+        });
+        
+        console.log(`📋 Registrert ${this.initialOrderIds.size} eksisterende bestillinger ved oppstart (gir ikke varsel)`);
+    }
+    
+    // -------------------------------------------------------------------------
+    // Hent nåværende bestillinger fra DOM
+    // -------------------------------------------------------------------------
+    getCurrentOrders() {
+        const container = document.getElementById('ventendeoppdrag');
+        if (!container) return new Set();
+        
+        const currentIds = new Set();
+        const rows = container.querySelectorAll('tbody.scrollContent tr[id^="V-"]');
+        
+        rows.forEach(row => {
+            const reqNr = row.getAttribute('title');
+            if (reqNr) {
+                currentIds.add(reqNr);
+            }
+        });
+        
+        return currentIds;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Sjekk for endringer
+    // -------------------------------------------------------------------------
+    checkForChanges() {
+        const currentIds = this.getCurrentOrders();
+        const currentCount = currentIds.size;
+        
+        // FØRST: Track hvilke initielle bestillinger som er borte (så de kan gi varsel hvis de kommer tilbake)
+        this.initialOrderIds.forEach(reqNr => {
+            if (!currentIds.has(reqNr) && !this.removedOrderIds.has(reqNr)) {
+                // Initial bestilling er nå borte
+                this.removedOrderIds.add(reqNr);
+                console.log(`📤 Initial bestilling fjernet: ${reqNr} (vil gi varsel hvis den kommer tilbake)`);
+            }
+        });
+        
+        // SÅ: Finn NYE bestillinger
+        // En bestilling er "ny" hvis:
+        // 1. Den er HELT ny (ikke i initialOrderIds), ELLER
+        // 2. Den var initial, ble fjernet, og er nå tilbake (i removedOrderIds)
+        const newlyAdded = [];
+        currentIds.forEach(reqNr => {
+            if (!this.newOrders.has(reqNr)) {
+                // Ikke allerede tracket som ny
+                
+                if (!this.initialOrderIds.has(reqNr)) {
+                    // HELT NY bestilling (aldri sett før)
+                    this.newOrders.set(reqNr, Date.now());
+                    newlyAdded.push(reqNr);
+                    console.log(`✨ Ny bestilling detektert: ${reqNr}`);
+                } else if (this.removedOrderIds.has(reqNr)) {
+                    // TILBAKE fra pågående (var initial, ble fjernet, er nå tilbake)
+                    this.newOrders.set(reqNr, Date.now());
+                    this.removedOrderIds.delete(reqNr); // Ikke lenger "removed"
+                    newlyAdded.push(reqNr);
+                    console.log(`🔄 Bestilling tilbake på ventende: ${reqNr}`);
+                }
+                // Ellers: var initial og har vært her hele tiden → INGEN varsel
+            }
+        });
+        
+        // Fjern håndterte NYE bestillinger fra tracking
+        const removed = [];
+        this.newOrders.forEach((timestamp, reqNr) => {
+            if (!currentIds.has(reqNr)) {
+                removed.push(reqNr);
+            }
+        });
+        
+        // Hvis bruker har håndtert noen av de nye bestillingene
+        if (removed.length > 0 && !this.userAcknowledged) {
+            console.log(`✅ ${removed.length} ny(e) bestilling(er) håndtert - nullstiller varsel`);
+            this.acknowledgeNewOrders();
+        }
+        
+        removed.forEach(reqNr => {
+            this.newOrders.delete(reqNr);
+            console.log(`✅ Ny bestilling ${reqNr} håndtert og fjernet fra tracking`);
+        });
+        
+        // Varsle om nye bestillinger
+        if (newlyAdded.length > 0) {
+            console.log(`🔔 ${newlyAdded.length} ny(e) bestilling(er) detektert:`, newlyAdded);
+            
+            // Hvis det allerede er et aktivt varsel, akkumuler antallet
+            if (!this.userAcknowledged && this.currentNewCount > 0) {
+                this.currentNewCount += newlyAdded.length;
+                console.log(`⚠️ Varsel oppdatert: Nå totalt ${this.currentNewCount} uhåndterte nye bestillinger`);
+            } else {
+                this.currentNewCount = newlyAdded.length;
+                this.userAcknowledged = false; // Reset ved nye bestillinger
+            }
+            
+            // Send totalt antall uhåndterte nye bestillinger
+            this.notifyNewOrders(this.currentNewCount, currentCount);
+        }
+        
+        // Oppdater tittel med totalt antall bestillinger
+        if (CONFIG.enableBadge) {
+            if (currentCount >= 0) {
+                document.title = `(${currentCount}) ${this.originalTitle}`;
+            } else {
+                document.title = this.originalTitle;
+            }
+        }
+        
+        // Oppdater favicon basert på nye bestillinger og urgency
+        if (CONFIG.enableFaviconBlink) {
+            if (this.currentNewCount > 0 && !this.userAcknowledged) {
+                // Sjekk om noen bestillinger har blitt urgent
+                const isUrgent = this.hasUrgentOrders();
+                
+                if (!this.blinkInterval) {
+                    // Ikke i blink-modus, vis statisk badge
+                    this.setFavicon(
+                        isUrgent 
+                            ? this.createAlertFavicon(this.currentNewCount) 
+                            : this.createBadgeFavicon(this.currentNewCount)
+                    );
+                }
+            } else {
+                // Bruker has acknowledged ELLER ingen nye bestillinger
+                this.setFavicon(this.originalFavicon);
+            }
+        }
+    }
+    
+    // -------------------------------------------------------------------------
+    // Merk nye bestillinger på ventende oppdrag
+    // -------------------------------------------------------------------------
+    selectNewOrders() {
+        const container = document.getElementById('ventendeoppdrag');
+        if (!container) {
+            console.warn('⚠️ Kunne ikke finne ventendeoppdrag-container');
             return 0;
         }
         
-        // Tell antall rader (ekskluder header)
-        const rows = container.querySelectorAll('tbody.scrollContent tr');
-        return rows.length;
-    }
-    
-    checkForNewOrders() {
-        const currentCount = this.getCurrentCount();
+        let selectedCount = 0;
         
-        if (currentCount > this.previousCount) {
-            const newOrders = currentCount - this.previousCount;
-            this.notifyNewOrders(newOrders, currentCount);
+        // Gå gjennom alle nye bestillinger
+        this.newOrders.forEach((timestamp, reqNr) => {
+            // Finn <tr> med title=reqNr
+            const row = container.querySelector(`tr[title="${reqNr}"]`);
+            if (row) {
+                const rowId = row.getAttribute('id'); // Format: V-18787423
+                if (rowId && typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+                    // Kall selectRow for å merke raden
+                    selectRow(rowId, g_voppLS);
+                    selectedCount++;
+                    console.log(`✓ Merket bestilling: ${reqNr} (${rowId})`);
+                } else {
+                    console.warn(`⚠️ Kunne ikke merke bestilling ${reqNr} - mangler ID eller selectRow-funksjon`);
+                }
+            } else {
+                console.warn(`⚠️ Kunne ikke finne rad for bestilling ${reqNr}`);
+            }
+        });
+        
+        if (selectedCount > 0) {
+            console.log(`✅ Merket ${selectedCount} nye bestilling(er)`);
         }
         
-        // Oppdater badge selv om det ikke er nye
-        if (currentCount > 0 && CONFIG.enableBadge) {
-            this.updateTitleBadge(currentCount);
-        } else if (currentCount === 0) {
-            this.resetTitle();
-        }
-        
-        this.previousCount = currentCount;
+        return selectedCount;
     }
     
+    // -------------------------------------------------------------------------
+    // Bruker har acknowledged de nye bestillingene
+    // -------------------------------------------------------------------------
+    acknowledgeNewOrders(selectOrders = false) {
+        // Merk bestillingene først hvis forespurt
+        if (selectOrders) {
+            this.selectNewOrders();
+        }
+        
+        this.userAcknowledged = true;
+        this.currentNewCount = 0;
+        
+        // Flytt acknowledged bestillinger til initialOrderIds så de ikke blir "nye" igjen
+        this.newOrders.forEach((timestamp, reqNr) => {
+            this.initialOrderIds.add(reqNr);
+            console.log(`📌 Flyttet ${reqNr} til initial tracking (acknowledged)`);
+        });
+        
+        // Clear alle nye bestillinger siden brukeren har acknowledged
+        this.newOrders.clear();
+        
+        // Fjern popup
+        const existingAlert = document.getElementById('new-order-alert');
+        if (existingAlert) {
+            existingAlert.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => existingAlert.remove(), 300);
+        }
+        
+        // Fjern favicon
+        this.setFavicon(this.originalFavicon);
+        
+        // Stopp blink
+        this.stopBlinking();
+        
+        console.log('👍 Bruker har acknowledged nye bestillinger');
+    }
+    
+    // -------------------------------------------------------------------------
+    // Sjekk om noen bestillinger har passert urgent threshold
+    // -------------------------------------------------------------------------
+    hasUrgentOrders() {
+        const now = Date.now();
+        for (let [reqNr, timestamp] of this.newOrders) {
+            if (now - timestamp >= CONFIG.urgentThreshold) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Varsle om nye bestillinger
+    // -------------------------------------------------------------------------
     notifyNewOrders(newCount, totalCount) {
-        console.log(`${newCount} ny(e) bestilling(er)! Totalt: ${totalCount}`);
-        
-        // 1. Blinkende fane
-        if (CONFIG.enableTitleBlink) {
-            this.startTitleBlink(totalCount);
+        // Blinkende tittel + favicon
+        if (CONFIG.enableTitleBlink || CONFIG.enableFaviconBlink) {
+            this.startBlinking(newCount);
         }
         
-        // 2. Spill lyd
+        // Lyd
         if (CONFIG.enableSound && this.soundEnabled) {
             this.playNotificationSound();
         }
         
-        // 3. Windows-notifikasjon
+        // Desktop-notifikasjon
         if (CONFIG.enableNotification) {
             this.showDesktopNotification(newCount, totalCount);
         }
         
-        // 4. Visuell indikator på siden
+        // Visuell banner (PERSISTENT - ingen auto-fade)
         this.showVisualAlert(newCount);
     }
     
-    startTitleBlink(count) {
-        // Stopp eksisterende blink
-        if (this.blinkInterval) {
-            clearInterval(this.blinkInterval);
+    // -------------------------------------------------------------------------
+    // Blinkende tittel (30 sekunder)
+    // -------------------------------------------------------------------------
+    startBlinking(newCount) {
+        // Stopp eksisterende blinking først
+        this.stopBlinking();
+        
+        // START MED ORANSJE FAVICON (nye bestillinger, ikke urgent ennå)
+        if (CONFIG.enableFaviconBlink) {
+            this.setFavicon(this.createBadgeFavicon(newCount));
         }
         
+        // Start blinkende tittel (viser antallet nye)
         let isAlert = true;
-        this.blinkInterval = setInterval(() => {
-            if (isAlert) {
-                document.title = `⚠️ (${count}) NYE BESTILLINGER!`;
-            } else {
-                document.title = `(${count}) ${this.originalTitle}`;
-            }
-            isAlert = !isAlert;
-        }, 1000); // Blink hvert sekund
+        if (CONFIG.enableTitleBlink) {
+            // Sett initial tittel til alert-tilstand
+            document.title = `⚠️ ${newCount} NYE BESTILLINGER!`;
+            
+            // Start interval
+            this.blinkInterval = setInterval(() => {
+                if (isAlert) {
+                    document.title = `⚠️ ${newCount} NYE BESTILLINGER!`;
+                } else {
+                    document.title = `(${this.getCurrentOrders().size}) ${this.originalTitle}`;
+                }
+                isAlert = !isAlert;
+            }, 1000);
+        }
+        
+        // Clear eksisterende timeout hvis den finnes
+        if (this.blinkTimeout) {
+            clearTimeout(this.blinkTimeout);
+        }
         
         // Stopp blink etter 30 sekunder
-        setTimeout(() => {
-            this.stopTitleBlink();
-            this.updateTitleBadge(count);
+        this.blinkTimeout = setTimeout(() => {
+            this.stopBlinking();
         }, 30000);
     }
     
-    stopTitleBlink() {
+    stopBlinking() {
         if (this.blinkInterval) {
             clearInterval(this.blinkInterval);
             this.blinkInterval = null;
         }
+        if (this.blinkTimeout) {
+            clearTimeout(this.blinkTimeout);
+            this.blinkTimeout = null;
+        }
     }
     
-    updateTitleBadge(count) {
-        this.stopTitleBlink();
-        document.title = `(${count}) ${this.originalTitle}`;
+    // -------------------------------------------------------------------------
+    // FAVICON-FUNKSJONER
+    // -------------------------------------------------------------------------
+    getFaviconUrl() {
+        const link = document.querySelector("link[rel*='icon']");
+        return link ? link.href : null;
     }
     
-    resetTitle() {
-        this.stopTitleBlink();
-        document.title = this.originalTitle;
+    setFavicon(url) {
+        let link = document.querySelector("link[rel*='icon']");
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+        link.href = url;
     }
     
+    createAlertFavicon(count) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        
+        // RØD sirkel (URGENT - har ligget lenge)
+        ctx.fillStyle = '#FF0000';
+        ctx.beginPath();
+        ctx.arc(16, 16, 16, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Hvit kant
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Hvitt tall
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 22px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(count > 9 ? '9+' : count.toString(), 16, 17);
+        
+        return canvas.toDataURL();
+    }
+    
+    createBadgeFavicon(count) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        
+        // ORANSJE sirkel (nye bestillinger, ikke urgent ennå)
+        ctx.fillStyle = '#FF6600';
+        ctx.beginPath();
+        ctx.arc(16, 16, 16, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Hvit kant
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Hvitt tall
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 22px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(count > 9 ? '9+' : count.toString(), 16, 17);
+        
+        return canvas.toDataURL();
+    }
+    
+    // -------------------------------------------------------------------------
+    // Lyd-varsel
+    // -------------------------------------------------------------------------
     playNotificationSound() {
-        // Lag en diskret varsellyd (to korte toner)
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
         const playBeep = (frequency, startTime, duration) => {
@@ -148,19 +635,20 @@ class VentendeOppdragMonitor {
         };
         
         const now = audioContext.currentTime;
-        playBeep(800, now, 0.15);      // Første tone
-        playBeep(1000, now + 0.2, 0.15); // Andre tone (litt høyere)
+        playBeep(800, now, 0.15);
+        playBeep(1000, now + 0.2, 0.15);
     }
     
+    // -------------------------------------------------------------------------
+    // Desktop-notifikasjon
+    // -------------------------------------------------------------------------
     showDesktopNotification(newCount, totalCount) {
         if (!('Notification' in window)) return;
         
         if (Notification.permission === 'granted') {
             const notification = new Notification('Nye ventende oppdrag', {
                 body: `${newCount} ny(e) bestilling(er) mottatt. Totalt: ${totalCount}`,
-                icon: '/images/poster.gif', // Bruk et ikon fra systemet
-                badge: '/images/poster.gif',
-                tag: 'ventende-oppdrag', // Erstatter gamle notifikasjoner
+                tag: 'ventende-oppdrag',
                 requireInteraction: false,
                 silent: false
             });
@@ -170,19 +658,20 @@ class VentendeOppdragMonitor {
                 notification.close();
             };
             
-            // Lukk automatisk etter 5 sekunder
             setTimeout(() => notification.close(), 5000);
         }
     }
     
+    // -------------------------------------------------------------------------
+    // Visuell banner (PERSISTENT - fade kun ved klikk/håndtering)
+    // -------------------------------------------------------------------------
     showVisualAlert(newCount) {
-        // Fjern eksisterende alert hvis den finnes
+        // Fjern eksisterende alert - ny alert vises med oppdatert tall
         const existingAlert = document.getElementById('new-order-alert');
         if (existingAlert) {
             existingAlert.remove();
         }
         
-        // Lag en diskret banner øverst på siden
         const alert = document.createElement('div');
         alert.id = 'new-order-alert';
         alert.style.cssText = `
@@ -201,11 +690,8 @@ class VentendeOppdragMonitor {
             animation: slideDown 0.3s ease-out;
             cursor: pointer;
         `;
-        alert.innerHTML = `
-            ⚠️ ${newCount} ny(e) bestilling(er) mottatt! Klikk for å lukke.
-        `;
+        alert.innerHTML = `⚠️ ${newCount} ny(e) bestilling(er) mottatt! Klikk her for å bekrefte og merke.`;
         
-        // Legg til animasjon
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideDown {
@@ -219,38 +705,71 @@ class VentendeOppdragMonitor {
         `;
         document.head.appendChild(style);
         
+        // Klikk på popup = acknowledge OG merk bestillinger
         alert.onclick = () => {
-            alert.style.animation = 'fadeOut 0.3s ease-out';
-            setTimeout(() => alert.remove(), 300);
+            this.acknowledgeNewOrders(true);  // true = merk bestillingene
         };
         
         document.body.insertBefore(alert, document.body.firstChild);
         
-        // Fjern automatisk etter 10 sekunder
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.style.animation = 'fadeOut 0.3s ease-out';
-                setTimeout(() => alert.remove(), 300);
-            }
-        }, 10000);
+        // INGEN auto-fade! Kun ved klikk eller håndtering
     }
 }
 
-// Start monitoren når siden er lastet
-let monitor;
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        monitor = new VentendeOppdragMonitor();
-    });
-} else {
-    monitor = new VentendeOppdragMonitor();
-}
+// Start monitor
+window.ventendeMonitor = new VentendeOppdragMonitor();
 
-// Legg til kontroller for å skru av/på varsler
-window.toggleOrderSound = function() {
-    if (monitor) {
-        monitor.soundEnabled = !monitor.soundEnabled;
-        console.log('Lyd-varsling: ' + (monitor.soundEnabled ? 'PÅ' : 'AV'));
-        return monitor.soundEnabled;
+window.stopMonitor = function() {
+    if (window.ventendeMonitor && window.ventendeMonitor.intervalId) {
+        clearInterval(window.ventendeMonitor.intervalId);
+        
+        if (window.ventendeMonitor.blinkInterval) {
+            clearInterval(window.ventendeMonitor.blinkInterval);
+        }
+        if (window.ventendeMonitor.blinkTimeout) {
+            clearTimeout(window.ventendeMonitor.blinkTimeout);
+        }
+        
+        window.ventendeMonitor.newOrders.clear();
+        document.title = window.ventendeMonitor.originalTitle;
+        const link = document.querySelector("link[rel*='icon']");
+        if (link) link.href = window.ventendeMonitor.originalFavicon;
+        
+        // Fjern toast-varsel
+        const alert = document.getElementById('new-order-alert');
+        if (alert) alert.remove();
+        
+        console.log('❌ Overvåking stoppet');
+        delete window.ventendeMonitor;
+        
+        // Vis stopp-popup
+        showMonitorPopup(false);
     }
 };
+
+// Vis informasjons-popup ved start
+setTimeout(() => {
+    showMonitorPopup(true);
+}, 500);
+
+console.log(`✅ Overvåking startet!
+
+Logikk:
+- Favicon viser antall NYE bestillinger fra siste varsel (samme som toast)
+- Tittel (i parentes) viser TOTALT antall bestillinger på ventende oppdrag
+- Bestillinger som planlegges og kommer tilbake gir nytt varsel
+- 🟠 Oransje favicon = Nye bestillinger (< ${CONFIG.urgentThreshold/1000} sekunder)
+- 🔴 Rød favicon = Urgent (> ${CONFIG.urgentThreshold/1000} sekunder uhåndtert)
+
+Brukerinteraksjon:
+✓ Popup forsvinner IKKE automatisk
+✓ Klikk på popup → Merker nye bestillinger + nullstiller varsel
+✓ Planlegg en ny bestilling → Nullstiller varsel automatisk
+
+Aktive varsler:
+✓ Blinkende fanetittel ved nye bestillinger
+✓ Lyd-signal
+✓ Persistent popup (må klikkes bort)
+${CONFIG.enableNotification ? '✓ Desktop-notifikasjon (hvis tillatt)' : ''}
+
+Kjør stopMonitor() for å stoppe.`);

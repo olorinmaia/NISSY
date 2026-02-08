@@ -4,9 +4,23 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## Planlagt
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig
-- Lage script for overvåking av ventende oppdrag, varsle om nye bestillinger, endringer på tider osv.
+- Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
+## 🚀 [3.5.0] - 09.02.2026
+
+### Ny loader for AMK og nytt script 🔔 Overvåk-Ventende. Filtrer bort H0101, U0101 osv fra adresser i flere script
+
+#### Hva er nytt?
+- **Ny loader for AMK**
+  - Ny tilpasset loader for AMK som inneholder nytt script for overvåking av ventende oppdrag og flere script som er nyttig for deres bruk.
+- **Nytt script 🔔 Overvåk-Ventende** (Kun loader-AMK i første omgang)
+  - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. Teller også antall bestillinger på ventende oppdrag i parentes.
+  - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk for loader-AMK.
+  - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
+- **🔍 Sjekk-Bestilling / 🚩 Sjekk-Plakat / 🚐 Samkjøring / 🕐 Hentetid / ✖️ Avbestilling** 
+  - Filtrer bort H0101 / U0101 osv fra adressene som vises i pop-uper da det tar unødvendig plass og er irrelevant.
+
 ## 🚀 [3.4.1] - 06.02.2026
 
 ### Sjekk-Bestilling forbedret

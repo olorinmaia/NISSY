@@ -238,7 +238,8 @@
         { hent1: 7517, hent2: 7630, leverMin: 7600, leverMax: 7606 },
         { hent1: 7520, hent2: 7630, leverMin: 7600, leverMax: 7606 },
         { hent1: 7530, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },    
+        { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7717, hent1Max: 7717, hent2Min: 7717, hent2Max: 7717, leverMin: 7713, leverMax: 7725 },
         // Legg til flere her:
         // { hent1: 7600, hent2: 7500, leverMin: 7700, leverMax: 7710 },
     ];
@@ -294,6 +295,21 @@
         // Finn 4-sifret postnummer i siste del
         const match = lastPart.match(/\b(\d{4})\b/);
         return match ? parseInt(match[1]) : null;
+    }
+
+    // ============================================================
+    // Fjern problematiske husnummer-suffikser (H0123, U0123 etc)
+    // ============================================================
+    /**
+     * Fjerner problematiske husnummer-suffikser (H0123, U0123 etc)
+     * @param {string} address - Original adresse
+     * @returns {string} - Adresse uten suffikser
+     */
+    function cleanAddressSuffixes(address) {
+        if (!address) return address;
+        // Fjern space etterfulgt av H eller U og 4 siffer
+        // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+        return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
     }
 
     // ============================================================
@@ -1902,8 +1918,8 @@
                                     <td style="padding: 8px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
                                     <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${booking.ledsager || '-'}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em;">${booking.fromAddress}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em;">${booking.toAddress}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em;">${cleanAddressSuffixes(booking.fromAddress)}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em;">${cleanAddressSuffixes(booking.toAddress)}</td>
                                 </tr>
                     `;
                 });
@@ -1999,8 +2015,8 @@
                                 <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${booking.ledsager || '-'}</td>
-                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
-                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${cleanAddressSuffixes(booking.fromAddress)}">${cleanAddressSuffixes(booking.fromAddress)}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${cleanAddressSuffixes(booking.toAddress)}">${cleanAddressSuffixes(booking.toAddress)}</td>
                                 <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; white-space: nowrap;" title="${booking.status}">${booking.status}</td>
                             </tr>
                         `;
@@ -2069,8 +2085,8 @@
                                         <td style="padding: 8px; border: 1px solid #ddd;">${result.ventende.tripTreatmentTime}</td>
                                         <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${result.ventende.behov || ''}</td>
                                         <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${result.ventende.ledsager || '-'}</td>
-                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.fromAddress}">${result.ventende.fromAddress}</td>
-                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${result.ventende.toAddress}">${result.ventende.toAddress}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${cleanAddressSuffixes(result.ventende.fromAddress)}">${cleanAddressSuffixes(result.ventende.fromAddress)}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${cleanAddressSuffixes(result.ventende.toAddress)}">${cleanAddressSuffixes(result.ventende.toAddress)}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2160,8 +2176,8 @@
                                     <td style="padding: 6px; border: 1px solid #ddd;">${booking.tripTreatmentTime}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.85em;">${booking.behov || ''}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${booking.ledsager || '-'}</td>
-                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.fromAddress}">${booking.fromAddress}</td>
-                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${booking.toAddress}">${booking.toAddress}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${cleanAddressSuffixes(booking.fromAddress)}">${cleanAddressSuffixes(booking.fromAddress)}</td>
+                                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${cleanAddressSuffixes(booking.toAddress)}">${cleanAddressSuffixes(booking.toAddress)}</td>
                                     <td style="padding: 6px; border: 1px solid #ddd; font-size: 0.8em; white-space: nowrap;" title="${booking.status}">${booking.status}</td>
                                 </tr>
                             `;

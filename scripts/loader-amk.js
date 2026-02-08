@@ -12,24 +12,42 @@
     return;
   }
 
-  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
+  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
   
   const scripts = [
     'NISSY-fiks.js',
-    'Ressursinfo.js',
+    'Rutekalkulering.js',
     'Bestillingsmodul.js',
     'Adminmodul.js',
-    'Avbestilling.js',
-    'Hentetid.js',
-    'Rek-knapper.js',
-    'Rutekalkulering.js'
+    'Ressursinfo.js'
   ];
   
-  console.log('📦 Laster NISSY Basic DEV...');
+  // ============================================================
+  // ANONYM BRUKSSTATISTIKK
+  // Logger at loader ble brukt (ingen persondata)
+  // ============================================================
+  try {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = '//gc.zgo.at/count.js';
+    script.setAttribute('data-goatcounter', 'https://nissy.goatcounter.com/count');
+    document.head.appendChild(script);
+    
+    // Track loader
+    if (window.goatcounter) {
+      window.goatcounter.count({
+        path: '/loader-amk',
+        title: 'Loader AMK',
+        event: true
+      });
+    }
+  } catch (e) {}
+  
+  console.log('📦 Laster NISSY AMK...');
   
   for (const script of scripts) {
     try {
-      const response = await fetch(BASE + script + `?t=${Date.now()}`);
+      const response = await fetch(BASE + script);
       const code = await response.text();
       eval(code);
     } catch (err) {
@@ -37,7 +55,7 @@
     }
   }
   
-  console.log('✅ NISSY Basic DEV lastet!');
+  console.log('✅ NISSY AMK lastet!');
 
   // ============================================================
   // LEGG TIL DIVERSE KNAPPER ØVERST OG SKJUL FILTER
@@ -109,14 +127,38 @@
         document.head.appendChild(style);
       }
 
-      // Opprett knapp
+      // Opprett knapper
+      const monitorBtn = document.createElement('button');
+      monitorBtn.id = 'nissy-monitor-btn';
+      monitorBtn.className = 'nissy-header-btn';
+      monitorBtn.type = 'button';
+      monitorBtn.title = 'Start/stopp overvåking av ventende oppdrag';
+      monitorBtn.textContent = '🔔 Overvåk-Ventende';
+      monitorBtn.addEventListener('click', async () => {
+        try {
+          const response = await fetch(BASE + 'Overvåk-ventende.js');
+          const code = await response.text();
+          eval(code);
+        } catch (err) {
+          console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
+        }
+      });
+
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
       helpBtn.className = 'nissy-header-btn';
-      helpBtn.href = 'https://github.com/olorinmaia/NISSY/blob/dev/docs/BASIC.md';
+      helpBtn.href = 'https://github.com/olorinmaia/NISSY/blob/main/docs/AMK.md';
       helpBtn.target = '_blank';
-      helpBtn.title = 'Åpne brukerveiledning for NISSY Basic';
+      helpBtn.title = 'Åpne brukerveiledning for NISSY AMK';
       helpBtn.textContent = '📖 Brukerveiledning';
+
+      const bestillingsBtn = document.createElement('button');
+      bestillingsBtn.id = 'nissy-bestilling-btn';
+      bestillingsBtn.className = 'nissy-header-btn';
+      bestillingsBtn.type = 'button';
+      bestillingsBtn.title = 'Åpne bestillingsmodul';
+      bestillingsBtn.textContent = '📝 Bestillingsmodul (Alt+N)';
+      bestillingsBtn.addEventListener('click', () => triggerHotkey('n'));
 
       const adminBtn = document.createElement('button');
       adminBtn.id = 'nissy-admin-btn';
@@ -139,7 +181,9 @@
       }
       
       // Legg til knappene etter teksten i første <td>
+      firstTd.appendChild(monitorBtn);
       firstTd.appendChild(helpBtn);
+      firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);
 
       console.log("✅ Knapper i header installert");
@@ -227,32 +271,12 @@
         document.head.appendChild(style);
       }
       
-      // HTML for knapper (kun Basic-funksjoner)
+      // HTML for knapper (kun Rutekalkulering og Ressursinfo)
       const rowsHTML = `
         <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende og pågående oppdrag (kun status tildelt)">
-          </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="k" title="Masse-avbestill markerte turer eller bestillinger">
-          </td>
-        </tr>
-        <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
-          </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
-          </td>
-        </tr>
-        <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
-            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
-                   data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
             <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
@@ -297,10 +321,8 @@
     const popup = document.createElement('div');
     popup.innerHTML = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2 style="margin: 0 0 15px 0; color: #333;">🎉 NISSY Basic lastet!</h2>
-        <p style="background: #fff3cd; padding: 8px; border-radius: 4px; color: #856404; font-weight: bold; margin: 0 0 15px 0;">
-          ⚠️ DEV VERSION - Test branch
-        </p>
+        <h2 style="margin: 0 0 15px 0; color: #333;">🎉 NISSY AMK lastet!</h2>
+        
         <h3 style="margin: 15px 0 8px 0; color: #555;">⌨️ Tastatursnarveier:</h3>
         <div style="font-size: 13px; color: #666;">
           <strong>Grunnleggende:</strong><br>
@@ -319,10 +341,7 @@
           • ALT+M → Møteplass<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
-          • ALT+E → Hentetid<br>
-          • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
-          • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
@@ -330,16 +349,16 @@
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
           <strong>📖 Fullstendig dokumentasjon:</strong><br>
-          <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/BASIC.md" 
+          <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/AMK.md" 
              target="_blank" 
              style="color: #4a90e2; text-decoration: none; font-weight: bold;">
-            Åpne BASIC.md →
+            Åpne AMK.md →
           </a>
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.5.0):</strong><br>
-          <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
+          <strong>📝 Endringslogg:</strong><br>
+          <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">
             Åpne CHANGELOG.md →
@@ -357,7 +376,7 @@
           font-size: 14px;
           font-weight: bold;
           width: 100%;
-        ">Lukk</button>
+        ">Lukk og start overvåking →</button>
       </div>
     `;
     
@@ -390,7 +409,7 @@
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 
-    const closePopup = () => {
+    const closePopup = async () => {
       if (popup && popup.parentNode) {
         popup.parentNode.removeChild(popup);
       }
@@ -402,6 +421,16 @@
       
       if (typeof openPopp === 'function') {
         openPopp('-1');
+      }
+
+      // Start Overvåk-ventende.js automatisk når popup lukkes
+      try {
+        const response = await fetch(BASE + 'Overvåk-ventende.js');
+        const code = await response.text();
+        eval(code);
+        console.log('✅ Overvåk-ventende.js startet automatisk');
+      } catch (err) {
+        console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
       }
     };
 

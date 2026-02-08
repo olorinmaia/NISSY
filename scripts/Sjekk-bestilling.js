@@ -28,6 +28,7 @@
   const PROBLEMATIC_NEED_COMBINATIONS = [
     { needs: ['ERS', 'RB'], description: 'ERS + RB (Elektrisk rullestol + Rullestolbil)' },
     { needs: ['LB', 'LF'], description: 'LB + LF (Trenger hele baksetet + God benplass og regulerbart sete)' },
+    { needs: ['HI', 'LI'], description: 'HI + LI (Høyt innsteg og Lavt innsteg)' },
     // Legg til flere kombinasjoner her etter behov
     // { needs: ['X', 'Y'], description: 'X + Y beskrivelse' },
   ];
@@ -140,6 +141,21 @@
     const match = timeStr.match(/(\d{1,2})\.(\d{1,2})/);
     if (!match) return null;
     return `${match[1]}.${match[2]}`;
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Fjern problematiske husnummer-suffikser (H0123, U0123 etc)
+  // ============================================================
+  /**
+   * Fjerner problematiske husnummer-suffikser (H0123, U0123 etc)
+   * @param {string} address - Original adresse
+   * @returns {string} - Adresse uten suffikser
+   */
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
   function datesAreDifferent(hentetid, leveringstid) {
@@ -743,8 +759,8 @@
             <td style="padding: 6px 8px; ${hentetidStyle}">${item.hentetid}</td>
             <td style="padding: 6px 8px; ${leveringstidStyle}">${item.leveringstid}</td>
             <td style="padding: 6px 8px; ${behovStyle}">${behovDisplay}</td>
-            <td style="padding: 6px 8px; color: #495057;">${item.fra}</td>
-            <td style="padding: 6px 8px; color: #495057;">${item.til}</td>
+            <td style="padding: 6px 8px; color: #495057;">${cleanAddressSuffixes(item.fra)}</td>
+            <td style="padding: 6px 8px; color: #495057;">${cleanAddressSuffixes(item.til)}</td>
           </tr>
         `;
       }
