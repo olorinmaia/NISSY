@@ -22,8 +22,9 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
   - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
 - 🪄 **Smart-tildeling (Alt+S)**
-  - Automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
+  - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
+  - Støtter også direkte tildeling til valgt avtale eller ressurs.
 - 📆 **Tilordningsstøtte 2.0 (Alt+T)**
   - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
 - 🕐 **Hentetid (Alt+E)** 
@@ -203,6 +204,7 @@ Snarveiene hører til de ulike script-pakkene.
 - **Automatisk RB/ERS-deteksjon**: Tildeler til riktig avtale når RB eller ERS er påkrevd selv om første reisende ikke har RB/ERS-behov
 - **Passasjertelling**: Teller overlappende passasjerer og velger riktig avtale ved >3 reisende
 - **Ressurs-tildeling**: Støtter direkte tildeling til valgt ressurs
+- **Avtale-tildeling**: Støtter direkte tildeling til valgt avtale
 - **Visuell feedback**: Grå-markering av bestillinger under planlegging
 - **Kø-støtte**: Kan planlegge flere batch mens tidligere fortsatt pågår
 

@@ -9,7 +9,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## 🚀 [3.5.0] - 09.02.2026
 
-### Ny loader for AMK og nytt script 🔔 Overvåk-Ventende. Filtrer bort H0101, U0101 osv fra adresser i flere script
+### Ny loader for AMK og nytt script 🔔 Overvåk-Ventende og forbedringer til en rekke scripts.
 
 #### Hva er nytt?
 - **Ny loader for AMK**
@@ -20,6 +20,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
 - **🔍 Sjekk-Bestilling / 🚩 Sjekk-Plakat / 🚐 Samkjøring / 🕐 Hentetid / ✖️ Avbestilling** 
   - Filtrer bort H0101 / U0101 osv fra adressene som vises i pop-uper da det tar unødvendig plass og er irrelevant.
+- 🪄 **Smart-tildel** 
+  - Kan nå velge en avtale og trykke på Smart-tildel-knapp eller Alt+S for å tildele til den.
 
 ## 🚀 [3.4.1] - 06.02.2026
 

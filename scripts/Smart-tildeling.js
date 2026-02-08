@@ -445,6 +445,29 @@
   }
 
 
+
+  // ============================================================
+  // HJELPEFUNKSJON: Finn merkede avtaler i #transportorer tabellen
+  // ============================================================
+  function findSelectedAgreements() {
+    const transportorerDiv = document.getElementById('transportorer');
+    if (!transportorerDiv) return [];
+    
+    const allRows = [...transportorerDiv.querySelectorAll('tr')];
+    return allRows
+      .filter(row => {
+        const bg = getComputedStyle(row).backgroundColor;
+        const id = row.id || "";
+        return bg.includes(TARGET_BG) && id.startsWith("T-");
+      })
+      .map(row => {
+        const tid = row.getAttribute("name");
+        const nameCell = row.querySelectorAll("td")[1];
+        const name = nameCell ? nameCell.textContent.trim() : "Ukjent";
+        return { row, tid, name };
+      })
+      .filter(agreement => agreement.tid);
+  }
   // ============================================================
   // ALT+T: TILORDNINGSSTØTTE 2.0
   // Tildeler hver bestilling til sin egen avtale (individuelt)
@@ -617,6 +640,203 @@
              id.startsWith("R") && 
              !row.classList.contains("disabled");
     });
+    
+    // Finn merkede avtaler
+    const allAgreementRows = findSelectedAgreements();
+    const agreementRow = allAgreementRows.length > 0 ? allAgreementRows[0] : null;
+
+    // ============================================================
+    // TILFELLE: Både ressurs(er) OG avtale er merket
+    // ============================================================
+    if (allResourceRows.length > 0 && agreementRow) {
+      const options = [];
+      
+      if (allResourceRows.length === 1) {
+        options.push({
+          type: 'resource',
+          label: `Ressurs: ${allResourceRows[0].querySelectorAll("td")[1]?.textContent.trim() || 'Ukjent'}`,
+          data: allResourceRows[0]
+        });
+      } else {
+        options.push({
+          type: 'resources',
+          label: `${allResourceRows.length} ressurser (velg hvilken etterpå)`,
+          data: allResourceRows
+        });
+      }
+      
+      options.push({
+        type: 'agreement',
+        label: `Avtale: ${agreementRow.name}`,
+        data: agreementRow
+      });
+      
+      const choice = prompt(
+        `Du har merket både ressurs(er) og avtale:\n\n` +
+        options.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n') +
+        `\n\nVelg alternativ (1-${options.length}) eller trykk Avbryt:`,
+        "1"
+      );
+      
+      if (choice === null) {
+        hideToast(0);
+        return;
+      }
+      
+      const selectedIndex = parseInt(choice) - 1;
+      if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= options.length) {
+        updateToast(`Ugyldig valg. Velg et tall mellom 1 og ${options.length}.`);
+        hideToast(3000);
+        return;
+      }
+      
+      const selected = options[selectedIndex];
+      
+      if (selected.type === 'resource' || selected.type === 'resources') {
+        // Håndter ressurs-valg
+        let resourceRow = null;
+        
+        if (selected.type === 'resource') {
+          resourceRow = selected.data;
+        } else {
+          const resourceNames = selected.data.map(row => {
+            const nameCell = row.querySelectorAll("td")[1];
+            return nameCell ? nameCell.textContent.trim() : "Ukjent";
+          });
+          
+          const resChoice = prompt(
+            `Velg ressurs:\n\n` +
+            resourceNames.map((name, i) => `${i + 1}. ${name}`).join('\n') +
+            `\n\nVelg (1-${resourceNames.length}) eller trykk Avbryt:`,
+            "1"
+          );
+          
+          if (resChoice === null) {
+            hideToast(0);
+            return;
+          }
+          
+          const resIndex = parseInt(resChoice) - 1;
+          if (isNaN(resIndex) || resIndex < 0 || resIndex >= selected.data.length) {
+            updateToast(`Ugyldig valg. Velg et tall mellom 1 og ${selected.data.length}.`);
+            hideToast(3000);
+            return;
+          }
+          
+          resourceRow = selected.data[resIndex];
+        }
+        
+        // Tildel til ressurs
+        const rid = resourceRow.getAttribute("name");
+        const resourceNameCell = resourceRow.querySelectorAll("td")[1];
+        const resourceName = resourceNameCell ? resourceNameCell.textContent.trim() : "Ukjent";
+        
+        disableRows(vids);
+        
+        if (typeof ButtonController !== 'undefined' && ButtonController.clearAllSelections) {
+          try {
+            ButtonController.clearAllSelections();
+          } catch (e) {
+            console.warn("Kunne ikke fjerne seleksjoner:", e);
+          }
+        }
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `/planlegging/ajax-dispatch?did=all&action=assres&rid=${rid}&vid=${encodeURIComponent(vids.join(","))}`);
+        
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState !== 4) return;
+          updateToast(
+            `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
+            `tildelt ressurs: ${resourceName}`
+          );
+          hideToast(3000);
+          refreshIfNoSelection();
+        };
+        
+        xhr.onerror = () => {
+          updateToast("Feil");
+          hideToast(3000);
+        };
+        
+        xhr.send();
+        return;
+      } else {
+        // Tildel til avtale
+        const tid = agreementRow.tid;
+        const agreementName = agreementRow.name;
+        
+        disableRows(vids);
+        
+        if (typeof ButtonController !== 'undefined' && ButtonController.clearAllSelections) {
+          try {
+            ButtonController.clearAllSelections();
+          } catch (e) {
+            console.warn("Kunne ikke fjerne seleksjoner:", e);
+          }
+        }
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `/planlegging/ajax-dispatch?did=all&action=asstrans&tid=${tid}&vid=${encodeURIComponent(vids.join(","))}`);
+        
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState !== 4) return;
+          updateToast(
+            `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
+            `tildelt avtale: ${agreementName}`
+          );
+          hideToast(3000);
+          refreshIfNoSelection();
+        };
+        
+        xhr.onerror = () => {
+          updateToast("Feil");
+          hideToast(3000);
+        };
+        
+        xhr.send();
+        return;
+      }
+    }
+
+    // ============================================================
+    // TILFELLE: Kun avtale er merket
+    // ============================================================
+    if (agreementRow && allResourceRows.length === 0) {
+      const tid = agreementRow.tid;
+      const agreementName = agreementRow.name;
+      
+      disableRows(vids);
+      
+      if (typeof ButtonController !== 'undefined' && ButtonController.clearAllSelections) {
+        try {
+          ButtonController.clearAllSelections();
+        } catch (e) {
+          console.warn("Kunne ikke fjerne seleksjoner:", e);
+        }
+      }
+      
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", `/planlegging/ajax-dispatch?did=all&action=asstrans&tid=${tid}&vid=${encodeURIComponent(vids.join(","))}`);
+      
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState !== 4) return;
+        updateToast(
+          `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
+          `tildelt avtale: ${agreementName}`
+        );
+        hideToast(3000);
+        refreshIfNoSelection();
+      };
+      
+      xhr.onerror = () => {
+        updateToast("Feil");
+        hideToast(3000);
+      };
+      
+      xhr.send();
+      return;
+    }
     
     let resourceRow = null;
     
