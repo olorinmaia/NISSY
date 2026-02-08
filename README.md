@@ -75,8 +75,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 ### Individuelle script
 - 🔔 **Overvåk-Ventende**
   - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
-  - Teller også antall bestillinger på ventende oppdrag og viser i parentes i fanen.
-  - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk etter loadere-popup lukkes.
+  - Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
   - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
 - 🚗 **Alenebil**
   - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert

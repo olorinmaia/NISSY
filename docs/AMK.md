@@ -87,7 +87,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 ### 🔔 Overvåk-Ventende 
   - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
   - Teller også antall bestillinger på ventende oppdrag og viser i parentes i fanen.
-  - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk etter loadere-popup lukkes.
+  - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk etter loader-popup lukkes.
   - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
 
 ### 🗺 Rutekalkulering (ALT+Q)
