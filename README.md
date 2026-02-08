@@ -132,7 +132,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 ## 🚀 Installasjon
 
 ### Script-pakker 
-Velg mellom **Basic** eller **Advanced**
+Velg mellom **AMK**, **Basic** eller **Advanced**
 
 1. Opprett et nytt bokmerke i nettleseren din
 2. Lim inn følgende kode som URL:
