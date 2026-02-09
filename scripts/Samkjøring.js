@@ -753,8 +753,8 @@
                 globalEarliestDelivery = earliestDelivery;
             }
             
-            // Seneste må være det SENESTE av alle seneste (kan levere når som helst frem til siste oppmøte)
-            if (!globalLatestDelivery || latestDelivery > globalLatestDelivery) {
+            // Seneste må være det TIDLIGSTE av alle seneste (må levere før første frist)
+            if (!globalLatestDelivery || latestDelivery < globalLatestDelivery) {
                 globalLatestDelivery = latestDelivery;
             }
         });
@@ -1767,65 +1767,124 @@
             return null;
         }
         
-        // Bygg én Map per target-ressurs som samler alle matches
+        // Først: Grupper alle andre ressurser per rowId (for å få ALLE bookinger per ressurs)
+        const resourcesGrouped = new Map();
+        otherResources.forEach(booking => {
+            const key = booking.rowId;
+            if (!resourcesGrouped.has(key)) {
+                resourcesGrouped.set(key, {
+                    resource: booking.resource,
+                    rowId: booking.rowId,
+                    bookings: []
+                });
+            }
+            resourcesGrouped.get(key).bookings.push(booking);
+        });
+        
+        // Deretter: Sjekk matches mot hver ressurs
         const resourceMatches = new Map();
         
         // For hver booking på den merkede ressursen
         selectedResource.bookings.forEach(ventende => {
             // Søk blant alle andre ressurser
-            otherResources.forEach(pagaende => {
-                const match = checkSamkjoring(ventende, pagaende);
-                
-                if (match) {
-                    const key = pagaende.resource;
+            resourcesGrouped.forEach((targetResource, targetRowId) => {
+                // Sjekk mot hver booking på target-ressursen
+                targetResource.bookings.forEach(pagaende => {
+                    const match = checkSamkjoring(ventende, pagaende);
                     
-                    // Initialiser ressurs hvis den ikke finnes
-                    if (!resourceMatches.has(key)) {
-                        resourceMatches.set(key, {
-                            resource: pagaende.resource,
-                            rowId: pagaende.rowId,
-                            bookings: [],
-                            matches: [],  // Liste over alle source-bookinger som matcher
-                            bestScore: 0
-                        });
-                    }
-                    
-                    const resourceData = resourceMatches.get(key);
-                    resourceData.bestScore = Math.max(resourceData.bestScore, match.score);
-                    
-                    // Legg til den matchende source-bookingen (fra selected resource)
-                    resourceData.matches.push({
-                        sourceBooking: ventende,
-                        matchType: match.type,
-                        scenario: match.scenario,
-                        score: match.score,
-                        timeDiff: match.timeDiff,
-                        absTimeDiff: match.absTimeDiff,
-                        direction: match.direction,
-                        waitDescription: match.waitDescription
-                    });
-                    
-                    // Legg til target-ressursens booking hvis ikke allerede der
-                    const alreadyHasBooking = resourceData.bookings.some(b => b.id === pagaende.id);
-                    if (!alreadyHasBooking) {
-                        resourceData.bookings.push({
-                            ...pagaende,
+                    if (match) {
+                        // Initialiser ressurs hvis den ikke finnes
+                        if (!resourceMatches.has(targetRowId)) {
+                            resourceMatches.set(targetRowId, {
+                                resource: targetResource.resource,
+                                rowId: targetRowId,
+                                bookings: targetResource.bookings,  // ALLE bookinger på ressursen
+                                matches: [],  // Liste over alle source-bookinger som matcher
+                                bestScore: 0
+                            });
+                        }
+                        
+                        const resourceData = resourceMatches.get(targetRowId);
+                        resourceData.bestScore = Math.max(resourceData.bestScore, match.score);
+                        
+                        // Legg til den matchende source-bookingen (fra selected resource)
+                        resourceData.matches.push({
+                            sourceBooking: ventende,
+                            targetBooking: pagaende,
                             matchType: match.type,
                             scenario: match.scenario,
+                            score: match.score,
                             timeDiff: match.timeDiff,
                             absTimeDiff: match.absTimeDiff,
                             direction: match.direction,
-                            waitDescription: match.waitDescription,
-                            score: match.score,
-                            hasMatch: true
+                            waitDescription: match.waitDescription
                         });
                     }
-                }
+                });
             });
         });
         
-        // Konverter til array og sorter etter beste score
+        // Konverter til array, valider multi-booking, og sorter etter beste score
         const candidates = Array.from(resourceMatches.values())
+            .filter(r => {
+                // Hvis target-ressursen har flere bestillinger til behandling, sjekk faktisk vindu
+                const toTreatmentBookings = r.bookings.filter(b => !b.isReturnTrip);
+                
+                if (toTreatmentBookings.length > 1) {
+                    // Hvis match er på en retur, returutnyttelse, eller overlappende tid, er matchen uavhengig
+                    const hasMatchOnReturn = r.bookings.some(b => b.hasMatch && b.isReturnTrip);
+                    const hasMatchReturutnyttelse = r.matches.some(m => m.matchType === 'returutnyttelse');
+                    const hasMatchOverlappingTime = r.matches.some(m => m.scenario === '1F');
+                    
+                    if (hasMatchOnReturn || hasMatchReturutnyttelse || hasMatchOverlappingTime) {
+                        return true;
+                    }
+                    
+                    // Beregn target-ressursens faktiske leveringsvindu
+                    const actualWindow = calculateActualDeliveryWindow(r.bookings);
+                    
+                    if (!actualWindow) {
+                        return false; // Ressursen har ugyldige overlappende vinduer
+                    }
+                    
+                    // Sjekk om source-bookingene kan leveres innenfor target-ressursens faktiske vindu
+                    // Vi må sjekke ALLE source-bookinger som har match på denne target-ressursen
+                    const allSourceBookingsFit = r.matches.every(matchData => {
+                        const sourceBooking = matchData.sourceBooking;
+                        
+                        // Beregn source-bookings leveringsvindu
+                        const sourceTimeBuffer = isLongTrip(sourceBooking.postnrHent, sourceBooking.postnrLever)
+                            ? LONG_DISTANCE_TIME_BUFFER 
+                            : SHORT_DISTANCE_TIME_BUFFER;
+                        
+                        const sourceEarliest = sourceBooking.isReturnTrip
+                            ? sourceBooking.startDateTime
+                            : new Date(sourceBooking.treatmentDateTime.getTime() - (sourceTimeBuffer * 60 * 1000));
+                        const sourceLatest = sourceBooking.treatmentDateTime;
+                        
+                        // Sjekk om vinduene overlapper
+                        const overlaps = sourceEarliest <= actualWindow.latestDelivery && 
+                                       actualWindow.earliestDelivery <= sourceLatest;
+                        
+                        return overlaps;
+                    });
+                    
+                    if (!allSourceBookingsFit) {
+                        return false; // Minst én source-booking passer ikke inn
+                    }
+                    
+                    // Oppdater alle matches med info om faktisk vindu
+                    r.matches.forEach(matchData => {
+                        matchData.actualWindowInfo = {
+                            earliest: actualWindow.earliestDelivery,
+                            latest: actualWindow.latestDelivery,
+                            bookingsCount: actualWindow.bookingsCount
+                        };
+                    });
+                }
+                
+                return true;
+            })
             .sort((a, b) => b.bestScore - a.bestScore);
         
         // Returner som én entry med alle kandidater
