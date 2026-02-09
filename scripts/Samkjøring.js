@@ -228,16 +228,9 @@
     // leverMin/leverMax: rekkevidde på leveringssted (brukes i stedet av lever)
     const WHITELISTED_PAIRS = [
         { hent1Min: 7860, hent1Max: 7870, hent2: 7760, leverMin: 7800, leverMax: 7804 },
-        { hent1: 7500, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7503, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7504, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7506, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7509, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7510, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7514, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7517, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7520, hent2: 7630, leverMin: 7600, leverMax: 7606 },
-        { hent1: 7530, hent2: 7630, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7500, hent1Max: 7533, hent2Min: 7630, hent2Max: 7632, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7500, hent1Max: 7533, hent2: 7620, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7500, hent1Max: 7533, hent2: 7623, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7717, hent1Max: 7717, hent2Min: 7717, hent2Max: 7717, leverMin: 7713, leverMax: 7725 },
         // Legg til flere her:
