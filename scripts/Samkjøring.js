@@ -233,6 +233,8 @@
         { hent1Min: 7500, hent1Max: 7533, hent2: 7623, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7717, hent1Max: 7717, hent2Min: 7717, hent2Max: 7717, leverMin: 7713, leverMax: 7725 },
+        { hent1Min: 7770, hent1Max: 7797, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
+        { hent1Min: 7500, hent1Max: 7751, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
         // Legg til flere her:
         // { hent1: 7600, hent2: 7500, leverMin: 7700, leverMax: 7710 },
     ];
