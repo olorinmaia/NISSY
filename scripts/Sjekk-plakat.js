@@ -256,7 +256,7 @@
       }
 
       // ============================================================
-      // STEG 2: BYGG POST-DATA FOR Å FJERNE FRITEKST
+      // STEG 2: BYGG POST-DATA FOR Å FJERNE MERKNADER
       // ============================================================
       const fd = new URLSearchParams({
         // Admin-parametere
@@ -333,7 +333,44 @@
       if (response.ok) {
         showToast(`✓ Merknader fjernet fra bestilling ${reknr}`, 'success');
         
-        // Refresh data etter 1 sekund
+        // ============================================================
+        // VISUELL MARKERING I POPUP
+        // ============================================================
+        // Finn bestillings-kortet i DOM
+        const posterCard = modalDiv.querySelector(`[data-reknr="${reknr}"]`);
+        
+        if (posterCard) {
+          // Finn fritekst-boksen
+          const freetextBox = posterCard.querySelector('div[style*="background: #fff; border: 1px solid #dee2e6"]');
+          
+          if (freetextBox) {
+            // Legg til "Fjernet"-badge øverst
+            const freetextHeader = freetextBox.querySelector('div');
+            if (freetextHeader) {
+              freetextHeader.innerHTML = '📝 FRITEKST <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px; margin-left: 8px; font-weight: 600;">✓ FJERNET</span>';
+            }
+            
+            // Stryk over all fritekst
+            const freetextItems = freetextBox.querySelectorAll('div[style*="margin-bottom: 6px"]');
+            freetextItems.forEach(item => {
+              item.style.textDecoration = 'line-through';
+              item.style.opacity = '0.5';
+            });
+            
+            // Legg til grå overlay på hele fritekst-boksen
+            freetextBox.style.position = 'relative';
+            freetextBox.style.opacity = '0.6';
+            freetextBox.style.backgroundColor = '#f5f5f5';
+          }
+          
+          // Fjern "Fjern merknad(er)"-knappen
+          const removeButton = posterCard.querySelector('.nissy-remove-notes-btn');
+          if (removeButton) {
+            removeButton.style.display = 'none';
+          }
+        }
+        
+        // Refresh data etter 3 sekunder (gir brukeren tid til å se endringen)
         setTimeout(() => {
           openPopp("-1");
         }, 1000);
