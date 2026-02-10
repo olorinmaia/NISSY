@@ -109,6 +109,7 @@
     "Med. overvåking (MOA), 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Med A Lunge, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "PD pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
