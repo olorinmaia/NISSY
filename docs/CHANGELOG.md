@@ -7,6 +7,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
+## 🚀 [3.5.1] - 10.02.2026
+
+### Forbedringer til 🚩 Sjekk-Plakat 
+- 🚩 **Sjekk-Plakat**
+  - Kan nå fjerne all fritekst med ny knapp "Fjern fritekst", fungerer kun for ventende og pågående bestilling med status tildelt.
+
 ## 🚀 [3.5.0] - 09.02.2026
 
 ### Ny loader for AMK og nytt script 🔔 Overvåk-Ventende og forbedringer til en rekke scripts.

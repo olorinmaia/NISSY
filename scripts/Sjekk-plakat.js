@@ -2,6 +2,8 @@
 // SJEKK PLAKAT - FINN RØD PLAKAT MED FRITEKST
 // Finner alle bestillinger med rød plakat (poster-red*) og viser fritekst
 // fra: Melding til pasientreisekontoret, Melding til transportøren, Merknad om hentested
+// 
+// NY FUNKSJONALITET: Fjern merknader fra bestillinger
 // ================================================================================
 
 (() => {
@@ -14,6 +16,33 @@
 
   let modalDiv = null;
   let overlayDiv = null;
+
+  // ============================================================
+  // MILJØ-BASERT KONFIGURASJON FOR FJERNING AV FRITEKST
+  // ============================================================
+  const ENVIRONMENT_CONFIG = {
+    test: {
+      editsValue: ',2,3,9'   // Edits-verdi for TEST
+    },
+    qa: {
+      editsValue: ',2,3,9'   // Edits-verdi for QA
+    },
+    prod: {
+      editsValue: ',2,3,9'   // Edits-verdi for PROD
+    }
+  };
+
+  // Detekter miljø basert på URL
+  const hostname = window.location.hostname;
+  let config;
+  
+  if (hostname.includes('test')) {
+    config = ENVIRONMENT_CONFIG.test;
+  } else if (hostname.includes('qa')) {
+    config = ENVIRONMENT_CONFIG.qa;
+  } else {
+    config = ENVIRONMENT_CONFIG.prod;
+  }
 
   // ============================================================
   // PROBLEMATISKE ORD/FRASER SOM SKAL FLAGGES
@@ -41,6 +70,318 @@
     'ledsager',
     'pårørende'
   ];
+
+  // ============================================================
+  // TOAST-MELDINGER
+  // ============================================================
+  let currentToast = null;
+  
+  /**
+   * Vis en toast-melding nederst på skjermen
+   * @param {string} msg - Melding å vise
+   * @param {string} type - 'success' (grønn) eller 'error' (rød)
+   */
+  function showToast(msg, type = 'success') {
+    // Fjern eksisterende toast
+    if (currentToast && currentToast.parentNode) {
+      currentToast.parentNode.removeChild(currentToast);
+    }
+    
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    
+    // Velg farge basert på type
+    const bgColor = type === 'success' ? '#28a745' : '#d9534f';
+    
+    // Styling
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: bgColor,
+      color: "#fff",
+      padding: "12px 24px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      fontSize: "14px",
+      zIndex: "999999",
+      opacity: "0",
+      transition: "opacity 0.3s ease"
+    });
+    
+    document.body.appendChild(toast);
+    currentToast = toast;
+    
+    // Fade in
+    setTimeout(() => {
+      toast.style.opacity = "1";
+    }, 10);
+    
+    // Fade out etter 4 sekunder
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+        if (currentToast === toast) {
+          currentToast = null;
+        }
+      }, 300);
+    }, 4000);
+  }
+
+  // ============================================================
+  // BEKREFTELSESDIALOG
+  // ============================================================
+  function showConfirm(message) {
+    return new Promise(resolve => {
+      // Opprett overlay (mørk bakgrunn)
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.inset = "0";
+      overlay.style.background = "rgba(0,0,0,0.5)";
+      overlay.style.zIndex = "10000";
+      overlay.style.display = "flex";
+      overlay.style.alignItems = "center";
+      overlay.style.justifyContent = "center";
+
+      // Opprett dialog-boks
+      const box = document.createElement("div");
+      box.style.background = "#fff";
+      box.style.padding = "24px";
+      box.style.borderRadius = "8px";
+      box.style.maxWidth = "500px";
+      box.style.fontFamily = "Arial, sans-serif";
+      box.style.textAlign = "center";
+      box.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+
+      // Melding
+      const text = document.createElement("div");
+      text.innerHTML = message; // Endret fra textContent til innerHTML
+      text.style.marginBottom = "20px";
+      text.style.fontSize = "15px";
+      text.style.lineHeight = "1.5";
+      text.style.color = "#333";
+      text.style.textAlign = "left"; // Venstrejustert for bedre lesbarhet av lister
+
+      // OK-knapp (grønn)
+      const btnOk = document.createElement("button");
+      btnOk.textContent = "OK";
+      btnOk.style.background = "#28a745";
+      btnOk.style.color = "#fff";
+      btnOk.style.border = "none";
+      btnOk.style.padding = "10px 20px";
+      btnOk.style.marginRight = "10px";
+      btnOk.style.borderRadius = "4px";
+      btnOk.style.fontSize = "14px";
+      btnOk.style.cursor = "pointer";
+      btnOk.style.fontWeight = "600";
+      btnOk.onclick = () => {
+        overlay.remove();
+        resolve(true);
+      };
+
+      // Avbryt-knapp (grå)
+      const btnCancel = document.createElement("button");
+      btnCancel.textContent = "Avbryt";
+      btnCancel.style.background = "#6c757d";
+      btnCancel.style.color = "#fff";
+      btnCancel.style.border = "none";
+      btnCancel.style.padding = "10px 20px";
+      btnCancel.style.borderRadius = "4px";
+      btnCancel.style.fontSize = "14px";
+      btnCancel.style.cursor = "pointer";
+      btnCancel.style.fontWeight = "600";
+      btnCancel.onclick = () => {
+        overlay.remove();
+        resolve(false);
+      };
+
+      // Bygg dialogen
+      box.append(text, btnOk, btnCancel);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+    });
+  }
+
+  // ============================================================
+  // FJERN FRITEKST FRA BESTILLING
+  // ============================================================
+  async function removeNotesFromRequisition(requisitionId, reknr) {
+    // Bekreftelse
+    const confirmed = await showConfirm(
+      `Er du sikker på at du ønsker å fjerne alle merknader fra bestilling ${reknr}?<br><br>` +
+      `Dette vil fjerne:<br>` +
+      `• Melding til pasientreisekontoret<br>` +
+      `• Melding til transportøren<br>` +
+      `• Merknad om hentested`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      // ============================================================
+      // HENT BRUKER-ID
+      // ============================================================
+      const userLink = [...document.querySelectorAll('a[href*="popup/changePassword"]')]
+        .find(a => /id=\d+/.test(a.href));
+      
+      if (!userLink) {
+        showToast('❌ Kunne ikke finne bruker-ID', 'error');
+        return;
+      }
+
+      const userid = userLink.href.match(/id=(\d+)/)?.[1];
+      if (!userid) {
+        showToast('❌ Ugyldig bruker-ID', 'error');
+        return;
+      }
+
+      // ============================================================
+      // STEG 1: HENT REDIGERINGSSIDEN
+      // ============================================================
+      const url = `/rekvisisjon/requisition/editMultipleRequisitions?userid=${userid}&id=${requisitionId}&res=${reknr}`;
+      
+      const html = await fetch(url, { credentials: "same-origin" }).then(r => r.text());
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      
+      // Finn versjonsnummer
+      const version = doc.querySelector('input[name="version_0"]')?.value;
+      if (!version) {
+        showToast('❌ Kunne ikke finne versjonsnummer', 'error');
+        return;
+      }
+
+      // ============================================================
+      // STEG 2: BYGG POST-DATA FOR Å FJERNE MERKNADER
+      // ============================================================
+      const fd = new URLSearchParams({
+        // Admin-parametere
+        admin_param_1: "",
+        admin_param_2: "",
+        admin_param_3: "",
+        admin_param_4: reknr,
+        admin_param_5: "",
+        admin_param_6: "",
+        
+        // Versjonskontroll
+        version_0: version,
+        version_count: "1",
+        
+        // Behandling og tid (uendret)
+        editTreatmentDate: "",
+        editTreatmentTime: "",
+        editStartDate: "",
+        editStartTime: "",
+        
+        // *** VIKTIG: Tøm alle merknadsfelt ***
+        editComment: "",              // Melding til pasientreisekontoret
+        editTransporterMessage: "",   // Melding til transportøren
+        
+        // Ledsagere (uendret)
+        editNoOfCompanions: "",
+        
+        // Fra-adresse (uendret)
+        editFromName: "",
+        editFromStreetName: "",
+        editFromHouseNr: "",
+        editFromHouseSubNr: "",
+        "editFromCoordinates.x": "",
+        "editFromCoordinates.y": "",
+        "editFromCoordinates.z": "",
+        editFromOrganizationId: "",
+        editFromPostCode: "",
+        editFromCity: "",
+        editFromPhone: "",
+        
+        // Til-adresse (uendret)
+        editToName: "",
+        editToStreetName: "",
+        editToHouseNr: "",
+        editToHouseSubNr: "",
+        "editToCoordinates.x": "",
+        "editToCoordinates.y": "",
+        "editToCoordinates.z": "",
+        editToOrganizationId: "",
+        editToPostCode: "",
+        editToCity: "",
+        editToPhone: "",
+        
+        // Diverse (uendret)
+        callOnArrival: "",
+        infoAboutPickup: "",         // Merknad om hentested
+        
+        // Metadata
+        selectedIndex: "0",
+        action: "save",
+        edits: config.editsValue      // Miljø-spesifikk edits-verdi (,2,3,9)
+      });
+
+      // ============================================================
+      // STEG 3: SEND POST-REQUEST
+      // ============================================================
+      const response = await fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: fd.toString()
+      });
+
+      if (response.ok) {
+        showToast(`✓ Merknader fjernet fra bestilling ${reknr}`, 'success');
+        
+        // ============================================================
+        // VISUELL MARKERING I POPUP
+        // ============================================================
+        // Finn bestillings-kortet i DOM
+        const posterCard = modalDiv.querySelector(`[data-reknr="${reknr}"]`);
+        
+        if (posterCard) {
+          // Finn fritekst-boksen
+          const freetextBox = posterCard.querySelector('div[style*="background: #fff; border: 1px solid #dee2e6"]');
+          
+          if (freetextBox) {
+            // Legg til "Fjernet"-badge øverst
+            const freetextHeader = freetextBox.querySelector('div');
+            if (freetextHeader) {
+              freetextHeader.innerHTML = '📝 FRITEKST <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px; margin-left: 8px; font-weight: 600;">✓ FJERNET</span>';
+            }
+            
+            // Stryk over all fritekst
+            const freetextItems = freetextBox.querySelectorAll('div[style*="margin-bottom: 6px"]');
+            freetextItems.forEach(item => {
+              item.style.textDecoration = 'line-through';
+              item.style.opacity = '0.5';
+            });
+            
+            // Legg til grå overlay på hele fritekst-boksen
+            freetextBox.style.position = 'relative';
+            freetextBox.style.opacity = '0.6';
+            freetextBox.style.backgroundColor = '#f5f5f5';
+          }
+          
+          // Fjern "Fjern merknad(er)"-knappen
+          const removeButton = posterCard.querySelector('.nissy-remove-notes-btn');
+          if (removeButton) {
+            removeButton.style.display = 'none';
+          }
+        }
+        
+        // Refresh data etter 3 sekunder (gir brukeren tid til å se endringen)
+        setTimeout(() => {
+          openPopp("-1");
+        }, 1000);
+      } else {
+        showToast('❌ Feil ved lagring av endringer', 'error');
+      }
+    } catch (error) {
+      console.error('Feil ved fjerning av merknader:', error);
+      showToast('❌ En feil oppstod ved fjerning av merknader', 'error');
+    }
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Sjekk om fritekst inneholder problematiske ord
@@ -184,10 +525,10 @@
    * @returns {string} - Adresse uten suffikser
    */
   function cleanAddressSuffixes(address) {
-    if (!address) return address;
-    // Fjern space etterfulgt av H eller U og 4 siffer
-    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
-    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+    if (!address) return '';
+    
+    // Regex for å fjerne H0123, U0123, L0123 etc. (bokstav + 4 sifre)
+    return address.replace(/\s+[A-Z]\d{4}/g, '');
   }
 
   // ============================================================
@@ -302,6 +643,7 @@
         til,
         behov,
         ledsager,
+        status: '', // Ventende bestillinger har ikke status-felt
         type: 'Ventende'
       });
     }
@@ -328,6 +670,7 @@
     const toggleIndex = findColumnIndex(table, 'T');
     const behovIndex = findColumnIndexByText('#pagaendeoppdrag', 'Behov');
     const ledsagerIndex = findColumnIndexByText('#pagaendeoppdrag', 'L');
+    const statusIndex = findColumnIndex(table, 'Status');
     
     // Toggle-kolonnen MÅ finnes (der ligger plakaten)
     if (toggleIndex === -1) return [];
@@ -379,6 +722,7 @@
           const tilDivs = tilIndex !== -1 ? (cells[tilIndex]?.querySelectorAll('div.row-image') || []) : [];
           const behovDivs = behovIndex !== -1 ? (cells[behovIndex]?.querySelectorAll('div.row-image') || []) : [];
           const ledsagerDivs = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.querySelectorAll('div.row-image') || []) : [];
+          const statusDivs = statusIndex !== -1 ? (cells[statusIndex]?.querySelectorAll('div.row-image') || []) : [];
           
           // Finn reknr fra action containers
           const actionContainers = cells[cells.length - 1]?.querySelectorAll('div.row-image') || [];
@@ -409,6 +753,7 @@
           const til = tilDivs[i]?.textContent.trim() || '';
           const behov = behovDivs[i]?.textContent.trim() || '';
           const ledsager = ledsagerDivs[i]?.textContent.trim() || '';
+          const status = statusDivs[i]?.textContent.trim() || '';
           
           results.push({
             requisitionId,
@@ -420,6 +765,7 @@
             til,
             behov,
             ledsager,
+            status,
             type: 'Pågående'
           });
         }
@@ -471,6 +817,7 @@
         const til = tilIndex !== -1 ? (cells[tilIndex]?.textContent.trim() || '') : '';
         const behov = behovIndex !== -1 ? (cells[behovIndex]?.textContent.trim() || '') : '';
         const ledsager = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
+        const status = statusIndex !== -1 ? (cells[statusIndex]?.textContent.trim() || '') : '';
         
         results.push({
           requisitionId,
@@ -482,6 +829,7 @@
           til,
           behov,
           ledsager,
+          status,
           type: 'Pågående'
         });
       }
@@ -500,7 +848,7 @@
     const allPosters = [...ventende, ...pagaende];
     
     if (allPosters.length === 0) {
-      return { all: [], problematic: [] };
+      return { all: [], problematic: [], normal: [] };
     }
     
     console.log(`🔍 Fant ${allPosters.length} røde plakater, henter fritekst...`);
@@ -538,7 +886,7 @@
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Åpne bestilling i modal
+  // HJELPEFUNKSJON: Åpne redigeringsmodal for bestilling
   // ============================================================
   function openRequisitionModal(requisitionId) {
     const url = `/rekvisisjon/requisition/redit?id=${requisitionId}&ns=true&noSerial=true`;
@@ -549,24 +897,27 @@
   // HJELPEFUNKSJON: Lukk modal
   // ============================================================
   function closeModal() {
+    if (modalDiv) {
+      modalDiv.remove();
+      modalDiv = null;
+    }
+    if (overlayDiv) {
+      overlayDiv.remove();
+      overlayDiv = null;
+    }
+    
+    // Fjern event listener
     document.removeEventListener('keydown', handleEscape);
     
-    if (overlayDiv && overlayDiv.parentNode) {
-      document.body.removeChild(overlayDiv);
-    }
-    if (modalDiv && modalDiv.parentNode) {
-      document.body.removeChild(modalDiv);
-    }
-    
-    overlayDiv = null;
-    modalDiv = null;
-    
-    // Frigjør sperre ETTER at modalen er fjernet
+    // Fjern sperre
     window.__sjekkPlakatActive = false;
   }
 
+  // ============================================================
+  // EVENT HANDLER: ESC for å lukke modal
+  // ============================================================
   function handleEscape(e) {
-    if (e.key === 'Escape' || e.keyCode === 27) {
+    if (e.key === 'Escape') {
       closeModal();
     }
   }
@@ -577,33 +928,20 @@
   function showModal(data) {
     const { all, problematic, normal } = data;
     
-    // Fjern eksisterende modal uten å frigjøre sperren
-    if (overlayDiv && overlayDiv.parentNode) {
-      document.body.removeChild(overlayDiv);
-    }
-    if (modalDiv && modalDiv.parentNode) {
-      document.body.removeChild(modalDiv);
-    }
-    
-    // Lag overlay
+    // Opprett overlay
     overlayDiv = document.createElement('div');
-    overlayDiv.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 9997;
-    `;
+    overlayDiv.style.position = 'fixed';
+    overlayDiv.style.inset = '0';
+    overlayDiv.style.background = 'rgba(0,0,0,0.5)';
+    overlayDiv.style.zIndex = '9996';
     overlayDiv.addEventListener('click', closeModal);
     document.body.appendChild(overlayDiv);
     
-    // Lag modal
+    // Opprett modal
     modalDiv = document.createElement('div');
     
     let html = `
-      <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 9997; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 9997; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
       <div style="position: sticky; top: 0; background: #dc3545; color: white; padding: 16px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; z-index: 1;">
         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">🚩 Røde plakater med fritekst</h2>
         <button id="closeModalBtn" style="background: transparent; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px;">✕</button>
@@ -629,7 +967,6 @@
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 16px; border-left: 4px solid #dc3545;">
           ⚠️ ${problematic.length} bestilling${problematic.length === 1 ? '' : 'er'} med problematisk fritekst (alenebil, rullestol osv.)
         </div>`;
-        // ⚠️ ${problematic.length} bestilling${problematic.length === 1 ? '' : 'er'} med problematisk fritekst (${PROBLEMATIC_KEYWORDS.join(', ')})
         
         // Vis problematiske først
         html += '<h3 style="color: #721c24; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⚠️ Problematisk fritekst</h3>';
@@ -668,6 +1005,16 @@
         openRequisitionModal(requisitionId);
       });
     });
+    
+    // Legg til event listeners for "Fjern fritekst"-knapper
+    const removeButtons = modalDiv.querySelectorAll('.nissy-remove-notes-btn');
+    removeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const requisitionId = btn.getAttribute('data-requisitionid');
+        const reknr = btn.getAttribute('data-reknr');
+        removeNotesFromRequisition(requisitionId, reknr);
+      });
+    });
   }
 
   // ============================================================
@@ -677,18 +1024,33 @@
     let html = '';
     
     for (const poster of posters) {
-      const { requisitionId, reknr, navn, hentetid, leveringstid, fra, til, type, behov, ledsager, freetext, problematicKeywords } = poster;
+      const { requisitionId, reknr, navn, hentetid, leveringstid, fra, til, type, behov, ledsager, freetext, problematicKeywords, status } = poster;
       
       const borderColor = isProblematic ? '#dc3545' : '#ffc107';
       
+      // Sjekk om "Fjern fritekst"-knappen skal vises
+      // Vis kun for: Ventende ELLER (Pågående OG Tildelt)
+      const showRemoveButton = type === 'Ventende' || (type === 'Pågående' && status === 'Tildelt');
+      
+      // Begrens pasientnavn til 20 tegn
+      const displayNavn = navn.length > 20 ? navn.substring(0, 20) + '...' : navn;
+      
       html += `
-        <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${borderColor};">
+        <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${borderColor};" data-reknr="${reknr}">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="flex: 1;">
               <div style="font-weight: 600; color: #333; font-size: 15px; margin-bottom: 2px;">
-                ${navn} 
+                ${displayNavn} 
                 <span style="background: ${type === 'Ventende' ? '#ffc107' : '#17a2b8'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 6px;">${type}</span>
       `;
+      
+      // Vis status for pågående bestillinger
+      if (type === 'Pågående' && status) {
+        const statusColor = status === 'Tildelt' ? '#28a745' : '#6c757d';
+        html += `
+                <span style="background: ${statusColor}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 6px;">${status}</span>
+        `;
+      }
       
       // Vis problematiske nøkkelord hvis de finnes
       if (isProblematic && problematicKeywords && problematicKeywords.length > 0) {
@@ -701,9 +1063,23 @@
               </div>
               <div style="font-size: 12px; color: #666;">Reknr: ${reknr || 'N/A'}</div>
             </div>
-            <button class="nissy-edit-btn" data-requisitionid="${requisitionId}" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
-              ✏️ Rediger
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button class="nissy-edit-btn" data-requisitionid="${requisitionId}" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap;">
+                ✏️ Rediger
+              </button>
+      `;
+      
+      // Kun vis "Fjern fritekst"-knappen for Ventende eller Tildelt bestillinger
+      if (showRemoveButton) {
+        html += `
+              <button class="nissy-remove-notes-btn" data-requisitionid="${requisitionId}" data-reknr="${reknr}" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap;">
+                🗑️ Fjern fritekst
+              </button>
+        `;
+      }
+      
+      html += `
+            </div>
           </div>
           
           <div style="overflow-x: auto; margin-bottom: 10px;">
