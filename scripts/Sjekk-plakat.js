@@ -160,11 +160,12 @@
 
       // Melding
       const text = document.createElement("div");
-      text.textContent = message;
+      text.innerHTML = message; // Endret fra textContent til innerHTML
       text.style.marginBottom = "20px";
       text.style.fontSize = "15px";
       text.style.lineHeight = "1.5";
       text.style.color = "#333";
+      text.style.textAlign = "left"; // Venstrejustert for bedre lesbarhet av lister
 
       // OK-knapp (grønn)
       const btnOk = document.createElement("button");
@@ -212,10 +213,10 @@
   async function removeNotesFromRequisition(requisitionId, reknr) {
     // Bekreftelse
     const confirmed = await showConfirm(
-      `Er du sikker på at du ønsker å fjerne all fritekst fra bestilling ${reknr}?\n\n` +
-      `Dette vil fjerne:\n` +
-      `• Melding til pasientreisekontoret\n` +
-      `• Melding til transportøren\n` +
+      `Er du sikker på at du ønsker å fjerne alle merknader fra bestilling ${reknr}?<br><br>` +
+      `Dette vil fjerne:<br>` +
+      `• Melding til pasientreisekontoret<br>` +
+      `• Melding til transportøren<br>` +
       `• Merknad om hentested`
     );
     
@@ -276,7 +277,7 @@
         editStartDate: "",
         editStartTime: "",
         
-        // *** VIKTIG: Tøm alle fritekstfelt ***
+        // *** VIKTIG: Tøm alle merknadsfelt ***
         editComment: "",              // Melding til pasientreisekontoret
         editTransporterMessage: "",   // Melding til transportøren
         
@@ -330,7 +331,7 @@
       });
 
       if (response.ok) {
-        showToast(`✓ Fritekst fjernet fra bestilling ${reknr}`, 'success');
+        showToast(`✓ Merknader fjernet fra bestilling ${reknr}`, 'success');
         
         // Refresh data etter 1 sekund
         setTimeout(() => {
@@ -340,8 +341,8 @@
         showToast('❌ Feil ved lagring av endringer', 'error');
       }
     } catch (error) {
-      console.error('Feil ved fjerning av fritekst:', error);
-      showToast('❌ En feil oppstod ved fjerning av fritekst', 'error');
+      console.error('Feil ved fjerning av merknader:', error);
+      showToast('❌ En feil oppstod ved fjerning av merknader', 'error');
     }
   }
 
