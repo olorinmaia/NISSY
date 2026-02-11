@@ -69,6 +69,81 @@
         }, 4000);
     }
 
+    // Info toast (blå bakgrunn)
+    function showInfoToast(msg) {
+        const toast = document.createElement("div");
+        toast.textContent = msg;
+        
+        Object.assign(toast.style, {
+            position: "fixed",
+            bottom: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#5bc0de", // Blå bakgrunn for info
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            fontFamily: "Arial, sans-serif",
+            zIndex: "999999",
+            opacity: "0",
+            transition: "opacity 0.3s ease"
+        });
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = "1";
+        }, 10);
+        
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // Success toast (grønn bakgrunn)
+    function showSuccessToast(msg) {
+        const toast = document.createElement("div");
+        toast.textContent = msg;
+        
+        Object.assign(toast.style, {
+            position: "fixed",
+            bottom: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#5cb85c", // Grønn bakgrunn for success
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            fontFamily: "Arial, sans-serif",
+            zIndex: "999999",
+            opacity: "0",
+            transition: "opacity 0.3s ease"
+        });
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = "1";
+        }, 10);
+        
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+
     // ============================================================
     // KONSTANTER
     // ============================================================
@@ -106,8 +181,8 @@
     const LONG_DISTANCE_TIME_BUFFER = 120;          // Tidsbuffer for lange turer (minutter - 2 timer)
     
     // Postnummer-toleranser
-    const POSTNR_TOLERANCE_DELIVERY = 11;           // ±11 postnr for leveringssted
-    const POSTNR_TOLERANCE_PICKUP = 11;             // ±11 postnr for hentested
+    const POSTNR_TOLERANCE_DELIVERY = 12;           // ±11 postnr for leveringssted
+    const POSTNR_TOLERANCE_PICKUP = 12;             // ±11 postnr for hentested
     
     // Tidsmessige krav
     const MAX_START_DIFF_SHORT = 30;                // Maks startdiff for korte turer (minutter)
@@ -233,6 +308,8 @@
         { hent1Min: 7500, hent1Max: 7533, hent2: 7623, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7717, hent1Max: 7717, hent2Min: 7717, hent2Max: 7717, leverMin: 7713, leverMax: 7725 },
+        { hent1Min: 7500, hent1Max: 7995, hent2Min: 7500, hent2Max: 7995, leverMin: 7003, leverMax: 7099 },
+        
         // Legg til flere her:
         // { hent1: 7600, hent2: 7500, leverMin: 7700, leverMax: 7710 },
     ];
@@ -487,6 +564,75 @@
         
         return selected;
     }
+
+    // ============================================================
+    // HJELPEFUNKSJON: Hent ALLE ventende oppdrag (ikke bare merkede)
+    // Brukes for auto-gruppering
+    // ============================================================
+    function getVentendeOppdrag() {
+        const ventende = [];
+
+        // Finn kolonne-indekser dynamisk fra header
+        const reiseTidIndex  = findColumnIndex('#ventendeoppdrag', 'tripStartDate');
+        const oppTidIndex    = findColumnIndex('#ventendeoppdrag', 'tripTreatmentDate');
+        const adresseIndex   = findColumnIndex('#ventendeoppdrag', 'tripFromAddress');
+        const nameIndex      = findColumnIndex('#ventendeoppdrag', 'patientName');
+        const behovIndex     = findColumnIndexByText('#ventendeoppdrag', 'Behov');
+        const ledsagerIndex  = findColumnIndexByText('#ventendeoppdrag', 'L');
+
+        // Valider kritiske kolonner
+        const missingVentende = [];
+        if (reiseTidIndex === -1) missingVentende.push("'Reisetid'");
+        if (oppTidIndex   === -1) missingVentende.push("'Oppmøtetid'");
+        if (adresseIndex  === -1) missingVentende.push("'Fra / Til'");
+
+        if (missingVentende.length > 0) {
+            showErrorToast(`❌ Mangler kolonne(r) på ventende oppdrag: ${missingVentende.join(', ')}`);
+            return null;
+        }
+
+        // Hent ALLE rader (ikke sjekk bakgrunnsfarge)
+        const rows = document.querySelectorAll('#ventendeoppdrag tbody tr');
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+
+            const patientName       = nameIndex !== -1 ? (cells[nameIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
+            const tripStartTime     = cells[reiseTidIndex]?.textContent.trim();
+            const tripTreatmentTime = cells[oppTidIndex]?.textContent.trim();
+            const behov             = behovIndex !== -1 ? (cells[behovIndex]?.textContent.trim() || '') : '';
+            const ledsager          = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
+            
+            // Fra og Til ligger i samme celle, splittet på <br>
+            const adresseCell       = cells[adresseIndex]?.innerHTML || '';
+            const fromAddress       = adresseCell.split('<br>')[0].trim();
+            const toAddress         = (adresseCell.split('<br>')[1] || '').trim();
+            
+            const reqId = row.getAttribute('name') || row.id.replace('V-', '');
+            const rowId = row.id.replace('V-', '');
+            
+            const order = {
+                id: reqId,
+                rowId: rowId,
+                patientName,
+                tripStartTime,
+                tripTreatmentTime,
+                behov,
+                ledsager,
+                fromAddress,
+                toAddress,
+                postnrHent: parsePostnummer(fromAddress),
+                postnrLever: parsePostnummer(toAddress),
+                startDateTime: parseDateTime(tripStartTime),
+                treatmentDateTime: parseDateTime(tripTreatmentTime)
+            };
+            
+            ventende.push(normalizeReturnTrip(order));
+        });
+        
+        return ventende;
+    }
+
 
     // Funksjon for å hente alle pågående oppdrag
     function getPaagaendeOppdrag() {
@@ -2732,6 +2878,321 @@
     }
 
     // Hovedfunksjon
+
+    // ============================================================
+    // AUTO-GRUPPERING: Automatisk samkjøring mellom ventende bestillinger
+    // ============================================================
+    
+    // Global variabel for å huske hvor vi er i listen
+    let currentAutoGroupIndex = 0;
+    
+    // Finn samkjøringer for en spesifikk ventende booking
+    function findVentendeGrouping(bookingIndex = 0) {
+        const ventendeList = getVentendeOppdrag();
+        
+        if (!ventendeList || ventendeList.length === 0) {
+            showErrorToast('📋 Ingen ventende oppdrag funnet');
+            return null;
+        }
+        
+        if (bookingIndex >= ventendeList.length) {
+            showErrorToast('📋 Ingen flere ventende oppdrag');
+            return null;
+        }
+        
+        currentAutoGroupIndex = bookingIndex;
+        const anchorBooking = ventendeList[bookingIndex];
+        
+        console.log(`\n🔍 Auto-gruppering - Søker med: ${anchorBooking.patientName} (${anchorBooking.tripStartTime} → ${anchorBooking.tripTreatmentTime})`);
+        
+        const matches = [];
+        
+        // Søk mot alle andre ventende bookinger
+        // Behandle hver som "en ressurs med én booking"
+        ventendeList.forEach((otherBooking, idx) => {
+            // Skip anchor booking selv
+            if (idx === bookingIndex) return;
+            
+            // checkSamkjoring forventer (ventende, pagaende)
+            // Vi bruker anchorBooking som "ventende" og otherBooking som "pagaende"
+            const match = checkSamkjoring(anchorBooking, otherBooking);
+            
+            if (match) {
+                console.log(`  ✓ Match: ${otherBooking.patientName} (Score: ${match.score})`);
+                matches.push({
+                    booking: otherBooking,
+                    matchType: match.type,
+                    scenario: match.scenario,
+                    score: match.score,
+                    timeDiff: match.timeDiff,
+                    absTimeDiff: match.absTimeDiff,
+                    direction: match.direction,
+                    waitDescription: match.waitDescription,
+                    selected: true  // Alle huket av fra start
+                });
+            }
+        });
+        
+        // Sorter etter score (høyest først)
+        matches.sort((a, b) => b.score - a.score);
+        
+        console.log(`\n📊 Fant ${matches.length} potensielle samkjøringer`);
+        
+        return {
+            anchorBooking,
+            matches,
+            bookingIndex,
+            totalBookings: ventendeList.length
+        };
+    }
+    
+    // Vis auto-gruppering popup
+    function showAutoGroupingPopup(result) {
+        if (!result || result.matches.length === 0) {
+            showInfoToast(`🔍 Ingen samkjøringer funnet for ${result ? result.anchorBooking.patientName : 'denne bookingen'} (${result ? result.bookingIndex + 1 : '?'}/${result ? result.totalBookings : '?'})`);
+            
+            // Prøv neste booking automatisk - fortsett til siste
+            if (result && result.bookingIndex < result.totalBookings - 1) {
+                setTimeout(() => {
+                    const nextResult = findVentendeGrouping(result.bookingIndex + 1);
+                    if (nextResult) {
+                        // Kall showAutoGroupingPopup uansett om den har matches eller ikke
+                        // Dette gjør at vi fortsetter helt til siste booking
+                        showAutoGroupingPopup(nextResult);
+                    }
+                }, 1000);
+            } else if (result && result.bookingIndex === result.totalBookings - 1) {
+                // Vi har nådd siste booking og fant ingen matches i hele listen
+                showInfoToast('📋 Ingen samkjøringsmuligheter funnet i noen av bestillingene');
+            }
+            return;
+        }
+        
+        // Fjern eksisterende popup
+        const existingPopup = document.getElementById('auto-grouping-popup');
+        if (existingPopup) existingPopup.remove();
+        
+        const popup = document.createElement('div');
+        popup.id = 'auto-grouping-popup';
+        popup.style.cssText = `
+            position: fixed;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            width: fit-content;
+            min-width: 900px;
+            max-width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        `;
+        
+        let html = '<h2 style="margin-top: 0;">🔍 Automatisk samkjøring (Ventende → Ventende)</h2>';
+        
+        // Anchor booking
+        html += `
+            <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 3px;">
+                <h3 style="margin-top: 0; color: #1976d2;">Hovedbestilling (${result.bookingIndex + 1}/${result.totalBookings}):</h3>
+                <table style="width: 100%; border-collapse: collapse; background: white;">
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Navn</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Hentetid</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Oppmøte</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Behov</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">L</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Fra</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Til</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${result.anchorBooking.patientName}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${result.anchorBooking.tripStartTime}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${result.anchorBooking.tripTreatmentTime}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${result.anchorBooking.behov || ''}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${result.anchorBooking.ledsager || '-'}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(result.anchorBooking.fromAddress)}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(result.anchorBooking.toAddress)}</td>
+                    </tr>
+                </table>
+            </div>
+        `;
+        
+        // Matches
+        html += `
+            <h3 style="color: #2e7d32;">Potensielle samkjøringer (${result.matches.length}):</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="background: #f5f5f5;">
+                        <th style="padding: 8px; border: 1px solid #ddd; width: 40px;">
+                            <input type="checkbox" id="select-all-auto" checked 
+                                onchange="document.querySelectorAll('.auto-group-checkbox').forEach(cb => cb.checked = this.checked)"
+                                style="cursor: pointer;">
+                        </th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Navn</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Hentetid</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Oppmøte</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Behov</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">L</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Fra</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Til</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Type</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        result.matches.forEach((match, idx) => {
+            const b = match.booking;
+            const rowBg = idx % 2 === 0 ? '#fff' : '#f9f9f9';
+            
+            html += `
+                <tr style="background: ${rowBg};">
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                        <input type="checkbox" class="auto-group-checkbox" data-index="${idx}" checked style="cursor: pointer;">
+                    </td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${b.patientName}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${b.tripStartTime}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${b.tripTreatmentTime}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${b.behov || ''}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${b.ledsager || '-'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(b.fromAddress)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(b.toAddress)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${match.matchType}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #2e7d32;">${Math.round(match.score)}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: space-between;">
+                <div>
+                    <button onclick="window.nextAutoGrouping()" 
+                        style="background: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;"
+                        ${result.bookingIndex >= result.totalBookings - 1 ? 'disabled' : ''}>
+                        ⏭️ Neste bestilling
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="window.showAutoGroupInMap()" 
+                        style="background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        🗺️ Vis i kart
+                    </button>
+                    <button onclick="window.selectAutoGroup()" 
+                        style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        ✓ Velg bookinger
+                    </button>
+                    <button onclick="document.getElementById('auto-grouping-popup').remove()" 
+                        style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                        Lukk
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        popup.innerHTML = html;
+        
+        // Sentrer popup
+        document.body.appendChild(popup);
+        const rect = popup.getBoundingClientRect();
+        popup.style.left = `${Math.max(10, (window.innerWidth - rect.width) / 2)}px`;
+        popup.style.top = `${Math.max(10, (window.innerHeight - rect.height) / 2)}px`;
+        
+        // Lagre result for senere bruk
+        window.currentAutoGroupResult = result;
+    }
+    
+    // Global funksjoner for knappene
+    window.nextAutoGrouping = function() {
+        const nextResult = findVentendeGrouping(currentAutoGroupIndex + 1);
+        if (nextResult) {
+            showAutoGroupingPopup(nextResult);
+        }
+    };
+    
+    window.selectAutoGroup = function() {
+        const result = window.currentAutoGroupResult;
+        if (!result) return;
+        
+        // Clear existing selections
+        if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+            ListSelectionGroup.clearAllSelections();
+        }
+        
+        // Samle anchor + alle hukede av bookinger
+        const selectedBookings = [result.anchorBooking];
+        
+        document.querySelectorAll('.auto-group-checkbox:checked').forEach(cb => {
+            const idx = parseInt(cb.dataset.index);
+            selectedBookings.push(result.matches[idx].booking);
+        });
+        
+        // Bruk selectRow for å merke alle i tabellen (riktig merking)
+        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+            selectedBookings.forEach(booking => {
+                const rowId = 'V-' + booking.rowId;
+                selectRow(rowId, g_voppLS);
+            });
+        } else {
+            // Fallback: Sett grønn bakgrunn direkte
+            selectedBookings.forEach(booking => {
+                const row = document.querySelector(`#ventendeoppdrag tbody tr[id="V-${booking.rowId}"]`);
+                if (row) {
+                    row.style.backgroundColor = 'rgb(200, 230, 201)';
+                    row.classList.add('selected-for-grouping');
+                }
+            });
+        }
+        
+        document.getElementById('auto-grouping-popup').remove();
+        showSuccessToast(`✓ ${selectedBookings.length} bestillinger merket`);
+    };
+    
+    // Vis hukede bookinger i kart
+    window.showAutoGroupInMap = function() {
+        const result = window.currentAutoGroupResult;
+        if (!result) return;
+        
+        // Clear existing selections
+        if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+            ListSelectionGroup.clearAllSelections();
+        }
+        
+        // Samle anchor + alle hukede av bookinger
+        const selectedBookings = [result.anchorBooking];
+        
+        document.querySelectorAll('.auto-group-checkbox:checked').forEach(cb => {
+            const idx = parseInt(cb.dataset.index);
+            selectedBookings.push(result.matches[idx].booking);
+        });
+        
+        // Bruk selectRow for å merke alle
+        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+            selectedBookings.forEach(booking => {
+                const rowId = 'V-' + booking.rowId;
+                selectRow(rowId, g_voppLS);
+            });
+            
+            // Trigger Alt+W for å åpne kart
+            setTimeout(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'w',
+                    code: 'KeyW',
+                    altKey: true,
+                    bubbles: true,
+                    cancelable: true
+                }));
+            }, 100);
+        } else {
+            showErrorToast('🗺️ Kunne ikke åpne kart. selectRow funksjon ikke tilgjengelig.');
+        }
+    };
+
+    // Hovedfunksjon
     function runSamkjoringAnalyse() {
         // Sjekk global sperre
         if (window.samkjoringRunning) {
@@ -2787,7 +3248,14 @@
         if (selectedVentende === null) return;
         
         if (selectedVentende.length === 0) {
-            showErrorToast('🚐 Ingen bestillinger eller ressurser er valgt. Vennligst marker én eller flere bestillinger på ventende oppdrag, eller én ressurs på pågående oppdrag.');
+            // MODUS 3: Auto-gruppering - Ingen bestillinger merket
+            console.log('\n🔍 Auto-gruppering aktivert (ingen merkede bestillinger)');
+            
+            const result = findVentendeGrouping(0); // Start med første booking
+            
+            if (result) {
+                showAutoGroupingPopup(result);
+            }
             return;
         }
 
@@ -2813,5 +3281,7 @@
         }
     });
 
-    console.log('✓ NISSY Samkjøringsforslag lastet. Trykk Alt+X for å analysere merkede bestillinger.');
+    console.log('✓ NISSY Samkjøringsforslag lastet.');
+    console.log('  Alt+X = Analyser merkede bestillinger/ressurser');
+    console.log('  (Ingen merkede = Auto-gruppering ventende → ventende)');
 })();
