@@ -2467,7 +2467,6 @@
                                         style="background: #2980b9; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; margin-right: 8px; height: 36px;"
                                         onmouseover="this.style.opacity='0.8'"
                                         onmouseout="this.style.opacity='1'"
-                                        tabindex="-1"
                                     >
                                         🗺️ Vis i kart
                                     </button>
@@ -2641,7 +2640,6 @@
                                             style="background: #2980b9; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; margin-right: 8px; height: 36px;"
                                             onmouseover="this.style.opacity='0.8'"
                                             onmouseout="this.style.opacity='1'"
-                                            tabindex="-1"
                                         >
                                             🗺️ Vis i kart
                                         </button>
@@ -2969,9 +2967,24 @@
             return;
         }
         
-        // Fjern eksisterende popup
+        // Fjern eksisterende popup og overlay
         const existingPopup = document.getElementById('auto-grouping-popup');
         if (existingPopup) existingPopup.remove();
+        const existingOverlay = document.getElementById('auto-grouping-overlay');
+        if (existingOverlay) existingOverlay.remove();
+        
+        // Lag overlay (klikk utenfor for å lukke)
+        const overlay = document.createElement('div');
+        overlay.id = 'auto-grouping-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        `;
         
         const popup = document.createElement('div');
         popup.id = 'auto-grouping-popup';
@@ -3028,7 +3041,7 @@
                         <th style="padding: 8px; border: 1px solid #ddd; width: 40px;">
                             <input type="checkbox" id="select-all-auto" checked 
                                 onchange="document.querySelectorAll('.auto-group-checkbox').forEach(cb => cb.checked = this.checked)"
-                                style="cursor: pointer;">
+                                style="cursor: pointer; width: 18px; height: 18px;">
                         </th>
                         <th style="padding: 8px; border: 1px solid #ddd;">Navn</th>
                         <th style="padding: 8px; border: 1px solid #ddd;">Hentetid</th>
@@ -3049,9 +3062,13 @@
             const rowBg = idx % 2 === 0 ? '#fff' : '#f9f9f9';
             
             html += `
-                <tr style="background: ${rowBg};">
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
-                        <input type="checkbox" class="auto-group-checkbox" data-index="${idx}" checked style="cursor: pointer;">
+                <tr style="background: ${rowBg}; cursor: pointer;" 
+                    onmouseover="this.style.background='#e3f2fd'" 
+                    onmouseout="this.style.background='${rowBg}'"
+                    onclick="const cb = this.querySelector('.auto-group-checkbox'); cb.checked = !cb.checked; event.stopPropagation();">
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="auto-group-checkbox" data-index="${idx}" checked 
+                            style="cursor: pointer; width: 18px; height: 18px;">
                     </td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${b.patientName}</td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${b.tripStartTime}</td>
@@ -3071,23 +3088,21 @@
             </table>
             
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: space-between;">
-                <div>
-                    <button onclick="window.nextAutoGrouping()" 
+                <div style="display: flex; gap: 10px;">
+                    <button id="auto-group-select-btn" onclick="window.selectAutoGroup()" 
+                        style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        ✓ Velg bestillinger
+                    </button>
+                    <button id="auto-group-map-btn" onclick="window.showAutoGroupInMap()" 
+                        style="background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        🗺️ Vis i kart
+                    </button>
+                    <button id="auto-group-next-btn" onclick="window.nextAutoGrouping()" 
                         style="background: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;"
                         ${result.bookingIndex >= result.totalBookings - 1 ? 'disabled' : ''}>
                         ⏭️ Neste bestilling
                     </button>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="window.showAutoGroupInMap()" 
-                        style="background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                        🗺️ Vis i kart
-                    </button>
-                    <button onclick="window.selectAutoGroup()" 
-                        style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                        ✓ Velg bookinger
-                    </button>
-                    <button onclick="document.getElementById('auto-grouping-popup').remove()" 
+                    <button id="auto-group-close-btn" onclick="window.closeAutoGroupPopup()" 
                         style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
                         Lukk
                     </button>
@@ -3097,14 +3112,66 @@
         
         popup.innerHTML = html;
         
-        // Sentrer popup
+        // Legg til overlay først
+        document.body.appendChild(overlay);
+        
+        // Deretter popup
         document.body.appendChild(popup);
+        
+        // Sentrer popup
         const rect = popup.getBoundingClientRect();
         popup.style.left = `${Math.max(10, (window.innerWidth - rect.width) / 2)}px`;
         popup.style.top = `${Math.max(10, (window.innerHeight - rect.height) / 2)}px`;
         
-        // Lagre result for senere bruk
+        // Funksjon for å lukke popup
+        const closePopup = () => {
+            popup.remove();
+            overlay.remove();
+            document.removeEventListener('keydown', keyboardListener);
+        };
+        
+        // Keyboard handler (ESC og TAB trap)
+        const keyboardListener = (e) => {
+            // ESC lukker popup
+            if (e.key === 'Escape') {
+                closePopup();
+                return;
+            }
+            
+            // TAB trap - samme logikk som andre popups
+            if (e.key === 'Tab') {
+                const focusableElements = Array.from(popup.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                )).filter(el => !el.disabled && el.tabIndex !== -1);
+                
+                if (focusableElements.length === 0) return;
+                
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        };
+        document.addEventListener('keydown', keyboardListener);
+        
+        // Klikk på overlay lukker popup
+        overlay.addEventListener('click', closePopup);
+        
+        // Sett focus på "Velg bestillinger" knappen
+        setTimeout(() => {
+            const selectBtn = document.getElementById('auto-group-select-btn');
+            if (selectBtn) selectBtn.focus();
+        }, 100);
+        
+        // Lagre result og closePopup for senere bruk
         window.currentAutoGroupResult = result;
+        window.closeAutoGroupPopup = closePopup;
     }
     
     // Global funksjoner for knappene
@@ -3149,7 +3216,10 @@
             });
         }
         
-        document.getElementById('auto-grouping-popup').remove();
+        // Bruk closePopup for å fjerne både popup, overlay og event listeners
+        if (window.closeAutoGroupPopup) {
+            window.closeAutoGroupPopup();
+        }
         showSuccessToast(`✓ ${selectedBookings.length} bestillinger merket`);
     };
     
