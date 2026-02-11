@@ -57,6 +57,7 @@
     'rullestol',
     'rullator',
     'prekestol',
+    'personbil',
     'lav bil',
     'høy bil',
     'liten bil',
