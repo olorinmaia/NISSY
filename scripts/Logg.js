@@ -1281,17 +1281,85 @@
             
             if (turInfo.includes('-')) {
               const parts = turInfo.split('-');
-              turnummer = parts[parts.length - 1]; // Siste del
-              avtale = parts.slice(0, -1).join('-'); // Resten
+              const lastPart = parts[parts.length - 1];
+              
+              // Sjekk om siste del har minst 8 siffer = turnummer
+              // Eksempel: "Levan-LB-56516261" → lastPart = "56516261" (8 siffer) = turnummer
+              // Eksempel: "TR-3079" → lastPart = "3079" (4 siffer) = løyvenummer
+              if (lastPart.length >= 8 && /^\d+$/.test(lastPart)) {
+                // Dette er et turnummer
+                turnummer = lastPart;
+                avtale = parts.slice(0, -1).join('-');
+              } else {
+                // Dette er løyvenummer - søk etter turnummer i DOM
+                avtale = turInfo;
+                
+                // Søk i resurser-tabellen etter rad med dette løyvenummeret
+                const allRows = document.querySelectorAll('#resurser tr[id^="Rxxx"]');
+                for (const row of allRows) {
+                  // Finn løyvenummer-cellen (inneholder løyvenummer som tekstinnhold)
+                  const loyveCells = row.querySelectorAll('td[id*="loyvexxx"]');
+                  for (const cell of loyveCells) {
+                    if (cell.textContent.trim() === turInfo) {
+                      // Funnet riktig rad! Søk etter turnummer i img onclick
+                      const questionImg = row.querySelector('img[src*="question.gif"]');
+                      if (questionImg && questionImg.onclick) {
+                        // Parse: onclick="javascript:window.open(&quot;/administrasjon/admin/searchStatus?id=70117346&quot;,&quot;window&quot;);"
+                        const onclickStr = questionImg.getAttribute('onclick');
+                        const idMatch = onclickStr.match(/searchStatus\?id=(\d+)/);
+                        if (idMatch) {
+                          turnummer = idMatch[1];
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  if (turnummer) break;
+                }
+                
+                // Hvis vi ikke fant turnummer, bruk løyvenummer som fallback
+                if (!turnummer) {
+                  turnummer = turInfo;
+                }
+              }
             } else {
-              turnummer = turInfo;
+              // Ingen "-" i strengen = løyvenummer - søk etter turnummer i DOM
+              avtale = turInfo;
+              
+              // Søk i resurser-tabellen etter rad med dette løyvenummeret
+              const allRows = document.querySelectorAll('#resurser tr[id^="Rxxx"]');
+              for (const row of allRows) {
+                // Finn løyvenummer-cellen (inneholder løyvenummer som tekstinnhold)
+                const loyveCells = row.querySelectorAll('td[id*="loyvexxx"]');
+                for (const cell of loyveCells) {
+                  if (cell.textContent.trim() === turInfo) {
+                    // Funnet riktig rad! Søk etter turnummer i img onclick
+                    const questionImg = row.querySelector('img[src*="question.gif"]');
+                    if (questionImg && questionImg.onclick) {
+                      // Parse: onclick="javascript:window.open(&quot;/administrasjon/admin/searchStatus?id=70117346&quot;,&quot;window&quot;);"
+                      const onclickStr = questionImg.getAttribute('onclick');
+                      const idMatch = onclickStr.match(/searchStatus\?id=(\d+)/);
+                      if (idMatch) {
+                        turnummer = idMatch[1];
+                        break;
+                      }
+                    }
+                  }
+                }
+                if (turnummer) break;
+              }
+              
+              // Hvis vi ikke fant turnummer, bruk løyvenummer som fallback
+              if (!turnummer) {
+                turnummer = turInfo;
+              }
             }
             
             // Lagre tur-info
             if (turInfo) {
               detailsNow.push({
                 reqId: turnummer || 'Ukjent',
-                title: turInfo, // Hele strengen
+                title: turInfo, // Hele strengen (løyvenummer eller avtale-turnummer)
                 avtale: avtale || 'Ukjent',
                 status: statusText.replace('Status: ', '').trim() || 'Ukjent',
                 tripTime: '',
