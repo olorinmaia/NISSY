@@ -2,7 +2,8 @@
   // ============================================================
   // NISSY LOGG-SCRIPT
   // Logger handlinger som tildeling, avbestilling, avplanlegging
-  // Lagrer i localStorage og viser historikk
+  // Lagrer i localStorage og viser historikk. Ingen sensitiv data. 
+  // For å se hva som er lagret, konsoll: localStorage.getItem('nissy_action_log')
   // ============================================================
   
   /* ======================================================
@@ -44,13 +45,11 @@
     return (new Function('return ' + str))();
   }
   
-  console.log('🔧 NISSY-logg: Bruker manuell JavaScript serialisering');
-  
   /* ======================================================
      GUARD – FORHINDRER DOBBEL INSTALLASJON
      ====================================================== */
   if (window.__nissyLoggInstalled) {
-    console.log("✅ NISSY-logg er allerede aktiv");
+    //console.log("✅ NISSY-logg er allerede aktiv");
     showLoggPopup(); // Vis logg når scriptet kjøres på nytt
     return;
   }
@@ -115,15 +114,11 @@
    * Hent informasjon fra en rad (bestilling)
    */
   function extractRowInfo(row) {
-    console.log('🔍 Ekstraherer info fra rad:', row.id);
     
     const reqId = row.getAttribute('name'); // Intern ID
     const title = row.getAttribute('title'); // Rekvisisjonsnummer
     const cells = row.querySelectorAll('td');
     
-    console.log(`  - ReqId: ${reqId}`);
-    console.log(`  - Title: ${title}`);
-    console.log(`  - Antall celler: ${cells.length}`);
     
     // Finn kolonne-indekser DYNAMISK (sikkerhet mot endringer i NISSY)
     const container = document.querySelector('#ventendeoppdrag');
@@ -143,7 +138,6 @@
     const oppIndex = findColumnIndex(table, 'Opp');
     const fraIndex = findColumnIndex(table, 'Fra');
     
-    console.log(`  - Kolonne-indekser: Reise=${reiseIndex}, Opp=${oppIndex}, Fra=${fraIndex}`);
     
     // Hent reisetid (hvis kolonne finnes)
     let tripTime = '';
@@ -152,7 +146,6 @@
       const tripFont = tripCell.querySelector('font');
       if (tripFont) {
         tripTime = tripFont.textContent.trim();
-        console.log(`  - Reisetid funnet: ${tripTime}`);
       }
     }
     
@@ -163,7 +156,6 @@
       const treatmentFont = treatmentCell.querySelector('font');
       if (treatmentFont) {
         treatmentTime = treatmentFont.textContent.trim();
-        console.log(`  - Oppmøtetid funnet: ${treatmentTime}`);
       }
     }
 
@@ -200,7 +192,6 @@
         toPostal = parts[0];
       }
       
-      console.log(`  - Fra: ${fromPostal} → Til: ${toPostal}`);
     }
 
     const result = {
@@ -212,7 +203,6 @@
       toPostal: toPostal || ''
     };
     
-    console.log('✅ Ferdig ekstrahert:', result);
     return result;
   }
 
@@ -237,8 +227,7 @@
           // Sjekk at det faktisk er et array
           if (Array.isArray(parsed)) {
             log = parsed;
-            console.log('📖 NISSY-logg: Lastet eksisterende logg med', log.length, 'oppføring' + (log.length !== 1 ? 'er' : ''));
-          } else {
+            } else {
             console.warn('⚠️ NISSY-logg: Eksisterende logg var ikke et array:', typeof parsed);
             log = [];
           }
@@ -264,13 +253,8 @@
 
       // Lagre tilbake med manuell serialisering
       const serialized = serializeToJS(log);
-      console.log('💾 NISSY-logg: Lagrer til localStorage:', {
-        entries: log.length,
-        size: serialized.length + ' bytes'
-      });
       localStorage.setItem(LOGG_STORAGE_KEY, serialized);
       
-      console.log('📝 NISSY-logg: Loggoppføring lagret:', entry);
       
     } catch (error) {
       console.error('❌ NISSY-logg: Feil ved lagring av loggoppføring:', error);
@@ -285,21 +269,11 @@
     try {
       const stored = localStorage.getItem(LOGG_STORAGE_KEY);
       if (stored) {
-        console.log('🔍 NISSY-logg: Leser fra localStorage:', {
-          type: typeof stored,
-          length: stored.length
-        });
         
         const parsed = deserializeFromJS(stored);
-        console.log('🔍 NISSY-logg: Deserialize-resultat:', {
-          type: typeof parsed,
-          isArray: Array.isArray(parsed),
-          length: Array.isArray(parsed) ? parsed.length : 'N/A'
-        });
         
         // Sjekk at det er et array
         if (Array.isArray(parsed)) {
-          console.log('✅ NISSY-logg: Logg er et gyldig array med', parsed.length, 'oppføring' + (parsed.length !== 1 ? 'er' : ''));
           return parsed;
         } else {
           console.warn('⚠️ NISSY-logg: Lagret logg var ikke et array:', typeof parsed);
@@ -322,7 +296,6 @@
   window.nissyLoggReset = function() {
     if (confirm('⚠️ Er du sikker på at du vil resette NISSY-loggen?\n\nDette sletter all loggdata og kan ikke angres.')) {
       localStorage.removeItem(LOGG_STORAGE_KEY);
-      console.log('✅ NISSY-logg: Logg resatt');
       showToast('🔄 Logg resatt');
       // Refresh popup hvis den er åpen
       showLoggPopup();
@@ -337,7 +310,6 @@
   function clearLog() {
     if (confirm('⚠️ Er du sikker på at du vil slette hele loggen?\n\nDette kan ikke angres.')) {
       localStorage.removeItem(LOGG_STORAGE_KEY);
-      console.log('✅ NISSY-logg: Logg slettet');
       showToast('🗑️ Logg slettet');
       showLoggPopup(); // Refresh popup
     }
@@ -541,7 +513,7 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       z-index: 100000;
       width: 90%;
-      max-width: 1000px;
+      max-width: 900px;
       max-height: 80vh;
       display: flex;
       flex-direction: column;
@@ -777,7 +749,7 @@
     
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
-    searchInput.placeholder = '🔍 Søk etter rek.nr, turnummer, adresse...';
+    searchInput.placeholder = '🔍 Søk etter rekvisisjonsnummer, turnummer, poststed...';
     searchInput.style.cssText = `
       width: 100%;
       padding: 8px 12px;
@@ -871,27 +843,27 @@
             // Sjekk om dette er en tur (har avtale/status) eller bestilling (har tripTime)
             if (detail.avtale || detail.status) {
               // TUR: Vis avtale-turnummer med link til admin (id-basert)
-              html = `<span style="color: #666;">Tur:</span> <a href="/administrasjon/admin/searchStatus?id=${detail.reqId}" 
+              html = `<span style="color: #666;">Ressurs:</span> <a href="/administrasjon/admin/searchStatus?id=${detail.reqId}" 
                          style="color: #047CA1; text-decoration: none; font-weight: bold;"
-                         data-admin-link="true">
+                         data-admin-link="true" title="Søk etter turnummer i NISSY admin">
                          ${detail.title || detail.reqId}
                       </a>`;
-              if (detail.status) html += ` <span style="color: #999;">📊 ${detail.status}</span>`;
+              if (detail.status) html += ` <span style="color: #999;">Status: ${detail.status}</span>`;
             } else {
               // BESTILLING: Vis rekvisisjonsnummer med link (nr-basert), reisetid og adresser
-              html = `<span style="color: #666;">Rek.nr:</span> <a href="/administrasjon/admin/searchStatus?nr=${detail.title}" 
+              html = `<span style="color: #666;">Bestilling:</span> <a href="/administrasjon/admin/searchStatus?nr=${detail.title}" 
                          style="color: #047CA1; text-decoration: none; font-weight: bold;"
-                         data-admin-link="true">
+                         data-admin-link="true" title="Søk etter rekvisisjonsnummer i NISSY admin">
                          ${detail.title}
                       </a>`;
               
-              if (detail.tripTime) html += ` <span style="color: #666;">🕐 ${detail.tripTime}</span>`;
-              if (detail.treatmentTime) html += ` <span style="color: #666;">📍 ${detail.treatmentTime}</span>`;
+              if (detail.tripTime) html += ` <span style="color: #666;">🕑 ${detail.tripTime}</span>`;
+              if (detail.treatmentTime) html += ` <span style="color: #666;">${detail.treatmentTime}</span>`;
               if (detail.fromPostal || detail.toPostal) {
                 const route = detail.fromPostal && detail.toPostal 
                   ? `${detail.fromPostal} → ${detail.toPostal}` 
                   : (detail.fromPostal || detail.toPostal);
-                html += ` <span style="color: #999;">📌 ${route}</span>`;
+                html += ` <span style="color: #999;">📍 ${route}</span>`;
               }
             }
 
@@ -961,7 +933,7 @@
    */
   function getActionIcon(actionType) {
     const icons = {
-      'Tildeling': '✅',
+      'Tildeling': '🚐',
       'Avbestilling': '❌',
       'Avplanlegging': '↩️',
       'Fjerning': '🗑️',
@@ -987,13 +959,11 @@
     if (btnAssign) {
       // Legg til vår listener (ikke erstatt eksisterende)
       btnAssign.addEventListener('click', onAssignClick, true); // true = capture phase
-      console.log('✅ NISSY-logg: Lytter på Tildel oppdrag knapp');
       listenersAdded = true;
     }
 
     if (btnAssignConfirm) {
       btnAssignConfirm.addEventListener('click', onAssignClick, true);
-      console.log('✅ NISSY-logg: Lytter på Tildel oppdrag (confirm) knapp');
       listenersAdded = true;
     }
 
@@ -1004,7 +974,6 @@
   }
 
   function onAssignClick(event) {
-    console.log('🔔 NISSY-logg: Tildel oppdrag klikket!');
     
     // VIKTIG: Fang radene NÅ, før AJAX-kallet fjerner dem
     const selectedRowsAll = document.querySelectorAll(
@@ -1016,14 +985,12 @@
       return row.id && row.id.startsWith('V-');
     });
     
-    console.log(`🔍 NISSY-logg: Fant ${selectedRowsAll.length} valgte rader totalt, ${selectedRowsNow.length} ventende oppdrag (V-)`);
     
     // Ekstrahér informasjon NÅ (før radene potensielt fjernes)
     const detailsNow = [];
     if (selectedRowsNow.length > 0) {
       selectedRowsNow.forEach((row, index) => {
         const info = extractRowInfo(row);
-        console.log(`📝 NISSY-logg: Rad ${index + 1}:`, info);
         detailsNow.push(info);
       });
     }
@@ -1031,7 +998,6 @@
     // Vent på at AJAX-kallet er ferdig, deretter logg
     setTimeout(() => {
       if (detailsNow.length > 0) {
-        console.log('✅ NISSY-logg: Lagrer tildeling basert på rader ved klikk');
         saveLogEntry('Tildeling', detailsNow);
       } else {
         console.warn('⚠️ NISSY-logg: Ingen rader ble funnet ved klikk');
@@ -1041,7 +1007,6 @@
           'tr[style*="background-color: rgb(148, 169, 220)"]'
         );
         
-        console.log(`🔍 NISSY-logg: Fant ${selectedRowsLater.length} valgte rader ETTER VENT`);
         
         if (selectedRowsLater.length > 0) {
           const detailsLater = [];
@@ -1061,25 +1026,21 @@
     document.addEventListener('keydown', (e) => {
       // Alt+S - Smart-tildeling
       if (e.altKey && (e.key === 's' || e.key === 'S')) {
-        console.log('⌨️ NISSY-logg: Alt+S detektert (Smart-tildeling)');
         onAssignClick(e);
       }
       
       // Alt+T - Tilordning 2.0
       if (e.altKey && (e.key === 't' || e.key === 'T')) {
-        console.log('⌨️ NISSY-logg: Alt+T detektert (Tilordning 2.0)');
         onAssignClick(e);
       }
       
       // Alt+L - Vis logg
       if (e.altKey && (e.key === 'l' || e.key === 'L')) {
-        console.log('⌨️ NISSY-logg: Alt+L detektert (Vis logg)');
         e.preventDefault(); // Forhindre browser default
         showLoggPopup();
       }
     }, true); // Capture phase
     
-    console.log('✅ NISSY-logg: Lytter på Alt+S, Alt+T og Alt+L shortcuts');
   }
 
   /**
@@ -1093,7 +1054,6 @@
       // Sjekk for #confirmRemove (avbestilling/fjerning)
       const confirmBtn = document.getElementById('confirmRemove');
       if (confirmBtn && !confirmBtn.dataset.nissyLoggListenerAdded) {
-        console.log('✅ NISSY-logg: #confirmRemove knapp dukket opp, legger til listener');
         
         // Marker at vi har lagt til listener (unngå duplikater)
         confirmBtn.dataset.nissyLoggListenerAdded = 'true';
@@ -1105,7 +1065,6 @@
       // Sjekk for #confirmAvplanlegg (avplanlegging av bestilling)
       const avplanleggBtn = document.getElementById('confirmAvplanlegg');
       if (avplanleggBtn && !avplanleggBtn.dataset.nissyLoggListenerAdded) {
-        console.log('✅ NISSY-logg: #confirmAvplanlegg knapp dukket opp, legger til listener');
         
         // Marker at vi har lagt til listener (unngå duplikater)
         avplanleggBtn.dataset.nissyLoggListenerAdded = 'true';
@@ -1121,14 +1080,12 @@
       subtree: true
     });
     
-    console.log('✅ NISSY-logg: MutationObserver lytter på #confirmRemove og #confirmAvplanlegg');
   }
 
   /**
    * Håndter avbestilling-klikk
    */
   function onCancelClick(event) {
-    console.log('🔔 NISSY-logg: Avbestill klikket!');
     
     let detailsNow = [];
     let actionType = 'Avbestilling';
@@ -1139,12 +1096,10 @@
       // Finn parent dialog
       const dialog = confirmBtn.closest('div[style*="position: fixed"]');
       if (dialog) {
-        console.log('🔍 NISSY-logg: Fant avbestillings-dialog, henter info fra popup');
         
         // Hent tittel (type handling)
         const h2 = dialog.querySelector('h2');
         const title = h2 ? h2.textContent.trim() : '';
-        console.log(`  - Dialog tittel: ${title}`);
         
         // Bestem action type basert på dialog tittel
         if (title.includes('Fjern fra planlegging')) {
@@ -1160,7 +1115,6 @@
           
           // Sjekk om det er bestillinger (har <strong> tags inne i pre)
           if (text.includes('<strong>') || preTag.querySelector('strong')) {
-            console.log('🔍 NISSY-logg: Fant <pre> tag - masse-avbestilling av bestillinger');
             
             // Parse HTML for å få strong tags
             const strongs = preTag.querySelectorAll('strong');
@@ -1181,8 +1135,6 @@
               // parts[1] = "Kirkegata legesenter, 7600 Levanger → Brubakken 15, 7608 Levanger"
               const addressLine = parts.length > 1 ? parts[1] : '';
               
-              console.log(`  - Bestilling ${index + 1}: Rek.nr ${reqId}`);
-              console.log(`    Adresser: ${addressLine}`);
               
               // Parse adresser
               let fromPostal = '';
@@ -1220,10 +1172,8 @@
               }
             });
             
-            console.log(`✅ NISSY-logg: Hentet ${detailsNow.length} bestillinger fra <pre> tag`);
           } else {
             // Masse-avbestilling av turer
-            console.log('🔍 NISSY-logg: Fant <pre> tag - masse-avbestilling av turer');
             const lines = text.split('\n').filter(line => line.trim().length > 0);
             
             lines.forEach((line, index) => {
@@ -1248,8 +1198,7 @@
                   turnummer = turInfo;
                 }
                 
-                console.log(`  - Tur ${index + 1}: ${turInfo} (${status})`);
-                
+                  
                 detailsNow.push({
                   reqId: turnummer || 'Ukjent',
                   title: turInfo, // Hele strengen
@@ -1263,7 +1212,6 @@
               }
             });
             
-            console.log(`✅ NISSY-logg: Hentet ${detailsNow.length} turer fra <pre> tag`);
           }
         } else {
           // Enkelt-avbestilling: Sjekk om det er bestilling eller tur
@@ -1274,7 +1222,6 @@
           const isOrder = strongText.match(/\((\d+)\)/);
           
           if (isOrder) {
-            console.log('🔍 NISSY-logg: Enkelt-avbestilling av bestilling');
             
             // Parse reqId
             const reqId = isOrder[1];
@@ -1283,8 +1230,6 @@
             const addressSpan = dialog.querySelector('div[style*="background:#fafafa"] span');
             const addressText = addressSpan ? addressSpan.textContent.trim() : '';
             
-            console.log(`  - Rek.nr: ${reqId}`);
-            console.log(`  - Adresser: ${addressText}`);
             
             // Parse adresser
             let fromPostal = '';
@@ -1319,10 +1264,8 @@
               toPostal: toPostal || ''
             });
             
-            console.log('✅ NISSY-logg: Hentet bestillings-info fra popup:', detailsNow[0]);
           } else {
             // Enkelt-avbestilling av tur
-            console.log('🔍 NISSY-logg: Enkelt-avbestilling av tur');
             
             const turInfo = strongText;
             
@@ -1330,8 +1273,6 @@
             const statusSpan = dialog.querySelector('div[style*="background:#fafafa"] span');
             const statusText = statusSpan ? statusSpan.textContent.trim() : '';
             
-            console.log(`  - Tur-info: ${turInfo}`);
-            console.log(`  - Status: ${statusText}`);
             
             // Parse tur-info for å få avtale og turnummer
             let avtale = '';
@@ -1358,8 +1299,7 @@
                 toPostal: ''
               });
               
-              console.log('✅ NISSY-logg: Hentet tur-info fra popup:', detailsNow[0]);
-            }
+              }
           }
         }
       }
@@ -1367,7 +1307,6 @@
     
     // DERETTER: Hvis ingen info fra popup, prøv å hente fra rader (for bestillinger)
     if (detailsNow.length === 0) {
-      console.log('🔍 NISSY-logg: Ingen popup-info funnet, prøver å hente fra rader');
       
       // Fang radene NÅ (både fra ventende og pågående)
       const selectedRowsVentende = document.querySelectorAll(
@@ -1384,7 +1323,6 @@
         return row.id && (row.id.startsWith('V-') || row.id.startsWith('P-'));
       });
       
-      console.log(`🔍 NISSY-logg: Fant ${selectedRowsVentende.length} ventende + ${selectedRowsPaagaaende.length} pågående = ${selectedRowsNow.length} totalt`);
       
       if (selectedRowsNow.length === 0) {
         console.warn('⚠️ NISSY-logg: Ingen rader funnet ved avbestilling');
@@ -1394,7 +1332,6 @@
       // Ekstrahér informasjon NÅ (før radene fjernes)
       selectedRowsNow.forEach((row, index) => {
         const info = extractRowInfo(row);
-        console.log(`📝 NISSY-logg: Rad ${index + 1}:`, info);
         detailsNow.push(info);
       });
     }
@@ -1402,7 +1339,6 @@
     // Logg avbestillingen/fjerningen
     setTimeout(() => {
       if (detailsNow.length > 0) {
-        console.log(`✅ NISSY-logg: Lagrer ${actionType.toLowerCase()}`);
         saveLogEntry(actionType, detailsNow);
       }
     }, 300);
@@ -1412,7 +1348,6 @@
    * Håndter avplanlegging-klikk (bestillinger)
    */
   function onAvplanleggClick(event) {
-    console.log('🔔 NISSY-logg: Avplanlegg bestilling klikket!');
     
     let detailsNow = [];
     
@@ -1421,7 +1356,6 @@
     if (avplanleggBtn) {
       const dialog = avplanleggBtn.closest('div[style*="position: fixed"]');
       if (dialog) {
-        console.log('🔍 NISSY-logg: Fant avplanlegg-dialog, henter info fra popup');
         
         // Hent strong tag: "Salah, Mo (262000771531)"
         const strong = dialog.querySelector('div[style*="background:#fafafa"] strong');
@@ -1431,14 +1365,11 @@
         const reqMatch = strongText.match(/\((\d+)\)/);
         const reqId = reqMatch ? reqMatch[1] : '';
         
-        console.log(`  - Strong text: ${strongText}`);
-        console.log(`  - Rek.nr: ${reqId}`);
         
         // Hent adresser fra span: "Kirkegata legesenter, 7600 Levanger → Brubakken 15, 7608 Levanger"
         const addressSpan = dialog.querySelector('div[style*="background:#fafafa"] span');
         const addressText = addressSpan ? addressSpan.textContent.trim() : '';
         
-        console.log(`  - Adresser: ${addressText}`);
         
         // Parse adresser for å få postnr/poststed
         let fromPostal = '';
@@ -1464,7 +1395,6 @@
           }
         }
         
-        console.log(`  - Fra: ${fromPostal} → Til: ${toPostal}`);
         
         // Lagre bestillings-info
         if (reqId) {
@@ -1477,7 +1407,6 @@
             toPostal: toPostal || ''
           });
           
-          console.log('✅ NISSY-logg: Hentet bestillings-info fra avplanlegg-popup:', detailsNow[0]);
         }
       }
     }
@@ -1485,7 +1414,6 @@
     // Logg avplanleggingen
     setTimeout(() => {
       if (detailsNow.length > 0) {
-        console.log('✅ NISSY-logg: Lagrer avplanlegging');
         saveLogEntry('Avplanlegging', detailsNow);
       }
     }, 300);
