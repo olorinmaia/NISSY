@@ -29,6 +29,14 @@
     { needs: ['ERS', 'RB'], description: 'ERS + RB (Elektrisk rullestol + Rullestolbil)' },
     { needs: ['LB', 'LF'], description: 'LB + LF (Trenger hele baksetet + God benplass og regulerbart sete)' },
     { needs: ['HI', 'LI'], description: 'HI + LI (Høyt innsteg og Lavt innsteg)' },
+    { needs: ['BS0', 'BS1', 'BS4', 'BSP'], description: 'Kombinasjon av flere barneseter' },
+    { needs: ['BS0', 'BS1', 'BS4'], description: 'Kombinasjon av flere barneseter' },
+    { needs: ['BS0', 'BS1'], description: 'Kombinasjon av flere barneseter' },
+    { needs: ['BS0', 'BS4'], description: 'Kombinasjon av flere barneseter' },
+    { needs: ['BS0', 'BSP'], description: 'Kombinasjon av flere barneseter' },
+    { needs: ['BS1', 'BS4'], description: 'Kombinasjon av flere barneseter' },
+    { needs: ['BS1', 'BSP'], description: 'Kombinasjon av flere barneseter' },
+    { needs: ['BS4', 'BSP'], description: 'Kombinasjon av flere barneseter' },
     // Legg til flere kombinasjoner her etter behov
     // { needs: ['X', 'Y'], description: 'X + Y beskrivelse' },
   ];
