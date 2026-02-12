@@ -32,6 +32,12 @@
   
   for (const script of scripts) {
     try {
+      // Hopp over Logg.js hvis den allerede kjører
+      if (script === 'Logg.js' && window.__nissyLoggInstalled) {
+        console.log('⏭️ Hopper over Logg.js (allerede aktiv)');
+        continue;
+      }
+      
       const response = await fetch(BASE + script + `?t=${Date.now()}`);
       const code = await response.text();
       eval(code);

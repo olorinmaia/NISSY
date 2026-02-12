@@ -371,24 +371,15 @@
   }
 
   /**
-   * Tell tildelinger i dag
+   * Tell tildelinger totalt
    */
   function countTodaysAssignments() {
     const log = getLogEntries();
-    const today = new Date().toLocaleDateString('no-NO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
     
     let count = 0;
     log.forEach(entry => {
-      // Sjekk om oppføringen er fra i dag
-      if (entry.timestamp && entry.timestamp.startsWith(today)) {
-        // Tell kun tildelinger
-        if (entry.action === 'Tildeling' && entry.details) {
-          count += entry.details.length;
-        }
+      if (entry.action === 'Tildeling' && entry.details) {
+        count += entry.details.length;
       }
     });
     
@@ -396,24 +387,15 @@
   }
 
   /**
-   * Tell avbestillinger i dag
+   * Tell avbestillinger totalt
    */
   function countTodaysCancellations() {
     const log = getLogEntries();
-    const today = new Date().toLocaleDateString('no-NO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
     
     let count = 0;
     log.forEach(entry => {
-      // Sjekk om oppføringen er fra i dag
-      if (entry.timestamp && entry.timestamp.startsWith(today)) {
-        // Tell kun avbestillinger
-        if (entry.action === 'Avbestilling' && entry.details) {
-          count += entry.details.length;
-        }
+      if (entry.action === 'Avbestilling' && entry.details) {
+        count += entry.details.length;
       }
     });
     
@@ -421,24 +403,15 @@
   }
 
   /**
-   * Tell avplanlegginger i dag
+   * Tell avplanlegginger totalt
    */
   function countTodaysRemovals() {
     const log = getLogEntries();
-    const today = new Date().toLocaleDateString('no-NO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
     
     let count = 0;
     log.forEach(entry => {
-      // Sjekk om oppføringen er fra i dag
-      if (entry.timestamp && entry.timestamp.startsWith(today)) {
-        // Tell kun avplanlegginger
-        if (entry.action === 'Avplanlegging' && entry.details) {
-          count += entry.details.length;
-        }
+      if (entry.action === 'Avplanlegging' && entry.details) {
+        count += entry.details.length;
       }
     });
     
@@ -446,24 +419,15 @@
   }
 
   /**
-   * Tell fjerninger i dag
+   * Tell fjerninger totalt
    */
   function countTodaysRemovals2() {
     const log = getLogEntries();
-    const today = new Date().toLocaleDateString('no-NO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
     
     let count = 0;
     log.forEach(entry => {
-      // Sjekk om oppføringen er fra i dag
-      if (entry.timestamp && entry.timestamp.startsWith(today)) {
-        // Tell kun fjerninger
-        if (entry.action === 'Fjerning' && entry.details) {
-          count += entry.details.length;
-        }
+      if (entry.action === 'Fjerning' && entry.details) {
+        count += entry.details.length;
       }
     });
     
@@ -892,6 +856,41 @@
         content.appendChild(entryDiv);
       });
     }
+      
+      // Sett opp event listeners etter rendering
+      setupEventListeners();
+    }
+    
+    // Funksjon for å sette opp event listeners
+    function setupEventListeners() {
+      // Admin-linker
+      const adminLinks = content.querySelectorAll("a[data-admin-link='true']");
+      adminLinks.forEach(link => {
+        link.addEventListener("click", e => {
+          e.preventDefault();
+          const width = Math.floor(window.innerWidth / 2);
+          const height = Math.floor(window.innerHeight * 0.9);
+          window.open(
+            link.href,
+            "_blank",
+            `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+          );
+        });
+      });
+      
+      // Søkeknapper
+      const searchButtons = content.querySelectorAll('.nissy-search-btn');
+      searchButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const reqNr = btn.getAttribute('data-reqnr');
+          closePopup();
+          if (reqNr && window.searchInPlanningByReqNr) {
+            setTimeout(() => {
+              window.searchInPlanningByReqNr(reqNr);
+            }, 100);
+          }
+        });
+      });
     }
     
     // Initial rendering
@@ -928,35 +927,6 @@
     // Legg til overlay først, deretter popup
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
-    
-    // Legg til click handler for admin-linker (som adminmodul.js)
-    const adminLinks = popup.querySelectorAll("a[data-admin-link='true']");
-    adminLinks.forEach(link => {
-      link.addEventListener("click", e => {
-        e.preventDefault();
-        const width = Math.floor(window.innerWidth / 2);
-        const height = Math.floor(window.innerHeight * 0.9);
-        window.open(
-          link.href,
-          "_blank",
-          `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
-        );
-      });
-    });
-    
-    // Legg til click handler for søkeknapper
-    const searchButtons = popup.querySelectorAll('.nissy-search-btn');
-    searchButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const reqNr = btn.getAttribute('data-reqnr');
-        closePopup(); // Lukk popup først
-        if (reqNr && window.searchInPlanningByReqNr) {
-          setTimeout(() => {
-            window.searchInPlanningByReqNr(reqNr);
-          }, 100); // Liten delay for smooth lukking
-        }
-      });
-    });
   }
 
   /**
