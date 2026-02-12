@@ -24,7 +24,8 @@
     'Adminmodul.js',
     'Hentetid.js',
     'Ressursinfo.js',
-    'Samkjøring.js'
+    'Samkjøring.js',
+    'Logg.js'
   ];
   
   console.log('📦 Laster NISSY Advanced DEV...');
@@ -112,6 +113,22 @@
       }
 
       // Opprett knapper
+      const monitorBtn = document.createElement('button');
+      monitorBtn.id = 'nissy-monitor-btn';
+      monitorBtn.className = 'nissy-header-btn';
+      monitorBtn.type = 'button';
+      monitorBtn.title = 'Start/stopp overvåking av ventende oppdrag';
+      monitorBtn.textContent = '🔔 Overvåk-Ventende';
+      monitorBtn.addEventListener('click', async () => {
+        try {
+          const response = await fetch(BASE + 'Overvåk-ventende.js');
+          const code = await response.text();
+          eval(code);
+        } catch (err) {
+          console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
+        }
+      });
+      
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
       helpBtn.className = 'nissy-header-btn';
@@ -124,7 +141,7 @@
       bestillingsBtn.id = 'nissy-bestilling-btn';
       bestillingsBtn.className = 'nissy-header-btn';
       bestillingsBtn.type = 'button';
-      bestillingsBtn.title = 'Åpne bestillingsmodul';
+      bestillingsBtn.title = 'Åpne foretrukket bestillingsmodul. Trykk Alt+H for "Hent rekvisisjon"';
       bestillingsBtn.textContent = '📝 Bestillingsmodul (Alt+N)';
       bestillingsBtn.addEventListener('click', () => triggerHotkey('n'));
 
@@ -135,6 +152,14 @@
       adminBtn.title = 'Åpne adminmodul';
       adminBtn.textContent = '⚙️ Adminmodul (Alt+A)';
       adminBtn.addEventListener('click', () => triggerHotkey('a'));
+
+      const loggBtn = document.createElement('button');
+      loggBtn.id = 'nissy-logg-btn';
+      loggBtn.className = 'nissy-header-btn';
+      loggBtn.type = 'button';
+      loggBtn.title = 'Åpne NISSY handlingslogg (Alt+L)';
+      loggBtn.textContent = '📋 Handlingslogg';
+      loggBtn.addEventListener('click', () => triggerHotkey('l'));
 
       function triggerHotkey(key) {
         document.dispatchEvent(
@@ -149,9 +174,11 @@
       }
       
       // Legg til knappene etter teksten i første <td>
+      firstTd.appendChild(monitorBtn);
       firstTd.appendChild(helpBtn);
       firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);
+      firstTd.appendChild(loggBtn);
 
       console.log("✅ Knapper i header installert");
     }
@@ -351,6 +378,7 @@
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
+          • ALT+L → Handlingslogg<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -363,7 +391,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.5.1):</strong><br>
+          <strong>📝 Endringslogg (V3.6.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

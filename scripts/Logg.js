@@ -851,11 +851,14 @@
               if (detail.status) html += ` <span style="color: #999;">Status: ${detail.status}</span>`;
             } else {
               // BESTILLING: Vis rekvisisjonsnummer med link (nr-basert), reisetid og adresser
-              html = `<span style="color: #666;">Bestilling:</span> <a href="/administrasjon/admin/searchStatus?nr=${detail.title}" 
-                         style="color: #047CA1; text-decoration: none; font-weight: bold;"
-                         data-admin-link="true" title="Søk etter rekvisisjonsnummer i NISSY admin">
-                         ${detail.title}
-                      </a>`;
+              html = `<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="flex: 1;">
+                  <span style="color: #666;">Bestilling:</span> 
+                  <a href="/administrasjon/admin/searchStatus?nr=${detail.title}" 
+                     style="color: #047CA1; text-decoration: none; font-weight: bold;"
+                     data-admin-link="true" title="Søk etter rekvisisjonsnummer i NISSY admin">
+                     ${detail.title}
+                  </a>`;
               
               if (detail.tripTime) html += ` <span style="color: #666;">🕑 ${detail.tripTime}</span>`;
               if (detail.treatmentTime) html += ` <span style="color: #666;">${detail.treatmentTime}</span>`;
@@ -865,6 +868,20 @@
                   : (detail.fromPostal || detail.toPostal);
                 html += ` <span style="color: #999;">📍 ${route}</span>`;
               }
+              
+              html += `</div>`;
+              
+              // Vis søkeknapp kun hvis bestillingen IKKE er avbestilt
+              if (entry.action !== 'Avbestilling') {
+                html += `
+                  <button class="nissy-search-btn" data-reqnr="${detail.title}" 
+                          style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 14px; line-height: 1; flex-shrink: 0;"
+                          title="Søk etter ${detail.title} i planlegging">
+                    🔍
+                  </button>`;
+              }
+              
+              html += `</div>`;
             }
 
             detailDiv.innerHTML = html;
@@ -924,6 +941,20 @@
           "_blank",
           `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
         );
+      });
+    });
+    
+    // Legg til click handler for søkeknapper
+    const searchButtons = popup.querySelectorAll('.nissy-search-btn');
+    searchButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const reqNr = btn.getAttribute('data-reqnr');
+        closePopup(); // Lukk popup først
+        if (reqNr && window.searchInPlanningByReqNr) {
+          setTimeout(() => {
+            window.searchInPlanningByReqNr(reqNr);
+          }, 100); // Liten delay for smooth lukking
+        }
       });
     });
   }
@@ -1439,4 +1470,29 @@
   // Vis status i console
   const currentLog = getLogEntries();
   console.log(`✅ NISSY-logg-script lastet (${currentLog.length} oppføring${currentLog.length !== 1 ? 'er' : ''} i logg)`);
+  
+  /**
+   * Søk i planlegging etter rekvisisjonsnummer
+   */
+  window.searchInPlanningByReqNr = function(reqNr) {
+    // Sett søketype til "Rekvisisjonsnummer"
+    const searchTypeSelect = document.getElementById('searchType');
+    if (searchTypeSelect) {
+      searchTypeSelect.value = 'requisitionNr';
+    }
+    
+    // Utfør søk
+    const searchInput = document.getElementById('searchPhrase');
+    if (searchInput) {
+      searchInput.value = reqNr;
+      searchInput.focus();
+      
+      setTimeout(() => {
+        const searchButton = document.getElementById('buttonSearch');
+        if (searchButton) {
+          searchButton.click();
+        }
+      }, 100);
+    }
+  };
 })();
