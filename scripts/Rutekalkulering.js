@@ -110,6 +110,7 @@
     "Med A Lunge, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "PD pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "./Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "SL. Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -137,6 +138,7 @@
     "Dialyse dagbehandling [NA], 7803 Namsos": "Sykehuset Namsos, 7803 Namsos", 
     "Fysio- og ergoterapi, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Gyn/Føde/Barsel sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "SN. Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",

@@ -681,7 +681,7 @@
         if (selectedRows.length === 0) {
           openPopp("-1");
         }
-      }, 1500);
+      }, 150);
     });
   }
 
