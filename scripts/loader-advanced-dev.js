@@ -163,7 +163,7 @@
       loggBtn.id = 'nissy-logg-btn';
       loggBtn.className = 'nissy-header-btn';
       loggBtn.type = 'button';
-      loggBtn.title = 'Åpne NISSY handlingslogg (Alt+L)';
+      loggBtn.title = 'Åpne handlingslogg (Alt+L)';
       loggBtn.textContent = '📋 Handlingslogg';
       loggBtn.addEventListener('click', () => triggerHotkey('l'));
 

@@ -1,7 +1,7 @@
 (() => {
   // ============================================================
-  // NISSY LOGG-SCRIPT
-  // Logger handlinger som tildeling, avbestilling, avplanlegging
+  // HANDLINGSLOGG-SCRIPT
+  // Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging
   // Lagrer i localStorage og viser historikk. Ingen sensitiv data. 
   // For å se hva som er lagret, konsoll: localStorage.getItem('nissy_action_log')
   // ============================================================
@@ -49,13 +49,13 @@
      GUARD – FORHINDRER DOBBEL INSTALLASJON
      ====================================================== */
   if (window.__nissyLoggInstalled) {
-    //console.log("✅ NISSY-logg er allerede aktiv");
+    //console.log("✅ Handlingslogg er allerede aktiv");
     showLoggPopup(); // Vis logg når scriptet kjøres på nytt
     return;
   }
   window.__nissyLoggInstalled = true;
 
-  console.log("🚀 Starter NISSY-logg-script");
+  console.log("🚀 Starter Handlingslogg-script");
   
   // Auto-reset hvis localStorage inneholder ugyldig data
   try {
@@ -294,7 +294,7 @@
    * GLOBAL FUNKSJON: Reset logg (kan kalles fra console)
    */
   window.nissyLoggReset = function() {
-    if (confirm('⚠️ Er du sikker på at du vil resette NISSY-loggen?\n\nDette sletter all loggdata og kan ikke angres.')) {
+    if (confirm('⚠️ Er du sikker på at du vil resette handlingsloggen?\n\nDette sletter all loggdata og kan ikke angres.')) {
       localStorage.removeItem(LOGG_STORAGE_KEY);
       showToast('🔄 Logg resatt');
       // Refresh popup hvis den er åpen
@@ -497,7 +497,7 @@
     `;
 
     const title = document.createElement('h2');
-    title.textContent = '📋 NISSY Handlingslogg';
+    title.textContent = '📋 Handlingslogg';
     title.style.cssText = 'margin: 0; font-size: 18px; font-weight: bold;';
 
     const closeBtn = document.createElement('button');
@@ -1507,7 +1507,7 @@
 
   // Vis status i console
   const currentLog = getLogEntries();
-  console.log(`✅ NISSY-logg-script lastet (${currentLog.length} oppføring${currentLog.length !== 1 ? 'er' : ''} i logg)`);
+  console.log(`✅ Handlingslogg-script lastet (${currentLog.length} oppføring${currentLog.length !== 1 ? 'er' : ''} i logg)`);
   
   /**
    * Søk i planlegging etter rekvisisjonsnummer
