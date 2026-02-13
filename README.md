@@ -62,7 +62,6 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Hindrer bruker fra å gjøre ting som ikke er i henhold til beste-praksis / SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
   - <img width="250" alt="image" src="https://github.com/user-attachments/assets/24464cf1-e838-446c-8e4a-69607869bea8" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/aa169114-34a7-42e4-b2ef-5c5b1776f751" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/08d00111-24cd-4206-8f27-3d825554a02f" />
 
-
 - 🚐 **Samkjøring (Alt+X)**
   - Velg aktuelle filter. Merk bestilling(er) på ventende eller en ressurs på pågående oppdrag og trykk på Samkjøring-knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
   - Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
@@ -73,6 +72,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 📋 **Handlingslogg (Alt+L)** 
   - Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
   - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/060daa07-6149-48ac-9cb5-d373b25eeaf9" />
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
@@ -104,8 +104,10 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0e1684da-dc52-49c4-9b3d-9f08c126c100" />
 - 🚕 **Trøndertaxi-løyve**
   - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
-- **Installeres som knapper nederst i footer i NISSY planlegging via script-pakke:**
-  - <img width="800" alt="image" src="https://github.com/user-attachments/assets/bb22d6d9-125b-4fe8-a85b-f797e5385366" />
+- **Installeres som knapper over ventende oppdrag og nederst i footer i NISSY planlegging via script-pakke:**
+  - <img width="937" height="47" alt="image" src="https://github.com/user-attachments/assets/12ce822f-7325-47d2-95bc-dc3a6abfb252" />
+  - <img width="1037" height="47" alt="image" src="https://github.com/user-attachments/assets/2e8496f2-b91f-4bce-8540-2b3d2a62142f" />
+
 
 ## 📊 Oversikt alle features i script-pakker
 Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plassert i script-pakker og trenger kun aktiveres en gang. 
