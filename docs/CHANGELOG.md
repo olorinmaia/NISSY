@@ -15,10 +15,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
   - Installeres som en knapp over ventende oppdrag. Snarvei: Alt+L.
 - ⌛ **NISSY-fiks**
-  - Ved søk etter rekvisisjonsnummer markeres nå raden på ventende eller pågående oppdrag.
+  - Ved søk etter rekvisisjonsnummer velges nå raden på ventende eller pågående oppdrag.
 - 🚐 **Samkjøring**
   - Ny modus: Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
   - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
+- 🔔 **Overvåk-Ventende** 
+  - Lagt til i basic- og advanced-loader.
 
 ## 🚀 [3.5.1] - 10.02.2026
 

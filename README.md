@@ -13,7 +13,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Automatisk kolonnejustering (skjuler/viser relevante kolonner).
   - Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
   - Åpner alle turer ved bytting av filter automatisk og ved søk.
-  - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
+  - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
   - Lukker alle typer plakater ved trykk utenfor.
   - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag dynamisk.
@@ -70,6 +70,10 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Kan ikke merke bestilling på ventende og ressurs på pågående samtidig. Det er to forskjellige moduser.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3ebda51d-813d-49e8-9592-3888c40e0719" />
 
+- 📋 **Handlingslogg (Alt+L)** 
+  - Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
+  - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
+
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
 
@@ -111,7 +115,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | Features | AMK | Basic | Advanced |
 |---------|-------|-------|----------|
 | ⌛ NISSY-fiks | ✅ | ✅ | ✅ |
-| 🔔 Overvåk-Ventende | ✅ | ❌ | ❌ |
+| 🔔 Overvåk-Ventende | ✅ | ✅ | ✅ |
 | 🚗 Alenebil | ✅ | ✅ | ✅ |
 | 🤖 Auto-Bestill | ✅ | ✅ | ✅ |
 | 🔍 Sjekk-Bestilling | ✅ | ✅ | ✅ |
@@ -123,6 +127,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
 | ⚙️ Adminmodul (ALT+A) | ✅ | ✅ | ✅ |
+| 📋 Handlingslogg (ALT+L) | ✅ | ✅ | ✅ |
 | ✖️ Avbestill (ALT+K) | ❌ | ✅ | ✅ |
 | 🕐 Hentetid (ALT+E) | ❌ | ✅ | ✅ |
 | 🔠 Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |
@@ -197,6 +202,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+K` | Avbestilling av turer/bestillinger |
 | `ALT+E` | Hentetid |
 | `ALT+X` | Samkjøring |
+| `ALT+L` | Handlingslogg |
 
 ## 🔧 Funksjonalitet
 

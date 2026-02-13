@@ -138,6 +138,22 @@
       }
 
       // Opprett knapp
+      const monitorBtn = document.createElement('button');
+      monitorBtn.id = 'nissy-monitor-btn';
+      monitorBtn.className = 'nissy-header-btn';
+      monitorBtn.type = 'button';
+      monitorBtn.title = 'Start/stopp overvåking av ventende oppdrag';
+      monitorBtn.textContent = '🔔 Overvåk-Ventende';
+      monitorBtn.addEventListener('click', async () => {
+        try {
+          const response = await fetch(BASE + 'Overvåk-ventende.js');
+          const code = await response.text();
+          eval(code);
+        } catch (err) {
+          console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
+        }
+      });
+
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
       helpBtn.className = 'nissy-header-btn';
@@ -175,6 +191,7 @@
       }
       
       // Legg til knappene etter teksten i første <td>
+      firstTd.appendChild(monitorBtn);
       firstTd.appendChild(helpBtn);
       firstTd.appendChild(adminBtn);
       firstTd.appendChild(loggBtn);

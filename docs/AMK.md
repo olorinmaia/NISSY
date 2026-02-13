@@ -17,6 +17,7 @@ NISSY AMK er perfekt for deg som:
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
+- 📋 **Handlingslogg** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
 - 🔔 **Overvåk-Ventende** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
@@ -81,6 +82,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | `ALT+N` | Bestillingsmodul |
 | `ALT+H` | Hent Rekvisisjon |
 | `ALT+A` | Adminmodul |
+| `ALT+L` | Handlingslogg |
 
 ## 📖 Detaljert brukerveiledning
 
@@ -123,7 +125,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 
 - Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
 - Åpner alle turer ved bytting av filter automatisk og ved søk.
-- Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
+- Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
 - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
 - Lukker alle typer plakater ved trykk utenfor.
 - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
@@ -154,6 +156,10 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 Trykk på Alt+A for å åpne admin-modulen som setter fokus i person-fanen og telefonnummer. Tips her er å kopiere fra Zisson for å finne pasient så du slipper å spørre om personnummer.
 Fanger opp "?"-linker i planleggingsvinduet og søker frem tur/bestilling velger øverste rad og scroller ned til resultatet automatisk
 
+### 📋 **Handlingslogg (Alt+L)** 
+
+Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
+Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
 
 ## ❓ Feilsøking
 
