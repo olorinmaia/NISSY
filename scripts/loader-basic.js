@@ -22,7 +22,8 @@
     'Avbestilling.js',
     'Hentetid.js',
     'Rek-knapper.js',
-    'Rutekalkulering.js'
+    'Rutekalkulering.js',
+    'Logg.js'
   ];
   
   // ============================================================
@@ -50,6 +51,12 @@
   
   for (const script of scripts) {
     try {
+      // Hopp over Logg.js hvis den allerede kjører
+      if (script === 'Logg.js' && window.__nissyLoggInstalled) {
+        console.log('⏭️ Hopper over Logg.js (allerede aktiv)');
+        continue;
+      }
+      
       const response = await fetch(BASE + script);
       const code = await response.text();
       eval(code);
@@ -146,6 +153,14 @@
       adminBtn.title = 'Åpne adminmodul';
       adminBtn.textContent = '⚙️ Adminmodul (Alt+A)';
       adminBtn.addEventListener('click', () => triggerHotkey('a'));
+      
+      const loggBtn = document.createElement('button');
+      loggBtn.id = 'nissy-logg-btn';
+      loggBtn.className = 'nissy-header-btn';
+      loggBtn.type = 'button';
+      loggBtn.title = 'Åpne handlingslogg (Alt+L)';
+      loggBtn.textContent = '📋 Handlingslogg';
+      loggBtn.addEventListener('click', () => triggerHotkey('l'));
 
       function triggerHotkey(key) {
         document.dispatchEvent(
@@ -162,6 +177,7 @@
       // Legg til knappene etter teksten i første <td>
       firstTd.appendChild(helpBtn);
       firstTd.appendChild(adminBtn);
+      firstTd.appendChild(loggBtn);
 
       console.log("✅ Knapper i header installert");
     }
@@ -344,6 +360,7 @@
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
+          • ALT+L → Handlingslogg<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -356,7 +373,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.5.1):</strong><br>
+          <strong>📝 Endringslogg (V3.6.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

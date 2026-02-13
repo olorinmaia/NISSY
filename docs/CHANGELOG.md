@@ -7,6 +7,19 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
+## 🚀 [3.6.0] - 13.02.2026
+
+### Nytt script Handlingslogg og forbedringer til NISSY-fiks og Samkjøring
+- 📋 **Handlingslogg**
+  - Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
+  - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
+  - Installeres som en knapp over ventende oppdrag. Snarvei: Alt+L.
+- ⌛ **NISSY-fiks**
+  - Ved søk etter rekvisisjonsnummer markeres nå raden på ventende eller pågående oppdrag.
+- 🚐 **Samkjøring**
+  - Ny modus: Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
+  - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
+
 ## 🚀 [3.5.1] - 10.02.2026
 
 ### Forbedringer til 🚩 Sjekk-Plakat 
