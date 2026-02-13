@@ -11,6 +11,8 @@
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
+- 📋 **Handlingslogg** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
+- 🔔 **Overvåk-Ventende** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 - 🚐 **Samkjøring** -  (Alt+X) Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
@@ -60,6 +62,7 @@
 | `ALT+A` | Adminmodul |
 | `ALT+K` | Avbestilling av merkede turer/bestillinger |
 | `ALT+X` | Søk etter samkjøringsforslag |
+| `ALT+L` | Handlingslogg |
 
 ## 📥 Installasjon
 
@@ -107,7 +110,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 
 - Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
 - Åpner alle turer ved bytting av filter automatisk og ved søk.
-- Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger.
+- Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
 - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
 - Lukker alle typer plakater ved trykk utenfor.
 - Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
@@ -213,6 +216,19 @@ Merk bestillinger på ventende oppdrag eller en ressurs på pågående oppdrag, 
   - Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
   - Kan merke en ressurs og søke etter andre ressurser på samme filter for replanlegging. F.eks. for å se om ressursen kan slåes sammen med andre ressurser.
   - Kan ikke merke bestilling på ventende og ressurs på pågående samtidig. Det er to forskjellige moduser.
+  - Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
+   - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
+
+### 📋 **Handlingslogg (Alt+L)** 
+
+Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
+Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
+
+### 🔔 **Overvåk-Ventende**
+Start og stopp scriptet ved å trykke på knappen over ventende oppdrag.
+- Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
+- Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
+- Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
 
 ## ❓ Feilsøking
 

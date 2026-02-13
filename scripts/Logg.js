@@ -809,7 +809,7 @@
               // TUR: Vis avtale-turnummer med link til admin (id-basert)
               html = `<span style="color: #666;">Ressurs:</span> <a href="/administrasjon/admin/searchStatus?id=${detail.reqId}" 
                          style="color: #047CA1; text-decoration: none; font-weight: bold;"
-                         data-admin-link="true" title="Søk etter turnummer i NISSY admin">
+                         data-admin-link="true" title="Søk etter ${detail.reqId} i NISSY admin">
                          ${detail.title || detail.reqId}
                       </a>`;
               if (detail.status) html += ` <span style="color: #999;">Status: ${detail.status}</span>`;
@@ -820,7 +820,7 @@
                   <span style="color: #666;">Bestilling:</span> 
                   <a href="/administrasjon/admin/searchStatus?nr=${detail.title}" 
                      style="color: #047CA1; text-decoration: none; font-weight: bold;"
-                     data-admin-link="true" title="Søk etter rekvisisjonsnummer i NISSY admin">
+                     data-admin-link="true" title="Søk etter ${detail.title} i NISSY admin">
                      ${detail.title}
                   </a>`;
               

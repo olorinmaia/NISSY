@@ -640,21 +640,43 @@
     questionIcons.forEach(icon => {
       const onclick = icon.getAttribute('onclick');
       if (onclick && onclick.includes(searchedReqNr)) {
-        // Sjekk om dette er en pågående oppdrag rad (P-*)
+        // Finn tabell-raden
         const tableRow = icon.closest('tr');
-        if (!tableRow || !tableRow.id || !tableRow.id.startsWith('P-')) {
-          // Dette er ventende oppdrag eller noe annet - hopp over
-          return;
-        }
+        if (!tableRow || !tableRow.id) return;
         
-        // Finn parent div.row-image (finnes kun i pågående oppdrag)
-        const rowDiv = icon.closest('div.row-image');
-        if (rowDiv) {
-          // Marker kun denne div-en med mørkere gul bakgrunn og border
-          rowDiv.style.setProperty('background-color', '#ffd54f', 'important'); // Mørkere gul
-          rowDiv.style.setProperty('border-left', '4px solid #ff6f00', 'important'); // Oransje venstre-border
-          rowDiv.style.setProperty('border-radius', '2px', 'important');
-          rowDiv.setAttribute('data-highlighted-req', 'true');
+        if (tableRow.id.startsWith('P-')) {
+          // PÅGÅENDE OPPDRAG
+          // Finn parent div.row-image (finnes kun i pågående oppdrag)
+          const rowDiv = icon.closest('div.row-image');
+          if (rowDiv) {
+            // Marker kun denne div-en med mørkere gul bakgrunn og border
+            rowDiv.style.setProperty('background-color', '#ffd54f', 'important'); // Mørkere gul
+            rowDiv.style.setProperty('border-left', '4px solid #ff6f00', 'important'); // Oransje venstre-border
+            rowDiv.style.setProperty('border-radius', '2px', 'important');
+            rowDiv.setAttribute('data-highlighted-req', 'true');
+          }
+          
+          // Marker hele raden ETTER highlighting
+          setTimeout(() => {
+            if (typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+              try {
+                selectRow(tableRow.id, g_poppLS);
+              } catch (e) {
+                console.warn('Kunne ikke markere pågående oppdrag rad:', e);
+              }
+            }
+          }, 100);
+          
+        } else if (tableRow.id.startsWith('V-')) {
+          // VENTENDE OPPDRAG
+          // Marker hele raden
+          if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+            try {
+              selectRow(tableRow.id, g_voppLS);
+            } catch (e) {
+              console.warn('Kunne ikke markere ventende oppdrag rad:', e);
+            }
+          }
         }
       }
     });

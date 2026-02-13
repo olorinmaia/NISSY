@@ -69,6 +69,81 @@
         }, 4000);
     }
 
+    // Info toast (blå bakgrunn)
+    function showInfoToast(msg) {
+        const toast = document.createElement("div");
+        toast.textContent = msg;
+        
+        Object.assign(toast.style, {
+            position: "fixed",
+            bottom: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#5bc0de", // Blå bakgrunn for info
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            fontFamily: "Arial, sans-serif",
+            zIndex: "999999",
+            opacity: "0",
+            transition: "opacity 0.3s ease"
+        });
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = "1";
+        }, 10);
+        
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // Success toast (grønn bakgrunn)
+    function showSuccessToast(msg) {
+        const toast = document.createElement("div");
+        toast.textContent = msg;
+        
+        Object.assign(toast.style, {
+            position: "fixed",
+            bottom: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#5cb85c", // Grønn bakgrunn for success
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            fontFamily: "Arial, sans-serif",
+            zIndex: "999999",
+            opacity: "0",
+            transition: "opacity 0.3s ease"
+        });
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = "1";
+        }, 10);
+        
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => {
+                if (toast && toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+
     // ============================================================
     // KONSTANTER
     // ============================================================
@@ -106,8 +181,8 @@
     const LONG_DISTANCE_TIME_BUFFER = 120;          // Tidsbuffer for lange turer (minutter - 2 timer)
     
     // Postnummer-toleranser
-    const POSTNR_TOLERANCE_DELIVERY = 11;           // ±11 postnr for leveringssted
-    const POSTNR_TOLERANCE_PICKUP = 11;             // ±11 postnr for hentested
+    const POSTNR_TOLERANCE_DELIVERY = 12;           // ±11 postnr for leveringssted
+    const POSTNR_TOLERANCE_PICKUP = 12;             // ±11 postnr for hentested
     
     // Tidsmessige krav
     const MAX_START_DIFF_SHORT = 30;                // Maks startdiff for korte turer (minutter)
@@ -234,6 +309,7 @@
         { hent1Min: 7500, hent1Max: 7533, hent2: 7623, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7717, hent1Max: 7717, hent2Min: 7717, hent2Max: 7717, leverMin: 7713, leverMax: 7725 },
+        { hent1Min: 7500, hent1Max: 7995, hent2Min: 7500, hent2Max: 7995, leverMin: 7003, leverMax: 7099 },
         { hent1Min: 7770, hent1Max: 7797, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
         { hent1Min: 7500, hent1Max: 7751, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
         // Legg til flere her:
@@ -319,8 +395,7 @@
         ['Nordli', 'Sørli'],
         ['Meråker', 'Hegra', 'Stjørdal'],
         ['Levanger', 'Skogn', 'Åsen', 'Ekne', 'Ronglan'],
-        ['Steinkjer', 'Sparbu'],
-        ['Malm', 'Follafoss', 'Beistad'],
+        ['Steinkjer', 'Sparbu', 'Malm', 'Follafoss', 'Beitstad'],
         ['Verdal', 'Vuku'],
         ['Inderøy', 'Mosvik'],
         // Legg til flere grupper her:
@@ -491,6 +566,75 @@
         
         return selected;
     }
+
+    // ============================================================
+    // HJELPEFUNKSJON: Hent ALLE ventende oppdrag (ikke bare merkede)
+    // Brukes for auto-gruppering
+    // ============================================================
+    function getVentendeOppdrag() {
+        const ventende = [];
+
+        // Finn kolonne-indekser dynamisk fra header
+        const reiseTidIndex  = findColumnIndex('#ventendeoppdrag', 'tripStartDate');
+        const oppTidIndex    = findColumnIndex('#ventendeoppdrag', 'tripTreatmentDate');
+        const adresseIndex   = findColumnIndex('#ventendeoppdrag', 'tripFromAddress');
+        const nameIndex      = findColumnIndex('#ventendeoppdrag', 'patientName');
+        const behovIndex     = findColumnIndexByText('#ventendeoppdrag', 'Behov');
+        const ledsagerIndex  = findColumnIndexByText('#ventendeoppdrag', 'L');
+
+        // Valider kritiske kolonner
+        const missingVentende = [];
+        if (reiseTidIndex === -1) missingVentende.push("'Reisetid'");
+        if (oppTidIndex   === -1) missingVentende.push("'Oppmøtetid'");
+        if (adresseIndex  === -1) missingVentende.push("'Fra / Til'");
+
+        if (missingVentende.length > 0) {
+            showErrorToast(`❌ Mangler kolonne(r) på ventende oppdrag: ${missingVentende.join(', ')}`);
+            return null;
+        }
+
+        // Hent ALLE rader (ikke sjekk bakgrunnsfarge)
+        const rows = document.querySelectorAll('#ventendeoppdrag tbody tr');
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+
+            const patientName       = nameIndex !== -1 ? (cells[nameIndex]?.textContent.trim() || '(Ukjent)') : '(Ukjent)';
+            const tripStartTime     = cells[reiseTidIndex]?.textContent.trim();
+            const tripTreatmentTime = cells[oppTidIndex]?.textContent.trim();
+            const behov             = behovIndex !== -1 ? (cells[behovIndex]?.textContent.trim() || '') : '';
+            const ledsager          = ledsagerIndex !== -1 ? (cells[ledsagerIndex]?.textContent.trim() || '') : '';
+            
+            // Fra og Til ligger i samme celle, splittet på <br>
+            const adresseCell       = cells[adresseIndex]?.innerHTML || '';
+            const fromAddress       = adresseCell.split('<br>')[0].trim();
+            const toAddress         = (adresseCell.split('<br>')[1] || '').trim();
+            
+            const reqId = row.getAttribute('name') || row.id.replace('V-', '');
+            const rowId = row.id.replace('V-', '');
+            
+            const order = {
+                id: reqId,
+                rowId: rowId,
+                patientName,
+                tripStartTime,
+                tripTreatmentTime,
+                behov,
+                ledsager,
+                fromAddress,
+                toAddress,
+                postnrHent: parsePostnummer(fromAddress),
+                postnrLever: parsePostnummer(toAddress),
+                startDateTime: parseDateTime(tripStartTime),
+                treatmentDateTime: parseDateTime(tripTreatmentTime)
+            };
+            
+            ventende.push(normalizeReturnTrip(order));
+        });
+        
+        return ventende;
+    }
+
 
     // Funksjon for å hente alle pågående oppdrag
     function getPaagaendeOppdrag() {
@@ -726,52 +870,353 @@
         return null; // Ingen merket ressurs
     }
 
-    // Funksjon for å beregne faktisk leveringsvindu for en ressurs
-    // Når en ressurs har flere bestillinger, blir leveringsvinduet begrenset av alle bestillingene
-    function calculateActualDeliveryWindow(resourceBookings) {
+    // ============================================================
+    // NY FUNKSJON: Identifiser separate tidssegmenter
+    // Bestillinger som overlapper tidsmessig grupperes i samme segment
+    // ============================================================
+    // ============================================================
+    // NY FUNKSJON: Identifiser separate tidssegmenter
+    // Bestillinger som overlapper tidsmessig grupperes i samme segment
+    // OPPDATERT: Sub-grupper basert på destinasjon hvis postnr varierer mye
+    // ============================================================
+    function identifyTimeSegments(resourceBookings) {
         // Filtrer kun bestillinger til behandling (ikke returer)
         const toTreatment = resourceBookings.filter(b => !b.isReturnTrip);
         
+        console.log(`\n📋 identifyTimeSegments kalles med ${resourceBookings.length} totale bookinger, ${toTreatment.length} til behandling`);
+        toTreatment.forEach((b, i) => {
+            console.log(`  Booking ${i+1}: ${b.tripStartTime} → ${b.tripTreatmentTime} (→${b.postnrLever}) | startDateTime: ${b.startDateTime}, treatmentDateTime: ${b.treatmentDateTime}`);
+        });
+        
         if (toTreatment.length === 0) {
-            return null;
+            return [];
         }
         
-        // For hver bestilling, beregn tidligste og seneste leveringstid
-        let globalEarliestDelivery = null;
-        let globalLatestDelivery = null;
+        // Sorter bestillinger etter startDateTime
+        const sortedBookings = [...toTreatment].sort((a, b) => a.startDateTime - b.startDateTime);
         
-        toTreatment.forEach(booking => {
+        console.log(`\n📊 Etter sortering på startDateTime:`);
+        sortedBookings.forEach((b, i) => {
+            console.log(`  ${i+1}. ${b.tripStartTime} → ${b.postnrLever} (${b.startDateTime.toISOString()})`);
+        });
+        
+        const segments = [];
+        let currentSegment = [sortedBookings[0]];
+        
+        // Beregn leveringsvindu for første bestilling
+        let currentTimeBuffer = isLongTrip(sortedBookings[0].postnrHent, sortedBookings[0].postnrLever)
+            ? LONG_DISTANCE_TIME_BUFFER 
+            : SHORT_DISTANCE_TIME_BUFFER;
+        let currentEarliest = new Date(sortedBookings[0].treatmentDateTime.getTime() - (currentTimeBuffer * 60 * 1000));
+        let currentLatest = sortedBookings[0].treatmentDateTime;
+        
+        // Hold styr på faktisk sluttid for segmentet (siste treatmentDateTime)
+        let currentSegmentEnd = sortedBookings[0].treatmentDateTime;
+        
+        console.log(`\n🔨 Starter segment 1 med booking: ${sortedBookings[0].tripStartTime} → ${sortedBookings[0].postnrLever}`);
+        console.log(`   Initial vindu: ${currentEarliest.toTimeString().substr(0,5)} - ${currentLatest.toTimeString().substr(0,5)}`);
+        console.log(`   Segment sluttid (treatmentDateTime): ${currentSegmentEnd.toTimeString().substr(0,5)}`);
+        
+        // Gå gjennom resten av bestillingene
+        for (let i = 1; i < sortedBookings.length; i++) {
+            const booking = sortedBookings[i];
             const timeBuffer = isLongTrip(booking.postnrHent, booking.postnrLever)
                 ? LONG_DISTANCE_TIME_BUFFER 
                 : SHORT_DISTANCE_TIME_BUFFER;
             
-            // Tidligste levering = oppmøtetid - buffer
-            const earliestDelivery = new Date(booking.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
-            // Seneste levering = oppmøtetid
-            const latestDelivery = booking.treatmentDateTime;
+            const bookingEarliest = new Date(booking.treatmentDateTime.getTime() - (timeBuffer * 60 * 1000));
+            const bookingLatest = booking.treatmentDateTime;
             
-            // Det faktiske vinduet er der ALLE bestillinger kan leveres
-            // Tidligste må være det SENESTE av alle tidligste (kan ikke levere før alle er klare)
-            if (!globalEarliestDelivery || earliestDelivery > globalEarliestDelivery) {
-                globalEarliestDelivery = earliestDelivery;
+            console.log(`\n   Sjekker booking ${i+1}: ${booking.tripStartTime} → ${booking.postnrLever}`);
+            console.log(`   Booking vindu: ${bookingEarliest.toTimeString().substr(0,5)} - ${bookingLatest.toTimeString().substr(0,5)}`);
+            console.log(`   Current segment vindu: ${currentEarliest.toTimeString().substr(0,5)} - ${currentLatest.toTimeString().substr(0,5)}`);
+            
+            // Sjekk gap i faktisk tidsforbruk
+            const gapMinutes = (booking.startDateTime - currentSegmentEnd) / (1000 * 60);
+            console.log(`   Gap fra forrige booking slutt (${currentSegmentEnd.toTimeString().substr(0,5)}) til denne start (${booking.startDateTime.toTimeString().substr(0,5)}): ${Math.round(gapMinutes)} min`);
+            
+            const MIN_GAP_FOR_NEW_SEGMENT = 15;
+            
+            if (gapMinutes < 0) {
+                console.log(`   → Bookingene overlapper i tid (booking starter før forrige slutter) - samme segment`);
             }
             
-            // Seneste må være det SENESTE av alle seneste (kan levere når som helst frem til siste oppmøte)
-            if (!globalLatestDelivery || latestDelivery > globalLatestDelivery) {
-                globalLatestDelivery = latestDelivery;
+            if (gapMinutes > MIN_GAP_FOR_NEW_SEGMENT) {
+                // Gap funnet - start nytt segment
+                segments.push({
+                    bookings: currentSegment,
+                    earliestDelivery: currentEarliest,
+                    latestDelivery: currentLatest
+                });
+                
+                console.log(`   → GAP FUNNET (${Math.round(gapMinutes)} min) - STARTER NYTT SEGMENT`);
+                console.log(`📊 Segment ${segments.length}: ${currentSegment.length} bestilling(er), vindu: ${currentEarliest.toTimeString().substr(0,5)} - ${currentLatest.toTimeString().substr(0,5)}`);
+                
+                currentSegment = [booking];
+                currentEarliest = bookingEarliest;
+                currentLatest = bookingLatest;
+                currentSegmentEnd = booking.treatmentDateTime;
+            } else {
+                // Legg til i current segment
+                currentSegment.push(booking);
+                console.log(`   → Legg til i eksisterende segment (nå ${currentSegment.length} bookinger)`);
+                
+                // Oppdater tidsvinduer
+                if (bookingEarliest > currentEarliest) {
+                    console.log(`   → Oppdaterer earliest fra ${currentEarliest.toTimeString().substr(0,5)} til ${bookingEarliest.toTimeString().substr(0,5)}`);
+                    currentEarliest = bookingEarliest;
+                }
+                if (bookingLatest < currentLatest) {
+                    console.log(`   → Oppdaterer latest fra ${currentLatest.toTimeString().substr(0,5)} til ${bookingLatest.toTimeString().substr(0,5)}`);
+                    currentLatest = bookingLatest;
+                }
+                if (booking.treatmentDateTime > currentSegmentEnd) {
+                    currentSegmentEnd = booking.treatmentDateTime;
+                }
+            }
+        }
+        
+        // Legg til siste segment
+        segments.push({
+            bookings: currentSegment,
+            earliestDelivery: currentEarliest,
+            latestDelivery: currentLatest
+        });
+        
+        console.log(`📊 Segment ${segments.length}: ${currentSegment.length} bestilling(er), vindu: ${currentEarliest.toTimeString().substr(0,5)} - ${currentLatest.toTimeString().substr(0,5)}`);
+        
+        if (segments.length > 1) {
+            console.log(`✓ Totalt ${segments.length} separate tidssegmenter identifisert`);
+        }
+        
+        // NYE STEG: Split segmenter basert på destinasjon hvis nødvendig
+        const finalSegments = [];
+        segments.forEach((segment, segIdx) => {
+            if (segment.bookings.length <= 1) {
+                finalSegments.push(segment);
+                return;
+            }
+            
+            // Sjekk destinasjonsspredning
+            const destinations = segment.bookings.map(b => b.postnrLever);
+            const minDest = Math.min(...destinations);
+            const maxDest = Math.max(...destinations);
+            const destSpread = maxDest - minDest;
+            
+            const DEST_SPLIT_THRESHOLD = 50;
+            
+            if (destSpread > DEST_SPLIT_THRESHOLD) {
+                console.log(`\n🔀 Segment ${segIdx + 1} har stor spredning i destinasjoner (${minDest}-${maxDest}, spread: ${destSpread})`);
+                console.log(`   → Splitter i sub-segmenter basert på destinasjon...`);
+                
+                // Grupper bookinger med lignende destinasjoner (±25 postnr)
+                const destGroups = [];
+                segment.bookings.forEach(booking => {
+                    let foundGroup = false;
+                    for (const group of destGroups) {
+                        const groupAvgDest = group.bookings.reduce((sum, b) => sum + b.postnrLever, 0) / group.bookings.length;
+                        if (Math.abs(booking.postnrLever - groupAvgDest) <= 25) {
+                            group.bookings.push(booking);
+                            foundGroup = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!foundGroup) {
+                        destGroups.push({ bookings: [booking] });
+                    }
+                });
+                
+                console.log(`   → Funnet ${destGroups.length} destinasjonsgrupper`);
+                
+                // Beregn leveringsvindu for hver gruppe
+                destGroups.forEach((group, groupIdx) => {
+                    let groupEarliest = null;
+                    let groupLatest = null;
+                    
+                    group.bookings.forEach(b => {
+                        const buffer = isLongTrip(b.postnrHent, b.postnrLever)
+                            ? LONG_DISTANCE_TIME_BUFFER 
+                            : SHORT_DISTANCE_TIME_BUFFER;
+                        const earliest = new Date(b.treatmentDateTime.getTime() - (buffer * 60 * 1000));
+                        const latest = b.treatmentDateTime;
+                        
+                        if (!groupEarliest || earliest > groupEarliest) {
+                            groupEarliest = earliest;
+                        }
+                        if (!groupLatest || latest < groupLatest) {
+                            groupLatest = latest;
+                        }
+                    });
+                    
+                    const avgDest = Math.round(group.bookings.reduce((sum, b) => sum + b.postnrLever, 0) / group.bookings.length);
+                    console.log(`     Sub-segment ${groupIdx + 1}: ${group.bookings.length} booking(er) til ~${avgDest}, vindu: ${groupEarliest.toTimeString().substr(0,5)} - ${groupLatest.toTimeString().substr(0,5)}`);
+                    
+                    finalSegments.push({
+                        bookings: group.bookings,
+                        earliestDelivery: groupEarliest,
+                        latestDelivery: groupLatest,
+                        destinationArea: avgDest
+                    });
+                });
+            } else {
+                finalSegments.push(segment);
             }
         });
         
-        // Sjekk om vinduet er gyldig (tidligste må være før seneste)
-        if (globalEarliestDelivery >= globalLatestDelivery) {
-            return null; // Ingen overlapp - ressursen kan ikke ta alle bestillingene
+        if (finalSegments.length > segments.length) {
+            console.log(`✓ Totalt ${finalSegments.length} segmenter etter destinasjonssplitting (fra ${segments.length} tidssegmenter)`);
         }
         
+        // Filtrer bort ugyldige segmenter
+        const validSegments = finalSegments.filter(seg => seg.earliestDelivery <= seg.latestDelivery);
+        
+        if (validSegments.length < finalSegments.length) {
+            console.log(`⚠️ ${finalSegments.length - validSegments.length} ugyldige segment(er) filtrert bort (earliest > latest)`);
+        }
+        
+        return validSegments;
+    }
+
+    // ============================================================
+    // OPPDATERT: Beregn leveringsvindu per segment
+    // Returnerer array av segmenter i stedet for ett enkelt vindu
+    // ============================================================
+    function calculateActualDeliveryWindow(resourceBookings) {
+        const segments = identifyTimeSegments(resourceBookings);
+        
+        if (segments.length === 0) {
+            return null;
+        }
+        
+        // Hvis bare ett segment, returner som før (for bakoverkompatibilitet)
+        if (segments.length === 1) {
+            return {
+                earliestDelivery: segments[0].earliestDelivery,
+                latestDelivery: segments[0].latestDelivery,
+                bookingsCount: segments[0].bookings.length,
+                segments: segments  // Legg til segmentinfo også
+            };
+        }
+        
+        // Flere segmenter - returner alle
         return {
-            earliestDelivery: globalEarliestDelivery,
-            latestDelivery: globalLatestDelivery,
-            bookingsCount: toTreatment.length
+            segments: segments,
+            multipleSegments: true
         };
+    }
+
+    // ============================================================
+    // NY FUNKSJON: Sjekk om ventende passer i minst ett segment
+    // ============================================================
+    function checkVentendeAgainstSegments(ventende, actualWindow) {
+        // Beregn ventende sitt leveringsvindu
+        const ventendeTimeBuffer = isLongTrip(ventende.postnrHent, ventende.postnrLever)
+            ? LONG_DISTANCE_TIME_BUFFER 
+            : SHORT_DISTANCE_TIME_BUFFER;
+        
+        // For returer: kan ikke hentes før startDateTime
+        const ventendeEarliest = ventende.isReturnTrip
+            ? ventende.startDateTime
+            : new Date(ventende.treatmentDateTime.getTime() - (ventendeTimeBuffer * 60 * 1000));
+        const ventendeLatest = ventende.treatmentDateTime;
+        
+        // Hvis bare ett segment (bakoverkompatibilitet)
+        if (!actualWindow.multipleSegments) {
+            const isPunktVindu = actualWindow.earliestDelivery.getTime() === actualWindow.latestDelivery.getTime();
+            
+            const overlaps = ventendeEarliest <= actualWindow.latestDelivery && 
+                            actualWindow.earliestDelivery <= ventendeLatest;
+            
+            if (overlaps) {
+                if (isPunktVindu) {
+                    console.log(`  ✓ Ventende passer i punkt-vinduet (${actualWindow.earliestDelivery.toTimeString().substr(0,5)}) - ressurs MÅ levere nøyaktig på dette tidspunktet`);
+                } else {
+                    // Beregn faktisk overlapp i minutter for logging
+                    const overlapStart = ventendeEarliest > actualWindow.earliestDelivery 
+                        ? ventendeEarliest 
+                        : actualWindow.earliestDelivery;
+                    const overlapEnd = ventendeLatest < actualWindow.latestDelivery 
+                        ? ventendeLatest 
+                        : actualWindow.latestDelivery;
+                    const overlapMinutes = (overlapEnd - overlapStart) / (1000 * 60);
+                    
+                    console.log(`  ✓ Ventende passer i leveringsvinduet (${Math.round(overlapMinutes)} min overlapp): ${actualWindow.earliestDelivery.toTimeString().substr(0,5)} - ${actualWindow.latestDelivery.toTimeString().substr(0,5)}`);
+                }
+                
+                return {
+                    matches: true,
+                    matchedSegment: {
+                        earliestDelivery: actualWindow.earliestDelivery,
+                        latestDelivery: actualWindow.latestDelivery,
+                        bookingsCount: actualWindow.bookingsCount,
+                        segmentNumber: 1
+                    }
+                };
+            }
+            return { matches: false };
+        }
+        
+        // Flere segmenter - sjekk mot hvert segment
+        console.log(`  🔍 Sjekker ventende (${ventendeEarliest.toTimeString().substr(0,5)} - ${ventendeLatest.toTimeString().substr(0,5)}, →${ventende.postnrLever}) mot ${actualWindow.segments.length} segmenter:`);
+        
+        for (let i = 0; i < actualWindow.segments.length; i++) {
+            const segment = actualWindow.segments[i];
+            const isPunktVindu = segment.earliestDelivery.getTime() === segment.latestDelivery.getTime();
+            
+            // Sjekk destinasjon hvis segmentet har destinationArea definert
+            if (segment.destinationArea !== undefined) {
+                const destDiff = Math.abs(ventende.postnrLever - segment.destinationArea);
+                if (destDiff > 25) {
+                    console.log(`    Segment ${i+1} (→~${segment.destinationArea}): ${segment.earliestDelivery.toTimeString().substr(0,5)} - ${segment.latestDelivery.toTimeString().substr(0,5)} → ✗ feil destinasjon (ventende →${ventende.postnrLever}, diff: ${destDiff})`);
+                    continue; // Skip dette segmentet - feil destinasjon
+                }
+            }
+            
+            const overlaps = ventendeEarliest <= segment.latestDelivery && 
+                            segment.earliestDelivery <= ventendeLatest;
+            
+            if (overlaps) {
+                if (isPunktVindu) {
+                    const destInfo = segment.destinationArea ? ` →~${segment.destinationArea}` : '';
+                    console.log(`    Segment ${i+1}${destInfo}: ${segment.earliestDelivery.toTimeString().substr(0,5)} (punkt-vindu) → ✓ MATCH (ressurs MÅ levere nøyaktig på dette tidspunktet)`);
+                } else {
+                    // Beregn faktisk overlapp i minutter for logging
+                    const overlapStart = ventendeEarliest > segment.earliestDelivery 
+                        ? ventendeEarliest 
+                        : segment.earliestDelivery;
+                    const overlapEnd = ventendeLatest < segment.latestDelivery 
+                        ? ventendeLatest 
+                        : segment.latestDelivery;
+                    const overlapMinutes = (overlapEnd - overlapStart) / (1000 * 60);
+                    
+                    const destInfo = segment.destinationArea ? ` →~${segment.destinationArea}` : '';
+                    console.log(`    Segment ${i+1}${destInfo}: ${segment.earliestDelivery.toTimeString().substr(0,5)} - ${segment.latestDelivery.toTimeString().substr(0,5)} → ✓ MATCH (${Math.round(overlapMinutes)} min overlapp)`);
+                }
+                
+                return {
+                    matches: true,
+                    matchedSegment: {
+                        earliestDelivery: segment.earliestDelivery,
+                        latestDelivery: segment.latestDelivery,
+                        bookingsCount: segment.bookings.length,
+                        segmentNumber: i + 1,
+                        totalSegments: actualWindow.segments.length
+                    }
+                };
+            } else {
+                if (isPunktVindu) {
+                    const destInfo = segment.destinationArea ? ` →~${segment.destinationArea}` : '';
+                    console.log(`    Segment ${i+1}${destInfo}: ${segment.earliestDelivery.toTimeString().substr(0,5)} (punkt-vindu) → ✗ ingen overlapp`);
+                } else {
+                    const destInfo = segment.destinationArea ? ` →~${segment.destinationArea}` : '';
+                    console.log(`    Segment ${i+1}${destInfo}: ${segment.earliestDelivery.toTimeString().substr(0,5)} - ${segment.latestDelivery.toTimeString().substr(0,5)} → ✗ ingen overlapp`);
+                }
+            }
+        }
+        
+        console.log(`  ✗ Ventende passer ikke i noen av segmentene`);
+        return { matches: false };
     }
 
     // Funksjon for å sjekke om to bestillinger kan samkjøres
@@ -1683,61 +2128,65 @@
             // For ressurser med flere bestillinger: valider mot faktisk leveringsvindu
             const candidates = Array.from(resourceMatches.values())
                 .filter(r => {
-                    if (!r.hasMatch) return false;
+                    console.log(`\n🔎 Validerer ressurs: ${r.resource}`);
+                    console.log(`   Totalt bookinger: ${r.bookings.length}, hasMatch: ${r.hasMatch}`);
+                    
+                    if (!r.hasMatch) {
+                        console.log(`   ✗ Ingen match - filtreres bort`);
+                        return false;
+                    }
                     
                     // Hvis ressursen har flere bestillinger til behandling, sjekk faktisk vindu
                     const toTreatmentBookings = r.bookings.filter(b => !b.isReturnTrip);
+                    console.log(`   Bestillinger til behandling (ikke returer): ${toTreatmentBookings.length}`);
                     
                     if (toTreatmentBookings.length > 1) {
+                        console.log(`   → Ressurs har flere bestillinger, kjører segment-validering...`);
+                        
                         // Hvis match er på en retur (ressurs er retur), returutnyttelse (ventende er retur),
                         // eller overlappende tidsrom (scenario 1F), er matchen uavhengig av andre bestillinger.
                         const hasMatchOnReturn = r.bookings.some(b => b.hasMatch && b.isReturnTrip);
                         const hasMatchReturutnyttelse = r.bookings.some(b => b.hasMatch && b.matchType === 'returutnyttelse');
                         const hasMatchOverlappingTime = r.bookings.some(b => b.hasMatch && b.scenario === '1F');
                         
+                        console.log(`   Match-typer: retur=${hasMatchOnReturn}, returutnyttelse=${hasMatchReturutnyttelse}, overlappende(1F)=${hasMatchOverlappingTime}`);
+                        
                         if (hasMatchOnReturn || hasMatchReturutnyttelse || hasMatchOverlappingTime) {
+                            console.log(`   ✓ Spesiell match-type - godkjennes uten segment-validering`);
                             return true;
                         }
                         
                         const actualWindow = calculateActualDeliveryWindow(r.bookings);
                         
                         if (!actualWindow) {
-                            // Ressursen har ugyldige overlappende vinduer - ingen match
+                            console.log(`   ✗ Kunne ikke beregne gyldig leveringsvindu - filtreres bort`);
                             return false;
                         }
                         
-                        // Sjekk om ventende kan leveres innenfor det faktiske vinduet
-                        // Beregn ventende sitt leveringsvindu
-                        const ventendePostnrDiff = Math.abs(ventende.postnrHent - ventende.postnrLever);
-                        const ventendeTimeBuffer = isLongTrip(ventende.postnrHent, ventende.postnrLever)
-                            ? LONG_DISTANCE_TIME_BUFFER 
-                            : SHORT_DISTANCE_TIME_BUFFER;
+                        // Sjekk om ventende passer i minst ett segment
+                        const segmentCheck = checkVentendeAgainstSegments(ventende, actualWindow);
                         
-                        // For returer: kan ikke hentes før startDateTime
-                        const ventendeEarliest = ventende.isReturnTrip
-                            ? ventende.startDateTime
-                            : new Date(ventende.treatmentDateTime.getTime() - (ventendeTimeBuffer * 60 * 1000));
-                        const ventendeLatest = ventende.treatmentDateTime;
-                        
-                        // Sjekk om vinduene overlapper
-                        const overlaps = ventendeEarliest <= actualWindow.latestDelivery && 
-                                       actualWindow.earliestDelivery <= ventendeLatest;
-                        
-                        if (!overlaps) {
-                            // Ventende passer ikke inn i det faktiske vinduet
+                        if (!segmentCheck.matches) {
+                            console.log(`   ✗ Ventende passer ikke i noen segmenter - filtreres bort`);
                             return false;
                         }
                         
-                        // Oppdater alle matches med info om faktisk vindu
+                        console.log(`   ✓ Ventende passer i segment ${segmentCheck.matchedSegment.segmentNumber} - godkjennes!`);
+                        
+                        // Oppdater alle matches med info om hvilket segment de matcher
                         r.bookings.forEach(booking => {
                             if (booking.hasMatch) {
                                 booking.actualWindowInfo = {
-                                    earliest: actualWindow.earliestDelivery,
-                                    latest: actualWindow.latestDelivery,
-                                    bookingsCount: actualWindow.bookingsCount
+                                    earliest: segmentCheck.matchedSegment.earliestDelivery,
+                                    latest: segmentCheck.matchedSegment.latestDelivery,
+                                    bookingsCount: segmentCheck.matchedSegment.bookingsCount,
+                                    segmentNumber: segmentCheck.matchedSegment.segmentNumber,
+                                    totalSegments: segmentCheck.matchedSegment.totalSegments || 1
                                 };
                             }
                         });
+                    } else {
+                        console.log(`   → Bare én bestilling til behandling - godkjennes direkte`);
                     }
                     
                     return true;
@@ -1825,6 +2274,77 @@
                     }
                 }
             });
+        });
+        
+        // ============================================================
+        // VALIDERING: Sjekk om hver match faktisk passer i target-ressursens leveringsvindu
+        // Dette håndterer multi-drop scenarios og destinasjonssplitting
+        // ============================================================
+        
+        // Først: Hent pagaendeList for å få ALLE bookinger per ressurs
+        const allPagaende = getPaagaendeOppdrag();
+        
+        resourceMatches.forEach((resourceData, key) => {
+            // Hent ALLE bookinger for target-ressursen (ikke bare de som matchet)
+            const allTargetBookings = allPagaende ? allPagaende.filter(p => p.rowId === resourceData.rowId) : [];
+            
+            if (allTargetBookings.length === 0) {
+                console.log(`\n⚠️ Kunne ikke finne bookinger for ressurs ${resourceData.resource}`);
+                resourceMatches.delete(key);
+                return;
+            }
+            
+            const toTreatmentBookings = allTargetBookings.filter(b => !b.isReturnTrip);
+            
+            if (toTreatmentBookings.length > 1) {
+                console.log(`\n🔎 Validerer target-ressurs: ${resourceData.resource} (${toTreatmentBookings.length} bookinger til behandling)`);
+                
+                // Beregn leveringsvindu basert på ALLE bookingene
+                const actualWindow = calculateActualDeliveryWindow(allTargetBookings);
+                
+                if (!actualWindow) {
+                    console.log(`  ✗ Kunne ikke beregne gyldig leveringsvindu - filtreres bort`);
+                    resourceMatches.delete(key);
+                    return;
+                }
+                
+                // Valider hver source-booking mot target-ressursens segmenter
+                const validatedMatches = [];
+                
+                resourceData.matches.forEach(matchInfo => {
+                    const sourceBooking = matchInfo.sourceBooking;
+                    
+                    console.log(`\n  Validerer source-booking: ${sourceBooking.navn} (${sourceBooking.tripStartTime} → ${sourceBooking.tripTreatmentTime}, →${sourceBooking.postnrLever})`);
+                    
+                    const segmentCheck = checkVentendeAgainstSegments(sourceBooking, actualWindow);
+                    
+                    if (segmentCheck.matches) {
+                        console.log(`    ✓ Passer i segment ${segmentCheck.matchedSegment.segmentNumber}`);
+                        validatedMatches.push({
+                            ...matchInfo,
+                            segmentInfo: {
+                                segmentNumber: segmentCheck.matchedSegment.segmentNumber,
+                                totalSegments: segmentCheck.matchedSegment.totalSegments || 1,
+                                earliestDelivery: segmentCheck.matchedSegment.earliestDelivery,
+                                latestDelivery: segmentCheck.matchedSegment.latestDelivery
+                            }
+                        });
+                    } else {
+                        console.log(`    ✗ Passer ikke i noen segmenter - filtreres bort`);
+                    }
+                });
+                
+                // Hvis ingen matches validerte, fjern hele target-ressursen
+                if (validatedMatches.length === 0) {
+                    console.log(`  ✗ Ingen validerte matches - ressurs filtreres bort`);
+                    resourceMatches.delete(key);
+                } else {
+                    const originalCount = resourceData.matches.length;
+                    // Oppdater med kun validerte matches
+                    resourceData.matches = validatedMatches;
+                    console.log(`  ✓ ${validatedMatches.length} av ${originalCount} matches validert`);
+                }
+            }
         });
         
         // Konverter til array og sorter etter beste score
@@ -1948,7 +2468,6 @@
                                         style="background: #2980b9; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; margin-right: 8px; height: 36px;"
                                         onmouseover="this.style.opacity='0.8'"
                                         onmouseout="this.style.opacity='1'"
-                                        tabindex="-1"
                                     >
                                         🗺️ Vis i kart
                                     </button>
@@ -2122,7 +2641,6 @@
                                             style="background: #2980b9; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; margin-right: 8px; height: 36px;"
                                             onmouseover="this.style.opacity='0.8'"
                                             onmouseout="this.style.opacity='1'"
-                                            tabindex="-1"
                                         >
                                             🗺️ Vis i kart
                                         </button>
@@ -2360,6 +2878,393 @@
     }
 
     // Hovedfunksjon
+
+    // ============================================================
+    // AUTO-GRUPPERING: Automatisk samkjøring mellom ventende bestillinger
+    // ============================================================
+    
+    // Global variabel for å huske hvor vi er i listen
+    let currentAutoGroupIndex = 0;
+    
+    // Finn samkjøringer for en spesifikk ventende booking
+    function findVentendeGrouping(bookingIndex = 0) {
+        const ventendeList = getVentendeOppdrag();
+        
+        if (!ventendeList || ventendeList.length === 0) {
+            showErrorToast('📋 Ingen ventende oppdrag funnet');
+            return null;
+        }
+        
+        if (bookingIndex >= ventendeList.length) {
+            showErrorToast('📋 Ingen flere ventende oppdrag');
+            return null;
+        }
+        
+        currentAutoGroupIndex = bookingIndex;
+        const anchorBooking = ventendeList[bookingIndex];
+        
+        console.log(`\n🔍 Auto-gruppering - Søker med: ${anchorBooking.patientName} (${anchorBooking.tripStartTime} → ${anchorBooking.tripTreatmentTime})`);
+        
+        const matches = [];
+        
+        // Søk mot alle andre ventende bookinger
+        // Behandle hver som "en ressurs med én booking"
+        ventendeList.forEach((otherBooking, idx) => {
+            // Skip anchor booking selv
+            if (idx === bookingIndex) return;
+            
+            // checkSamkjoring forventer (ventende, pagaende)
+            // Vi bruker anchorBooking som "ventende" og otherBooking som "pagaende"
+            const match = checkSamkjoring(anchorBooking, otherBooking);
+            
+            if (match) {
+                console.log(`  ✓ Match: ${otherBooking.patientName} (Score: ${match.score})`);
+                matches.push({
+                    booking: otherBooking,
+                    matchType: match.type,
+                    scenario: match.scenario,
+                    score: match.score,
+                    timeDiff: match.timeDiff,
+                    absTimeDiff: match.absTimeDiff,
+                    direction: match.direction,
+                    waitDescription: match.waitDescription,
+                    selected: true  // Alle huket av fra start
+                });
+            }
+        });
+        
+        // Sorter etter score (høyest først)
+        matches.sort((a, b) => b.score - a.score);
+        
+        console.log(`\n📊 Fant ${matches.length} potensielle samkjøringer`);
+        
+        return {
+            anchorBooking,
+            matches,
+            bookingIndex,
+            totalBookings: ventendeList.length
+        };
+    }
+    
+    // Vis auto-gruppering popup
+    function showAutoGroupingPopup(result) {
+        if (!result || result.matches.length === 0) {
+            showInfoToast(`🔍 Ingen samkjøringer funnet for ${result ? result.anchorBooking.patientName : 'denne bookingen'} (${result ? result.bookingIndex + 1 : '?'}/${result ? result.totalBookings : '?'})`);
+            
+            // Prøv neste booking automatisk - fortsett til siste
+            if (result && result.bookingIndex < result.totalBookings - 1) {
+                setTimeout(() => {
+                    const nextResult = findVentendeGrouping(result.bookingIndex + 1);
+                    if (nextResult) {
+                        // Kall showAutoGroupingPopup uansett om den har matches eller ikke
+                        // Dette gjør at vi fortsetter helt til siste booking
+                        showAutoGroupingPopup(nextResult);
+                    }
+                }, 1000);
+            } else if (result && result.bookingIndex === result.totalBookings - 1) {
+                // Vi har nådd siste booking og fant ingen matches i hele listen
+                showInfoToast('📋 Ingen samkjøringsmuligheter funnet i noen av bestillingene');
+            }
+            return;
+        }
+        
+        // Fjern eksisterende popup og overlay
+        const existingPopup = document.getElementById('auto-grouping-popup');
+        if (existingPopup) existingPopup.remove();
+        const existingOverlay = document.getElementById('auto-grouping-overlay');
+        if (existingOverlay) existingOverlay.remove();
+        
+        // Lag overlay (klikk utenfor for å lukke)
+        const overlay = document.createElement('div');
+        overlay.id = 'auto-grouping-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        `;
+        
+        const popup = document.createElement('div');
+        popup.id = 'auto-grouping-popup';
+        popup.style.cssText = `
+            position: fixed;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            width: fit-content;
+            min-width: 900px;
+            max-width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        `;
+        
+        let html = '<h2 style="margin-top: 0;">🔍 Automatisk samkjøring (Ventende → Ventende)</h2>';
+        
+        // Anchor booking
+        html += `
+            <div style="margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 3px;">
+                <h3 style="margin-top: 0; color: #1976d2;">Hovedbestilling (${result.bookingIndex + 1}/${result.totalBookings}):</h3>
+                <table style="width: 100%; border-collapse: collapse; background: white;">
+                    <tr>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Navn</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Hentetid</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Oppmøte</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Behov</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">L</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Fra</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">Til</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${result.anchorBooking.patientName}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${result.anchorBooking.tripStartTime}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${result.anchorBooking.tripTreatmentTime}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${result.anchorBooking.behov || ''}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${result.anchorBooking.ledsager || '-'}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(result.anchorBooking.fromAddress)}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(result.anchorBooking.toAddress)}</td>
+                    </tr>
+                </table>
+            </div>
+        `;
+        
+        // Matches
+        html += `
+            <h3 style="color: #2e7d32;">Potensielle samkjøringer (${result.matches.length}):</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="background: #f5f5f5;">
+                        <th style="padding: 8px; border: 1px solid #ddd; width: 40px;">
+                            <input type="checkbox" id="select-all-auto" checked 
+                                onchange="document.querySelectorAll('.auto-group-checkbox').forEach(cb => cb.checked = this.checked)"
+                                style="cursor: pointer; width: 18px; height: 18px;">
+                        </th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Navn</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Hentetid</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Oppmøte</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Behov</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">L</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Fra</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Til</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Type</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        result.matches.forEach((match, idx) => {
+            const b = match.booking;
+            const rowBg = idx % 2 === 0 ? '#fff' : '#f9f9f9';
+            
+            html += `
+                <tr style="background: ${rowBg}; cursor: pointer;" 
+                    onmouseover="this.style.background='#e3f2fd'" 
+                    onmouseout="this.style.background='${rowBg}'"
+                    onclick="const cb = this.querySelector('.auto-group-checkbox'); cb.checked = !cb.checked; event.stopPropagation();">
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="auto-group-checkbox" data-index="${idx}" checked 
+                            style="cursor: pointer; width: 18px; height: 18px;">
+                    </td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${b.patientName}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${b.tripStartTime}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${b.tripTreatmentTime}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${b.behov || ''}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${b.ledsager || '-'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(b.fromAddress)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${cleanAddressSuffixes(b.toAddress)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${match.matchType}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #2e7d32;">${Math.round(match.score)}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: space-between;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="auto-group-select-btn" onclick="window.selectAutoGroup()" 
+                        style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        ✓ Velg bestillinger
+                    </button>
+                    <button id="auto-group-map-btn" onclick="window.showAutoGroupInMap()" 
+                        style="background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        🗺️ Vis i kart
+                    </button>
+                    <button id="auto-group-next-btn" onclick="window.nextAutoGrouping()" 
+                        style="background: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;"
+                        ${result.bookingIndex >= result.totalBookings - 1 ? 'disabled' : ''}>
+                        ⏭️ Neste bestilling
+                    </button>
+                    <button id="auto-group-close-btn" onclick="window.closeAutoGroupPopup()" 
+                        style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                        Lukk
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        popup.innerHTML = html;
+        
+        // Legg til overlay først
+        document.body.appendChild(overlay);
+        
+        // Deretter popup
+        document.body.appendChild(popup);
+        
+        // Sentrer popup
+        const rect = popup.getBoundingClientRect();
+        popup.style.left = `${Math.max(10, (window.innerWidth - rect.width) / 2)}px`;
+        popup.style.top = `${Math.max(10, (window.innerHeight - rect.height) / 2)}px`;
+        
+        // Funksjon for å lukke popup
+        const closePopup = () => {
+            popup.remove();
+            overlay.remove();
+            document.removeEventListener('keydown', keyboardListener);
+        };
+        
+        // Keyboard handler (ESC og TAB trap)
+        const keyboardListener = (e) => {
+            // ESC lukker popup
+            if (e.key === 'Escape') {
+                closePopup();
+                return;
+            }
+            
+            // TAB trap - samme logikk som andre popups
+            if (e.key === 'Tab') {
+                const focusableElements = Array.from(popup.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                )).filter(el => !el.disabled && el.tabIndex !== -1);
+                
+                if (focusableElements.length === 0) return;
+                
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        };
+        document.addEventListener('keydown', keyboardListener);
+        
+        // Klikk på overlay lukker popup
+        overlay.addEventListener('click', closePopup);
+        
+        // Sett focus på "Velg bestillinger" knappen
+        setTimeout(() => {
+            const selectBtn = document.getElementById('auto-group-select-btn');
+            if (selectBtn) selectBtn.focus();
+        }, 100);
+        
+        // Lagre result og closePopup for senere bruk
+        window.currentAutoGroupResult = result;
+        window.closeAutoGroupPopup = closePopup;
+    }
+    
+    // Global funksjoner for knappene
+    window.nextAutoGrouping = function() {
+        const nextResult = findVentendeGrouping(currentAutoGroupIndex + 1);
+        if (nextResult) {
+            showAutoGroupingPopup(nextResult);
+        }
+    };
+    
+    window.selectAutoGroup = function() {
+        const result = window.currentAutoGroupResult;
+        if (!result) return;
+        
+        // Clear existing selections
+        if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+            ListSelectionGroup.clearAllSelections();
+        }
+        
+        // Samle anchor + alle hukede av bookinger
+        const selectedBookings = [result.anchorBooking];
+        
+        document.querySelectorAll('.auto-group-checkbox:checked').forEach(cb => {
+            const idx = parseInt(cb.dataset.index);
+            selectedBookings.push(result.matches[idx].booking);
+        });
+        
+        // Bruk selectRow for å merke alle i tabellen (riktig merking)
+        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+            selectedBookings.forEach(booking => {
+                const rowId = 'V-' + booking.rowId;
+                selectRow(rowId, g_voppLS);
+            });
+        } else {
+            // Fallback: Sett grønn bakgrunn direkte
+            selectedBookings.forEach(booking => {
+                const row = document.querySelector(`#ventendeoppdrag tbody tr[id="V-${booking.rowId}"]`);
+                if (row) {
+                    row.style.backgroundColor = 'rgb(200, 230, 201)';
+                    row.classList.add('selected-for-grouping');
+                }
+            });
+        }
+        
+        // Bruk closePopup for å fjerne både popup, overlay og event listeners
+        if (window.closeAutoGroupPopup) {
+            window.closeAutoGroupPopup();
+        }
+        showSuccessToast(`✓ ${selectedBookings.length} bestillinger merket`);
+    };
+    
+    // Vis hukede bookinger i kart
+    window.showAutoGroupInMap = function() {
+        const result = window.currentAutoGroupResult;
+        if (!result) return;
+        
+        // Clear existing selections
+        if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+            ListSelectionGroup.clearAllSelections();
+        }
+        
+        // Samle anchor + alle hukede av bookinger
+        const selectedBookings = [result.anchorBooking];
+        
+        document.querySelectorAll('.auto-group-checkbox:checked').forEach(cb => {
+            const idx = parseInt(cb.dataset.index);
+            selectedBookings.push(result.matches[idx].booking);
+        });
+        
+        // Bruk selectRow for å merke alle
+        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+            selectedBookings.forEach(booking => {
+                const rowId = 'V-' + booking.rowId;
+                selectRow(rowId, g_voppLS);
+            });
+            
+            // Trigger Alt+W for å åpne kart
+            setTimeout(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'w',
+                    code: 'KeyW',
+                    altKey: true,
+                    bubbles: true,
+                    cancelable: true
+                }));
+            }, 100);
+        } else {
+            showErrorToast('🗺️ Kunne ikke åpne kart. selectRow funksjon ikke tilgjengelig.');
+        }
+    };
+
+    // Hovedfunksjon
     function runSamkjoringAnalyse() {
         // Sjekk global sperre
         if (window.samkjoringRunning) {
@@ -2415,7 +3320,14 @@
         if (selectedVentende === null) return;
         
         if (selectedVentende.length === 0) {
-            showErrorToast('🚐 Ingen bestillinger eller ressurser er valgt. Vennligst marker én eller flere bestillinger på ventende oppdrag, eller én ressurs på pågående oppdrag.');
+            // MODUS 3: Auto-gruppering - Ingen bestillinger merket
+            console.log('\n🔍 Auto-gruppering aktivert (ingen merkede bestillinger)');
+            
+            const result = findVentendeGrouping(0); // Start med første booking
+            
+            if (result) {
+                showAutoGroupingPopup(result);
+            }
             return;
         }
 
@@ -2441,5 +3353,7 @@
         }
     });
 
-    console.log('✓ NISSY Samkjøringsforslag lastet. Trykk Alt+X for å analysere merkede bestillinger.');
+    console.log('✓ NISSY Samkjøringsforslag lastet.');
+    console.log('  Alt+X = Analyser merkede bestillinger/ressurser');
+    console.log('  (Ingen merkede = Auto-gruppering ventende → ventende)');
 })();
