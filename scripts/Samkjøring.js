@@ -149,7 +149,7 @@
     // ============================================================
     
     // Tidsrelaterte konstanter
-    const SHORT_DISTANCE_POSTNR_DIFF = 33;          // Grense mellom kort og lang tur (postnr diff)
+    const SHORT_DISTANCE_POSTNR_DIFF = 30;          // Grense mellom kort og lang tur (postnr diff)
 
     // ============================================================
     // LONG_DISTANCE_OVERRIDE: Reiser som er geografisk lange
@@ -158,7 +158,7 @@
     // ============================================================
     const LONG_DISTANCE_OVERRIDE = [
         { hentMin: 7770, hentMax: 7797, leverMin: 7800, leverMax: 7805 },
-        { hentMin: 7633, hentMax: 7634, leverMin: 7600, leverMax: 7630 },
+        { hentMin: 7633, hentMax: 7634, leverMin: 7603, leverMax: 7630 },
         // Legg til flere her:
     ];
 
@@ -307,13 +307,11 @@
         { hent1Min: 7500, hent1Max: 7533, hent2Min: 7630, hent2Max: 7632, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7500, hent1Max: 7533, hent2: 7620, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7500, hent1Max: 7533, hent2: 7623, leverMin: 7600, leverMax: 7606 },
-        { hent1Min: 7633, hent1Max: 7633, hent2: 7620, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7717, hent1Max: 7717, hent2Min: 7717, hent2Max: 7717, leverMin: 7713, leverMax: 7725 },
         { hent1Min: 7500, hent1Max: 7995, hent2Min: 7500, hent2Max: 7995, leverMin: 7003, leverMax: 7099 },
         { hent1Min: 7770, hent1Max: 7797, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
         { hent1Min: 7500, hent1Max: 7751, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
-    
         // Legg til flere her:
         // { hent1: 7600, hent2: 7500, leverMin: 7700, leverMax: 7710 },
     ];
@@ -2364,6 +2362,9 @@
 
     // Funksjon for å vise resultat popup
     function showResultsPopup(results, isResourceMode = false) {
+        // isResourceMode can be: false (ventende), true (ressurs), or 'multi-ventende'
+        const isMultiVentende = isResourceMode === 'multi-ventende';
+        const isActualResourceMode = isResourceMode === true;
         // Fjern eksisterende popup hvis den finnes
         const existingPopup = document.getElementById('samkjoring-popup');
         if (existingPopup) {
@@ -2376,8 +2377,8 @@
         
         let html = '<h2 style="margin-top: 0;">🚐 Samkjøringsforslag</h2>';
 
-        // RESSURSMODUS: Helt annen struktur
-        if (isResourceMode) {
+        // RESSURSMODUS eller MULTI-VENTENDE: Helt annen struktur
+        if (isActualResourceMode || isMultiVentende) {
             if (!results || !results.candidates || results.candidates.length === 0) {
                 popup.style.cssText = `
                     position: fixed;
@@ -2408,11 +2409,14 @@
                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
                 `;
                 
-                // Show source resource header and ALL its bookings
+                // Show source header and ALL bookings
+                const headerText = isMultiVentende ? 'Merkede bestillinger:' : 'Merket ressurs:';
+                const resourceName = isMultiVentende ? '' : `<p style="margin: 5px 0 10px 0; font-weight: bold; color: #333;">🚐 ${results.selectedResource.resource}</p>`;
+                
                 html += `
                     <div style="margin-bottom: 25px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
-                        <h3 style="margin-top: 0; color: #0066cc;">Merket ressurs:</h3>
-                        <p style="margin: 5px 0 10px 0; font-weight: bold; color: #333;">🚐 ${results.selectedResource.resource}</p>
+                        <h3 style="margin-top: 0; color: #0066cc;">${headerText}</h3>
+                        ${resourceName}
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white;">
                             <tbody>
                                 <tr style="background: #f0f8ff;">
@@ -2479,7 +2483,7 @@
                                         onmouseover="this.style.opacity='0.8'"
                                         onmouseout="this.style.opacity='1'"
                                     >
-                                        🚐 Velg ressurser
+                                        🚐 Velg ressurs
                                     </button>
                                 </div>
                             </div>
@@ -2804,20 +2808,48 @@
 
         window.selectSamkjoringResourcePair = (sourceResourceId, targetResourceId) => {
             try {
-                // Clear all selections first
+                // Special case: multi-ventende mode - save selected ventende BEFORE clearing
+                let selectedVentendeIds = [];
+                if (sourceResourceId === 'ventende-multi') {
+                    const ventendeRows = document.querySelectorAll('#ventendeoppdrag tbody tr');
+                    ventendeRows.forEach(row => {
+                        const bgColor = row.style.backgroundColor;
+                        if (bgColor === 'rgb(148, 169, 220)') {
+                            selectedVentendeIds.push(row.id.replace('V-', ''));
+                        }
+                    });
+                }
+                
+                // Clear all selections
                 if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
                     ListSelectionGroup.clearAllSelections();
                 }
                 
-                // Select both resources
-                const sourceRow = document.getElementById('P-' + sourceResourceId);
-                const targetRow = document.getElementById('P-' + targetResourceId);
-                
-                if (sourceRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
-                    selectRow('P-' + sourceResourceId, g_poppLS);
-                }
-                if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
-                    selectRow('P-' + targetResourceId, g_poppLS);
+                // Multi-ventende: select all saved ventende + target resource
+                if (sourceResourceId === 'ventende-multi') {
+                    // Re-select ventende bookings
+                    selectedVentendeIds.forEach(rowId => {
+                        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+                            selectRow('V-' + rowId, g_voppLS);
+                        }
+                    });
+                    
+                    // Also select target resource
+                    const targetRow = document.getElementById('P-' + targetResourceId);
+                    if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                        selectRow('P-' + targetResourceId, g_poppLS);
+                    }
+                } else {
+                    // Normal resource pair selection
+                    const sourceRow = document.getElementById('P-' + sourceResourceId);
+                    const targetRow = document.getElementById('P-' + targetResourceId);
+                    
+                    if (sourceRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                        selectRow('P-' + sourceResourceId, g_poppLS);
+                    }
+                    if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                        selectRow('P-' + targetResourceId, g_poppLS);
+                    }
                 }
                 
                 closePopup();
@@ -2845,18 +2877,48 @@
 
         window.showSamkjoringInMapResource = (sourceResourceId, targetResourceId) => {
             try {
+                // Special case: multi-ventende mode - save selected ventende BEFORE clearing
+                let selectedVentendeIds = [];
+                if (sourceResourceId === 'ventende-multi') {
+                    const ventendeRows = document.querySelectorAll('#ventendeoppdrag tbody tr');
+                    ventendeRows.forEach(row => {
+                        const bgColor = row.style.backgroundColor;
+                        if (bgColor === 'rgb(148, 169, 220)') {
+                            selectedVentendeIds.push(row.id.replace('V-', ''));
+                        }
+                    });
+                }
+                
+                // Clear all selections
                 if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
                     ListSelectionGroup.clearAllSelections();
                 }
                 
-                const sourceRow = document.getElementById('P-' + sourceResourceId);
-                const targetRow = document.getElementById('P-' + targetResourceId);
-                
-                if (sourceRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
-                    selectRow('P-' + sourceResourceId, g_poppLS);
-                }
-                if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
-                    selectRow('P-' + targetResourceId, g_poppLS);
+                // Multi-ventende: select all saved ventende + target resource
+                if (sourceResourceId === 'ventende-multi') {
+                    // Re-select ventende bookings
+                    selectedVentendeIds.forEach(rowId => {
+                        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+                            selectRow('V-' + rowId, g_voppLS);
+                        }
+                    });
+                    
+                    // Also select target resource
+                    const targetRow = document.getElementById('P-' + targetResourceId);
+                    if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                        selectRow('P-' + targetResourceId, g_poppLS);
+                    }
+                } else {
+                    // Normal resource pair
+                    const sourceRow = document.getElementById('P-' + sourceResourceId);
+                    const targetRow = document.getElementById('P-' + targetResourceId);
+                    
+                    if (sourceRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                        selectRow('P-' + sourceResourceId, g_poppLS);
+                    }
+                    if (targetRow && typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
+                        selectRow('P-' + targetResourceId, g_poppLS);
+                    }
                 }
                 
                 setTimeout(() => {
@@ -3315,7 +3377,7 @@
             return;
         }
         
-        // MODUS 2: Ventende-modus (normal) - kun nå sjekker vi ventende kolonner
+        // MODUS 2: Ventende-modus - sjekk ventende kolonner
         const selectedVentende = getSelectedVentendeOppdrag();
 
         // null = kolonne-validering feilt (toast er allerede vist)
@@ -3332,7 +3394,33 @@
             }
             return;
         }
+        
+        // MODUS 4: Multi-ventende som "ressurs" - 2+ bestillinger merket
+        if (selectedVentende.length >= 2) {
+            console.log(`\n🚐 Multi-ventende modus (${selectedVentende.length} bestillinger merket)`);
+            
+            // Behandle merkede ventende som en "ressurs"
+            const syntheticResource = {
+                resource: `Ventende oppdrag (${selectedVentende.length} best.)`,
+                rowId: 'ventende-multi',
+                bookings: selectedVentende
+            };
+            
+            // Sett sperre
+            window.samkjoringRunning = true;
+            
+            const results = findCandidatesForResource(syntheticResource);
+            
+            if (results === null) {
+                window.samkjoringRunning = false;
+                return;
+            }
+            
+            showResultsPopup(results, 'multi-ventende'); // Spesiell modus
+            return;
+        }
 
+        // Normal ventende-modus (1 bestilling merket)
         // Sett sperre
         window.samkjoringRunning = true;
 
