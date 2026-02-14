@@ -2295,6 +2295,15 @@
                 return;
             }
             
+            // Sjekk om alle matches er returutnyttelse - da hopper vi over validering
+            const allMatchesAreReturutnyttelse = resourceData.matches.every(m => m.matchType === 'returutnyttelse');
+            
+            if (allMatchesAreReturutnyttelse) {
+                console.log(`\n✓ Alle matches er returutnyttelse - hopper over segment-validering`);
+                // Ingen validering nødvendig for returutnyttelse
+                return;
+            }
+            
             const toTreatmentBookings = allTargetBookings.filter(b => !b.isReturnTrip);
             
             if (toTreatmentBookings.length > 1) {
@@ -2459,14 +2468,17 @@
                 
                 // Show each candidate resource
                 results.candidates.forEach((candidate, candIdx) => {
-                    const borderColor = '#28a745';
+                    // Determine badge based on match types
+                    const hasReturutnyttelse = candidate.matches && candidate.matches.some(m => m.matchType === 'returutnyttelse');
+                    const borderColor = hasReturutnyttelse ? '#9b59b6' : '#28a745';
+                    const badgeText = hasReturutnyttelse ? 'RETURUTNYTTELSE' : 'SAMKJØRING';
                     
                     html += `
                         <div style="margin: 15px 0; padding: 12px; background: white; border-left: 4px solid ${borderColor}; border-radius: 3px;">
                             <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     ${candIdx + 1}. ${candidate.resource}
-                                    <span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">SAMKJØRING</span>
+                                    <span style="background: ${borderColor}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 10px;">${badgeText}</span>
                                     <span style="color: ${borderColor}; font-size: 0.95em; margin-left: 10px;">Score: ${Math.round(candidate.bestScore)}</span>
                                 </div>
                                 <div>
