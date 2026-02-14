@@ -18,6 +18,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Ved søk etter rekvisisjonsnummer velges nå raden på ventende eller pågående oppdrag.
 - 🚐 **Samkjøring**
   - Ny modus: Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
+  - Ny modus: Hvis 2+ ventende bestillinger er merket, anses de som at de skal samkjøres, og søker samlet etter ressurser på pågående oppdrag.
   - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
 - 🔔 **Overvåk-Ventende** 
   - Lagt til i basic- og advanced-loader.
