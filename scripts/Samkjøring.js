@@ -149,7 +149,7 @@
     // ============================================================
     
     // Tidsrelaterte konstanter
-    const SHORT_DISTANCE_POSTNR_DIFF = 30;          // Grense mellom kort og lang tur (postnr diff)
+    const SHORT_DISTANCE_POSTNR_DIFF = 33;          // Grense mellom kort og lang tur (postnr diff)
 
     // ============================================================
     // LONG_DISTANCE_OVERRIDE: Reiser som er geografisk lange
@@ -158,7 +158,7 @@
     // ============================================================
     const LONG_DISTANCE_OVERRIDE = [
         { hentMin: 7770, hentMax: 7797, leverMin: 7800, leverMax: 7805 },
-        { hentMin: 7633, hentMax: 7634, leverMin: 7603, leverMax: 7630 },
+        { hentMin: 7633, hentMax: 7634, leverMin: 7600, leverMax: 7630 },
         // Legg til flere her:
     ];
 
@@ -307,6 +307,7 @@
         { hent1Min: 7500, hent1Max: 7533, hent2Min: 7630, hent2Max: 7632, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7500, hent1Max: 7533, hent2: 7620, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7500, hent1Max: 7533, hent2: 7623, leverMin: 7600, leverMax: 7606 },
+        { hent1Min: 7633, hent1Max: 7633, hent2: 7620, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7650, hent1Max: 7691, hent2Min: 7120, hent2Max: 7126, leverMin: 7600, leverMax: 7606 },
         { hent1Min: 7717, hent1Max: 7717, hent2Min: 7717, hent2Max: 7717, leverMin: 7713, leverMax: 7725 },
         { hent1Min: 7500, hent1Max: 7995, hent2Min: 7500, hent2Max: 7995, leverMin: 7003, leverMax: 7099 },
