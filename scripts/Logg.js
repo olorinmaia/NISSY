@@ -301,8 +301,6 @@
       showLoggPopup();
     }
   };
-  
-  console.log('💡 TIP: Kjør nissyLoggReset() i console for å resette loggen hvis den blir korrupt');
 
   /**
    * Slett alle loggoppføringer
