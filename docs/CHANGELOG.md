@@ -22,6 +22,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
 - 🔔 **Overvåk-Ventende** 
   - Lagt til i basic- og advanced-loader. Installeres som en knapp over ventende oppdrag.
+  - Forbedret slik at knappen får en grønn bakgrunnsfarge når overvåking er aktiv. Når deaktivert har knappen vanlig blå bakgrunnsfarge.
 
 ## 🚀 [3.5.1] - 10.02.2026
 

@@ -114,6 +114,12 @@
           .nissy-header-btn:active {
             transform: translateY(0);
           }
+          .nissy-header-btn.monitor-active {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+          }
+          .nissy-header-btn.monitor-active:hover {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+          }
         `;
         document.head.appendChild(style);
       }
@@ -186,6 +192,24 @@
       firstTd.appendChild(adminBtn);
       firstTd.appendChild(loggBtn);
 
+      // Oppdater monitor-knappens status basert på om overvåking er aktiv
+      function updateMonitorButtonStatus() {
+        const isActive = window.ventendeMonitor !== undefined;
+        if (isActive) {
+          monitorBtn.classList.add('monitor-active');
+          monitorBtn.title = 'Overvåking av ventende oppdrag er aktiv - Trykk for å stoppe';
+        } else {
+          monitorBtn.classList.remove('monitor-active');
+          monitorBtn.title = 'Start overvåking av nye bestillinger på ventende oppdrag';
+        }
+      }
+
+      // Oppdater status når knappen opprettes
+      updateMonitorButtonStatus();
+
+      // Sjekk status hvert 2. sekund
+      setInterval(updateMonitorButtonStatus, 2000);
+      
       console.log("✅ Knapper i header installert");
     }
 

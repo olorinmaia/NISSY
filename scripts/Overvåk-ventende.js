@@ -16,14 +16,15 @@ function showMonitorPopup(isStarting) {
             <h2 style="margin: 0 0 15px 0; color: #333;">🔔 Overvåking av ventende oppdrag startet!</h2>
             
             <div style="font-size: 14px; color: #666; margin-bottom: 15px;">
-              Dette scriptet overvåker kontinuerlig ventende oppdrag og varsler deg når nye bestillinger kommer inn.
+              Dette scriptet overvåker ventende oppdrag og varsler deg når nye bestillinger kommer inn.
             </div>
 
             <h3 style="margin: 15px 0 8px 0; color: #555;">Hvordan det fungerer:</h3>
             <div style="font-size: 13px; color: #666;">
               • Sjekker hvert 10. sekund for nye bestillinger<br>
-              • Viser <strong style="color: #FF6600;">🟠 oransje favicon</strong> med antall nye bestillinger<br>
-              • Etter 60 sekunder uhåndtert: <strong style="color: #FF0000;">🔴 rød favicon</strong> (urgent!)<br>
+              • Viser totalt antall bestillinger for ventende oppdrag i fanetittel<br>
+              • Viser <strong style="color: #FF6600;">🟠 oransje bokmerkeikon</strong> med antall nye bestillinger<br>
+              • Etter 60 sekunder uhåndtert: <strong style="color: #FF0000;">🔴 rød bokmerkeikon</strong><br>
               • Blinkende fanetittel i 30 sekunder<br>
               • Lyd-signal ved nye bestillinger<br>
               • Persistent varselbanner øverst på siden<br>
@@ -39,11 +40,13 @@ function showMonitorPopup(isStarting) {
               <strong>💡 Tips:</strong><br>
               • Bestillinger som var der ved oppstart gir ikke varsel<br>
               • Hvis de planlegges og kommer tilbake får du nytt varsel<br>
-              • Klikk på toast-varsel merker automatisk de nye bestillingene
+              • Klikk på toast-varsel merker automatisk de nye bestillingene<br>
+              • Ved bytte av filter vil alle nye bestillinger gi varsel (fordi scriptet ikke kan vite om de er nylig opprettet eller ikke)<br>
+              • Det anbefales derfor ikke å bytte filter når overvåking er aktiv
             </div>
 
             <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
-              <strong>🛑 Stopp overvåking:</strong> Trykk på knappen "🔔 Overvåk-Ventende" på nytt for å stoppe.
+              <strong>🛑 Stopp overvåking:</strong> Trykk på knappen 🔔 Overvåk-Ventende på nytt.
             </div>
 
             <button id="closeMonitorPopup" style="
@@ -57,7 +60,7 @@ function showMonitorPopup(isStarting) {
               font-size: 14px;
               font-weight: bold;
               width: 100%;
-            ">Start overvåking →</button>
+            ">Lukk</button>
           </div>
         `;
     } else {
@@ -73,7 +76,7 @@ function showMonitorPopup(isStarting) {
 
             <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 6px;">
               <div style="font-size: 13px; color: #666;">
-                For å starte på nytt, trykk på knappen "🔔 Overvåk-Ventende".
+                For å starte på nytt, trykk på knappen 🔔 Overvåk-Ventende.
               </div>
             </div>
 
@@ -227,8 +230,6 @@ class VentendeOppdragMonitor {
             () => this.checkForChanges(), 
             CONFIG.checkInterval
         );
-        
-        console.log('✅ Overvåking startet - sjekker hvert', CONFIG.checkInterval / 1000, 'sekund');
     }
     
     // -------------------------------------------------------------------------
@@ -752,24 +753,4 @@ setTimeout(() => {
     showMonitorPopup(true);
 }, 500);
 
-console.log(`✅ Overvåking startet!
-
-Logikk:
-- Favicon viser antall NYE bestillinger fra siste varsel (samme som toast)
-- Tittel (i parentes) viser TOTALT antall bestillinger på ventende oppdrag
-- Bestillinger som planlegges og kommer tilbake gir nytt varsel
-- 🟠 Oransje favicon = Nye bestillinger (< ${CONFIG.urgentThreshold/1000} sekunder)
-- 🔴 Rød favicon = Urgent (> ${CONFIG.urgentThreshold/1000} sekunder uhåndtert)
-
-Brukerinteraksjon:
-✓ Popup forsvinner IKKE automatisk
-✓ Klikk på popup → Merker nye bestillinger + nullstiller varsel
-✓ Planlegg en ny bestilling → Nullstiller varsel automatisk
-
-Aktive varsler:
-✓ Blinkende fanetittel ved nye bestillinger
-✓ Lyd-signal
-✓ Persistent popup (må klikkes bort)
-${CONFIG.enableNotification ? '✓ Desktop-notifikasjon (hvis tillatt)' : ''}
-
-Kjør stopMonitor() for å stoppe.`);
+console.log(`✅ Overvåking av ventende oppdrag startet!`);
