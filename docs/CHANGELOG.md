@@ -7,9 +7,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
-## 🚀 [3.6.0] - 13.02.2026
+## 🚀 [3.6.0] - 15.02.2026
 
-### Nytt script Handlingslogg og forbedringer til NISSY-fiks og Samkjøring
+### Nytt script Handlingslogg og forbedringer til flere script
 - 📋 **Handlingslogg**
   - Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
   - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
@@ -18,9 +18,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Ved søk etter rekvisisjonsnummer velges nå raden på ventende eller pågående oppdrag.
 - 🚐 **Samkjøring**
   - Ny modus: Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
+  - Ny modus: Hvis 2+ ventende bestillinger er merket, anses de som at de skal samkjøres, og søker samlet etter ressurser på pågående oppdrag.
   - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
 - 🔔 **Overvåk-Ventende** 
-  - Lagt til i basic- og advanced-loader.
+  - Lagt til i basic- og advanced-loader. Installeres som en knapp over ventende oppdrag.
+  - Forbedret slik at knappen får en grønn bakgrunnsfarge når overvåking er aktiv. Når deaktivert har knappen vanlig blå bakgrunnsfarge.
 
 ## 🚀 [3.5.1] - 10.02.2026
 
