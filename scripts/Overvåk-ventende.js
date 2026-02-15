@@ -178,8 +178,11 @@ if (window.ventendeMonitor) {
     // Vis stopp-popup
     showMonitorPopup(false);
     
-    throw new Error('Monitor stopped by user');
-}
+    console.log('✅ Overvåking stoppet');
+    
+    // Stopp scriptet her - ikke kjør resten
+} else {
+    // Scriptet kjører ikke - START DET
 
 const CONFIG = {
     checkInterval: 10000,           // Sjekk hvert 10. sekund
@@ -754,3 +757,5 @@ setTimeout(() => {
 }, 500);
 
 console.log(`✅ Overvåking av ventende oppdrag startet!`);
+
+} // Slutt på else-blokk fra linje 184

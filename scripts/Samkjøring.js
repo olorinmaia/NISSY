@@ -15,6 +15,7 @@
     
     // Marker scriptet som lastet
     window.nissySamkjoringLoaded = true;
+    console.log("🚀 Starter Samkjøring-script");
 
     // ============================================================
     // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
@@ -3458,7 +3459,5 @@
         }
     });
 
-    console.log('✓ NISSY Samkjøringsforslag lastet.');
-    console.log('  Alt+X = Analyser merkede bestillinger/ressurser');
-    console.log('  (Ingen merkede = Auto-gruppering ventende → ventende)');
+    console.log('✅ Samkjøring lastet');
 })();
