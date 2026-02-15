@@ -7,9 +7,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
-## 🚀 [3.6.0] - 13.02.2026
+## 🚀 [3.6.0] - 15.02.2026
 
-### Nytt script Handlingslogg og forbedringer til NISSY-fiks og Samkjøring
+### Nytt script Handlingslogg og forbedringer til flere script
 - 📋 **Handlingslogg**
   - Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
   - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
