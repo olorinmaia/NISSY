@@ -1003,19 +1003,24 @@
       } else {
         console.warn('⚠️ NISSY-logg: Ingen rader ble funnet ved klikk');
         
-        // Fallback: Prøv å finne rader etter litt ventetid
+        // Fallback: Prøv å finne rader etter litt ventetid (KUN ventende bestillinger)
         const selectedRowsLater = document.querySelectorAll(
-          'tr[style*="background-color: rgb(148, 169, 220)"]'
+          '#ventendeoppdrag tr[style*="background-color: rgb(148, 169, 220)"]'
         );
         
+        // Filtrer til kun V- (ventende) rader
+        const ventendeRows = Array.from(selectedRowsLater).filter(row => 
+          row.id && row.id.startsWith('V-')
+        );
         
-        if (selectedRowsLater.length > 0) {
+        if (ventendeRows.length > 0) {
           const detailsLater = [];
-          selectedRowsLater.forEach((row) => {
+          ventendeRows.forEach((row) => {
             detailsLater.push(extractRowInfo(row));
           });
           saveLogEntry('Tildeling', detailsLater);
         }
+        // Hvis fortsatt ingen ventende bestillinger funnet, logg INGENTING
       }
     }, 300);
   }
