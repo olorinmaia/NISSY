@@ -687,7 +687,8 @@
     statsText.appendChild(totalSpan);
 
     const clearBtn = document.createElement('button');
-    clearBtn.textContent = '🗑️ Slett alle';
+    clearBtn.textContent = '🗑️ Slett logg';
+    clearBtn.title = 'Slett alle oppføringer i handlingsloggen';
     clearBtn.style.cssText = `
       background: #d32f2f;
       color: white;

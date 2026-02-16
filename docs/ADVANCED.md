@@ -14,7 +14,7 @@
 - 📋 **Handlingslogg** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
 - 🔔 **Overvåk-Ventende** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - ✖️ **Avbestilling.js** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
-- 🚐 **Samkjøring** -  (Alt+X) Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
+- 🚐 **Samkjøring** -  (Alt+X) Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter. Hvis ingenting merkes søkes det innad på ventende oppdrag.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og datofeil, lar deg søke opp disse for å rette opp.
