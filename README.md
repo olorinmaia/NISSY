@@ -67,6 +67,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
   - Kan merke en ressurs og søke etter andre ressurser på samme filter for replanlegging. F.eks. for å se om ressursen kan slåes sammen med andre ressurser.
   - Kan ikke merke bestilling på ventende og ressurs på pågående samtidig. Det er to forskjellige moduser.
+  - Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
+   - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3ebda51d-813d-49e8-9592-3888c40e0719" />
 
 - 📋 **Handlingslogg (Alt+L)** 
