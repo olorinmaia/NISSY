@@ -174,7 +174,7 @@
       bestillingsBtn.id = 'nissy-bestilling-btn';
       bestillingsBtn.className = 'nissy-header-btn';
       bestillingsBtn.type = 'button';
-      bestillingsBtn.title = 'Åpne bestillingsmodul';
+      bestillingsBtn.title = 'Åpne foretrukket bestillingsmodul. Trykk Alt+H for "Hent rekvisisjon"';
       bestillingsBtn.textContent = '📝 Bestillingsmodul (Alt+N)';
       bestillingsBtn.addEventListener('click', () => triggerHotkey('n'));
 

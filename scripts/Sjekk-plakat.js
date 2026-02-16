@@ -69,7 +69,9 @@
     'yrkesskade',
     'følges',
     'ledsager',
-    'pårørende'
+    'pårørende',
+    'toalett',
+    'dobesøk'
   ];
 
   // ============================================================
