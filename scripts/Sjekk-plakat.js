@@ -49,7 +49,6 @@
   // ============================================================
   const PROBLEMATIC_KEYWORDS = [
     'alenebil',
-    'alene',
     'smitte',
     'hentes',
     'adresse',
@@ -62,7 +61,6 @@
     'høy bil',
     'liten bil',
     'forsete',
-    'direktebil',
     'direkte',
     'sitte',
     'hjelp',
