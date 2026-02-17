@@ -12,7 +12,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ### Sjekk-bestilling finner nå feil på tidspunkt og lagt til mapping for Ålesund sjukehus i Rutekalkulering
 - 🔍 **Sjekk-Bestilling**
   - Sjekker nå for feil på tidspunkt: Hvis hentetid er senere enn leveringstid (logisk umulig) så fanges dette opp og lar deg søke opp for å rette.
-    - Hvis til behandling, rediger og slett hentetid for å reberegne hentetid deretter lagre. Hvis fra behandling, rediger og lagre.
+    - Prøver å filtrere bort reiser fra behandling, det er for mange tilfeller av tidspunktfeil pga API-bestillinger (har meldt feil til Pas HF)
   - Forbedret "Søk i planlegging"-funksjonalitet: Når kun 1 bestilling søkes det på rekvisisjonsnummer.
 - 🚐 **Samkjøring**
   - Forbedret logikk på returer og lagt til ytterlig blokkeringslogikk for returer når de samkjøres.

@@ -7,6 +7,7 @@
 // - Rute-duplikater: Samme fra- eller til-adresse
 // - Datofeil: Hentetid og leveringstid har ulik dato
 // - Tidsfeil: Hentetid er senere enn leveringstid (logisk umulig)
+//   → Konfigurerbart: CHECK_TO_TREATMENT / CHECK_FROM_TREATMENT
 // - Problematiske spesielle behov: Kombinasjoner som ERS+RB som skaper problemer
 // 
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
@@ -41,6 +42,53 @@
     // Legg til flere kombinasjoner her etter behov
     // { needs: ['X', 'Y'], description: 'X + Y beskrivelse' },
   ];
+
+  // ============================================================
+  // KONFIGURASJON: TIDSFEIL-SJEKK
+  // ============================================================
+  // Kontroller hvilke reiseretninger som skal sjekkes for tidsfeil
+  const CHECK_TO_TREATMENT = true;    // Sjekk reiser TIL behandling (fra gateadresse)
+  const CHECK_FROM_TREATMENT = false;  // Sjekk returreiser FRA behandling (til gateadresse)
+
+  // ============================================================
+  // HJELPEFUNKSJON: Sjekk om en adresse er en gateadresse (har husnummer)
+  // ============================================================
+  /**
+   * Sjekker om en adresse inneholder et husnummer før komma.
+   * Eksempler på husnummer:
+   * - "Bergslia 12, 7620 Skogn" - tall
+   * - "Kirkegata 5B, 7600 Levanger" - tall+bokstav
+   * - "Storgata 12 H0101, 7600 Levanger" - tall + H0101/U0101
+   */
+  function isStreetAddress(address) {
+    if (!address) return false;
+    
+    // Regex som matcher husnummer før komma:
+    // \s+ = whitespace
+    // \d+ = ett eller flere tall (husnummeret)
+    // [A-Za-zÆØÅæøå]? = valgfri bokstav (f.eks. 12A, 5B)
+    // (?:\s+[HU]\d{4})? = valgfri H0101 eller U0101 suffiks
+    // \s*, = valgfri whitespace før komma
+    const streetPattern = /\s+\d+[A-Za-zÆØÅæøå]?(?:\s+[HU]\d{4})?\s*,/;
+    
+    return streetPattern.test(address);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Identifiser reiseretning
+  // ============================================================
+  function getTripDirection(fra, til) {
+    const fraIsStreet = isStreetAddress(fra);
+    const tilIsStreet = isStreetAddress(til);
+    
+    if (fraIsStreet && !tilIsStreet) {
+      return 'TO_TREATMENT';   // Fra gateadresse til behandlingssted
+    } else if (!fraIsStreet && tilIsStreet) {
+      return 'FROM_TREATMENT'; // Fra behandlingssted til gateadresse
+    } else {
+      return 'UNKNOWN';        // Begge eller ingen er gateadresse
+    }
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Sjekk om behov inneholder problematisk kombinasjon
@@ -597,11 +645,28 @@
       
       // Sjekk om hentetid er senere enn leveringstid
       if (hentetidMinutes > leveringstidMinutes) {
-        errors.push({
-          navn: item.navn,
-          items: [item],
-          reason: 'Hentetid er senere enn leveringstid'
-        });
+        // Identifiser reiseretning
+        const direction = getTripDirection(item.fra, item.til);
+        
+        // Filtrer basert på konfigurasjon
+        let shouldInclude = false;
+        
+        if (direction === 'TO_TREATMENT' && CHECK_TO_TREATMENT) {
+          shouldInclude = true;
+        } else if (direction === 'FROM_TREATMENT' && CHECK_FROM_TREATMENT) {
+          shouldInclude = true;
+        } else if (direction === 'UNKNOWN') {
+          // Hvis vi ikke kan bestemme retning, inkluder hvis minst én sjekk er aktivert
+          shouldInclude = CHECK_TO_TREATMENT || CHECK_FROM_TREATMENT;
+        }
+        
+        if (shouldInclude) {
+          errors.push({
+            navn: item.navn,
+            items: [item],
+            reason: 'Hentetid er senere enn leveringstid'
+          });
+        }
       }
     }
     
