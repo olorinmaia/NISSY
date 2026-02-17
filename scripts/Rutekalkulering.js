@@ -147,6 +147,9 @@
     ".../Gastro 4. Sengeområde Seksjon lindrende behandling, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "Nevro 1. Hovedinngang vest, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
+    // Ålesund Sykehus
+    "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
+
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
     "Brit&Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
