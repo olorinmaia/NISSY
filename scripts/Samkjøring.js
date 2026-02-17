@@ -316,6 +316,7 @@
         { hent1Min: 7500, hent1Max: 7995, hent2Min: 7500, hent2Max: 7995, leverMin: 7003, leverMax: 7099 },
         { hent1Min: 7770, hent1Max: 7797, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
         { hent1Min: 7500, hent1Max: 7751, hent2Min: 7820, hent2Max: 7823, leverMin: 7800, leverMax: 7804 },
+        { hent1Min: 7600, hent1Max: 7606, hent2Min: 7600, hent2Max: 7606, leverMin: 7500, leverMax: 7533 },
         // Legg til flere her:
         // { hent1: 7600, hent2: 7500, leverMin: 7700, leverMax: 7710 },
     ];
