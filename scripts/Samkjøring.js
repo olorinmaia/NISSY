@@ -230,16 +230,8 @@
     //   ressursHent / ressursLever: der ressursen henter/leverer
     //   ventendeHent / ventendeLever: der ventende henter/leverer
     const BLOCKED_RETURN_PAIRS = [
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7710, max: 7732 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7790, max: 7797 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7650, max: 7660 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7740, max: 7777 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7670, max: 7670 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7690, max: 7690 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7900, max: 7994 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7800, max: 7822 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7856, max: 7877 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7882, max: 7898 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7650, max: 8999 } },
+        { ressursHent: { min: 7650, max: 8999 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7630, max: 7633 } },
         { ressursHent: { min: 7856, max: 7856 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7856, max: 7995 } },
         { ressursHent: { min: 7760, max: 7760 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7740, max: 7740 } },
         { ressursHent: { min: 7760, max: 7760 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7180, max: 7190 } },
@@ -248,7 +240,8 @@
         // Blokkering for samkjøring av returer (Scenario 2):
         //   hent: felles hentested, lever1/lever2: de to destinasjonene som IKKE skal samkjøres
         { ventendeHent: { min: 7800, max: 7804 }, ressursHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 }, ressursLever: { min: 7900, max: 7995 } },
-        { ventendeHent: { min: 7800, max: 7804 }, ressursHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 }, ressursLever: { min: 8900, max: 8986 } },
+        { ventendeHent: { min: 7800, max: 7804 }, ressursHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 }, ressursLever: { min: 8900, max: 8999 } },
+        { ventendeHent: { min: 7600, max: 7606 }, ressursHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7619, max: 7634 }, ressursLever: { min: 7650, max: 8999 } },
         // Legg til flere her:
     ];
 
