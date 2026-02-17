@@ -230,19 +230,18 @@
     //   ressursHent / ressursLever: der ressursen henter/leverer
     //   ventendeHent / ventendeLever: der ventende henter/leverer
     const BLOCKED_RETURN_PAIRS = [
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7710, max: 7732 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7790, max: 7797 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7650, max: 7660 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7740, max: 7777 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7670, max: 7670 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7690, max: 7690 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7900, max: 7994 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7800, max: 7822 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7856, max: 7877 } },
-        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7882, max: 7898 } },
+        { ressursHent: { min: 7630, max: 7633 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7650, max: 8999 } },
+        { ressursHent: { min: 7650, max: 8999 }, ressursLever: { min: 7600, max: 7606 }, ventendeHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7630, max: 7633 } },
         { ressursHent: { min: 7856, max: 7856 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7856, max: 7995 } },
         { ressursHent: { min: 7760, max: 7760 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7740, max: 7740 } },
         { ressursHent: { min: 7760, max: 7760 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7180, max: 7190 } },
+        { ressursHent: { min: 7900, max: 7995 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 } },
+        { ressursHent: { min: 7880, max: 7884 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7900, max: 7995 } },
+        // Blokkering for samkjøring av returer (Scenario 2):
+        //   hent: felles hentested, lever1/lever2: de to destinasjonene som IKKE skal samkjøres
+        { ventendeHent: { min: 7800, max: 7804 }, ressursHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 }, ressursLever: { min: 7900, max: 7995 } },
+        { ventendeHent: { min: 7800, max: 7804 }, ressursHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 }, ressursLever: { min: 8900, max: 8999 } },
+        { ventendeHent: { min: 7600, max: 7606 }, ressursHent: { min: 7600, max: 7606 }, ventendeLever: { min: 7619, max: 7634 }, ressursLever: { min: 7650, max: 8999 } },
         // Legg til flere her:
     ];
 
@@ -255,10 +254,17 @@
 
     function isBlockedReturnCombination(ventende, pagaende) {
         return BLOCKED_RETURN_PAIRS.some(rule =>
-            matchesReturnSide(rule.ressursHent,    pagaende.postnrHent)  &&
-            matchesReturnSide(rule.ressursLever,   pagaende.postnrLever) &&
-            matchesReturnSide(rule.ventendeHent,   ventende.postnrHent)  &&
-            matchesReturnSide(rule.ventendeLever,  ventende.postnrLever)
+            // Retning 1: ventende = ventende-side, pagaende = ressurs-side
+            (matchesReturnSide(rule.ressursHent,    pagaende.postnrHent)  &&
+             matchesReturnSide(rule.ressursLever,   pagaende.postnrLever) &&
+             matchesReturnSide(rule.ventendeHent,   ventende.postnrHent)  &&
+             matchesReturnSide(rule.ventendeLever,  ventende.postnrLever))
+            ||
+            // Retning 2: byttet (symmetrisk — rekkefølge spiller ingen rolle)
+            (matchesReturnSide(rule.ressursHent,    ventende.postnrHent)  &&
+             matchesReturnSide(rule.ressursLever,   ventende.postnrLever) &&
+             matchesReturnSide(rule.ventendeHent,   pagaende.postnrHent)  &&
+             matchesReturnSide(rule.ventendeLever,  pagaende.postnrLever))
         );
     }
 
@@ -1265,10 +1271,16 @@
                 const ventendeTidligst = ventende.isReturnTrip
                     ? ventende.startDateTime
                     : new Date(ventende.treatmentDateTime.getTime() - (ventendeBuffer * 60 * 1000));
-                const ventendeSenest = ventende.treatmentDateTime;
+                const ventendeSenest = ventende.isReturnTrip
+                    ? new Date(ventende.startDateTime.getTime() + (ventendeBuffer * 60 * 1000))
+                    : ventende.treatmentDateTime;
                 
-                const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (pagaendeBuffer * 60 * 1000));
-                const pagaendeSenest = pagaende.treatmentDateTime;
+                const pagaendeTidligst = pagaende.isReturnTrip
+                    ? pagaende.startDateTime
+                    : new Date(pagaende.treatmentDateTime.getTime() - (pagaendeBuffer * 60 * 1000));
+                const pagaendeSenest = pagaende.isReturnTrip
+                    ? new Date(pagaende.startDateTime.getTime() + (pagaendeBuffer * 60 * 1000))
+                    : pagaende.treatmentDateTime;
                 
                 if (debug) {
                     console.log('  Ventende leveringsvindu:', ventendeTidligst.toTimeString().substr(0,5), '-', ventendeSenest.toTimeString().substr(0,5));
@@ -1439,14 +1451,20 @@
                         }
                         
                         // Beregn leveringsvinduer: oppmøtetid ± LONG_DISTANCE_TIME_BUFFER
-                        // For returer: kan ikke hentes før startDateTime
+                        // For returer: kan ikke hentes før startDateTime, kan vente opp til buffer etter start
                         const ventendeTidligst = ventende.isReturnTrip
                             ? ventende.startDateTime
                             : new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
-                        const ventendeSenest = ventende.treatmentDateTime;
+                        const ventendeSenest = ventende.isReturnTrip
+                            ? new Date(ventende.startDateTime.getTime() + (LONG_DISTANCE_TIME_BUFFER * 60 * 1000))
+                            : ventende.treatmentDateTime;
                         
-                        const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
-                        const pagaendeSenest = pagaende.treatmentDateTime;
+                        const pagaendeTidligst = pagaende.isReturnTrip
+                            ? pagaende.startDateTime
+                            : new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
+                        const pagaendeSenest = pagaende.isReturnTrip
+                            ? new Date(pagaende.startDateTime.getTime() + (LONG_DISTANCE_TIME_BUFFER * 60 * 1000))
+                            : pagaende.treatmentDateTime;
                         
                         if (debug) {
                             console.log('  Ventende leveringsvindu:', ventendeTidligst.toTimeString().substr(0,5), '-', ventendeSenest.toTimeString().substr(0,5));
@@ -1543,14 +1561,20 @@
                 if (pagaendeRetning === ventendeRetning) {
                     // Beregn tidsvinduer
                     if (pagaende.startDateTime && ventende.startDateTime && pagaende.treatmentDateTime && ventende.treatmentDateTime) {
-                        // For returer: kan ikke hentes før startDateTime
+                        // For returer: kan ikke hentes før startDateTime, kan vente opp til buffer etter start
                         const ventendeTidligst = ventende.isReturnTrip
                             ? ventende.startDateTime
                             : new Date(ventende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
-                        const ventendeSenest = ventende.treatmentDateTime;
+                        const ventendeSenest = ventende.isReturnTrip
+                            ? new Date(ventende.startDateTime.getTime() + (LONG_DISTANCE_TIME_BUFFER * 60 * 1000))
+                            : ventende.treatmentDateTime;
                         
-                        const pagaendeTidligst = new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
-                        const pagaendeSenest = pagaende.treatmentDateTime;
+                        const pagaendeTidligst = pagaende.isReturnTrip
+                            ? pagaende.startDateTime
+                            : new Date(pagaende.treatmentDateTime.getTime() - (LONG_DISTANCE_TIME_BUFFER * 60 * 1000));
+                        const pagaendeSenest = pagaende.isReturnTrip
+                            ? new Date(pagaende.startDateTime.getTime() + (LONG_DISTANCE_TIME_BUFFER * 60 * 1000))
+                            : pagaende.treatmentDateTime;
                         
                         // Sjekk om tidsvinduer overlapper
                         const overlapper = ventendeTidligst <= pagaendeSenest && pagaendeTidligst <= ventendeSenest;
@@ -1953,9 +1977,16 @@
         }
         
         // ============================================================
-        // SCENARIO 2: Retur-tur - samme hentested (begge returer)
+        // SCENARIO 2: Retur-tur - nært hentested (begge returer, innen ±POSTNR_TOLERANCE_PICKUP)
         // ============================================================
-        if (ventende.postnrHent === pagaende.postnrHent && ventende.isReturnTrip && pagaende.isReturnTrip) {
+        if (Math.abs(ventende.postnrHent - pagaende.postnrHent) <= POSTNR_TOLERANCE_PICKUP && ventende.isReturnTrip && pagaende.isReturnTrip) {
+            const debug = true;
+            
+            // Sjekk blokkeringsliste for retur-samkjøring
+            if (isBlockedReturnCombination(ventende, pagaende)) {
+                if (debug) console.log('  ✗ Blokkert retur-kombinasjon (Scenario 2)');
+                return null;
+            }
             const pagaendeRetning = pagaende.postnrLever > pagaende.postnrHent ? 'nord' : 'sør';
             const ventendeRetning = ventende.postnrLever > ventende.postnrHent ? 'nord' : 'sør';
             
@@ -1963,29 +1994,58 @@
                 return null;
             }
             
-            let erPaaVeien = false;
-            
-            if (pagaendeRetning === 'nord') {
-                erPaaVeien = pagaende.postnrHent < ventende.postnrLever && ventende.postnrLever < pagaende.postnrLever;
-            } else {
-                erPaaVeien = pagaende.postnrHent > ventende.postnrLever && ventende.postnrLever > pagaende.postnrLever;
-            }
-            
-            if (!erPaaVeien) {
-                return null;
-            }
+            const bothLong = isLongTrip(pagaende.postnrHent, pagaende.postnrLever) &&
+                             isLongTrip(ventende.postnrHent, ventende.postnrLever);
+            const timeBuffer = bothLong ? LONG_DISTANCE_TIME_BUFFER : SHORT_DISTANCE_TIME_BUFFER;
             
             if (pagaende.startDateTime && ventende.startDateTime) {
                 const startDiff = (ventende.startDateTime - pagaende.startDateTime) / (1000 * 60);
                 
-                if (Math.abs(startDiff) <= 30) {
-                    return {
-                        type: 'samkjøring',
-                        timeDiff: Math.round(startDiff),
-                        absTimeDiff: Math.abs(Math.round(startDiff)),
-                        direction: pagaendeRetning,
-                        score: 70 - Math.abs(startDiff)
-                    };
+                if (bothLong) {
+                    // Lange returer: ressurs kan vente opp til buffer etter sin start på ventende
+                    // Ventende kan starte fra ressursens startDateTime og opp til buffer etter
+                    // dvs. startDiff (ventende - ressurs) skal være mellom 0 og +buffer
+                    // Tillat litt slack bakover (10 min) for å dekke avrundinger
+                    const minDiff = -timeBuffer; // (Tidligere 10) Ventende kan maks 10 min før ressurs
+                    const maxDiff = timeBuffer; // Ventende kan maks buffer min etter ressurs
+                    
+                    if (startDiff >= minDiff && startDiff <= maxDiff) {
+                        if (debug) console.log('✓ MATCH i SCENARIO 2 (lang tur), startdiff:', startDiff, 'min');
+                        return {
+                            type: 'samkjøring',
+                            timeDiff: Math.round(startDiff),
+                            absTimeDiff: Math.abs(Math.round(startDiff)),
+                            direction: pagaendeRetning,
+                            score: 70 - Math.abs(startDiff) / 4
+                        };
+                    } else {
+                        if (debug) console.log('  Startdiff', startDiff, 'min utenfor vindu [' + minDiff + ', ' + maxDiff + '] - ingen match');
+                    }
+                } else {
+                    // Korte returer: på-veien-sjekk + 30 min buffer
+                    let erPaaVeien = false;
+                    
+                    if (pagaendeRetning === 'nord') {
+                        erPaaVeien = pagaende.postnrHent < ventende.postnrLever && ventende.postnrLever < pagaende.postnrLever;
+                    } else {
+                        erPaaVeien = pagaende.postnrHent > ventende.postnrLever && ventende.postnrLever > pagaende.postnrLever;
+                    }
+                    
+                    if (!erPaaVeien) {
+                        if (debug) console.log('  Hentested ikke på veien');
+                        return null;
+                    }
+                    
+                    if (Math.abs(startDiff) <= timeBuffer) {
+                        if (debug) console.log('✓ MATCH i SCENARIO 2 (kort tur), startdiff:', startDiff, 'min');
+                        return {
+                            type: 'samkjøring',
+                            timeDiff: Math.round(startDiff),
+                            absTimeDiff: Math.abs(Math.round(startDiff)),
+                            direction: pagaendeRetning,
+                            score: 70 - Math.abs(startDiff)
+                        };
+                    }
                 }
             }
         }

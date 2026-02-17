@@ -4,8 +4,10 @@
 // 
 // Funksjonalitet:
 // - Duplikater: Pasienter med mer enn 2 bestillinger
-// - Rute-duplikater: Samme fra eller til adresse
+// - Rute-duplikater: Samme fra- eller til-adresse
 // - Datofeil: Hentetid og leveringstid har ulik dato
+// - Tidsfeil: Hentetid er senere enn leveringstid (logisk umulig)
+//   → Konfigurerbart: CHECK_TO_TREATMENT / CHECK_FROM_TREATMENT
 // - Problematiske spesielle behov: Kombinasjoner som ERS+RB som skaper problemer
 // 
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
@@ -40,6 +42,53 @@
     // Legg til flere kombinasjoner her etter behov
     // { needs: ['X', 'Y'], description: 'X + Y beskrivelse' },
   ];
+
+  // ============================================================
+  // KONFIGURASJON: TIDSFEIL-SJEKK
+  // ============================================================
+  // Kontroller hvilke reiseretninger som skal sjekkes for tidsfeil
+  const CHECK_TO_TREATMENT = true;    // Sjekk reiser TIL behandling (fra gateadresse)
+  const CHECK_FROM_TREATMENT = false;  // Sjekk returreiser FRA behandling (til gateadresse)
+
+  // ============================================================
+  // HJELPEFUNKSJON: Sjekk om en adresse er en gateadresse (har husnummer)
+  // ============================================================
+  /**
+   * Sjekker om en adresse inneholder et husnummer før komma.
+   * Eksempler på husnummer:
+   * - "Bergslia 12, 7620 Skogn" - tall
+   * - "Kirkegata 5B, 7600 Levanger" - tall+bokstav
+   * - "Storgata 12 H0101, 7600 Levanger" - tall + H0101/U0101
+   */
+  function isStreetAddress(address) {
+    if (!address) return false;
+    
+    // Regex som matcher husnummer før komma:
+    // \s+ = whitespace
+    // \d+ = ett eller flere tall (husnummeret)
+    // [A-Za-zÆØÅæøå]? = valgfri bokstav (f.eks. 12A, 5B)
+    // (?:\s+[HU]\d{4})? = valgfri H0101 eller U0101 suffiks
+    // \s*, = valgfri whitespace før komma
+    const streetPattern = /\s+\d+[A-Za-zÆØÅæøå]?(?:\s+[HU]\d{4})?\s*,/;
+    
+    return streetPattern.test(address);
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Identifiser reiseretning
+  // ============================================================
+  function getTripDirection(fra, til) {
+    const fraIsStreet = isStreetAddress(fra);
+    const tilIsStreet = isStreetAddress(til);
+    
+    if (fraIsStreet && !tilIsStreet) {
+      return 'TO_TREATMENT';   // Fra gateadresse til behandlingssted
+    } else if (!fraIsStreet && tilIsStreet) {
+      return 'FROM_TREATMENT'; // Fra behandlingssted til gateadresse
+    } else {
+      return 'UNKNOWN';        // Begge eller ingen er gateadresse
+    }
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Sjekk om behov inneholder problematisk kombinasjon
@@ -142,6 +191,37 @@
     const hours = parseInt(match[3], 10);
     const minutes = parseInt(match[4], 10);
     return day * 24 * 60 + hours * 60 + minutes;
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Parse tid med eller uten dato
+  // ============================================================
+  function parseTimeFlexible(timeStr) {
+    if (!timeStr) return null;
+    
+    // Fjern HTML font tags og trim
+    const cleanStr = timeStr.replace(/<[^>]*>/g, '').trim();
+    
+    // Prøv først med full dato-tid format: "20.02 19:00"
+    const fullMatch = cleanStr.match(/(\d{1,2})\.(\d{1,2})\s+(\d{1,2}):(\d{2})/);
+    if (fullMatch) {
+      const day = parseInt(fullMatch[1], 10);
+      const month = parseInt(fullMatch[2], 10);
+      const hours = parseInt(fullMatch[3], 10);
+      const minutes = parseInt(fullMatch[4], 10);
+      return day * 24 * 60 + hours * 60 + minutes;
+    }
+    
+    // Prøv bare tid-format: "23:00"
+    const timeMatch = cleanStr.match(/^(\d{1,2}):(\d{2})$/);
+    if (timeMatch) {
+      const hours = parseInt(timeMatch[1], 10);
+      const minutes = parseInt(timeMatch[2], 10);
+      // Returner bare timer + minutter uten dag (for sammenligning samme dag)
+      return hours * 60 + minutes;
+    }
+    
+    return null;
   }
 
   function extractDate(timeStr) {
@@ -549,6 +629,50 @@
     return problematic;
   }
 
+  function findTimeLogicErrors() {
+    const ventendeData = extractVentendeData();
+    const pagaendeData = extractPagaendeData();
+    const allData = [...ventendeData, ...pagaendeData];
+    
+    const errors = [];
+    
+    for (const item of allData) {
+      const hentetidMinutes = parseTimeFlexible(item.hentetid);
+      const leveringstidMinutes = parseTimeFlexible(item.leveringstid);
+      
+      // Skip hvis vi ikke kan parse tidene
+      if (hentetidMinutes === null || leveringstidMinutes === null) continue;
+      
+      // Sjekk om hentetid er senere enn leveringstid
+      if (hentetidMinutes > leveringstidMinutes) {
+        // Identifiser reiseretning
+        const direction = getTripDirection(item.fra, item.til);
+        
+        // Filtrer basert på konfigurasjon
+        let shouldInclude = false;
+        
+        if (direction === 'TO_TREATMENT' && CHECK_TO_TREATMENT) {
+          shouldInclude = true;
+        } else if (direction === 'FROM_TREATMENT' && CHECK_FROM_TREATMENT) {
+          shouldInclude = true;
+        } else if (direction === 'UNKNOWN') {
+          // Hvis vi ikke kan bestemme retning, inkluder hvis minst én sjekk er aktivert
+          shouldInclude = CHECK_TO_TREATMENT || CHECK_FROM_TREATMENT;
+        }
+        
+        if (shouldInclude) {
+          errors.push({
+            navn: item.navn,
+            items: [item],
+            reason: 'Hentetid er senere enn leveringstid'
+          });
+        }
+      }
+    }
+    
+    return errors;
+  }
+
   function searchInPlanning(navn) {
     closeModal();
     
@@ -562,6 +686,30 @@
     const searchInput = document.getElementById('searchPhrase');
     if (searchInput) {
       searchInput.value = navn;
+      searchInput.focus();
+      
+      setTimeout(() => {
+        const searchButton = document.getElementById('buttonSearch');
+        if (searchButton) {
+          searchButton.click();
+        }
+      }, 100);
+    }
+  }
+
+  function searchInPlanningByReqNr(reqNr) {
+    closeModal();
+    
+    // Sett søketype til "Rekvisisjonsnummer"
+    const searchTypeSelect = document.getElementById('searchType');
+    if (searchTypeSelect) {
+      searchTypeSelect.value = 'requisitionNr';
+    }
+    
+    // Utfør søk
+    const searchInput = document.getElementById('searchPhrase');
+    if (searchInput) {
+      searchInput.value = reqNr;
       searchInput.focus();
       
       setTimeout(() => {
@@ -595,7 +743,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -622,7 +770,7 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length;
     
     let html = `
       <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -652,13 +800,21 @@
         html += `<div style="background: #d1ecf1; color: #0c5460; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #17a2b8;">🔄 ${routeDuplicates.length} duplikat${routeDuplicates.length === 1 ? '' : 'er'} med samme fra- eller til-adresse</div>`;
       }
       if (dateMismatches.length > 0) {
-        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; border-left: 4px solid #dc3545;">📅 ${dateMismatches.length} bestilling${dateMismatches.length === 1 ? '' : 'er'} med ulik dato på hentetid og leveringstid</div>`;
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">📅 ${dateMismatches.length} bestilling${dateMismatches.length === 1 ? '' : 'er'} med ulik dato på hentetid og leveringstid</div>`;
+      }
+      if (timeLogicErrors.length > 0) {
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⏰ ${timeLogicErrors.length} bestilling${timeLogicErrors.length === 1 ? '' : 'er'} hvor hentetid er senere enn leveringstid</div>`;
       }
       html += '</div>';
       
       if (problematicNeeds.length > 0) {
-        html += '<h3 style="color: #721c24; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">♿ Bestillinger med problematisk kombinasjon av spesielle behov</h3>';
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">♿ Bestillinger med problematisk kombinasjon av spesielle behov</h3>';
         html += renderDuplicates(problematicNeeds, 'problematic');
+      }
+      
+      if (timeLogicErrors.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⏰ Bestillinger med tidsfeil (hentetid > leveringstid)</h3>';
+        html += renderDuplicates(timeLogicErrors, 'timelogic');
       }
       
       if (dateMismatches.length > 0) {
@@ -699,6 +855,14 @@
         searchInPlanning(navn);
       });
     });
+    
+    const searchReknrButtons = modalDiv.querySelectorAll('.nissy-search-reknr-btn');
+    searchReknrButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const reknr = btn.getAttribute('data-reknr');
+        searchInPlanningByReqNr(reknr);
+      });
+    });
   }
 
   function renderDuplicates(duplicates, type) {
@@ -708,12 +872,20 @@
       'count': '#ffc107',
       'route': '#17a2b8',
       'date': '#dc3545',
-      'problematic': '#dc3545'
+      'problematic': '#dc3545',
+      'timelogic': '#dc3545'
     };
     
     const color = colorMap[type] || '#6c757d';
     
     for (const dup of duplicates) {
+      // Bestem om vi skal søke på navn eller rekvisisjonsnummer
+      const isSingleBooking = dup.items.length === 1;
+      const searchAttr = isSingleBooking 
+        ? `data-reknr="${dup.items[0].reknr}"` 
+        : `data-navn="${dup.navn}"`;
+      const buttonClass = isSingleBooking ? 'nissy-search-reknr-btn' : 'nissy-search-btn';
+      
       html += `
         <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -721,7 +893,7 @@
               <div style="font-weight: 600; color: #333; font-size: 15px; margin-bottom: 2px;">${dup.navn} <span style="font-size: 13px; color: #666; font-weight: 400;">(${dup.items.length} bestilling${dup.items.length === 1 ? '' : 'er'})</span></div>
               <div style="font-size: 12px; color: #666;">${dup.reason}</div>
             </div>
-            <button class="nissy-search-btn" data-navn="${dup.navn}" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+            <button class="${buttonClass}" ${searchAttr} style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
               🔍 Søk i planlegging
             </button>
           </div>
@@ -791,7 +963,8 @@
     const routeDuplicates = findSameRouteDuplicates(excludedNames);
     const dateMismatches = findDateMismatches();
     const problematicNeeds = findProblematicNeeds();
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds);
+    const timeLogicErrors = findTimeLogicErrors();
+    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors);
   } catch (error) {
     // Feil under kolonnevalidering eller datainnhenting
     // Feilmelding er allerede vist via showErrorToast()

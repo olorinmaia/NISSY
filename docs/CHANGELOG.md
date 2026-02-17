@@ -7,6 +7,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
+## 🚀 [3.6.1] - 17.02.2026
+
+### Sjekk-bestilling finner nå feil på tidspunkt og lagt til mapping for Ålesund sjukehus i Rutekalkulering
+- 🔍 **Sjekk-Bestilling**
+  - Sjekker nå for feil på tidspunkt: Hvis hentetid er senere enn leveringstid (logisk umulig) så fanges dette opp og lar deg søke opp for å rette.
+    - Prøver å filtrere bort reiser fra behandling, det er for mange tilfeller av tidspunktfeil pga API-bestillinger (har meldt feil til Pas HF)
+  - Forbedret "Søk i planlegging"-funksjonalitet: Når kun 1 bestilling søkes det på rekvisisjonsnummer.
+- 🚐 **Samkjøring**
+  - Forbedret logikk på returer og lagt til ytterlig blokkeringslogikk for returer når de samkjøres.
+- 🗺️ **Rutekalkulering** 
+  - Lagt til mapping av adresser knyttet til Ålesund sjukehus for å sikre riktig rutekalkulering der adressene fra NISSY ikke får treff eller feil treff i Google maps.
+
 ## 🚀 [3.6.0] - 15.02.2026
 
 ### Nytt script Handlingslogg og forbedringer til flere script
