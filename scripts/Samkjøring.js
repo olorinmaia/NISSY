@@ -244,9 +244,11 @@
         { ressursHent: { min: 7760, max: 7760 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7740, max: 7740 } },
         { ressursHent: { min: 7760, max: 7760 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7180, max: 7190 } },
         { ressursHent: { min: 7900, max: 7995 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 } },
+        { ressursHent: { min: 7880, max: 7884 }, ressursLever: { min: 7800, max: 7804 }, ventendeHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7900, max: 7995 } },
         // Blokkering for samkjøring av returer (Scenario 2):
         //   hent: felles hentested, lever1/lever2: de to destinasjonene som IKKE skal samkjøres
         { ventendeHent: { min: 7800, max: 7804 }, ressursHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 }, ressursLever: { min: 7900, max: 7995 } },
+        { ventendeHent: { min: 7800, max: 7804 }, ressursHent: { min: 7800, max: 7804 }, ventendeLever: { min: 7880, max: 7884 }, ressursLever: { min: 8900, max: 8986 } },
         // Legg til flere her:
     ];
 
