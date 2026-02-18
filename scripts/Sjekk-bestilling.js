@@ -8,6 +8,7 @@
 // - Datofeil: Hentetid og leveringstid har ulik dato
 // - Tidsfeil: Hentetid er senere enn leveringstid (logisk umulig)
 //   → Konfigurerbart: CHECK_TO_TREATMENT / CHECK_FROM_TREATMENT
+// - Retur før reise: Retur planlagt tidligere enn reise til behandling
 // - Problematiske spesielle behov: Kombinasjoner som ERS+RB som skaper problemer
 // 
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
@@ -673,6 +674,78 @@
     return errors;
   }
 
+  function findReturnBeforeOutbound() {
+    const ventendeData = extractVentendeData();
+    const pagaendeData = extractPagaendeData();
+    const allData = [...ventendeData, ...pagaendeData];
+    
+    const errors = [];
+    
+    // Grupper per pasient
+    const grouped = new Map();
+    for (const item of allData) {
+      if (!grouped.has(item.navn)) {
+        grouped.set(item.navn, []);
+      }
+      grouped.get(item.navn).push(item);
+    }
+    
+    // Sjekk hver pasient
+    for (const [navn, items] of grouped.entries()) {
+      if (items.length < 2) continue; // Trenger minst 2 reiser
+      
+      // Identifiser reiser og returer
+      const outboundTrips = [];
+      const returnTrips = [];
+      
+      for (const item of items) {
+        const hentetidMinutes = parseTimeFlexible(item.hentetid);
+        const leveringstidMinutes = parseTimeFlexible(item.leveringstid);
+        
+        if (hentetidMinutes === null || leveringstidMinutes === null) continue;
+        
+        const direction = getTripDirection(item.fra, item.til);
+        
+        // Identifiser om det er retur
+        const isReturn = (hentetidMinutes >= leveringstidMinutes) || (direction === 'FROM_TREATMENT');
+        
+        // Skip ubekreftede returtider (21:59 eller 16:59)
+        const timeStr = item.hentetid.replace(/<[^>]*>/g, '').trim();
+        if (timeStr.includes('21:59') || timeStr.includes('16:59')) {
+          continue;
+        }
+        
+        if (isReturn && direction === 'FROM_TREATMENT') {
+          returnTrips.push({ ...item, parsedTime: hentetidMinutes });
+        } else if (direction === 'TO_TREATMENT') {
+          outboundTrips.push({ ...item, parsedTime: hentetidMinutes });
+        }
+      }
+      
+      // Sammenlign returer med utgående reiser til samme behandlingssted
+      for (const returnTrip of returnTrips) {
+        // Finn behandlingsstedet (Fra-adressen på returen)
+        const treatmentLocation = returnTrip.fra;
+        
+        for (const outboundTrip of outboundTrips) {
+          // Sjekk om det er til samme behandlingssted
+          if (outboundTrip.til === treatmentLocation) {
+            // Sjekk om returen er før utgående reise
+            if (returnTrip.parsedTime < outboundTrip.parsedTime) {
+              errors.push({
+                navn: navn,
+                items: [returnTrip, outboundTrip],
+                reason: `Retur (${returnTrip.hentetid}) er planlagt før reise til behandling (${outboundTrip.hentetid})`
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    return errors;
+  }
+
   function searchInPlanning(navn) {
     closeModal();
     
@@ -743,7 +816,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -770,7 +843,7 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length;
     
     let html = `
       <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -805,6 +878,9 @@
       if (timeLogicErrors.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⏰ ${timeLogicErrors.length} bestilling${timeLogicErrors.length === 1 ? '' : 'er'} hvor hentetid er senere enn leveringstid</div>`;
       }
+      if (returnBeforeOutbound.length > 0) {
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">🔄⏰ ${returnBeforeOutbound.length} pasient${returnBeforeOutbound.length === 1 ? '' : 'er'} hvor retur er planlagt før reise til behandling</div>`;
+      }
       html += '</div>';
       
       if (problematicNeeds.length > 0) {
@@ -815,6 +891,11 @@
       if (timeLogicErrors.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⏰ Bestillinger med tidsfeil (hentetid > leveringstid)</h3>';
         html += renderDuplicates(timeLogicErrors, 'timelogic');
+      }
+      
+      if (returnBeforeOutbound.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄⏰ Retur planlagt før reise til behandling</h3>';
+        html += renderDuplicates(returnBeforeOutbound, 'returnbeforeout');
       }
       
       if (dateMismatches.length > 0) {
@@ -873,7 +954,8 @@
       'route': '#17a2b8',
       'date': '#dc3545',
       'problematic': '#dc3545',
-      'timelogic': '#dc3545'
+      'timelogic': '#dc3545',
+      'returnbeforeout': '#dc3545'
     };
     
     const color = colorMap[type] || '#6c757d';
@@ -964,7 +1046,8 @@
     const dateMismatches = findDateMismatches();
     const problematicNeeds = findProblematicNeeds();
     const timeLogicErrors = findTimeLogicErrors();
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors);
+    const returnBeforeOutbound = findReturnBeforeOutbound();
+    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound);
   } catch (error) {
     // Feil under kolonnevalidering eller datainnhenting
     // Feilmelding er allerede vist via showErrorToast()

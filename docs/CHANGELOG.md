@@ -7,6 +7,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
+## 🚀 [3.6.2] - 18.02.2026
+
+### Ny sjekk for Sjekk-bestilling
+- 🔍 **Sjekk-Bestilling**
+  - Finner nå returer som har tidligere hentetid enn reisen til behandling på samme behandlingssted
+
 ## 🚀 [3.6.1] - 17.02.2026
 
 ### Sjekk-bestilling finner nå feil på tidspunkt og lagt til mapping for Ålesund sjukehus i Rutekalkulering
