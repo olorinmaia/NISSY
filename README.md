@@ -91,8 +91,12 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/bba0705e-e731-4d40-a6dc-9a0eb7f2a169" />
 - 🔍 **Sjekk-Bestilling**
-  - Sjekker alle bestillinger på valgt filter for duplikater, om de har forskjellig dato på hentetid og leveringstid, eller om hentetid er senere enn leveringstid og lar deg søke opp disse for å rette opp.
-  - Finner også bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
+  - Sjekker alle bestillinger på valgt filter og lar deg søke opp disse for å rette opp for: 
+    - Duplikater, flere enn 2 bestillinger, flere bestillinger med samme fra- eller til-adresse
+    - Om de har forskjellig dato på hentetid og leveringstid
+    - Om hentetid er senere enn leveringstid (kun til behandling)
+    - Om returer som har tidligere hentetid enn reisen til behandling for samme behandlingssted 
+    - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 - 🚩 **Sjekk-Plakat**
   - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
