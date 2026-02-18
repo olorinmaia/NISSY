@@ -7,11 +7,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
-## 🚀 [3.7.0] - 18.02.2026
+## 🚀 [3.7.0] - 19.02.2026
 
 ### Overvåk-Ventende forbedret og ny sjekk for Sjekk-bestilling
 - 🔔 **Overvåk-Ventende** 
-  - Parser nå bestillinger direkte fra NISSY sin XHR-respons (XML) på intern-refresh istedenfor DOM. DOM Benyttes kun som fallback hvis XHR-respoons failer.
+  - Parser nå bestillinger direkte fra NISSY sin XHR-respons (XML) på intern-refresh istedenfor DOM. DOM Benyttes kun som fallback hvis XHR-respons failer.
   - Overvåker både automatisk intern-refresh (hvert 30. - 60. sek) og manuell refresh (F5/Åpne Alle)
   - Sjekker også når fanen blir aktiv igjen (Page Visibility API)
   - Fungerer pålitelig selv når fanen er inaktiv
