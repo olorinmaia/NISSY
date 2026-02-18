@@ -158,6 +158,9 @@
     "Dialyse, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
     "Rørvik helsesenter/Dialyse, 7900 Rørvik": "Rørvik sykestue, 7900 Rørvik",
     "Fiskarbyen bofelleskap, 7970 Kolvereid": "Bjørkåsvegen 15D, 7970 Kolvereid",
+    "Rindal Fysioterapi/Rindal Fysioterapi/Helge Pedersen, 6657 Rindal": "Sjukeheimsvegen 6, 6657 Rindal",
+    "Skaun fysio/Fysio. Raquel Dulot Dela Cruz, 7353 Børsa": "Børsa fysioterapi AS, Lensmannsekra 3, 7353 Børsa",
+    "Skaun fysio/Fysioterapeut Ida Regine Thorstensen, 7353 Børsa": "Børsa fysioterapi AS, Lensmannsekra 3, 7353 Børsa",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
