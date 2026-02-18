@@ -21,7 +21,6 @@ function showMonitorPopup(isStarting) {
 
             <h3 style="margin: 15px 0 8px 0; color: #555;">Hvordan det fungerer:</h3>
             <div style="font-size: 13px; color: #666;">
-              • Sjekker hvert 10. sekund for nye bestillinger<br>
               • Viser totalt antall bestillinger for ventende oppdrag i fanetittel<br>
               • Viser <strong style="color: #FF6600;">🟠 oransje bokmerkeikon</strong> med antall nye bestillinger<br>
               • Etter 60 sekunder uhåndtert: <strong style="color: #FF0000;">🔴 rød bokmerkeikon</strong><br>
@@ -41,8 +40,7 @@ function showMonitorPopup(isStarting) {
               • Bestillinger som var der ved oppstart gir ikke varsel<br>
               • Hvis de planlegges og kommer tilbake får du nytt varsel<br>
               • Klikk på toast-varsel merker automatisk de nye bestillingene<br>
-              • Ved bytte av filter vil alle nye bestillinger gi varsel (fordi scriptet ikke kan vite om de er nylig opprettet eller ikke)<br>
-              • Det anbefales derfor ikke å bytte filter når overvåking er aktiv
+              • Ved bytte av filter vil alle nye bestillinger gi varsel (fordi scriptet ikke kan vite om de er nylig opprettet eller ikke)
             </div>
 
             <div style="margin-top: 15px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -153,9 +151,9 @@ if (window.ventendeMonitor) {
     // Scriptet kjører allerede - STOPP DET
     console.log('🛑 Stopper ventende oppdrag monitor...');
     
-    if (window.ventendeMonitor.intervalId) {
-        clearInterval(window.ventendeMonitor.intervalId);
-    }
+    // Sett stopp-flagg FØRST (før noe annet)
+    window.ventendeMonitor.isStopped = true;
+    
     if (window.ventendeMonitor.blinkInterval) {
         clearInterval(window.ventendeMonitor.blinkInterval);
     }
@@ -185,7 +183,6 @@ if (window.ventendeMonitor) {
     // Scriptet kjører ikke - START DET
 
 const CONFIG = {
-    checkInterval: 10000,           // Sjekk hvert 10. sekund
     enableSound: true,              // Spill lyd ved nye bestillinger
     enableTitleBlink: true,         // Blink fanetittel
     enableFaviconBlink: true,       // Vis favicon-badge
@@ -210,6 +207,9 @@ class VentendeOppdragMonitor {
         // Set for bestillinger ved oppstart (skal ikke gi varsel)
         this.initialOrderIds = new Set();
         
+        // Set for nåværende bestillinger (oppdateres fra XHR)
+        this.currentOrders = new Set();
+        
         // Set for bestillinger som har blitt fjernet (men som var initielle)
         this.removedOrderIds = new Set();
         
@@ -221,6 +221,9 @@ class VentendeOppdragMonitor {
         // Antall nye i siste varsel (for favicon)
         this.currentNewCount = 0;
         
+        // Flag for om monitoren er stoppet
+        this.isStopped = false;
+        
         this.init();
     }
     
@@ -229,10 +232,112 @@ class VentendeOppdragMonitor {
             Notification.requestPermission();
         }
         
-        this.intervalId = setInterval(
-            () => this.checkForChanges(), 
-            CONFIG.checkInterval
-        );
+        // Event-drevet tilnærming: checkForChanges() kalles automatisk når NISSY refresher
+        // Ingen periodisk polling nødvendig
+        
+        // Intercepter XMLHttpRequest for å lytte etter NISSY sin refresh
+        this.setupRefreshMonitor();
+        
+        // Page Visibility API - Tving NISSY refresh når fanen blir aktiv
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                console.log('👁️ Fane aktivert - tvinger NISSY refresh...');
+                // Tving NISSY til å refreshe alle bestillinger
+                // Dette vil trigge vår XHR interceptor som automatisk parser og varsler
+                if (typeof openPopp === 'function') {
+                    openPopp('-1');
+                } else {
+                    console.warn('⚠️ openPopp funksjon ikke tilgjengelig');
+                }
+            }
+        });
+    }
+    
+    // -------------------------------------------------------------------------
+    // Intercepter XHR for å oppdage når NISSY refresher
+    // -------------------------------------------------------------------------
+    setupRefreshMonitor() {
+        const self = this;
+        
+        // Lagre original send hvis den ikke allerede er lagret
+        if (!window.__originalXHRSend) {
+            window.__originalXHRSend = XMLHttpRequest.prototype.send;
+        }
+        
+        // Lagre original open hvis den ikke allerede er lagret
+        if (!window.__originalXHROpen) {
+            window.__originalXHROpen = XMLHttpRequest.prototype.open;
+        }
+        
+        const originalOpen = window.__originalXHROpen;
+        const originalSend = window.__originalXHRSend;
+        
+        console.log('🔧 Setter opp XHR interceptor...');
+        
+        // Override open for å fange URL
+        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            this._requestUrl = url;
+            
+            // Sjekk om dette er NISSY sin refresh
+            // 1. Automatisk intern-refresh: ajax-dispatch?did=all (uten &)
+            // 2. Manuell refresh (F5): ajax-dispatch?did=all&action=openres&rid=-1
+            if (url.includes('ajax-dispatch?did=all')) {
+                if (!url.includes('&') || url.includes('action=openres&rid=-1')) {
+                    // Sjekk om monitoren fortsatt kjører før vi gjør noe
+                    if (window.ventendeMonitor && !self.isStopped) {
+                        this._isNissyRefresh = true;
+                        const type = url.includes('action=openres') ? 'manuell' : 'automatisk';
+                        console.log(`🎯 NISSY refresh-request detektert (${type}):`, url);
+                    }
+                }
+            }
+            
+            return originalOpen.apply(this, [method, url, ...rest]);
+        };
+        
+        // Override send for å lytte på respons
+        XMLHttpRequest.prototype.send = function(...args) {
+            if (this._isNissyRefresh) {
+                // Sjekk om monitoren fortsatt kjører før vi logger
+                if (window.ventendeMonitor && !self.isStopped) {
+                    console.log('📤 NISSY refresh-request sendt');
+                }
+                
+                this.addEventListener("load", function() {
+                    // Sjekk om monitoren er stoppet før vi logger eller prosesserer noe
+                    if (!window.ventendeMonitor || self.isStopped) {
+                        // Ingen logging - monitoren er stoppet
+                        return;
+                    }
+                    
+                    console.log('📥 NISSY refresh-respons mottatt, status:', this.status);
+                    
+                    if (this.status === 200) {
+                        try {
+                            // Parse XML-responsen og oppdater currentOrders
+                            const newOrders = self.parseOrdersFromXML(this.responseText);
+                            self.currentOrders = newOrders;
+                            
+                            console.log(`🔄 NISSY refresh detektert (${newOrders.size} bestillinger)`);
+                            
+                            // Kjør umiddelbar sjekk for endringer
+                            self.checkForChanges();
+                        } catch (e) {
+                            console.error('❌ Feil ved parsing av NISSY respons:', e);
+                        }
+                    }
+                });
+                
+                this.addEventListener("error", function() {
+                    // Sjekk om monitoren fortsatt kjører før vi logger
+                    if (window.ventendeMonitor && !self.isStopped) {
+                        console.error('❌ NISSY refresh feilet (nettverksfeil)');
+                    }
+                });
+            }
+            
+            return originalSend.apply(this, args);
+        };
     }
     
     // -------------------------------------------------------------------------
@@ -247,10 +352,60 @@ class VentendeOppdragMonitor {
             const reqNr = row.getAttribute('title');
             if (reqNr) {
                 this.initialOrderIds.add(reqNr);
+                this.currentOrders.add(reqNr);
             }
         });
         
         console.log(`📋 Registrert ${this.initialOrderIds.size} eksisterende bestillinger ved oppstart (gir ikke varsel)`);
+    }
+    
+    // -------------------------------------------------------------------------
+    // Parse bestillinger fra NISSY XHR XML-respons
+    // -------------------------------------------------------------------------
+    parseOrdersFromXML(xmlText) {
+        const orderIds = new Set();
+        
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+            
+            // Finn <response id="ventendeOppdrag">
+            const responses = xmlDoc.getElementsByTagName('response');
+            let ventendeResponse = null;
+            
+            for (let i = 0; i < responses.length; i++) {
+                if (responses[i].getAttribute('id') === 'ventendeOppdrag') {
+                    ventendeResponse = responses[i];
+                    break;
+                }
+            }
+            
+            if (!ventendeResponse) return orderIds;
+            
+            // Hent HTML fra CDATA
+            const htmlElement = ventendeResponse.getElementsByTagName('html')[0];
+            if (!htmlElement) return orderIds;
+            
+            const htmlContent = htmlElement.textContent;
+            
+            // Parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            
+            // Finn alle <tr id="V-..."> og hent title attributt
+            const rows = tempDiv.querySelectorAll('tr[id^="V-"]');
+            rows.forEach(row => {
+                const reqNr = row.getAttribute('title');
+                if (reqNr) {
+                    orderIds.add(reqNr);
+                }
+            });
+            
+        } catch (e) {
+            console.error('❌ Feil ved parsing av XML:', e);
+        }
+        
+        return orderIds;
     }
     
     // -------------------------------------------------------------------------
@@ -277,7 +432,19 @@ class VentendeOppdragMonitor {
     // Sjekk for endringer
     // -------------------------------------------------------------------------
     checkForChanges() {
-        const currentIds = this.getCurrentOrders();
+        // Bruk cached data fra XHR i stedet for å lese fra DOM
+        let currentIds = this.currentOrders;
+        
+        // FALLBACK: Hvis currentOrders er tom (XHR har ikke fanget opp data ennå),
+        // les fra DOM i stedet
+        if (currentIds.size === 0) {
+            currentIds = this.getCurrentOrders();
+            if (currentIds.size > 0) {
+                console.log('⚠️ Fallback: Leser fra DOM (XHR har ikke oppdatert ennå)');
+                this.currentOrders = currentIds;
+            }
+        }
+        
         const currentCount = currentIds.size;
         
         // FØRST: Track hvilke initielle bestillinger som er borte (så de kan gi varsel hvis de kommer tilbake)
@@ -514,7 +681,7 @@ class VentendeOppdragMonitor {
                 if (isAlert) {
                     document.title = `⚠️ ${newCount} NYE BESTILLINGER!`;
                 } else {
-                    document.title = `(${this.getCurrentOrders().size}) ${this.originalTitle}`;
+                    document.title = `(${this.currentOrders.size}) ${this.originalTitle}`;
                 }
                 isAlert = !isAlert;
             }, 1000);
@@ -724,8 +891,9 @@ class VentendeOppdragMonitor {
 window.ventendeMonitor = new VentendeOppdragMonitor();
 
 window.stopMonitor = function() {
-    if (window.ventendeMonitor && window.ventendeMonitor.intervalId) {
-        clearInterval(window.ventendeMonitor.intervalId);
+    if (window.ventendeMonitor) {
+        // Sett stopp-flagg FØRST (før noe annet)
+        window.ventendeMonitor.isStopped = true;
         
         if (window.ventendeMonitor.blinkInterval) {
             clearInterval(window.ventendeMonitor.blinkInterval);
@@ -754,8 +922,26 @@ window.stopMonitor = function() {
 // Vis informasjons-popup ved start
 setTimeout(() => {
     showMonitorPopup(true);
+    
+    // Tving NISSY refresh for å få riktig antall bestillinger fra starten
+    // Dette sikrer at fanetittelen viser korrekt antall (som popup-en beskriver)
+    setTimeout(() => {
+        if (typeof openPopp === 'function') {
+            console.log('🔄 Tvinger initial NISSY refresh for å oppdatere fanetittel...');
+            openPopp('-1');
+        }
+    }, 1000); // Venter 1 sek slik at popup rekker å vises først
 }, 500);
 
-console.log(`✅ Overvåking av ventende oppdrag startet!`);
+console.log(`✅ Overvåking av ventende oppdrag startet!
+
+Event-drevet overvåking:
+- Parser bestillinger direkte fra NISSY sin XHR-respons (XML)
+- Overvåker både automatisk intern-refresh og manuell refresh (F5)
+- Varsler umiddelbart når NISSY refresher (ingen polling)
+- Sjekker også når fanen blir aktiv igjen (Page Visibility API)
+- Fungerer pålitelig selv når fanen er inaktiv
+
+Kjør stopMonitor() for å stoppe.`);
 
 } // Slutt på else-blokk fra linje 184
