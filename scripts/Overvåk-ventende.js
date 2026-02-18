@@ -161,6 +161,11 @@ if (window.ventendeMonitor) {
         clearTimeout(window.ventendeMonitor.blinkTimeout);
     }
     
+    // Fjern visibility change listener
+    if (window.ventendeMonitor.visibilityChangeHandler) {
+        document.removeEventListener('visibilitychange', window.ventendeMonitor.visibilityChangeHandler);
+    }
+    
     window.ventendeMonitor.newOrders.clear();
     document.title = window.ventendeMonitor.originalTitle;
     
@@ -239,7 +244,8 @@ class VentendeOppdragMonitor {
         this.setupRefreshMonitor();
         
         // Page Visibility API - Tving NISSY refresh når fanen blir aktiv
-        document.addEventListener('visibilitychange', () => {
+        // Lagrer handler som metode slik at vi kan fjerne den senere
+        this.visibilityChangeHandler = () => {
             if (!document.hidden) {
                 console.log('👁️ Fane aktivert - tvinger NISSY refresh...');
                 // Tving NISSY til å refreshe alle bestillinger
@@ -250,7 +256,8 @@ class VentendeOppdragMonitor {
                     console.warn('⚠️ openPopp funksjon ikke tilgjengelig');
                 }
             }
-        });
+        };
+        document.addEventListener('visibilitychange', this.visibilityChangeHandler);
     }
     
     // -------------------------------------------------------------------------
@@ -300,7 +307,7 @@ class VentendeOppdragMonitor {
             if (this._isNissyRefresh) {
                 // Sjekk om monitoren fortsatt kjører før vi logger
                 if (window.ventendeMonitor && !self.isStopped) {
-                    console.log('📤 NISSY refresh-request sendt');
+                    //console.log('📤 NISSY refresh-request sendt');
                 }
                 
                 this.addEventListener("load", function() {
@@ -310,7 +317,7 @@ class VentendeOppdragMonitor {
                         return;
                     }
                     
-                    console.log('📥 NISSY refresh-respons mottatt, status:', this.status);
+                    //console.log('📥 NISSY refresh-respons mottatt, status:', this.status);
                     
                     if (this.status === 200) {
                         try {
@@ -900,6 +907,11 @@ window.stopMonitor = function() {
         }
         if (window.ventendeMonitor.blinkTimeout) {
             clearTimeout(window.ventendeMonitor.blinkTimeout);
+        }
+        
+        // Fjern visibility change listener
+        if (window.ventendeMonitor.visibilityChangeHandler) {
+            document.removeEventListener('visibilitychange', window.ventendeMonitor.visibilityChangeHandler);
         }
         
         window.ventendeMonitor.newOrders.clear();
