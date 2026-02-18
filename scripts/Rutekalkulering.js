@@ -89,6 +89,7 @@
     "./Kir / Ort pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Akuttpsyk sengepost, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Revma pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Revma pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Lab prøvetaking, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Beinmasse pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Endo pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
@@ -111,6 +112,7 @@
     "PD pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "./Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SL. Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Gastro dagbeh, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -161,6 +163,9 @@
     "Rindal Fysioterapi/Rindal Fysioterapi/Helge Pedersen, 6657 Rindal": "Sjukeheimsvegen 6, 6657 Rindal",
     "Skaun fysio/Fysio. Raquel Dulot Dela Cruz, 7353 Børsa": "Børsa fysioterapi AS, Lensmannsekra 3, 7353 Børsa",
     "Skaun fysio/Fysioterapeut Ida Regine Thorstensen, 7353 Børsa": "Børsa fysioterapi AS, Lensmannsekra 3, 7353 Børsa",
+    "./Dagrehab kurbad, 7500 Stjørdal": "Breidablikkvegen 3, 7500 Stjørdal",
+    "Seterbakkvegen 5, 7796 FOLLAFOSS": "Seterbakkveien 5, 7796 FOLLAFOSS",
+    "Synnesvegen 279, 7960 Salsbruket": "64.81815371052468, 11.902412511524009",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
