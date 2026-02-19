@@ -113,6 +113,7 @@
     "./Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SL. Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Gastro dagbeh, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "SLS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
