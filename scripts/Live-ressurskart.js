@@ -1,7 +1,7 @@
 // ============================================================
 // LIVE RESSURSKART SCRIPT (ALT+O)
 // Viser sanntidsposisjon for alle merkede ressurser i Leaflet-kart
-// Henter siste 4010 XML-posisjon og oppdaterer hvert 120. sekund
+// Henter siste 4010 XML-posisjon og oppdaterer hvert 60. sekund
 // ============================================================
 
 (function() {
@@ -14,7 +14,7 @@
   window.__liveRessurskartHotkeyInstalled = true;
   
   // Konfigurerbar oppdateringsintervall (sekunder)
-  const UPDATE_INTERVAL = 120;
+  const UPDATE_INTERVAL = 60;
   
   // Zoom-nivå for enkelt markør (19 = helt inn, 1 = helt ut)
   // 13 = ca 2 zoom ut fra maksimum, passer for by-nivå
@@ -154,6 +154,11 @@
             width: 100%;
           }
           
+          .custom-marker-wrapper {
+            background: transparent;
+            border: none;
+          }
+          
           .vehicle-marker {
             background: #4CAF50;
             border: 3px solid white;
@@ -167,6 +172,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
             cursor: pointer;
             transition: transform 0.2s;
+            margin: 0 auto;
           }
           
           .vehicle-marker:hover {
@@ -316,19 +322,34 @@
               const lat = parseFloat(v.lat);
               const lon = parseFloat(v.lon);
               
-              // Custom ikon
+              // Formater tidspunkt for label
+              const timeLabel = formatTimestamp(v.timestamp);
+              
+              // Custom ikon med tidsstempel
               const customIcon = L.divIcon({
-                className: 'vehicle-marker',
-                html: '🚕',
-                iconSize: [32, 32]
+                className: 'custom-marker-wrapper',
+                html: '<div style="text-align: center;">' +
+                      '<div class="vehicle-marker">🚕</div>' +
+                      '<div style="font-size: 11px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
+                      '</div>',
+                iconSize: [50, 60],
+                iconAnchor: [25, 30]
               });
               
               const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
               
-              // Hent ikon og tittel for hendelse
+              // Tooltip ved hover (kompakt info)
               const eventInfo = getIconAndTitle(v.eventType);
+              marker.bindTooltip(
+                '<strong>' + v.licensePlate + '</strong><br>' +
+                eventInfo.icon + ' ' + eventInfo.title,
+                {
+                  direction: 'top',
+                  offset: [0, -25]
+                }
+              );
               
-              // Popup med info
+              // Popup ved klikk (full info)
               const popupContent = \`
                 <div class="popup-header">
                   🚕 \${v.licensePlate}
