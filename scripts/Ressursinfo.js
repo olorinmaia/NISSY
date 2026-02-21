@@ -914,10 +914,29 @@ async function runResourceInfo() {
           
           // Opprett marker cluster group
           const markerCluster = L.markerClusterGroup({
-            maxClusterRadius: 20, // Radius for clustering (30 piksler - tettere grouping)
-            spiderfyOnMaxZoom: true, // Spread ut markører ved max zoom
+            maxClusterRadius: 20,
+            spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
-            zoomToBoundsOnClick: true
+            zoomToBoundsOnClick: false,  // Deaktiver auto-zoom ved klikk
+            spiderfyOnEveryZoom: true    // Tillat spiderfy på alle zoom-nivåer
+          });
+          
+          // Klikk for å spiderfy/unspiderfy (toggle)
+          markerCluster.on('clusterclick', function(e) {
+            const cluster = e.layer;
+            
+            // Toggle: hvis allerede spiderfied → collapse, ellers → spiderfy
+            if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
+              // Sjekk om allerede spiderfied ved å se om cluster-ikon fortsatt finnes
+              const isSpiderfied = cluster._group._featureGroup._map && 
+                                   !cluster._group._featureGroup._map.hasLayer(cluster);
+              
+              if (isSpiderfied) {
+                cluster.unspiderfy();
+              } else {
+                cluster.spiderfy();
+              }
+            }
           });
           
           // Gjenbrukbar funksjon for å lage markør med popup
@@ -1081,7 +1100,24 @@ async function runResourceInfo() {
               maxClusterRadius: 20,
               spiderfyOnMaxZoom: true,
               showCoverageOnHover: false,
-              zoomToBoundsOnClick: true
+              zoomToBoundsOnClick: false,
+              spiderfyOnEveryZoom: true
+            });
+            
+            // Klikk for å toggle spiderfy
+            newMarkerCluster.on('clusterclick', function(e) {
+              const cluster = e.layer;
+              
+              if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
+                const isSpiderfied = cluster._group._featureGroup._map && 
+                                     !cluster._group._featureGroup._map.hasLayer(cluster);
+                
+                if (isSpiderfied) {
+                  cluster.unspiderfy();
+                } else {
+                  cluster.spiderfy();
+                }
+              }
             });
             
             // Bruk samme funksjon som ved første initialisering
