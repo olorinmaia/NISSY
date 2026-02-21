@@ -326,50 +326,6 @@ async function runResourceInfo() {
   /* ==========================
      HJELPEFUNKSJONER
      ========================== */
-  
-  // ============================================================
-  // GOOGLE MAPS CONSENT-HÅNDTERING
-  // Google Maps krever at bruker godtar vilkår første gang
-  // ============================================================
-  function ensureGoogleConsent(callback) {
-    // Sjekk om bruker allerede har godtatt vilkår (lagret i sessionStorage)
-    if (sessionStorage.getItem("gmapsConsentOK") === "1") {
-      callback(true);
-      return;
-    }
-  
-    // Vis instruksjon til bruker
-    alert(
-      "Google Maps må åpnes én gang for å godta vilkår.\n\n" +
-      "Godta vilkår, lukk vinduet – prøv å åpne kjøreruten på nytt."
-    );
-    
-    // Åpne Google Maps i nytt vindu
-    const googleMapsWindow = window.open(
-      "https://www.google.no/maps",
-      "_blank",
-      "width=800,height=600"
-    );
-  
-    // Sjekk om popup ble blokkert
-    if (!googleMapsWindow) {
-      alert("Popup blokkert – tillat popup og prøv igjen.");
-      callback(false);
-      return;
-    }
-  
-    // Poll for å sjekke om vinduet er lukket
-    const checkInterval = setInterval(() => {
-      if (googleMapsWindow.closed) {
-        clearInterval(checkInterval);
-        // Marker at bruker har godtatt vilkår
-        sessionStorage.setItem("gmapsConsentOK", "1");
-      }
-    }, 500);
-    
-    // Returner false siden bruker må godta først
-    callback(false);
-  }
 
   async function unescapeHtml(html) {
     const txt = document.createElement("textarea");
@@ -978,7 +934,7 @@ async function runResourceInfo() {
           
           // Opprett marker cluster group
           const markerCluster = L.markerClusterGroup({
-            maxClusterRadius: 30, // Radius for clustering (30 piksler - tettere grouping)
+            maxClusterRadius: 20, // Radius for clustering (30 piksler - tettere grouping)
             spiderfyOnMaxZoom: true, // Spread ut markører ved max zoom
             showCoverageOnHover: false,
             zoomToBoundsOnClick: true
@@ -1022,7 +978,8 @@ async function runResourceInfo() {
               '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
               '<strong>Adresse:</strong> ' + event.address + '<br>' +
               '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
-              '</div>'
+              '</div>',
+              { offset: [0, -15] }  // Flytt popup opp slik at den ikke dekker ikonet
             );
             
             markerCluster.addLayer(marker);
@@ -1173,6 +1130,31 @@ async function runResourceInfo() {
             height: calc(100vh - 60px);
             width: 100%;
           }
+          
+          .custom-marker-wrapper {
+            background: transparent;
+            border: none;
+          }
+          
+          .event-marker {
+            background: white;
+            border: 3px solid;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            margin: 0 auto;
+          }
+          
+          .event-1701 { border-color: #4CAF50; }
+          .event-1702 { border-color: #2196F3; }
+          .event-1703 { border-color: #F44336; }
+          .event-1709 { border-color: #FF9800; }
         </style>
       </head>
       <body>
@@ -1182,6 +1164,14 @@ async function runResourceInfo() {
         <div id="map"></div>
         
         <script>
+          function formatTimestamp(isoString) {
+            if (!isoString || isoString === "Ukjent") return "Ukjent";
+            const dt = new Date(isoString);
+            if (isNaN(dt)) return "Ukjent";
+            const pad = n => n.toString().padStart(2, "0");
+            return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
+          }
+          
           const map = L.map('map').setView([${lat}, ${lon}], 15);
           
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1189,16 +1179,38 @@ async function runResourceInfo() {
             maxZoom: 19
           }).addTo(map);
           
-          const marker = L.marker([${lat}, ${lon}]).addTo(map);
+          const eventInfo = {
+            icon: '${eventInfo.icon}',
+            title: '${eventInfo.title}',
+            color: 'event-${event.eventType}'
+          };
+          
+          const timeLabel = formatTimestamp('${event.timestamp}');
+          
+          // Custom ikon med tidsstempel
+          const customIcon = L.divIcon({
+            className: 'custom-marker-wrapper',
+            html: '<div style="text-align: center;">' +
+                  '<div class="event-marker ' + eventInfo.color + '">' + eventInfo.icon + '</div>' +
+                  '<div style="font-size: 11px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
+                  '</div>',
+            iconSize: [50, 60],
+            iconAnchor: [25, 30]
+          });
+          
+          const marker = L.marker([${lat}, ${lon}], { icon: customIcon }).addTo(map);
           
           marker.bindPopup(\`
             <div style="min-width: 200px;">
-              <strong>${eventInfo.icon} ${eventInfo.title}</strong><br>
+              <strong>\${eventInfo.icon} \${eventInfo.title}</strong><br>
               <strong>Navn:</strong> ${event.name}<br>
+              <strong>Tidspunkt:</strong> \${timeLabel}<br>
               <strong>Adresse:</strong> ${event.address}<br>
               <strong>Koordinat:</strong> ${lat.toFixed(4)}, ${lon.toFixed(4)}
             </div>
-          \`).openPopup();
+          \`, {
+            offset: [0, -15]  // Flytt popup opp slik at den ikke dekker ikonet
+          }).openPopup();
         </script>
       </body>
       </html>
@@ -1561,26 +1573,6 @@ async function runResourceInfo() {
         });
       });
       toggle1709.dispatchEvent(new Event("change"));
-    }
-
-    // Åpne lenker i nytt vindu
-    function openPopupWindow(url) {
-      // Sjekk Google Maps consent først
-      ensureGoogleConsent((consentOK) => {
-        if (!consentOK) {
-          // Bruker må godta vilkår først
-          return;
-        }
-        
-        // Åpne vindu etter consent er godkjent
-        const width = Math.floor(window.innerWidth / 2);
-        const height = Math.floor(window.innerHeight * 0.9);
-        window.open(
-          url,
-          "_blank",
-          `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
-        );
-      });
     }
 
     const coordLinks = popup.querySelectorAll(".coord-link");
