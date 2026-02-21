@@ -18,6 +18,15 @@
   // Sperre for å hindre multiple kjøringer samtidig
   let isRunning = false;
 
+  // ============================================================
+  // KONFIGURASJON
+  // ============================================================
+  
+  // Routing-modus for kjørerute-kart
+  // 'road' = Rute langs vei (OSRM routing)
+  // 'straight' = Rett luftlinje mellom punkter
+  const ROUTING_MODE = 'road'; // Endre til 'straight' for luftlinje
+
   console.log("🚀 Starter Ressursinfo-script");
 
   // ============================================================
@@ -833,7 +842,337 @@ async function runResourceInfo() {
   }
 
   /* ==========================
-     9. VIS KOMBINERT POPUP
+     9. ÅPNE KJØRERUTE I LEAFLET-KART
+     ========================== */
+  function openRouteMap(events, licensePlate, turId) {
+    // Åpne nytt vindu
+    const width = Math.floor(window.innerWidth / 2);
+    const height = Math.floor(window.innerHeight * 0.9);
+    const mapWindow = window.open(
+      '',
+      'RouteMap_' + turId,
+      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+    );
+    
+    if (!mapWindow) {
+      alert("Popup blokkert – tillat popup og prøv igjen.");
+      return;
+    }
+    
+    // Serialiser events til JSON-streng (escapet for HTML)
+    const eventsJson = JSON.stringify(events).replace(/</g, '\\x3C').replace(/>/g, '\\x3E');
+    
+    // Lagre events i parent window for child window access
+    window.currentRouteEvents = events;
+    window.currentRoutingMode = ROUTING_MODE; // Send routing-modus til map-vindu
+    
+    // Bygg HTML med Leaflet
+    mapWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Kjørerute - ${licensePlate} - ${turId}</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+        <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; overflow: hidden; }
+          
+          #header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          
+          #header h1 {
+            font-size: 18px;
+            font-weight: 600;
+          }
+          
+          #map {
+            height: calc(100vh - 60px);
+            width: 100%;
+          }
+          
+          .custom-marker-wrapper {
+            background: transparent;
+            border: none;
+          }
+          
+          .event-marker {
+            background: white;
+            border: 3px solid;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 0 auto;
+          }
+          
+          .event-marker:hover {
+            transform: scale(1.2);
+          }
+          
+          .event-1701 { border-color: #4CAF50; }
+          .event-1702 { border-color: #2196F3; }
+          .event-1703 { border-color: #F44336; }
+          .event-1709 { border-color: #FF9800; }
+          
+          /* Skjul routing control panel */
+          .leaflet-routing-container {
+            display: none;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="header">
+          <h1>🗺️ Kjørerute - ${licensePlate} - Tur ${turId}</h1>
+        </div>
+        <div id="map"></div>
+        
+        <script>
+          // Initialiser kart
+          const map = L.map('map');
+          
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+          }).addTo(map);
+          
+          // Hent event data fra parent window
+          const events = window.opener.currentRouteEvents;
+          
+          function getIconAndTitle(eventType) {
+            switch (eventType) {
+              case "1701": return { icon: "➕", title: "Påstigning", color: "event-1701" };
+              case "1702": return { icon: "➖", title: "Avstigning", color: "event-1702" };
+              case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
+              case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
+              default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
+            }
+          }
+          
+          function formatTimestamp(isoString) {
+            if (!isoString || isoString === "Ukjent") return "Ukjent";
+            const dt = new Date(isoString);
+            if (isNaN(dt)) return "Ukjent";
+            const pad = n => n.toString().padStart(2, "0");
+            return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
+          }
+          
+          const markers = [];
+          const routeCoords = [];
+          
+          // Opprett marker cluster group
+          const markerCluster = L.markerClusterGroup({
+            maxClusterRadius: 30, // Radius for clustering (30 piksler - tettere grouping)
+            spiderfyOnMaxZoom: true, // Spread ut markører ved max zoom
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+          });
+          
+          // Legg til markører for hver hendelse
+          events.forEach((event, index) => {
+            if (!event.lat || !event.lon) return;
+            
+            const lat = parseFloat(event.lat);
+            const lon = parseFloat(event.lon);
+            const eventInfo = getIconAndTitle(event.eventType);
+            const timeLabel = formatTimestamp(event.timestamp);
+            
+            // Custom ikon med tidsstempel
+            const customIcon = L.divIcon({
+              className: 'custom-marker-wrapper',
+              html: '<div style="text-align: center;">' +
+                    '<div class="event-marker ' + eventInfo.color + '">' + eventInfo.icon + '</div>' +
+                    '<div style="font-size: 10px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 4px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
+                    '</div>',
+              iconSize: [50, 60],
+              iconAnchor: [25, 30]
+            });
+            
+            const marker = L.marker([lat, lon], { icon: customIcon });
+            
+            // Tooltip
+            marker.bindTooltip(
+              '<strong>' + (index + 1) + '. ' + eventInfo.title + '</strong><br>' +
+              event.name + '<br>' +
+              timeLabel,
+              { direction: 'top', offset: [0, -30] }
+            );
+            
+            // Popup
+            marker.bindPopup(
+              '<div style="min-width: 200px;">' +
+              '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
+              '<strong>Navn:</strong> ' + event.name + '<br>' +
+              '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
+              '<strong>Adresse:</strong> ' + event.address + '<br>' +
+              '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
+              '</div>'
+            );
+            
+            markerCluster.addLayer(marker);
+            markers.push(marker);
+            routeCoords.push([lat, lon]);
+          });
+          
+          // Legg cluster til kart
+          map.addLayer(markerCluster);
+          
+          // Hent routing-modus fra parent window
+          const routingMode = window.opener.currentRoutingMode || 'road';
+          
+          // Tegn kjørerute mellom hendelsene
+          if (routeCoords.length > 1) {
+            if (routingMode === 'road') {
+              // MODUS: Rute langs vei (OSRM routing)
+              const waypoints = routeCoords.map(coord => L.latLng(coord[0], coord[1]));
+              
+              L.Routing.control({
+                waypoints: waypoints,
+                router: L.Routing.osrmv1({
+                  serviceUrl: 'https://router.project-osrm.org/route/v1',
+                  profile: 'driving'
+                }),
+                lineOptions: {
+                  styles: [{ color: '#1976d2', weight: 4, opacity: 0.7 }]
+                },
+                createMarker: function() { return null; },
+                addWaypoints: false,
+                routeWhileDragging: false,
+                showAlternatives: false,
+                fitSelectedRoutes: false,
+                show: false
+              }).addTo(map);
+            } else {
+              // MODUS: Rett luftlinje
+              L.polyline(routeCoords, {
+                color: '#1976d2',
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '10, 5' // Stiplet linje for å vise at det er luftlinje
+              }).addTo(map);
+            }
+          }
+          
+          // Zoom til alle markører
+          if (routeCoords.length > 0) {
+            map.fitBounds(routeCoords, { padding: [50, 50] });
+          }
+        </script>
+      </body>
+      </html>
+    `);
+    
+    mapWindow.document.close();
+  }
+  
+  /* ==========================
+     9B. ÅPNE SINGLE EVENT I LEAFLET-KART
+     ========================== */
+  function openSingleEventMap(event, licensePlate, turId) {
+    if (!event.lat || !event.lon) {
+      alert("Ingen koordinater tilgjengelig for denne hendelsen.");
+      return;
+    }
+    
+    const eventInfo = getIconAndTitle(event.eventType);
+    
+    // Åpne nytt vindu
+    const width = Math.floor(window.innerWidth / 2);
+    const height = Math.floor(window.innerHeight * 0.9);
+    const mapWindow = window.open(
+      '',
+      'EventMap_' + turId + '_' + event.eventType,
+      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+    );
+    
+    if (!mapWindow) {
+      alert("Popup blokkert – tillat popup og prøv igjen.");
+      return;
+    }
+    
+    const lat = parseFloat(event.lat);
+    const lon = parseFloat(event.lon);
+    
+    mapWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${eventInfo.title} - ${licensePlate}</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; overflow: hidden; }
+          
+          #header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          
+          #header h1 {
+            font-size: 18px;
+            font-weight: 600;
+          }
+          
+          #map {
+            height: calc(100vh - 60px);
+            width: 100%;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="header">
+          <h1>🗺️ ${eventInfo.icon} ${eventInfo.title} - ${licensePlate}</h1>
+        </div>
+        <div id="map"></div>
+        
+        <script>
+          const map = L.map('map').setView([${lat}, ${lon}], 15);
+          
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+          }).addTo(map);
+          
+          const marker = L.marker([${lat}, ${lon}]).addTo(map);
+          
+          marker.bindPopup(\`
+            <div style="min-width: 200px;">
+              <strong>${eventInfo.icon} ${eventInfo.title}</strong><br>
+              <strong>Navn:</strong> ${event.name}<br>
+              <strong>Adresse:</strong> ${event.address}<br>
+              <strong>Koordinat:</strong> ${lat.toFixed(4)}, ${lon.toFixed(4)}
+            </div>
+          \`).openPopup();
+        </script>
+      </body>
+      </html>
+    `);
+    
+    mapWindow.document.close();
+  }
+
+  /* ==========================
+     10. VIS KOMBINERT POPUP
      ========================== */
   function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003) {
     const rowRect = row.getBoundingClientRect();
@@ -1001,9 +1340,11 @@ async function runResourceInfo() {
       for (const r of eventData.events) {
         const { icon, title } = getIconAndTitle(r.eventType);
         const coordText = `Vis i kart`;
-        const gmapsUrl = `https://www.google.no/maps/search/?api=1&query=${r.lat},${r.lon}`;
         const formattedTime = formatTimestamp(r.timestamp);
         const rowClass = r.eventType === "1709" ? "row1709" : "";
+        
+        // Escape JSON for data-attributt
+        const eventJson = JSON.stringify(r).replace(/"/g, '&quot;');
 
         html += `
           <tr class="${rowClass}" style="border-bottom: 1px solid #e9ecef; background: white; transition: background-color 0.2s;">
@@ -1044,9 +1385,11 @@ async function runResourceInfo() {
               ${r.address}
             </td>
             <td style="padding: 10px 8px;">
-              <a href="${gmapsUrl}" 
+              <a href="#" 
+                 class="coord-link"
+                 data-event="${eventJson}"
                  style="color: #1976d2; text-decoration: none;"
-                 title="${title}">
+                 title="${title} - Vis i kart">
                 🗺️ ${coordText}
               </a>
             </td>
@@ -1080,19 +1423,19 @@ async function runResourceInfo() {
         </button>
     `;
     
-    if (eventData.routeUrl) {
+    if (eventData.events.length > 0) {
       html += `
-        <a href="${eventData.routeUrl}" 
-           style="
+        <button id="showRouteMap" style="
              padding: 10px 16px;
              background: #1976d2;
              color: white;
-             text-decoration: none;
+             border: none;
              border-radius: 6px;
              font-size: 14px;
-           " title="Åpner kjørerute basert på faktiske koordinater fra taksameter i Google Maps">
-          🗺️ Bilens faktiske kjørerute
-        </a>
+             cursor: pointer;
+           " title="Åpner kjørerute basert på faktiske hendelser fra taksameter i Leaflet-kart">
+          🗺️ Vis kjørerute i kart
+        </button>
       `;
     }
     
@@ -1204,11 +1547,12 @@ async function runResourceInfo() {
       });
     }
 
-    const coordLinks = popup.querySelectorAll("a[href^='https://www.google.no/maps']");
+    const coordLinks = popup.querySelectorAll(".coord-link");
     coordLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
-        openPopupWindow(link.href);
+        const eventData = JSON.parse(link.getAttribute('data-event'));
+        openSingleEventMap(eventData, licensePlate, turId);
       });
     });
 
@@ -1241,6 +1585,14 @@ async function runResourceInfo() {
         );
       });
     });
+    
+    // Kjørerute-knapp (åpner Leaflet-kart)
+    const showRouteMapBtn = popup.querySelector("#showRouteMap");
+    if (showRouteMapBtn) {
+      showRouteMapBtn.addEventListener("click", () => {
+        openRouteMap(eventData.events, licensePlate, turId);
+      });
+    }
 
     // Lukk popup
     function closePopup() {
