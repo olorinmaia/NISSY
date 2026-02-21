@@ -356,7 +356,7 @@
                 </div>
                 <div class="popup-body">
                   <div class="popup-row">
-                    <span class="popup-label">Tur:</span>
+                    <span class="popup-label">Turnummer:</span>
                     <span class="popup-value">\${v.turId}</span>
                   </div>
                   <div class="popup-row">
@@ -377,7 +377,7 @@
                 </div>
               \`;
               
-              marker.bindPopup(popupContent);
+              marker.bindPopup(popupContent, { offset: [0, -10] });
               markers.push(marker);
               bounds.push([lat, lon]);
             });
