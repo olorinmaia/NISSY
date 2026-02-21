@@ -227,16 +227,17 @@
             display: inline-block;
             margin-top: 10px;
             padding: 8px 16px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
+            background: #667eea !important;
+            color: #F5F5F5 !important;
+            text-decoration: none !important;
             border-radius: 4px;
             font-size: 13px;
             transition: background 0.2s;
+            font-weight: 600;
           }
           
           .popup-link:hover {
-            background: #5568d3;
+            background: #5568d3 !important;
           }
         </style>
       </head>
