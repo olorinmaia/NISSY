@@ -1042,22 +1042,56 @@ async function runResourceInfo() {
               // MODUS: Rute langs vei (OSRM routing)
               const waypoints = routeCoords.map(coord => L.latLng(coord[0], coord[1]));
               
-              L.Routing.control({
-                waypoints: waypoints,
-                router: L.Routing.osrmv1({
-                  serviceUrl: 'https://router.project-osrm.org/route/v1',
-                  profile: 'driving'
-                }),
-                lineOptions: {
-                  styles: [{ color: '#1976d2', weight: 4, opacity: 0.7 }]
-                },
-                createMarker: function() { return null; },
-                addWaypoints: false,
-                routeWhileDragging: false,
-                showAlternatives: false,
-                fitSelectedRoutes: false,
-                show: false
-              }).addTo(map);
+              try {
+                const routingControl = L.Routing.control({
+                  waypoints: waypoints,
+                  router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1',
+                    profile: 'driving',
+                    timeout: 10000  // 10 sekunder timeout
+                  }),
+                  lineOptions: {
+                    styles: [{ color: '#1976d2', weight: 4, opacity: 0.7 }]
+                  },
+                  createMarker: function() { return null; },
+                  addWaypoints: false,
+                  routeWhileDragging: false,
+                  showAlternatives: false,
+                  fitSelectedRoutes: false,
+                  show: false
+                }).addTo(map);
+                
+                // Fallback ved routing-feil
+                routingControl.on('routingerror', function(e) {
+                  console.warn('⚠️ OSRM routing feilet - bruker luftlinje som fallback');
+                  console.warn('Feilmelding:', e.error);
+                  
+                  // Fjern routing control
+                  map.removeControl(routingControl);
+                  
+                  // Vis luftlinje i stedet
+                  L.polyline(routeCoords, {
+                    color: '#1976d2',
+                    weight: 4,
+                    opacity: 0.7,
+                    dashArray: '10, 5'
+                  }).addTo(map);
+                });
+                
+                console.log('✅ OSRM routing lastet');
+                
+              } catch (error) {
+                console.error('❌ OSRM routing kastet exception - bruker luftlinje');
+                console.error('Error:', error);
+                
+                // Fallback til luftlinje
+                L.polyline(routeCoords, {
+                  color: '#1976d2',
+                  weight: 4,
+                  opacity: 0.7,
+                  dashArray: '10, 5'
+                }).addTo(map);
+              }
             } else {
               // MODUS: Rett luftlinje
               L.polyline(routeCoords, {
@@ -1066,6 +1100,8 @@ async function runResourceInfo() {
                 opacity: 0.7,
                 dashArray: '10, 5' // Stiplet linje for å vise at det er luftlinje
               }).addTo(map);
+              
+              console.log('✅ Luftlinje-routing lastet');
             }
           }
           
