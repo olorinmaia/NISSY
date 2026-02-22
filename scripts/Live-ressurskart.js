@@ -734,16 +734,22 @@
     }
     
     window.isUpdating = true;
-    console.log("🔄 Oppdaterer kartdata...");
     
-    const vehicles = await fetchAllVehicleData(window.currentResources);
+    const resourceCount = (window.currentResources || []).filter(r => {
+      const lp = r.cells[1]?.textContent.trim();
+      return lp && !/-\d{8,}$/.test(lp);
+    }).length;
+    showLoadingToast(`🗺️ Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
     
-    // Send data til kart-vindu (stille – ingen toast ved oppdatering)
-    if (window.currentMapWindow && !window.currentMapWindow.closed) {
-      window.currentMapWindow.addVehicleMarkers(vehicles);
+    try {
+      const vehicles = await fetchAllVehicleData(window.currentResources);
+      if (window.currentMapWindow && !window.currentMapWindow.closed) {
+        window.currentMapWindow.addVehicleMarkers(vehicles);
+      }
+    } finally {
+      hideLoadingToast();
+      window.isUpdating = false;
     }
-    
-    window.isUpdating = false;
   };
 
   // Funksjon for å hente siste 4010-posisjon for en ressurs
