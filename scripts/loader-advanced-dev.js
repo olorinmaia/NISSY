@@ -25,6 +25,7 @@
     'Hentetid.js',
     'Ressursinfo.js',
     'Samkjøring.js',
+    'Live-ressurskart.js',
     'Logg.js'
   ];
   
