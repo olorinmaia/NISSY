@@ -667,7 +667,10 @@ function startAutoUpdate() {
     clearInterval(updateTimer);
   }
   
-  const interval = parseInt(document.getElementById('updateInterval').value) * 60000;
+  const rawVal = parseInt(document.getElementById('updateInterval').value) || 1;
+  const clampedVal = Math.max(1, Math.min(30, rawVal));
+  document.getElementById('updateInterval').value = clampedVal;
+  const interval = clampedVal * 60000;
   updateTimer = setInterval(() => {
     window.opener.updateMapData(true); // stille ved auto-refresh
   }, interval);
