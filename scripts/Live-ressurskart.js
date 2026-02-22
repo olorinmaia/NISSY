@@ -188,7 +188,10 @@
         <meta charset="UTF-8">
         <title>Live Ressurskart - NISSY</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
         <style>
           * {
             margin: 0;
@@ -373,7 +376,8 @@
             maxZoom: 19
           }).addTo(map);
           
-          // Lagre markører for å kunne fjerne dem ved oppdatering
+          // Cluster-gruppe for markører (byttes ut ved hver oppdatering)
+          let markerCluster = null;
           let markers = [];
           let updateTimer = null;
           
@@ -402,8 +406,11 @@
             // Hent zoom-nivå fra parent window
             const singleMarkerZoom = window.opener.SINGLE_MARKER_ZOOM || 13;
             
-            // Fjern gamle markører
-            markers.forEach(m => map.removeLayer(m));
+            // Fjern gammel cluster-gruppe fra kart
+            if (markerCluster) {
+              map.removeLayer(markerCluster);
+              markerCluster = null;
+            }
             markers = [];
             
             if (vehicles.length === 0) {
@@ -416,6 +423,29 @@
             document.getElementById('lastUpdate').textContent = 
               now.getHours().toString().padStart(2, '0') + ':' + 
               now.getMinutes().toString().padStart(2, '0');
+            
+            // Opprett ny marker cluster group
+            markerCluster = L.markerClusterGroup({
+              maxClusterRadius: 20,
+              spiderfyOnMaxZoom: true,
+              showCoverageOnHover: false,
+              zoomToBoundsOnClick: false,
+              spiderfyOnEveryZoom: true
+            });
+            
+            // Toggle spiderfy ved klikk på cluster
+            markerCluster.on('clusterclick', function(e) {
+              const cluster = e.layer;
+              if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
+                const isSpiderfied = cluster._group._featureGroup._map &&
+                                     !cluster._group._featureGroup._map.hasLayer(cluster);
+                if (isSpiderfied) {
+                  cluster.unspiderfy();
+                } else {
+                  cluster.spiderfy();
+                }
+              }
+            });
             
             // Legg til nye markører
             const bounds = [];
@@ -440,7 +470,7 @@
                 iconAnchor: [25, 30]
               });
               
-              const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+              const marker = L.marker([lat, lon], { icon: customIcon });
               
               // Tooltip ved hover (kompakt info)
               const eventInfo = getIconAndTitle(v.eventType);
@@ -571,17 +601,19 @@
                   });
                 }
               });
+              markerCluster.addLayer(marker);
               markers.push(marker);
               bounds.push([lat, lon]);
             });
             
+            // Legg cluster til kart
+            map.addLayer(markerCluster);
+            
             // Zoom til alle markører
             if (bounds.length > 0) {
               if (bounds.length === 1) {
-                // Kun én markør - zoom til konfigurerbart nivå
                 map.setView(bounds[0], singleMarkerZoom);
               } else {
-                // Flere markører - zoom til alle
                 map.fitBounds(bounds, { padding: [50, 50] });
               }
             }
@@ -626,7 +658,7 @@
     // Vent til vindu og Leaflet er klart
     await new Promise(resolve => {
       const checkReady = () => {
-        if (mapWindow.L && mapWindow.document.readyState === 'complete') {
+        if (mapWindow.L && mapWindow.L.markerClusterGroup && mapWindow.document.readyState === 'complete') {
           resolve();
         } else {
           setTimeout(checkReady, 100);
