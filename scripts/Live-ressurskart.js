@@ -1,7 +1,7 @@
 // ============================================================
 // LIVE RESSURSKART SCRIPT (ALT+O)
 // Viser sanntidsposisjon for alle merkede ressurser i Leaflet-kart
-// Henter siste 4010 XML-posisjon og oppdaterer hvert 60. sekund
+// Henter siste 4010 XML-posisjon og oppdaterer hvert 5. minutt
 // ============================================================
 
 (function() {
@@ -13,13 +13,92 @@
 
   window.__liveRessurskartHotkeyInstalled = true;
   
-  // Konfigurerbar oppdateringsintervall (sekunder)
-  const UPDATE_INTERVAL = 60;
+  // ============================================================
+  // TOAST-FEILMELDING
+  // ============================================================
+  let currentErrorToast = null;
+  
+  function showErrorToast(msg) {
+    if (currentErrorToast && currentErrorToast.parentNode) {
+      currentErrorToast.parentNode.removeChild(currentErrorToast);
+    }
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#d9534f",
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      fontSize: "14px",
+      zIndex: "999999",
+      opacity: "0",
+      transition: "opacity 0.3s ease"
+    });
+    document.body.appendChild(toast);
+    currentErrorToast = toast;
+    setTimeout(() => { toast.style.opacity = "1"; }, 10);
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+        if (currentErrorToast === toast) currentErrorToast = null;
+      }, 300);
+    }, 4000);
+  }
+  window.showErrorToast = showErrorToast; // Eksporter så kart-vinduet kan bruke den
+  
+  // Sperre mot dobbel-åpning mens data lastes
+  let isOpening = false;
+  let loadingToast = null;
+
+  function showLoadingToast(msg) {
+    if (loadingToast && loadingToast.parentNode) {
+      loadingToast.parentNode.removeChild(loadingToast);
+    }
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#047CA1",
+      color: "#fff",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      fontFamily: "Arial, sans-serif",
+      fontSize: "14px",
+      zIndex: "999999",
+      opacity: "0",
+      transition: "opacity 0.3s ease"
+    });
+    document.body.appendChild(toast);
+    loadingToast = toast;
+    setTimeout(() => { toast.style.opacity = "1"; }, 10);
+  }
+
+  function hideLoadingToast() {
+    if (!loadingToast) return;
+    const toast = loadingToast;
+    loadingToast = null;
+    toast.style.opacity = "0";
+    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+  }
   
   // Zoom-nivå for enkelt markør (19 = helt inn, 1 = helt ut)
   // 13 = ca 2 zoom ut fra maksimum, passer for by-nivå
   const SINGLE_MARKER_ZOOM = 14;
   window.SINGLE_MARKER_ZOOM = SINGLE_MARKER_ZOOM; // Eksporter for map-vindu
+  
+  // Konfigurerbar oppdateringsintervall (minutter), default 5, min 1, max 30
+  const UPDATE_INTERVAL = 5;
   
   console.log("🚀 Starter Live Ressurskart-script");
   
@@ -41,13 +120,50 @@
     );
     
     if (allSelectedRows.length === 0) {
-      alert("Ingen ressurser er merket.");
+      showErrorToast("🗺️ Ingen ressurser er merket.");
       return;
     }
     
     console.log(`📍 Fant ${allSelectedRows.length} merkede ressurser`);
+
+    // Sjekk om kartet allerede er åpent og gjenbruk det
+    if (window.currentMapWindow && !window.currentMapWindow.closed &&
+        window.currentMapWindow.document.getElementById('map') !== null) {
+      console.log("📍 Gjenbruker eksisterende kart-vindu");
+      window.currentMapWindow.focus();
+      window.currentResources = allSelectedRows;
+      updateMapData();
+      return;
+    }
+
+    // Sperre mot dobbel-åpning
+    if (isOpening) {
+      console.log("⏳ Kart åpnes allerede – ignorerer ny forespørsel");
+      return;
+    }
+    isOpening = true;
+
+    // Hent posisjonsdata FØR vi åpner vinduet
+    const resourceCount = allSelectedRows.filter(r => {
+      const lp = r.cells[1]?.textContent.trim();
+      return lp && !/-\d{8,}$/.test(lp);
+    }).length;
+    showLoadingToast(`🗺️ Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
+
+    let vehicles;
+    try {
+      vehicles = await fetchAllVehicleData(allSelectedRows);
+    } finally {
+      hideLoadingToast();
+      isOpening = false;
+    }
+
+    if (vehicles.length === 0) {
+      showErrorToast("🚕 Fant ingen posisjonsdata for de merkede ressursene.");
+      return;
+    }
     
-    // Åpne nytt vindu med kart (samme dimensjoner som Rutekalkulering)
+    // Åpne nytt vindu med kart
     const width = Math.floor(window.innerWidth / 2);
     const height = Math.floor(window.innerHeight * 0.9);
     const mapWindow = window.open(
@@ -57,20 +173,7 @@
     );
     
     if (!mapWindow) {
-      alert("Popup blokkert – tillat popup og prøv igjen.");
-      return;
-    }
-    
-    // Sjekk om vinduet allerede er initialisert
-    const isAlreadyInitialized = mapWindow.document.getElementById('map') !== null;
-    
-    if (isAlreadyInitialized) {
-      console.log("📍 Gjenbruker eksisterende kart-vindu");
-      // Lagre nye ressurser
-      window.currentMapWindow = mapWindow;
-      window.currentResources = allSelectedRows;
-      // Oppdater kartdata med nye ressurser
-      updateMapData();
+      showErrorToast("🗺️ Popup blokkert – tillat popup og prøv igjen.");
       return;
     }
     
@@ -252,8 +355,8 @@
             </div>
             <label style="font-size: 13px;">
               Oppdater hvert 
-              <input type="number" id="updateInterval" value="${UPDATE_INTERVAL}" min="10" max="300" style="width: 60px;"> 
-              sekund
+              <input type="number" id="updateInterval" value="${UPDATE_INTERVAL}" min="1" max="30" style="width: 50px;"> 
+              min
             </label>
             <button id="refreshBtn">🔄 Oppdater nå</button>
           </div>
@@ -304,7 +407,6 @@
             markers = [];
             
             if (vehicles.length === 0) {
-              alert("Fant ingen posisjonsdata for de merkede ressursene.");
               return;
             }
             
@@ -496,7 +598,7 @@
               clearInterval(updateTimer);
             }
             
-            const interval = parseInt(document.getElementById('updateInterval').value) * 1000;
+            const interval = parseInt(document.getElementById('updateInterval').value) * 60000;
             updateTimer = setInterval(() => {
               window.opener.updateMapData();
             }, interval);
@@ -537,34 +639,24 @@
     window.currentMapWindow = mapWindow;
     window.currentResources = allSelectedRows;
     
-    // Hent initial data
-    updateMapData();
+    // Send allerede hentede data til kartet direkte
+    mapWindow.addVehicleMarkers(vehicles);
   }
 
-  // Funksjon for å hente og oppdatere kartdata
-  window.updateMapData = async function() {
-    if (!window.currentMapWindow || window.currentMapWindow.closed) {
-      console.log("Kart-vindu er lukket");
-      return;
-    }
-    
-    // Forhindre dobbel kjøring
-    if (window.isUpdating) {
-      console.log("⏳ Oppdatering pågår allerede...");
-      return;
-    }
-    
-    window.isUpdating = true;
-    
-    console.log("🔄 Oppdaterer kartdata...");
-    
+  // Felles funksjon for å hente posisjonsdata for alle ressurser (uten toasts)
+  async function fetchAllVehicleData(rows) {
     const vehicles = [];
     
-    for (const row of window.currentResources) {
+    for (const row of rows) {
       const licensePlate = row.cells[1]?.textContent.trim();
       if (!licensePlate) continue;
       
-      // Hent turId
+      // Ressurser med navn som slutter på 8+ siffer etter siste "-" har ikke mottatt 3003 enda
+      if (/-\d{8,}$/.test(licensePlate)) {
+        console.log(`⏭️ Hopper over ${licensePlate} – ikke registrert (mangler 3003)`);
+        continue;
+      }
+      
       const img = row.querySelector('img[onclick*="searchStatus?id="]');
       if (!img) continue;
       
@@ -572,13 +664,11 @@
       if (!turId) continue;
       
       try {
-        // Hent siste 4010 XML-posisjon
         const positionData = await fetchLatestPosition(licensePlate, turId);
-        
         if (positionData) {
           vehicles.push({
-            licensePlate: licensePlate,
-            turId: turId,
+            licensePlate,
+            turId,
             lat: positionData.lat,
             lon: positionData.lon,
             timestamp: positionData.timestamp,
@@ -595,13 +685,32 @@
     }
     
     console.log("✓ Hentet posisjon for " + vehicles.length + " biler");
+    return vehicles;
+  }
+
+  // Funksjon for å hente og oppdatere kartdata (brukes ved auto-refresh og manuell oppdatering)
+  window.updateMapData = async function() {
+    if (!window.currentMapWindow || window.currentMapWindow.closed) {
+      console.log("Kart-vindu er lukket");
+      return;
+    }
     
-    // Send data til kart-vindu
+    // Forhindre dobbel kjøring
+    if (window.isUpdating) {
+      console.log("⏳ Oppdatering pågår allerede...");
+      return;
+    }
+    
+    window.isUpdating = true;
+    console.log("🔄 Oppdaterer kartdata...");
+    
+    const vehicles = await fetchAllVehicleData(window.currentResources);
+    
+    // Send data til kart-vindu (stille – ingen toast ved oppdatering)
     if (window.currentMapWindow && !window.currentMapWindow.closed) {
       window.currentMapWindow.addVehicleMarkers(vehicles);
     }
     
-    // Frigjør oppdateringsflagg
     window.isUpdating = false;
   };
 
