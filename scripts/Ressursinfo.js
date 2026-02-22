@@ -762,7 +762,7 @@ async function runResourceInfo() {
   /* ==========================
      9. ÅPNE KJØRERUTE I LEAFLET-KART
      ========================== */
-  function openRouteMap(events, licensePlate, turId) {
+  async function openRouteMap(events, licensePlate, turId) {
     // Åpne nytt vindu
     const width = Math.floor(window.innerWidth / 2);
     const height = Math.floor(window.innerHeight * 0.9);
@@ -813,9 +813,6 @@ async function runResourceInfo() {
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-        <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: Arial, sans-serif; overflow: hidden; }
@@ -879,332 +876,352 @@ async function runResourceInfo() {
         </div>
         <div id="map"></div>
         
-        <script>
-          // Initialiser kart
-          const map = L.map('map');
-          
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-          }).addTo(map);
-          
-          // Hent event data fra parent window
-          const events = window.opener.currentRouteEvents;
-          
-          function getIconAndTitle(eventType) {
-            switch (eventType) {
-              case "1701": return { icon: "➕", title: "Påstigning", color: "event-1701" };
-              case "1702": return { icon: "➖", title: "Avstigning", color: "event-1702" };
-              case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
-              case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
-              default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
-            }
-          }
-          
-          function formatTimestamp(isoString) {
-            if (!isoString || isoString === "Ukjent") return "Ukjent";
-            const dt = new Date(isoString);
-            if (isNaN(dt)) return "Ukjent";
-            const pad = n => n.toString().padStart(2, "0");
-            return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
-          }
-          
-          const markers = [];
-          const routeCoords = [];
-          
-          // Opprett marker cluster group
-          const markerCluster = L.markerClusterGroup({
-            maxClusterRadius: 20,
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-            zoomToBoundsOnClick: false,  // Deaktiver auto-zoom ved klikk
-            spiderfyOnEveryZoom: true    // Tillat spiderfy på alle zoom-nivåer
-          });
-          
-          // Klikk for å spiderfy/unspiderfy (toggle)
-          markerCluster.on('clusterclick', function(e) {
-            const cluster = e.layer;
-            
-            // Toggle: hvis allerede spiderfied → collapse, ellers → spiderfy
-            if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
-              // Sjekk om allerede spiderfied ved å se om cluster-ikon fortsatt finnes
-              const isSpiderfied = cluster._group._featureGroup._map && 
-                                   !cluster._group._featureGroup._map.hasLayer(cluster);
-              
-              if (isSpiderfied) {
-                cluster.unspiderfy();
-              } else {
-                cluster.spiderfy();
-              }
-            }
-          });
-          
-          // Gjenbrukbar funksjon for å lage markør med popup
-          function createMarkerWithPopup(event, index) {
-            const lat = parseFloat(event.lat);
-            const lon = parseFloat(event.lon);
-            const eventInfo = getIconAndTitle(event.eventType);
-            const timeLabel = formatTimestamp(event.timestamp);
-            
-            // Custom ikon med tidsstempel
-            const customIcon = L.divIcon({
-              className: 'custom-marker-wrapper',
-              html: '<div style="text-align: center;">' +
-                    '<div class="event-marker ' + eventInfo.color + '">' + eventInfo.icon + '</div>' +
-                    '<div style="font-size: 10px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 4px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
-                    '</div>',
-              iconSize: [50, 60],
-              iconAnchor: [25, 30]
-            });
-            
-            const marker = L.marker([lat, lon], { icon: customIcon });
-            
-            // Tooltip
-            marker.bindTooltip(
-              '<strong>' + (index + 1) + '. ' + eventInfo.title + '</strong><br>' +
-              event.name + '<br>' +
-              timeLabel,
-              { direction: 'top', offset: [0, -30] }
-            );
-            
-            // Popup
-            marker.bindPopup(
-              '<div style="min-width: 200px;">' +
-              '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
-              '<strong>Navn:</strong> ' + event.name + '<br>' +
-              '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
-              '<strong>Adresse:</strong> ' + event.address + '<br>' +
-              '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
-              '</div>',
-              { offset: [0, -15] }  // Popup offset
-            );
-            
-            return { marker: marker, coords: [lat, lon] };
-          }
-          
-          // Legg til markører for hver hendelse
-          events.forEach((event, index) => {
-            if (!event.lat || !event.lon) return;
-            
-            const result = createMarkerWithPopup(event, index);
-            markerCluster.addLayer(result.marker);
-            markers.push(result.marker);
-            routeCoords.push(result.coords);
-          });
-          
-          // Legg cluster til kart
-          map.addLayer(markerCluster);
-          
-          // Hent routing-modus fra parent window
-          const routingMode = window.opener.currentRoutingMode || 'road';
-          
-          // Tegn kjørerute mellom hendelsene
-          if (routeCoords.length > 1) {
-            if (routingMode === 'road') {
-              // MODUS: Rute langs vei (OSRM routing)
-              const waypoints = routeCoords.map(coord => L.latLng(coord[0], coord[1]));
-              
-              try {
-                const routingControl = L.Routing.control({
-                  waypoints: waypoints,
-                  router: L.Routing.osrmv1({
-                    serviceUrl: 'https://router.project-osrm.org/route/v1',
-                    profile: 'driving',
-                    timeout: 10000  // 10 sekunder timeout
-                  }),
-                  lineOptions: {
-                    styles: [{ color: '#1976d2', weight: 4, opacity: 0.7 }]
-                  },
-                  createMarker: function() { return null; },
-                  addWaypoints: false,
-                  routeWhileDragging: false,
-                  showAlternatives: false,
-                  fitSelectedRoutes: false,
-                  show: false
-                }).addTo(map);
-                
-                // Fallback ved routing-feil
-                routingControl.on('routingerror', function(e) {
-                  console.warn('⚠️ OSRM routing feilet - bruker luftlinje som fallback');
-                  console.warn('Feilmelding:', e.error);
-                  
-                  // Fjern routing control
-                  map.removeControl(routingControl);
-                  
-                  // Vis luftlinje i stedet
-                  L.polyline(routeCoords, {
-                    color: '#1976d2',
-                    weight: 4,
-                    opacity: 0.7,
-                    dashArray: '10, 5'
-                  }).addTo(map);
-                });
-                
-                console.log('✅ OSRM routing lastet');
-                
-              } catch (error) {
-                console.error('❌ OSRM routing kastet exception - bruker luftlinje');
-                console.error('Error:', error);
-                
-                // Fallback til luftlinje
-                L.polyline(routeCoords, {
-                  color: '#1976d2',
-                  weight: 4,
-                  opacity: 0.7,
-                  dashArray: '10, 5'
-                }).addTo(map);
-              }
-            } else {
-              // MODUS: Rett luftlinje
-              L.polyline(routeCoords, {
-                color: '#1976d2',
-                weight: 4,
-                opacity: 0.7,
-                dashArray: '10, 5' // Stiplet linje for å vise at det er luftlinje
-              }).addTo(map);
-              
-              console.log('✅ Luftlinje-routing lastet');
-            }
-          }
-          
-          // Zoom til alle markører
-          if (routeCoords.length > 0) {
-            map.fitBounds(routeCoords, { padding: [50, 50] });
-          }
-          
-          // Funksjon for å reloade data og resette zoom
-          window.reloadRouteData = function() {
-            console.log('🔄 Reloader kjørerute-data og resetter zoom');
-            
-            // Fjern alle eksisterende markører og ruter
-            map.eachLayer(function(layer) {
-              // Behold kun base tile layer
-              if (!(layer instanceof L.TileLayer)) {
-                map.removeLayer(layer);
-              }
-            });
-            
-            // Hent oppdatert data fra parent
-            const newEvents = window.opener.currentRouteEvents;
-            const routingMode = window.opener.currentRoutingMode || 'road';
-            
-            if (!newEvents || newEvents.length === 0) {
-              console.warn('Ingen events å vise');
-              return;
-            }
-            
-            // Re-initialiser markører og ruter
-            const newMarkers = [];
-            const newRouteCoords = [];
-            const newMarkerCluster = L.markerClusterGroup({
-              maxClusterRadius: 20,
-              spiderfyOnMaxZoom: true,
-              showCoverageOnHover: false,
-              zoomToBoundsOnClick: false,
-              spiderfyOnEveryZoom: true
-            });
-            
-            // Klikk for å toggle spiderfy
-            newMarkerCluster.on('clusterclick', function(e) {
-              const cluster = e.layer;
-              
-              if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
-                const isSpiderfied = cluster._group._featureGroup._map && 
-                                     !cluster._group._featureGroup._map.hasLayer(cluster);
-                
-                if (isSpiderfied) {
-                  cluster.unspiderfy();
-                } else {
-                  cluster.spiderfy();
-                }
-              }
-            });
-            
-            // Bruk samme funksjon som ved første initialisering
-            newEvents.forEach((event, index) => {
-              if (!event.lat || !event.lon) return;
-              
-              const result = createMarkerWithPopup(event, index);
-              newMarkerCluster.addLayer(result.marker);
-              newMarkers.push(result.marker);
-              newRouteCoords.push(result.coords);
-            });
-            
-            map.addLayer(newMarkerCluster);
-            
-            // Tegn rute
-            if (newRouteCoords.length > 1) {
-              if (routingMode === 'road') {
-                const waypoints = newRouteCoords.map(coord => L.latLng(coord[0], coord[1]));
-                
-                try {
-                  const routingControl = L.Routing.control({
-                    waypoints: waypoints,
-                    router: L.Routing.osrmv1({
-                      serviceUrl: 'https://router.project-osrm.org/route/v1',
-                      profile: 'driving',
-                      timeout: 10000
-                    }),
-                    lineOptions: {
-                      styles: [{ color: '#1976d2', weight: 4, opacity: 0.7 }]
-                    },
-                    createMarker: function() { return null; },
-                    addWaypoints: false,
-                    routeWhileDragging: false,
-                    showAlternatives: false,
-                    fitSelectedRoutes: false,
-                    show: false
-                  }).addTo(map);
-                  
-                  routingControl.on('routingerror', function(e) {
-                    console.warn('⚠️ OSRM routing feilet - bruker luftlinje som fallback');
-                    map.removeControl(routingControl);
-                    L.polyline(newRouteCoords, {
-                      color: '#1976d2',
-                      weight: 4,
-                      opacity: 0.7,
-                      dashArray: '10, 5'
-                    }).addTo(map);
-                  });
-                  
-                  console.log('✅ OSRM routing lastet');
-                } catch (error) {
-                  console.error('❌ OSRM routing kastet exception - bruker luftlinje');
-                  L.polyline(newRouteCoords, {
-                    color: '#1976d2',
-                    weight: 4,
-                    opacity: 0.7,
-                    dashArray: '10, 5'
-                  }).addTo(map);
-                }
-              } else {
-                L.polyline(newRouteCoords, {
-                  color: '#1976d2',
-                  weight: 4,
-                  opacity: 0.7,
-                  dashArray: '10, 5'
-                }).addTo(map);
-                console.log('✅ Luftlinje-routing lastet');
-              }
-            }
-            
-            // Reset zoom til alle markører
-            if (newRouteCoords.length > 0) {
-              map.fitBounds(newRouteCoords, { padding: [50, 50] });
-            }
-          };
-        </script>
       </body>
       </html>
     `);
     
     mapWindow.document.close();
+    
+    // Injiser JS-biblioteker dynamisk
+    await new Promise(resolve => {
+      function loadScript(src, onload) {
+        const s = mapWindow.document.createElement('script');
+        s.src = src;
+        s.onload = onload;
+        mapWindow.document.head.appendChild(s);
+      }
+      loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', () => {
+        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', () => {
+          loadScript('https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', resolve);
+        });
+      });
+    });
+    
+    // Injiser kartlogikk etter at bibliotekene er klare
+    const initScript1 = mapWindow.document.createElement('script');
+    initScript1.textContent = `
+// Initialiser kart
+const map = L.map('map');
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
+
+// Hent event data fra parent window
+const events = window.opener.currentRouteEvents;
+
+function getIconAndTitle(eventType) {
+  switch (eventType) {
+    case "1701": return { icon: "➕", title: "Påstigning", color: "event-1701" };
+    case "1702": return { icon: "➖", title: "Avstigning", color: "event-1702" };
+    case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
+    case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
+    default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
+  }
+}
+
+function formatTimestamp(isoString) {
+  if (!isoString || isoString === "Ukjent") return "Ukjent";
+  const dt = new Date(isoString);
+  if (isNaN(dt)) return "Ukjent";
+  const pad = n => n.toString().padStart(2, "0");
+  return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
+}
+
+const markers = [];
+const routeCoords = [];
+
+// Opprett marker cluster group
+const markerCluster = L.markerClusterGroup({
+  maxClusterRadius: 20,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  zoomToBoundsOnClick: false,  // Deaktiver auto-zoom ved klikk
+  spiderfyOnEveryZoom: true    // Tillat spiderfy på alle zoom-nivåer
+});
+
+// Klikk for å spiderfy/unspiderfy (toggle)
+markerCluster.on('clusterclick', function(e) {
+  const cluster = e.layer;
+  
+  // Toggle: hvis allerede spiderfied → collapse, ellers → spiderfy
+  if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
+    // Sjekk om allerede spiderfied ved å se om cluster-ikon fortsatt finnes
+    const isSpiderfied = cluster._group._featureGroup._map && 
+                         !cluster._group._featureGroup._map.hasLayer(cluster);
+    
+    if (isSpiderfied) {
+      cluster.unspiderfy();
+    } else {
+      cluster.spiderfy();
+    }
+  }
+});
+
+// Gjenbrukbar funksjon for å lage markør med popup
+function createMarkerWithPopup(event, index) {
+  const lat = parseFloat(event.lat);
+  const lon = parseFloat(event.lon);
+  const eventInfo = getIconAndTitle(event.eventType);
+  const timeLabel = formatTimestamp(event.timestamp);
+  
+  // Custom ikon med tidsstempel
+  const customIcon = L.divIcon({
+    className: 'custom-marker-wrapper',
+    html: '<div style="text-align: center;">' +
+          '<div class="event-marker ' + eventInfo.color + '">' + eventInfo.icon + '</div>' +
+          '<div style="font-size: 10px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 4px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
+          '</div>',
+    iconSize: [50, 60],
+    iconAnchor: [25, 30]
+  });
+  
+  const marker = L.marker([lat, lon], { icon: customIcon });
+  
+  // Tooltip
+  marker.bindTooltip(
+    '<strong>' + (index + 1) + '. ' + eventInfo.title + '</strong><br>' +
+    event.name + '<br>' +
+    timeLabel,
+    { direction: 'top', offset: [0, -30] }
+  );
+  
+  // Popup
+  marker.bindPopup(
+    '<div style="min-width: 200px;">' +
+    '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
+    '<strong>Navn:</strong> ' + event.name + '<br>' +
+    '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
+    '<strong>Adresse:</strong> ' + event.address + '<br>' +
+    '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
+    '</div>',
+    { offset: [0, -15] }  // Popup offset
+  );
+  
+  return { marker: marker, coords: [lat, lon] };
+}
+
+// Legg til markører for hver hendelse
+events.forEach((event, index) => {
+  if (!event.lat || !event.lon) return;
+  
+  const result = createMarkerWithPopup(event, index);
+  markerCluster.addLayer(result.marker);
+  markers.push(result.marker);
+  routeCoords.push(result.coords);
+});
+
+// Legg cluster til kart
+map.addLayer(markerCluster);
+
+// Hent routing-modus fra parent window
+const routingMode = window.opener.currentRoutingMode || 'road';
+
+// Tegn kjørerute mellom hendelsene
+if (routeCoords.length > 1) {
+  if (routingMode === 'road') {
+    // MODUS: Rute langs vei (OSRM routing)
+    const waypoints = routeCoords.map(coord => L.latLng(coord[0], coord[1]));
+    
+    try {
+      const routingControl = L.Routing.control({
+        waypoints: waypoints,
+        router: L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1',
+          profile: 'driving',
+          timeout: 10000  // 10 sekunder timeout
+        }),
+        lineOptions: {
+          styles: [{ color: '#1976d2', weight: 4, opacity: 0.7 }]
+        },
+        createMarker: function() { return null; },
+        addWaypoints: false,
+        routeWhileDragging: false,
+        showAlternatives: false,
+        fitSelectedRoutes: false,
+        show: false
+      }).addTo(map);
+      
+      // Fallback ved routing-feil
+      routingControl.on('routingerror', function(e) {
+        console.warn('⚠️ OSRM routing feilet - bruker luftlinje som fallback');
+        console.warn('Feilmelding:', e.error);
+        
+        // Fjern routing control
+        map.removeControl(routingControl);
+        
+        // Vis luftlinje i stedet
+        L.polyline(routeCoords, {
+          color: '#1976d2',
+          weight: 4,
+          opacity: 0.7,
+          dashArray: '10, 5'
+        }).addTo(map);
+      });
+      
+      console.log('✅ OSRM routing lastet');
+      
+    } catch (error) {
+      console.error('❌ OSRM routing kastet exception - bruker luftlinje');
+      console.error('Error:', error);
+      
+      // Fallback til luftlinje
+      L.polyline(routeCoords, {
+        color: '#1976d2',
+        weight: 4,
+        opacity: 0.7,
+        dashArray: '10, 5'
+      }).addTo(map);
+    }
+  } else {
+    // MODUS: Rett luftlinje
+    L.polyline(routeCoords, {
+      color: '#1976d2',
+      weight: 4,
+      opacity: 0.7,
+      dashArray: '10, 5' // Stiplet linje for å vise at det er luftlinje
+    }).addTo(map);
+    
+    console.log('✅ Luftlinje-routing lastet');
+  }
+}
+
+// Zoom til alle markører
+if (routeCoords.length > 0) {
+  map.fitBounds(routeCoords, { padding: [50, 50] });
+}
+
+// Funksjon for å reloade data og resette zoom
+window.reloadRouteData = function() {
+  console.log('🔄 Reloader kjørerute-data og resetter zoom');
+  
+  // Fjern alle eksisterende markører og ruter
+  map.eachLayer(function(layer) {
+    // Behold kun base tile layer
+    if (!(layer instanceof L.TileLayer)) {
+      map.removeLayer(layer);
+    }
+  });
+  
+  // Hent oppdatert data fra parent
+  const newEvents = window.opener.currentRouteEvents;
+  const routingMode = window.opener.currentRoutingMode || 'road';
+  
+  if (!newEvents || newEvents.length === 0) {
+    console.warn('Ingen events å vise');
+    return;
+  }
+  
+  // Re-initialiser markører og ruter
+  const newMarkers = [];
+  const newRouteCoords = [];
+  const newMarkerCluster = L.markerClusterGroup({
+    maxClusterRadius: 20,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: false,
+    spiderfyOnEveryZoom: true
+  });
+  
+  // Klikk for å toggle spiderfy
+  newMarkerCluster.on('clusterclick', function(e) {
+    const cluster = e.layer;
+    
+    if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
+      const isSpiderfied = cluster._group._featureGroup._map && 
+                           !cluster._group._featureGroup._map.hasLayer(cluster);
+      
+      if (isSpiderfied) {
+        cluster.unspiderfy();
+      } else {
+        cluster.spiderfy();
+      }
+    }
+  });
+  
+  // Bruk samme funksjon som ved første initialisering
+  newEvents.forEach((event, index) => {
+    if (!event.lat || !event.lon) return;
+    
+    const result = createMarkerWithPopup(event, index);
+    newMarkerCluster.addLayer(result.marker);
+    newMarkers.push(result.marker);
+    newRouteCoords.push(result.coords);
+  });
+  
+  map.addLayer(newMarkerCluster);
+  
+  // Tegn rute
+  if (newRouteCoords.length > 1) {
+    if (routingMode === 'road') {
+      const waypoints = newRouteCoords.map(coord => L.latLng(coord[0], coord[1]));
+      
+      try {
+        const routingControl = L.Routing.control({
+          waypoints: waypoints,
+          router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'driving',
+            timeout: 10000
+          }),
+          lineOptions: {
+            styles: [{ color: '#1976d2', weight: 4, opacity: 0.7 }]
+          },
+          createMarker: function() { return null; },
+          addWaypoints: false,
+          routeWhileDragging: false,
+          showAlternatives: false,
+          fitSelectedRoutes: false,
+          show: false
+        }).addTo(map);
+        
+        routingControl.on('routingerror', function(e) {
+          console.warn('⚠️ OSRM routing feilet - bruker luftlinje som fallback');
+          map.removeControl(routingControl);
+          L.polyline(newRouteCoords, {
+            color: '#1976d2',
+            weight: 4,
+            opacity: 0.7,
+            dashArray: '10, 5'
+          }).addTo(map);
+        });
+        
+        console.log('✅ OSRM routing lastet');
+      } catch (error) {
+        console.error('❌ OSRM routing kastet exception - bruker luftlinje');
+        L.polyline(newRouteCoords, {
+          color: '#1976d2',
+          weight: 4,
+          opacity: 0.7,
+          dashArray: '10, 5'
+        }).addTo(map);
+      }
+    } else {
+      L.polyline(newRouteCoords, {
+        color: '#1976d2',
+        weight: 4,
+        opacity: 0.7,
+        dashArray: '10, 5'
+      }).addTo(map);
+      console.log('✅ Luftlinje-routing lastet');
+    }
+  }
+  
+  // Reset zoom til alle markører
+  if (newRouteCoords.length > 0) {
+    map.fitBounds(newRouteCoords, { padding: [50, 50] });
+  }
+};
+
+    `;
+    mapWindow.document.head.appendChild(initScript1);
   }
   
   /* ==========================
      9B. ÅPNE SINGLE EVENT I LEAFLET-KART
      ========================== */
-  function openSingleEventMap(event, licensePlate, turId) {
+  async function openSingleEventMap(event, licensePlate, turId) {
     if (!event.lat || !event.lon) {
       alert("Ingen koordinater tilgjengelig for denne hendelsen.");
       return;
@@ -1265,7 +1282,6 @@ async function runResourceInfo() {
         <meta charset="UTF-8">
         <title>${eventInfo.title} - ${licensePlate}</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: Arial, sans-serif; overflow: hidden; }
@@ -1319,106 +1335,127 @@ async function runResourceInfo() {
         </div>
         <div id="map"></div>
         
-        <script>
-          function formatTimestamp(isoString) {
-            if (!isoString || isoString === "Ukjent") return "Ukjent";
-            const dt = new Date(isoString);
-            if (isNaN(dt)) return "Ukjent";
-            const pad = n => n.toString().padStart(2, "0");
-            return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
-          }
-          
-          const map = L.map('map').setView([${lat}, ${lon}], 17);
-          
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-          }).addTo(map);
-          
-          const eventInfo = {
-            icon: '${eventInfo.icon}',
-            title: '${eventInfo.title}',
-            color: 'event-${event.eventType}'
-          };
-          
-          // Funksjon for å hente ikon og tittel basert på eventType
-          function getIconAndTitle(eventType) {
-            switch (eventType) {
-              case "1701": return { icon: "➕", title: "Påstigning", color: "event-1701" };
-              case "1702": return { icon: "➖", title: "Avstigning", color: "event-1702" };
-              case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
-              case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
-              default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
-            }
-          }
-          
-          // Gjenbrukbar funksjon for å lage markør
-          function createEventMarker(lat, lon, name, address, timestamp, eventInfo) {
-            const timeLabel = formatTimestamp(timestamp);
-            
-            // Custom ikon med tidsstempel
-            const customIcon = L.divIcon({
-              className: 'custom-marker-wrapper',
-              html: '<div style="text-align: center;">' +
-                    '<div class="event-marker ' + eventInfo.color + '">' + eventInfo.icon + '</div>' +
-                    '<div style="font-size: 11px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
-                    '</div>',
-              iconSize: [50, 60],
-              iconAnchor: [25, 30]
-            });
-            
-            const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
-            
-            marker.bindPopup(
-              '<div style="min-width: 200px;">' +
-              '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
-              '<strong>Navn:</strong> ' + name + '<br>' +
-              '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
-              '<strong>Adresse:</strong> ' + address + '<br>' +
-              '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
-              '</div>',
-              { offset: [0, -15] }
-            ).openPopup();
-            
-            return marker;
-          }
-          
-          // Lag første markør
-          let currentMarker = createEventMarker(${lat}, ${lon}, '${event.name}', '${event.address}', '${event.timestamp}', eventInfo);
-          
-          // Funksjon for å oppdatere vindu med ny hendelse
-          window.updateEventData = function(newEvent) {
-            // Fjern gammel markør
-            if (currentMarker) {
-              map.removeLayer(currentMarker);
-            }
-            
-            // Hent riktig eventInfo basert på eventType
-            const newEventInfo = getIconAndTitle(newEvent.eventType);
-            
-            // Oppdater header
-            document.querySelector('#header h1').textContent = 
-              '🗺️ ' + newEventInfo.icon + ' ' + newEventInfo.title + ' - ' + newEvent.licensePlate;
-            
-            // Lag ny markør med gjenbrukbar funksjon
-            currentMarker = createEventMarker(
-              newEvent.lat, 
-              newEvent.lon, 
-              newEvent.name, 
-              newEvent.address, 
-              newEvent.timestamp,
-              newEventInfo  // Bruk newEventInfo i stedet for newEvent.eventInfo
-            );
-            
-            // Zoom til ny posisjon
-            map.setView([newEvent.lat, newEvent.lon], 17);
-          };
-        </script>
       </body>
       </html>
     `);
     
+    // Lagre initData på mapWindow slik at injisert script kan lese det
+    mapWindow.initData = {
+      lat: lat,
+      lon: lon,
+      event: event,
+      eventInfo: eventInfo
+    };
+    
     mapWindow.document.close();
+    
+    // Injiser Leaflet dynamisk
+    await new Promise(resolve => {
+      const s = mapWindow.document.createElement('script');
+      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s.onload = resolve;
+      mapWindow.document.head.appendChild(s);
+    });
+    
+    // Injiser kartlogikk
+    const initScript2 = mapWindow.document.createElement('script');
+    initScript2.textContent = `
+function formatTimestamp(isoString) {
+  if (!isoString || isoString === "Ukjent") return "Ukjent";
+  const dt = new Date(isoString);
+  if (isNaN(dt)) return "Ukjent";
+  const pad = n => n.toString().padStart(2, "0");
+  return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
+}
+
+const map = L.map('map').setView([window.initData.lat, window.initData.lon], 17);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
+
+const eventInfo = {
+  icon: window.initData.eventInfo.icon,
+  title: window.initData.eventInfo.title,
+  color: 'event-' + window.initData.event.eventType
+};
+
+// Funksjon for å hente ikon og tittel basert på eventType
+function getIconAndTitle(eventType) {
+  switch (eventType) {
+    case "1701": return { icon: "➕", title: "Påstigning", color: "event-1701" };
+    case "1702": return { icon: "➖", title: "Avstigning", color: "event-1702" };
+    case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
+    case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
+    default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
+  }
+}
+
+// Gjenbrukbar funksjon for å lage markør
+function createEventMarker(lat, lon, name, address, timestamp, eventInfo) {
+  const timeLabel = formatTimestamp(timestamp);
+  
+  // Custom ikon med tidsstempel
+  const customIcon = L.divIcon({
+    className: 'custom-marker-wrapper',
+    html: '<div style="text-align: center;">' +
+          '<div class="event-marker ' + eventInfo.color + '">' + eventInfo.icon + '</div>' +
+          '<div style="font-size: 11px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
+          '</div>',
+    iconSize: [50, 60],
+    iconAnchor: [25, 30]
+  });
+  
+  const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+  
+  marker.bindPopup(
+    '<div style="min-width: 200px;">' +
+    '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
+    '<strong>Navn:</strong> ' + name + '<br>' +
+    '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
+    '<strong>Adresse:</strong> ' + address + '<br>' +
+    '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
+    '</div>',
+    { offset: [0, -15] }
+  ).openPopup();
+  
+  return marker;
+}
+
+// Lag første markør
+let currentMarker = createEventMarker(window.initData.lat, window.initData.lon, window.initData.event.name, window.initData.event.address, window.initData.event.timestamp, eventInfo);
+
+// Funksjon for å oppdatere vindu med ny hendelse
+window.updateEventData = function(newEvent) {
+  // Fjern gammel markør
+  if (currentMarker) {
+    map.removeLayer(currentMarker);
+  }
+  
+  // Hent riktig eventInfo basert på eventType
+  const newEventInfo = getIconAndTitle(newEvent.eventType);
+  
+  // Oppdater header
+  document.querySelector('#header h1').textContent = 
+    '🗺️ ' + newEventInfo.icon + ' ' + newEventInfo.title + ' - ' + newEvent.licensePlate;
+  
+  // Lag ny markør med gjenbrukbar funksjon
+  currentMarker = createEventMarker(
+    newEvent.lat, 
+    newEvent.lon, 
+    newEvent.name, 
+    newEvent.address, 
+    newEvent.timestamp,
+    newEventInfo  // Bruk newEventInfo i stedet for newEvent.eventInfo
+  );
+  
+  // Zoom til ny posisjon
+  map.setView([newEvent.lat, newEvent.lon], 17);
+};
+
+    `;
+    mapWindow.document.head.appendChild(initScript2);
   }
 
   /* ==========================
