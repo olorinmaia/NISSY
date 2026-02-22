@@ -611,6 +611,11 @@ window.addVehicleMarkers = function(vehicles) {
         details.addEventListener('toggle', function() {
           const arrow = details.querySelector('.turdata-arrow');
           if (arrow) arrow.textContent = details.open ? '▼' : '▶';
+          // Vent til DOM er oppdatert med ny høyde, så forskyv kart (uten re-rendering av innhold)
+          setTimeout(function() {
+            const popup = marker.getPopup();
+            if (popup && popup._adjustPan) popup._adjustPan();
+          }, 0);
         });
       }
       
