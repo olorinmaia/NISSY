@@ -621,7 +621,7 @@
           
           // Manuel refresh-knapp
           document.getElementById('refreshBtn').addEventListener('click', () => {
-            window.opener.updateMapData();
+            window.opener.updateMapData(false);
           });
           
           // Auto-refresh
@@ -632,7 +632,7 @@
             
             const interval = parseInt(document.getElementById('updateInterval').value) * 60000;
             updateTimer = setInterval(() => {
-              window.opener.updateMapData();
+              window.opener.updateMapData(true); // stille ved auto-refresh
             }, interval);
           }
           
@@ -721,7 +721,7 @@
   }
 
   // Funksjon for å hente og oppdatere kartdata (brukes ved auto-refresh og manuell oppdatering)
-  window.updateMapData = async function() {
+  window.updateMapData = async function(silent = false) {
     if (!window.currentMapWindow || window.currentMapWindow.closed) {
       console.log("Kart-vindu er lukket");
       return;
@@ -735,11 +735,13 @@
     
     window.isUpdating = true;
     
-    const resourceCount = (window.currentResources || []).filter(r => {
-      const lp = r.cells[1]?.textContent.trim();
-      return lp && !/-\d{8,}$/.test(lp);
-    }).length;
-    showLoadingToast(`🗺️ Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
+    if (!silent) {
+      const resourceCount = (window.currentResources || []).filter(r => {
+        const lp = r.cells[1]?.textContent.trim();
+        return lp && !/-\d{8,}$/.test(lp);
+      }).length;
+      showLoadingToast(`🗺️ Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
+    }
     
     try {
       const vehicles = await fetchAllVehicleData(window.currentResources);
@@ -747,7 +749,7 @@
         window.currentMapWindow.addVehicleMarkers(vehicles);
       }
     } finally {
-      hideLoadingToast();
+      if (!silent) hideLoadingToast();
       window.isUpdating = false;
     }
   };
