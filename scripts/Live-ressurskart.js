@@ -190,8 +190,6 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
         <style>
           * {
             margin: 0;
@@ -365,313 +363,330 @@
           </div>
         </div>
         <div id="map"></div>
-        
-        <script>
-          // Initialiser kart (senter på Norge/Trøndelag)
-          const map = L.map('map').setView([63.4305, 10.3951], 10);
-          
-          // Legg til OpenStreetMap tile layer
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-          }).addTo(map);
-          
-          // Cluster-gruppe for markører (byttes ut ved hver oppdatering)
-          let markerCluster = null;
-          let markers = [];
-          let updateTimer = null;
-          
-          // Funksjon for å formatere tidspunkt
-          function formatTimestamp(isoString) {
-            if (!isoString || isoString === "Ukjent") return "Ukjent";
-            const dt = new Date(isoString);
-            if (isNaN(dt)) return "Ukjent";
-            const pad = n => n.toString().padStart(2, "0");
-            return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
-          }
-          
-          // Funksjon for å hente ikon og tittel basert på eventType
-          function getIconAndTitle(eventType) {
-            switch (eventType) {
-              case "1701": return { icon: "➕", title: "Påstigning" };
-              case "1702": return { icon: "➖", title: "Avstigning" };
-              case "1703": return { icon: "❌", title: "Bomtur" };
-              case "1709": return { icon: "📍", title: "Bil ved node" };
-              default: return { icon: "❓", title: "Ukjent hendelse" };
-            }
-          }
-          
-          // Funksjon for å legge til markører
-          window.addVehicleMarkers = function(vehicles) {
-            // Hent zoom-nivå fra parent window
-            const singleMarkerZoom = window.opener.SINGLE_MARKER_ZOOM || 13;
-            
-            // Fjern gammel cluster-gruppe fra kart
-            if (markerCluster) {
-              map.removeLayer(markerCluster);
-              markerCluster = null;
-            }
-            markers = [];
-            
-            if (vehicles.length === 0) {
-              return;
-            }
-            
-            // Oppdater status
-            document.getElementById('vehicleCount').textContent = vehicles.length;
-            const now = new Date();
-            document.getElementById('lastUpdate').textContent = 
-              now.getHours().toString().padStart(2, '0') + ':' + 
-              now.getMinutes().toString().padStart(2, '0');
-            
-            // Opprett ny marker cluster group
-            markerCluster = L.markerClusterGroup({
-              maxClusterRadius: 20,
-              spiderfyOnMaxZoom: true,
-              showCoverageOnHover: false,
-              zoomToBoundsOnClick: false,
-              spiderfyOnEveryZoom: true
-            });
-            
-            // Toggle spiderfy ved klikk på cluster
-            markerCluster.on('clusterclick', function(e) {
-              const cluster = e.layer;
-              if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
-                const isSpiderfied = cluster._group._featureGroup._map &&
-                                     !cluster._group._featureGroup._map.hasLayer(cluster);
-                if (isSpiderfied) {
-                  cluster.unspiderfy();
-                } else {
-                  cluster.spiderfy();
-                }
-              }
-            });
-            
-            // Legg til nye markører
-            const bounds = [];
-            
-            vehicles.forEach(v => {
-              if (!v.lat || !v.lon) return;
-              
-              const lat = parseFloat(v.lat);
-              const lon = parseFloat(v.lon);
-              
-              // Formater tidspunkt for label
-              const timeLabel = formatTimestamp(v.timestamp);
-              
-              // Custom ikon med tidsstempel
-              const customIcon = L.divIcon({
-                className: 'custom-marker-wrapper',
-                html: '<div style="text-align: center;">' +
-                      '<div class="vehicle-marker">🚕</div>' +
-                      '<div style="font-size: 11px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
-                      '</div>',
-                iconSize: [50, 60],
-                iconAnchor: [25, 30]
-              });
-              
-              const marker = L.marker([lat, lon], { icon: customIcon });
-              
-              // Tooltip ved hover (kompakt info)
-              const eventInfo = getIconAndTitle(v.eventType);
-              marker.bindTooltip(
-                '<strong>' + v.licensePlate + '</strong><br>' +
-                eventInfo.icon + ' ' + eventInfo.title,
-                {
-                  direction: 'top',
-                  offset: [0, -25]
-                }
-              );
-              
-              // Popup ved klikk (full info)
-              // Adresse fra siste hendelse (fallback til koordinater)
-              const adresseVal = v.address || (lat.toFixed(4) + ', ' + lon.toFixed(4));
-              const adresseRow =
-                '<div class="popup-row">' +
-                  '<span class="popup-label">Adresse:</span>' +
-                  '<span class="popup-value" title="' + adresseVal + '" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">' + adresseVal + '</span>' +
-                '</div>';
-              
-              // Telefon med clipboard-kopiering og tooltip
-              const phoneRow = v.phoneNumber
-                ? '<div class="popup-row">' +
-                    '<span class="popup-label">Mobil:</span>' +
-                    '<span class="popup-value">' +
-                      '<span id="phoneSpan_' + v.turId + '" ' +
-                        'title="Klikk for å kopiere til utklippstavlen" ' +
-                        'style="cursor:pointer;" ' +
-                        'data-phone="' + v.phoneNumber + '">' +
-                        '📞 ' + v.phoneNumber +
-                      '</span>' +
-                      '<span id="phoneCopied_' + v.turId + '" ' +
-                        'style="display:none;margin-left:8px;color:#2e7d32;font-size:12px;">✔ Kopiert</span>' +
-                    '</span>' +
-                  '</div>'
-                : '';
-              
-              // Turdata-tabell
-              let turdataHtml = '';
-              if (v.tripData && v.tripData.length > 0) {
-                const now = new Date();
-                const tableRows = v.tripData.map(t => {
-                  const isPast = t.hentetidRaw && new Date(t.hentetidRaw) < now;
-                  const rowStyle = isPast ? 'color:#bbb;' : 'color:#333;';
-                  return '<tr style="' + rowStyle + '">' +
-                    '<td style="padding:4px 6px;font-family:monospace;white-space:nowrap;">' + t.hentetid + '</td>' +
-                    '<td style="padding:4px 6px;font-family:monospace;white-space:nowrap;">' + t.oppmote + '</td>' +
-                    '<td style="padding:4px 6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + t.fra + '">' + t.fra + '</td>' +
-                    '<td style="padding:4px 6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + t.til + '">' + t.til + '</td>' +
-                    '</tr>';
-                }).join('');
-                
-                turdataHtml =
-                  '<details class="turdata-details" style="margin-top:10px;border-top:1px solid #eee;padding-top:8px;">' +
-                    '<summary style="cursor:pointer;font-weight:600;color:#555;font-size:13px;user-select:none;">' +
-                      '<span class="turdata-arrow">▶</span> Planlagte turer (' + v.tripData.length + ')' +
-                    '</summary>' +
-                    '<div style="overflow-x:auto;margin-top:8px;">' +
-                      '<table style="border-collapse:collapse;font-size:12px;width:100%;">' +
-                        '<thead>' +
-                          '<tr style="background:#f5f5f5;color:#666;font-weight:600;">' +
-                            '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Hentetid</th>' +
-                            '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Oppmøte</th>' +
-                            '<th style="padding:4px 6px;text-align:left;">Fra</th>' +
-                            '<th style="padding:4px 6px;text-align:left;">Til</th>' +
-                          '</tr>' +
-                        '</thead>' +
-                        '<tbody>' + tableRows + '</tbody>' +
-                      '</table>' +
-                    '</div>' +
-                  '</details>';
-              }
-              
-              const avtaleRow = v.avtaleNavn
-                ? '<div class="popup-row">' +
-                    '<span class="popup-label">Avtale:</span>' +
-                    '<span class="popup-value">' + v.avtaleNavn + '</span>' +
-                  '</div>'
-                : '';
-
-              const popupContent =
-                '<div class="popup-header">🚕 ' + v.licensePlate + '</div>' +
-                '<div class="popup-body">' +
-                  avtaleRow +
-                  '<div class="popup-row">' +
-                    '<span class="popup-label">Turnummer:</span>' +
-                    '<span class="popup-value">' +
-                      '<a href="' + v.nissyUrl + '" target="_blank" ' +
-                         'title="Åpne i NISSY Admin" ' +
-                         'style="color:#333;text-decoration:underline;cursor:pointer;">' +
-                        v.turId +
-                      '</a>' +
-                    '</span>' +
-                  '</div>' +
-                  '<div class="popup-row">' +
-                    '<span class="popup-label">Hendelse:</span>' +
-                    '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title + '</span>' +
-                  '</div>' +
-                  '<div class="popup-row">' +
-                    '<span class="popup-label">Tidspunkt:</span>' +
-                    '<span class="popup-value">' + formatTimestamp(v.timestamp) + '</span>' +
-                  '</div>' +
-                  adresseRow +
-                  phoneRow +
-                  turdataHtml +
-                '</div>';
-              
-              marker.bindPopup(popupContent, { offset: [0, -10] });
-              
-              // Håndter interaksjon via popupopen (unngår script-tag i HTML-streng)
-              marker.on('popupopen', function() {
-                const popupEl = marker.getPopup().getElement();
-                if (!popupEl) return;
-                
-                // Pil-toggle for turdata
-                const details = popupEl.querySelector('.turdata-details');
-                if (details) {
-                  details.addEventListener('toggle', function() {
-                    const arrow = details.querySelector('.turdata-arrow');
-                    if (arrow) arrow.textContent = details.open ? '▼' : '▶';
-                  });
-                }
-                
-                // Mobilnummer – kopier til utklippstavle ved klikk
-                const phoneSpan = popupEl.querySelector('#phoneSpan_' + v.turId);
-                const phoneCopied = popupEl.querySelector('#phoneCopied_' + v.turId);
-                if (phoneSpan && phoneCopied) {
-                  phoneSpan.addEventListener('click', function() {
-                    const num = phoneSpan.getAttribute('data-phone');
-                    navigator.clipboard.writeText(num).then(() => {
-                      phoneCopied.style.display = 'inline';
-                      setTimeout(() => {
-                        phoneCopied.style.display = 'none';
-                      }, 2500);
-                    }).catch(() => {
-                      phoneSpan.title = 'Kopiering feilet – prøv manuelt';
-                    });
-                  });
-                }
-              });
-              markerCluster.addLayer(marker);
-              markers.push(marker);
-              bounds.push([lat, lon]);
-            });
-            
-            // Legg cluster til kart
-            map.addLayer(markerCluster);
-            
-            // Zoom til alle markører
-            if (bounds.length > 0) {
-              if (bounds.length === 1) {
-                map.setView(bounds[0], singleMarkerZoom);
-                // Kun én ressurs – åpne popup automatisk
-                markers[0].openPopup();
-              } else {
-                map.fitBounds(bounds, { padding: [50, 50] });
-              }
-            }
-          };
-          
-          // Manuel refresh-knapp
-          document.getElementById('refreshBtn').addEventListener('click', () => {
-            window.opener.updateMapData(false);
-          });
-          
-          // Auto-refresh
-          function startAutoUpdate() {
-            if (updateTimer) {
-              clearInterval(updateTimer);
-            }
-            
-            const interval = parseInt(document.getElementById('updateInterval').value) * 60000;
-            updateTimer = setInterval(() => {
-              window.opener.updateMapData(true); // stille ved auto-refresh
-            }, interval);
-          }
-          
-          // Start auto-update når intervall endres
-          document.getElementById('updateInterval').addEventListener('change', startAutoUpdate);
-          
-          // Start auto-update
-          startAutoUpdate();
-          
-          // Cleanup når vindu lukkes
-          window.addEventListener('beforeunload', () => {
-            if (updateTimer) {
-              clearInterval(updateTimer);
-            }
-          });
-        </script>
       </body>
       </html>
     `);
     
     mapWindow.document.close();
     
-    // Vent til vindu og Leaflet er klart
+    // Injiser JS-biblioteker dynamisk (unngår parser-blocking via document.write)
+    await new Promise(resolve => {
+      function loadScript(src, onload) {
+        const s = mapWindow.document.createElement('script');
+        s.src = src;
+        s.onload = onload;
+        mapWindow.document.head.appendChild(s);
+      }
+      // Last Leaflet, deretter MarkerCluster (rekkefølge er viktig)
+      loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', () => {
+        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', resolve);
+      });
+    });
+    
+    // Injiser kartlogikk etter at L er tilgjengelig
+    const initScript = mapWindow.document.createElement('script');
+    initScript.textContent = `
+// Initialiser kart (senter på Norge/Trøndelag)
+const map = L.map('map').setView([63.4305, 10.3951], 10);
+
+// Legg til OpenStreetMap tile layer
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19
+}).addTo(map);
+
+// Cluster-gruppe for markører (byttes ut ved hver oppdatering)
+let markerCluster = null;
+let markers = [];
+let updateTimer = null;
+
+// Funksjon for å formatere tidspunkt
+function formatTimestamp(isoString) {
+  if (!isoString || isoString === "Ukjent") return "Ukjent";
+  const dt = new Date(isoString);
+  if (isNaN(dt)) return "Ukjent";
+  const pad = n => n.toString().padStart(2, "0");
+  return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
+}
+
+// Funksjon for å hente ikon og tittel basert på eventType
+function getIconAndTitle(eventType) {
+  switch (eventType) {
+    case "1701": return { icon: "➕", title: "Påstigning" };
+    case "1702": return { icon: "➖", title: "Avstigning" };
+    case "1703": return { icon: "❌", title: "Bomtur" };
+    case "1709": return { icon: "📍", title: "Bil ved node" };
+    default: return { icon: "❓", title: "Ukjent hendelse" };
+  }
+}
+
+// Funksjon for å legge til markører
+window.addVehicleMarkers = function(vehicles) {
+  // Hent zoom-nivå fra parent window
+  const singleMarkerZoom = window.opener.SINGLE_MARKER_ZOOM || 13;
+  
+  // Fjern gammel cluster-gruppe fra kart
+  if (markerCluster) {
+    map.removeLayer(markerCluster);
+    markerCluster = null;
+  }
+  markers = [];
+  
+  if (vehicles.length === 0) {
+    return;
+  }
+  
+  // Oppdater status
+  document.getElementById('vehicleCount').textContent = vehicles.length;
+  const now = new Date();
+  document.getElementById('lastUpdate').textContent = 
+    now.getHours().toString().padStart(2, '0') + ':' + 
+    now.getMinutes().toString().padStart(2, '0');
+  
+  // Opprett ny marker cluster group
+  markerCluster = L.markerClusterGroup({
+    maxClusterRadius: 20,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: false,
+    spiderfyOnEveryZoom: true
+  });
+  
+  // Toggle spiderfy ved klikk på cluster
+  markerCluster.on('clusterclick', function(e) {
+    const cluster = e.layer;
+    if (cluster.getAllChildMarkers().length > 0 && cluster._icon) {
+      const isSpiderfied = cluster._group._featureGroup._map &&
+                           !cluster._group._featureGroup._map.hasLayer(cluster);
+      if (isSpiderfied) {
+        cluster.unspiderfy();
+      } else {
+        cluster.spiderfy();
+      }
+    }
+  });
+  
+  // Legg til nye markører
+  const bounds = [];
+  
+  vehicles.forEach(v => {
+    if (!v.lat || !v.lon) return;
+    
+    const lat = parseFloat(v.lat);
+    const lon = parseFloat(v.lon);
+    
+    // Formater tidspunkt for label
+    const timeLabel = formatTimestamp(v.timestamp);
+    
+    // Custom ikon med tidsstempel
+    const customIcon = L.divIcon({
+      className: 'custom-marker-wrapper',
+      html: '<div style="text-align: center;">' +
+            '<div class="vehicle-marker">🚕</div>' +
+            '<div style="font-size: 11px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + timeLabel + '</div>' +
+            '</div>',
+      iconSize: [50, 60],
+      iconAnchor: [25, 30]
+    });
+    
+    const marker = L.marker([lat, lon], { icon: customIcon });
+    
+    // Tooltip ved hover (kompakt info)
+    const eventInfo = getIconAndTitle(v.eventType);
+    marker.bindTooltip(
+      '<strong>' + v.licensePlate + '</strong><br>' +
+      eventInfo.icon + ' ' + eventInfo.title,
+      {
+        direction: 'top',
+        offset: [0, -25]
+      }
+    );
+    
+    // Popup ved klikk (full info)
+    // Adresse fra siste hendelse (fallback til koordinater)
+    const adresseVal = v.address || (lat.toFixed(4) + ', ' + lon.toFixed(4));
+    const adresseRow =
+      '<div class="popup-row">' +
+        '<span class="popup-label">Adresse:</span>' +
+        '<span class="popup-value" title="' + adresseVal + '" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">' + adresseVal + '</span>' +
+      '</div>';
+    
+    // Telefon med clipboard-kopiering og tooltip
+    const phoneRow = v.phoneNumber
+      ? '<div class="popup-row">' +
+          '<span class="popup-label">Mobil:</span>' +
+          '<span class="popup-value">' +
+            '<span id="phoneSpan_' + v.turId + '" ' +
+              'title="Klikk for å kopiere til utklippstavlen" ' +
+              'style="cursor:pointer;" ' +
+              'data-phone="' + v.phoneNumber + '">' +
+              '📞 ' + v.phoneNumber +
+            '</span>' +
+            '<span id="phoneCopied_' + v.turId + '" ' +
+              'style="display:none;margin-left:8px;color:#2e7d32;font-size:12px;">✔ Kopiert</span>' +
+          '</span>' +
+        '</div>'
+      : '';
+    
+    // Turdata-tabell
+    let turdataHtml = '';
+    if (v.tripData && v.tripData.length > 0) {
+      const now = new Date();
+      const tableRows = v.tripData.map(t => {
+        const isPast = t.hentetidRaw && new Date(t.hentetidRaw) < now;
+        const rowStyle = isPast ? 'color:#bbb;' : 'color:#333;';
+        return '<tr style="' + rowStyle + '">' +
+          '<td style="padding:4px 6px;font-family:monospace;white-space:nowrap;">' + t.hentetid + '</td>' +
+          '<td style="padding:4px 6px;font-family:monospace;white-space:nowrap;">' + t.oppmote + '</td>' +
+          '<td style="padding:4px 6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + t.fra + '">' + t.fra + '</td>' +
+          '<td style="padding:4px 6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + t.til + '">' + t.til + '</td>' +
+          '</tr>';
+      }).join('');
+      
+      turdataHtml =
+        '<details class="turdata-details" style="margin-top:10px;border-top:1px solid #eee;padding-top:8px;">' +
+          '<summary style="cursor:pointer;font-weight:600;color:#555;font-size:13px;user-select:none;">' +
+            '<span class="turdata-arrow">▶</span> Planlagte turer (' + v.tripData.length + ')' +
+          '</summary>' +
+          '<div style="overflow-x:auto;margin-top:8px;">' +
+            '<table style="border-collapse:collapse;font-size:12px;width:100%;">' +
+              '<thead>' +
+                '<tr style="background:#f5f5f5;color:#666;font-weight:600;">' +
+                  '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Hentetid</th>' +
+                  '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Oppmøte</th>' +
+                  '<th style="padding:4px 6px;text-align:left;">Fra</th>' +
+                  '<th style="padding:4px 6px;text-align:left;">Til</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody>' + tableRows + '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</details>';
+    }
+    
+    const avtaleRow = v.avtaleNavn
+      ? '<div class="popup-row">' +
+          '<span class="popup-label">Avtale:</span>' +
+          '<span class="popup-value">' + v.avtaleNavn + '</span>' +
+        '</div>'
+      : '';
+
+    const popupContent =
+      '<div class="popup-header">🚕 ' + v.licensePlate + '</div>' +
+      '<div class="popup-body">' +
+        avtaleRow +
+        '<div class="popup-row">' +
+          '<span class="popup-label">Turnummer:</span>' +
+          '<span class="popup-value">' +
+            '<a href="' + v.nissyUrl + '" target="_blank" ' +
+               'title="Åpne i NISSY Admin" ' +
+               'style="color:#333;text-decoration:underline;cursor:pointer;">' +
+              v.turId +
+            '</a>' +
+          '</span>' +
+        '</div>' +
+        '<div class="popup-row">' +
+          '<span class="popup-label">Hendelse:</span>' +
+          '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title + '</span>' +
+        '</div>' +
+        '<div class="popup-row">' +
+          '<span class="popup-label">Tidspunkt:</span>' +
+          '<span class="popup-value">' + formatTimestamp(v.timestamp) + '</span>' +
+        '</div>' +
+        adresseRow +
+        phoneRow +
+        turdataHtml +
+      '</div>';
+    
+    marker.bindPopup(popupContent, { offset: [0, -10] });
+    
+    // Håndter interaksjon via popupopen (unngår script-tag i HTML-streng)
+    marker.on('popupopen', function() {
+      const popupEl = marker.getPopup().getElement();
+      if (!popupEl) return;
+      
+      // Pil-toggle for turdata
+      const details = popupEl.querySelector('.turdata-details');
+      if (details) {
+        details.addEventListener('toggle', function() {
+          const arrow = details.querySelector('.turdata-arrow');
+          if (arrow) arrow.textContent = details.open ? '▼' : '▶';
+        });
+      }
+      
+      // Mobilnummer – kopier til utklippstavle ved klikk
+      const phoneSpan = popupEl.querySelector('#phoneSpan_' + v.turId);
+      const phoneCopied = popupEl.querySelector('#phoneCopied_' + v.turId);
+      if (phoneSpan && phoneCopied) {
+        phoneSpan.addEventListener('click', function() {
+          const num = phoneSpan.getAttribute('data-phone');
+          navigator.clipboard.writeText(num).then(() => {
+            phoneCopied.style.display = 'inline';
+            setTimeout(() => {
+              phoneCopied.style.display = 'none';
+            }, 2500);
+          }).catch(() => {
+            phoneSpan.title = 'Kopiering feilet – prøv manuelt';
+          });
+        });
+      }
+    });
+    markerCluster.addLayer(marker);
+    markers.push(marker);
+    bounds.push([lat, lon]);
+  });
+  
+  // Legg cluster til kart
+  map.addLayer(markerCluster);
+  
+  // Zoom til alle markører
+  if (bounds.length > 0) {
+    if (bounds.length === 1) {
+      map.setView(bounds[0], singleMarkerZoom);
+      // Kun én ressurs – åpne popup automatisk
+      markers[0].openPopup();
+    } else {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }
+};
+
+// Manuel refresh-knapp
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  window.opener.updateMapData(false);
+});
+
+// Auto-refresh
+function startAutoUpdate() {
+  if (updateTimer) {
+    clearInterval(updateTimer);
+  }
+  
+  const interval = parseInt(document.getElementById('updateInterval').value) * 60000;
+  updateTimer = setInterval(() => {
+    window.opener.updateMapData(true); // stille ved auto-refresh
+  }, interval);
+}
+
+// Start auto-update når intervall endres
+document.getElementById('updateInterval').addEventListener('change', startAutoUpdate);
+
+// Start auto-update
+startAutoUpdate();
+
+// Cleanup når vindu lukkes
+window.addEventListener('beforeunload', () => {
+  if (updateTimer) {
+    clearInterval(updateTimer);
+  }
+});
+    `;
+    mapWindow.document.head.appendChild(initScript);
+    
+    // Vent til addVehicleMarkers er registrert av initScript
     await new Promise(resolve => {
       const checkReady = () => {
-        if (mapWindow.L && mapWindow.L.markerClusterGroup && mapWindow.document.readyState === 'complete') {
+        if (mapWindow.addVehicleMarkers) {
           resolve();
         } else {
           setTimeout(checkReady, 100);
