@@ -356,7 +356,7 @@
             </div>
             <label style="font-size: 13px;">
               Oppdater hvert 
-              <input type="number" id="updateInterval" value="${UPDATE_INTERVAL}" min="1" max="30" style="width: 50px;"> 
+              <input type="number" id="updateInterval" value="${UPDATE_INTERVAL}" min="1" max="30" title="Angi en verdi mellom 1 og 30" style="width: 50px;"> 
               min
             </label>
             <button id="refreshBtn">🔄 Oppdater nå</button>
@@ -514,7 +514,7 @@ window.addVehicleMarkers = function(vehicles) {
     // Telefon med clipboard-kopiering og tooltip
     const phoneRow = v.phoneNumber
       ? '<div class="popup-row">' +
-          '<span class="popup-label">Mobil:</span>' +
+          '<span class="popup-label">Sjåfør:</span>' +
           '<span class="popup-value">' +
             '<span id="phoneSpan_' + v.turId + '" ' +
               'title="Klikk for å kopiere til utklippstavlen" ' +
@@ -546,14 +546,14 @@ window.addVehicleMarkers = function(vehicles) {
       turdataHtml =
         '<details class="turdata-details" style="margin-top:10px;border-top:1px solid #eee;padding-top:8px;">' +
           '<summary style="cursor:pointer;font-weight:600;color:#555;font-size:13px;user-select:none;">' +
-            '<span class="turdata-arrow">▶</span> Planlagte turer (' + v.tripData.length + ')' +
+            '<span class="turdata-arrow">▶</span> Planlagte bestillinger (' + v.tripData.length + ')' +
           '</summary>' +
           '<div style="overflow-x:auto;margin-top:8px;">' +
             '<table style="border-collapse:collapse;font-size:12px;width:100%;">' +
               '<thead>' +
                 '<tr style="background:#f5f5f5;color:#666;font-weight:600;">' +
-                  '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Hentetid</th>' +
-                  '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Oppmøte</th>' +
+                  '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Hent</th>' +
+                  '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Lever</th>' +
                   '<th style="padding:4px 6px;text-align:left;">Fra</th>' +
                   '<th style="padding:4px 6px;text-align:left;">Til</th>' +
                 '</tr>' +
@@ -576,7 +576,7 @@ window.addVehicleMarkers = function(vehicles) {
       '<div class="popup-body">' +
         avtaleRow +
         '<div class="popup-row">' +
-          '<span class="popup-label">Turnummer:</span>' +
+          '<span class="popup-label">Turnr:</span>' +
           '<span class="popup-value">' +
             '<a href="' + v.nissyUrl + '" target="_blank" ' +
                'title="Åpne i NISSY Admin" ' +
