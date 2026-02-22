@@ -173,6 +173,14 @@
       loggBtn.textContent = '📋 Handlingslogg';
       loggBtn.addEventListener('click', () => triggerHotkey('l'));
 
+      const liveKartBtn = document.createElement('button');
+      liveKartBtn.id = 'nissy-livekart-btn';
+      liveKartBtn.className = 'nissy-header-btn';
+      liveKartBtn.type = 'button';
+      liveKartBtn.title = 'Viser siste hendelse og plassering i kart med tilhørende info for merkede ressurser. Oppdateres automatisk om vindu ikke lukkes';
+      liveKartBtn.textContent = '📡Live Ressurskart (Alt+Z)';
+      liveKartBtn.addEventListener('click', () => triggerHotkey('z'));
+
       function triggerHotkey(key) {
         document.dispatchEvent(
           new KeyboardEvent('keydown', {
@@ -191,6 +199,7 @@
       firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);
       firstTd.appendChild(loggBtn);
+      firstTd.appendChild(liveKartBtn);
 
       // Oppdater monitor-knappens status basert på om overvåking er aktiv
       function updateMonitorButtonStatus() {
@@ -409,6 +418,7 @@
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
           • ALT+L → Handlingslogg<br>
+          • ALT+Z → Live ressurskart<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">

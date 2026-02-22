@@ -103,8 +103,8 @@
   console.log("🚀 Starter Live Ressurskart-script");
   
   document.addEventListener('keydown', function(e) {
-    // Alt+O (både lowercase og uppercase)
-    if (e.altKey && (e.key === 'o' || e.key === 'O')) {
+    // Alt+Z (både lowercase og uppercase)
+    if (e.altKey && (e.key === 'z' || e.key === 'Z')) {
       e.preventDefault();
       openLiveMap();
     }
@@ -120,7 +120,7 @@
     );
     
     if (allSelectedRows.length === 0) {
-      showErrorToast("🗺️ Ingen ressurser er merket.");
+      showErrorToast("📡 Ingen ressurser er merket.");
       return;
     }
     
@@ -148,7 +148,7 @@
       const lp = r.cells[1]?.textContent.trim();
       return lp && !/-\d{8,}$/.test(lp);
     }).length;
-    showLoadingToast(`🗺️ Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
+    showLoadingToast(`📡 Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
 
     let vehicles;
     try {
@@ -159,7 +159,7 @@
     }
 
     if (vehicles.length === 0) {
-      showErrorToast("🚕 Fant ingen posisjonsdata for de merkede ressursene.");
+      showErrorToast("📡 Fant ingen posisjonsdata for de merkede ressursene.");
       return;
     }
     
@@ -173,7 +173,7 @@
     );
     
     if (!mapWindow) {
-      showErrorToast("🗺️ Popup blokkert – tillat popup og prøv igjen.");
+      showErrorToast("📡 Popup blokkert – tillat popup og prøv igjen.");
       return;
     }
     
@@ -186,7 +186,7 @@
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Live Ressurskart - NISSY</title>
+        <title>Live Ressurskart</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -348,7 +348,7 @@
       </head>
       <body>
         <div id="header">
-          <h1>🗺️ Live Ressurskart - NISSY</h1>
+          <h1>📡 Live Ressurskart</h1>
           <div id="controls">
             <div id="status">
               <span id="vehicleCount">0</span> biler | 
@@ -774,7 +774,7 @@ window.addEventListener('beforeunload', () => {
         const lp = r.cells[1]?.textContent.trim();
         return lp && !/-\d{8,}$/.test(lp);
       }).length;
-      showLoadingToast(`🗺️ Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
+      showLoadingToast(`📡 Henter posisjonsdata for ${resourceCount} ressurs${resourceCount !== 1 ? 'er' : ''}…`);
     }
     
     try {
@@ -1071,7 +1071,7 @@ window.addEventListener('beforeunload', () => {
     }
   }
 
-  console.log("⌨️  Live Ressurskart snarvei: ALT+O");
+  console.log("⌨️  Live Ressurskart snarvei: ALT+Z");
   console.log("✅ Live Ressurskart-script lastet");
    
 })();
