@@ -545,12 +545,26 @@
                   '</details>';
               }
               
+              const avtaleRow = v.avtaleNavn
+                ? '<div class="popup-row">' +
+                    '<span class="popup-label">Avtale:</span>' +
+                    '<span class="popup-value">' + v.avtaleNavn + '</span>' +
+                  '</div>'
+                : '';
+
               const popupContent =
                 '<div class="popup-header">🚕 ' + v.licensePlate + '</div>' +
                 '<div class="popup-body">' +
+                  avtaleRow +
                   '<div class="popup-row">' +
                     '<span class="popup-label">Turnummer:</span>' +
-                    '<span class="popup-value">' + v.turId + '</span>' +
+                    '<span class="popup-value">' +
+                      '<a href="' + v.nissyUrl + '" target="_blank" ' +
+                         'title="Åpne i NISSY Admin" ' +
+                         'style="color:#333;text-decoration:underline;cursor:pointer;">' +
+                        v.turId +
+                      '</a>' +
+                    '</span>' +
                   '</div>' +
                   '<div class="popup-row">' +
                     '<span class="popup-label">Hendelse:</span>' +
@@ -563,9 +577,6 @@
                   adresseRow +
                   phoneRow +
                   turdataHtml +
-                  '<a href="' + v.nissyUrl + '" target="_blank" class="popup-link" style="margin-top:12px;display:inline-block;">' +
-                    '📋 Åpne i NISSY Admin' +
-                  '</a>' +
                 '</div>';
               
               marker.bindPopup(popupContent, { offset: [0, -10] });
@@ -613,6 +624,8 @@
             if (bounds.length > 0) {
               if (bounds.length === 1) {
                 map.setView(bounds[0], singleMarkerZoom);
+                // Kun én ressurs – åpne popup automatisk
+                markers[0].openPopup();
               } else {
                 map.fitBounds(bounds, { padding: [50, 50] });
               }
@@ -708,6 +721,7 @@
             address: positionData.address || null,
             phoneNumber: positionData.phoneNumber || null,
             tripData: positionData.tripData || [],
+            avtaleNavn: positionData.avtaleNavn || null,
             nissyUrl: "/administrasjon/admin/searchStatus?id=" + turId
           });
         }
@@ -923,8 +937,9 @@
         }
       }
       
-      // ── Parse 2000 XML (planlagte turer) ──
+      // ── Parse 2000 XML (planlagte turer + avtalenavn) ──
       let tripData = [];
+      let avtaleNavn = null;
       if (resp2000) {
         try {
           const buf2000 = await resp2000.arrayBuffer();
@@ -936,6 +951,10 @@
             const xmlDoc2000 = parser.parseFromString(xmlStr2000, "text/xml");
             
             if (!xmlDoc2000.querySelector('parsererror')) {
+              // Hent avtalenavn fra orgReceiver
+              const orgReceiver = xmlDoc2000.querySelector('orgReceiver');
+              if (orgReceiver) avtaleNavn = orgReceiver.getAttribute('name') || null;
+              
               const bookingMap = new Map();
               
               const formatAddr = addrNode => {
@@ -1014,7 +1033,8 @@
         eventType,
         address,
         phoneNumber,
-        tripData
+        tripData,
+        avtaleNavn
       };
       
     } catch (e) {
