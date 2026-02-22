@@ -187,7 +187,8 @@
           
           .leaflet-popup-content {
             margin: 0;
-            min-width: 250px;
+            min-width: 280px;
+            max-width: 600px;
           }
           
           .popup-header {
@@ -351,34 +352,123 @@
               );
               
               // Popup ved klikk (full info)
-              const popupContent = \`
-                <div class="popup-header">
-                  🚕 \${v.licensePlate}
-                </div>
-                <div class="popup-body">
-                  <div class="popup-row">
-                    <span class="popup-label">Turnummer:</span>
-                    <span class="popup-value">\${v.turId}</span>
-                  </div>
-                  <div class="popup-row">
-                    <span class="popup-label">Siste hendelse:</span>
-                    <span class="popup-value">\${eventInfo.icon} \${eventInfo.title}</span>
-                  </div>
-                  <div class="popup-row">
-                    <span class="popup-label">Tidspunkt:</span>
-                    <span class="popup-value">\${formatTimestamp(v.timestamp)}</span>
-                  </div>
-                  <div class="popup-row">
-                    <span class="popup-label">Posisjon:</span>
-                    <span class="popup-value">\${lat.toFixed(4)}, \${lon.toFixed(4)}</span>
-                  </div>
-                  <a href="\${v.nissyUrl}" target="_blank" class="popup-link">
-                    📋 Åpne i NISSY Admin
-                  </a>
-                </div>
-              \`;
+              // Adresse fra siste hendelse (fallback til koordinater)
+              const adresseVal = v.address || (lat.toFixed(4) + ', ' + lon.toFixed(4));
+              const adresseRow =
+                '<div class="popup-row">' +
+                  '<span class="popup-label">Adresse:</span>' +
+                  '<span class="popup-value" title="' + adresseVal + '" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">' + adresseVal + '</span>' +
+                '</div>';
+              
+              // Telefon med clipboard-kopiering og tooltip
+              const phoneRow = v.phoneNumber
+                ? '<div class="popup-row">' +
+                    '<span class="popup-label">Mobil:</span>' +
+                    '<span class="popup-value">' +
+                      '<span id="phoneSpan_' + v.turId + '" ' +
+                        'title="Klikk for å kopiere til utklippstavlen" ' +
+                        'style="cursor:pointer;" ' +
+                        'data-phone="' + v.phoneNumber + '">' +
+                        '📞 ' + v.phoneNumber +
+                      '</span>' +
+                      '<span id="phoneCopied_' + v.turId + '" ' +
+                        'style="display:none;margin-left:8px;color:#2e7d32;font-size:12px;">✔ Kopiert</span>' +
+                    '</span>' +
+                  '</div>'
+                : '';
+              
+              // Turdata-tabell
+              let turdataHtml = '';
+              if (v.tripData && v.tripData.length > 0) {
+                const now = new Date();
+                const tableRows = v.tripData.map(t => {
+                  const isPast = t.hentetidRaw && new Date(t.hentetidRaw) < now;
+                  const rowStyle = isPast ? 'color:#bbb;' : 'color:#333;';
+                  return '<tr style="' + rowStyle + '">' +
+                    '<td style="padding:4px 6px;font-family:monospace;white-space:nowrap;">' + t.hentetid + '</td>' +
+                    '<td style="padding:4px 6px;font-family:monospace;white-space:nowrap;">' + t.oppmote + '</td>' +
+                    '<td style="padding:4px 6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + t.fra + '">' + t.fra + '</td>' +
+                    '<td style="padding:4px 6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + t.til + '">' + t.til + '</td>' +
+                    '</tr>';
+                }).join('');
+                
+                turdataHtml =
+                  '<details class="turdata-details" style="margin-top:10px;border-top:1px solid #eee;padding-top:8px;">' +
+                    '<summary style="cursor:pointer;font-weight:600;color:#555;font-size:13px;user-select:none;">' +
+                      '<span class="turdata-arrow">▶</span> Planlagte turer (' + v.tripData.length + ')' +
+                    '</summary>' +
+                    '<div style="overflow-x:auto;margin-top:8px;">' +
+                      '<table style="border-collapse:collapse;font-size:12px;width:100%;">' +
+                        '<thead>' +
+                          '<tr style="background:#f5f5f5;color:#666;font-weight:600;">' +
+                            '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Hentetid</th>' +
+                            '<th style="padding:4px 6px;text-align:left;white-space:nowrap;">Oppmøte</th>' +
+                            '<th style="padding:4px 6px;text-align:left;">Fra</th>' +
+                            '<th style="padding:4px 6px;text-align:left;">Til</th>' +
+                          '</tr>' +
+                        '</thead>' +
+                        '<tbody>' + tableRows + '</tbody>' +
+                      '</table>' +
+                    '</div>' +
+                  '</details>';
+              }
+              
+              const popupContent =
+                '<div class="popup-header">🚕 ' + v.licensePlate + '</div>' +
+                '<div class="popup-body">' +
+                  '<div class="popup-row">' +
+                    '<span class="popup-label">Turnummer:</span>' +
+                    '<span class="popup-value">' + v.turId + '</span>' +
+                  '</div>' +
+                  '<div class="popup-row">' +
+                    '<span class="popup-label">Hendelse:</span>' +
+                    '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title + '</span>' +
+                  '</div>' +
+                  '<div class="popup-row">' +
+                    '<span class="popup-label">Tidspunkt:</span>' +
+                    '<span class="popup-value">' + formatTimestamp(v.timestamp) + '</span>' +
+                  '</div>' +
+                  adresseRow +
+                  phoneRow +
+                  turdataHtml +
+                  '<a href="' + v.nissyUrl + '" target="_blank" class="popup-link" style="margin-top:12px;display:inline-block;">' +
+                    '📋 Åpne i NISSY Admin' +
+                  '</a>' +
+                '</div>';
               
               marker.bindPopup(popupContent, { offset: [0, -10] });
+              
+              // Håndter interaksjon via popupopen (unngår script-tag i HTML-streng)
+              marker.on('popupopen', function() {
+                const popupEl = marker.getPopup().getElement();
+                if (!popupEl) return;
+                
+                // Pil-toggle for turdata
+                const details = popupEl.querySelector('.turdata-details');
+                if (details) {
+                  details.addEventListener('toggle', function() {
+                    const arrow = details.querySelector('.turdata-arrow');
+                    if (arrow) arrow.textContent = details.open ? '▼' : '▶';
+                  });
+                }
+                
+                // Mobilnummer – kopier til utklippstavle ved klikk
+                const phoneSpan = popupEl.querySelector('#phoneSpan_' + v.turId);
+                const phoneCopied = popupEl.querySelector('#phoneCopied_' + v.turId);
+                if (phoneSpan && phoneCopied) {
+                  phoneSpan.addEventListener('click', function() {
+                    const num = phoneSpan.getAttribute('data-phone');
+                    navigator.clipboard.writeText(num).then(() => {
+                      phoneCopied.style.display = 'inline';
+                      setTimeout(() => {
+                        phoneCopied.style.display = 'none';
+                      }, 2500);
+                    }).catch(() => {
+                      phoneSpan.title = 'Kopiering feilet – prøv manuelt';
+                    });
+                  });
+                }
+              });
               markers.push(marker);
               bounds.push([lat, lon]);
             });
@@ -493,6 +583,9 @@
             lon: positionData.lon,
             timestamp: positionData.timestamp,
             eventType: positionData.eventType,
+            address: positionData.address || null,
+            phoneNumber: positionData.phoneNumber || null,
+            tripData: positionData.tripData || [],
             nissyUrl: "/administrasjon/admin/searchStatus?id=" + turId
           });
         }
@@ -559,9 +652,11 @@
       const resp = await fetch(detailUrl);
       const detailHtml = await resp.text();
       
-      // Finn siste 4010 XML-link
+      // Finn siste 4010, samt 3003 og 2000 XML-lenker
       const rows = detailHtml.split('<tr');
       let latest4010Url = null;
+      let latest3003Url = null;
+      let latest2000Url = null;
       
       for (const row of rows) {
         const tdMatches = row.match(/<td[^>]*>.*?<\/td>/g);
@@ -582,63 +677,195 @@
             latest4010Url = xmlLinkMatch[1];
             // Ta siste 4010 (ikke break, fortsett å søke)
           }
+        } else if (sutiCode === '3003') {
+          const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
+          if (xmlLinkMatch && !latest3003Url) {
+            latest3003Url = xmlLinkMatch[1]; // Første/nyeste 3003
+          }
+        } else if (sutiCode === '2000') {
+          const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
+          if (xmlLinkMatch) {
+            latest2000Url = xmlLinkMatch[1]; // Siste/nyeste 2000
+          }
         }
       }
       
       if (!latest4010Url) return null;
       
-      // Parse 4010 XML
-      const xmlResp = await fetch(latest4010Url);
-      const xmlText = await xmlResp.text();
+      // Hent 4010, 3003 og 2000 parallelt
+      const fetchPromises = [fetch(latest4010Url)];
+      if (latest3003Url) fetchPromises.push(fetch(latest3003Url));
+      if (latest2000Url) fetchPromises.push(fetch(latest2000Url));
       
+      const [resp4010, resp3003, resp2000] = await Promise.all(fetchPromises);
+      
+      // ── Parse 4010 XML ──
+      const xmlText = await resp4010.text();
       const preMatch = xmlText.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
       if (!preMatch) return null;
       
-      // Unescape HTML entities
-      const txt = document.createElement("textarea");
-      txt.innerHTML = preMatch[1];
-      let unescapedXml = txt.value;
-      
-      // Fjern whitespace før XML-deklarasjon
-      unescapedXml = unescapedXml.trim();
+      const unescape = raw => {
+        const ta = document.createElement("textarea");
+        ta.innerHTML = raw;
+        return ta.value.trim();
+      };
       
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(unescapedXml, "text/xml");
       
-      // Sjekk for parsing-feil
-      const parseError = xmlDoc.querySelector('parsererror');
-      if (parseError) {
-        console.error("XML parsing error:", parseError.textContent);
-        return null;
-      }
+      const xmlDoc4010 = parser.parseFromString(unescape(preMatch[1]), "text/xml");
+      if (xmlDoc4010.querySelector('parsererror')) return null;
       
-      // Sjekk at det er riktig ressurs
-      const idVeh = xmlDoc.querySelector("referencesTo > idVehicle");
+      const idVeh = xmlDoc4010.querySelector("referencesTo > idVehicle");
       if (!idVeh || idVeh.getAttribute("id") !== licensePlate) return null;
       
-      // Hent koordinater og eventType
-      const pickup = xmlDoc.querySelector("pickupConfirmation");
+      const pickup = xmlDoc4010.querySelector("pickupConfirmation");
       if (!pickup) return null;
       
       const eventType = pickup.getAttribute("eventType");
+      const node4010 = pickup.querySelector("nodeConfirmed");
+      if (!node4010) return null;
       
-      const node = pickup.querySelector("nodeConfirmed");
-      if (!node) return null;
+      const timeNode4010 = node4010.querySelector("timesNode > time");
+      const timestamp = timeNode4010?.getAttribute("time") || null;
       
-      const timeNode = node.querySelector("timesNode > time");
-      const timestamp = timeNode?.getAttribute("time") || null;
-      
-      const geo = node.querySelector("addressNode > geographicLocation");
+      const geo = node4010.querySelector("addressNode > geographicLocation");
       const lat = geo?.getAttribute("lat");
       const lon = geo?.getAttribute("long");
-      
       if (!lat || !lon) return null;
       
+      // Hent bookingId og nodeType fra 4010-noden for adresse-oppslag mot 2000
+      const idOrderNode4010 = node4010.querySelector("subOrderContent > idOrder");
+      const bookingId4010 = idOrderNode4010?.getAttribute("id") || null;
+      const nodeType4010 = node4010.getAttribute("nodeType") || null;
+      
+      // address settes etter at bookingMap er bygget fra 2000
+      let address = null;
+      
+      // ── Parse 3003 XML (mobilnummer) ──
+      let phoneNumber = null;
+      if (resp3003) {
+        try {
+          const buf3003 = await resp3003.arrayBuffer();
+          const decoded3003 = new TextDecoder('iso-8859-1').decode(buf3003);
+          const pre3003 = decoded3003.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+          if (pre3003) {
+            const xmlDoc3003 = parser.parseFromString(unescape(pre3003[1]), "text/xml");
+            // ITF/Cencom-format
+            const driverPhone = xmlDoc3003.querySelector(
+              'resourceDispatch > driver > contactInfoDriver > contactInfo[contactType="phone"]'
+            );
+            if (driverPhone) {
+              phoneNumber = driverPhone.getAttribute("contactInfo")?.trim() || null;
+            }
+            // Frogne-format (fallback)
+            if (!phoneNumber) {
+              for (const veh of xmlDoc3003.querySelectorAll('resourceDispatch > vehicle')) {
+                const idVeh3003 = veh.querySelector('idVehicle');
+                if (idVeh3003?.getAttribute('id') === licensePlate) {
+                  const ph = veh.querySelector('contactInfoVehicle > contactInfo[contactType="phone"]');
+                  if (ph) phoneNumber = ph.getAttribute("contactInfo")?.trim() || null;
+                  break;
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Feil ved parsing av 3003:", e);
+        }
+      }
+      
+      // ── Parse 2000 XML (planlagte turer) ──
+      let tripData = [];
+      if (resp2000) {
+        try {
+          const buf2000 = await resp2000.arrayBuffer();
+          const decoded2000 = new TextDecoder('iso-8859-1').decode(buf2000);
+          const pre2000 = decoded2000.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+          if (pre2000) {
+            const xmlStr2000 = unescape(pre2000[1])
+              .replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
+            const xmlDoc2000 = parser.parseFromString(xmlStr2000, "text/xml");
+            
+            if (!xmlDoc2000.querySelector('parsererror')) {
+              const bookingMap = new Map();
+              
+              const formatAddr = addrNode => {
+                if (!addrNode) return 'Ukjent';
+                const an = addrNode.getAttribute('addressName') || '';
+                const st = addrNode.getAttribute('street') || '';
+                const sn = addrNode.getAttribute('streetNo') || '';
+                const sl = addrNode.getAttribute('streetNoLetter') || '';
+                const pn = addrNode.getAttribute('postalNo') || '';
+                const lo = addrNode.getAttribute('location') || '';
+                const streetPart = an || [st, sn, sl].filter(Boolean).join(' ');
+                return [streetPart, [pn, lo].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+              };
+              
+              for (const n of xmlDoc2000.querySelectorAll('route > node')) {
+                const nodeType = n.getAttribute('nodeType');
+                if (nodeType !== '1803' && nodeType !== '1804') continue;
+                
+                const contentNode = n.querySelector('contents > content[contentType="1001"]');
+                if (!contentNode) continue;
+                const idOrderNode = contentNode.querySelector('idOrder');
+                if (!idOrderNode) continue;
+                const bookingId = idOrderNode.getAttribute('id');
+                if (!bookingId) continue;
+                
+                const timeStr = n.querySelector('timesNode > time')?.getAttribute('time') || null;
+                const address2000 = formatAddr(n.querySelector('addressNode'));
+                
+                if (!bookingMap.has(bookingId)) bookingMap.set(bookingId, { hent: null, lever: null });
+                const entry = bookingMap.get(bookingId);
+                
+                if (nodeType === '1803') {
+                  entry.hent = { time: timeStr, address: address2000 };
+                } else {
+                  entry.lever = { time: timeStr, address: address2000 };
+                }
+              }
+              
+              for (const [, entry] of bookingMap) {
+                if (!entry.hent) continue;
+                tripData.push({
+                  hentetidRaw: entry.hent.time,
+                  hentetid: entry.hent.time ? entry.hent.time.split('T')[1]?.substring(0, 5) : '–',
+                  oppmote: entry.lever?.time ? entry.lever.time.split('T')[1]?.substring(0, 5) : '–',
+                  fra: entry.hent.address,
+                  til: entry.lever?.address || '–'
+                });
+              }
+              
+              // Slå opp adressen for siste hendelse via bookingId + nodeType fra 4010
+              if (bookingId4010 && bookingMap.has(bookingId4010)) {
+                const entry4010 = bookingMap.get(bookingId4010);
+                if (nodeType4010 === '1803') {
+                  address = entry4010.hent?.address || null;
+                } else if (nodeType4010 === '1804') {
+                  address = entry4010.lever?.address || null;
+                }
+              }
+              
+              tripData.sort((a, b) => {
+                if (!a.hentetidRaw) return 1;
+                if (!b.hentetidRaw) return -1;
+                return a.hentetidRaw.localeCompare(b.hentetidRaw);
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("Feil ved parsing av 2000:", e);
+        }
+      }
+      
       return {
-        lat: lat,
-        lon: lon,
-        timestamp: timestamp,
-        eventType: eventType
+        lat,
+        lon,
+        timestamp,
+        eventType,
+        address,
+        phoneNumber,
+        tripData
       };
       
     } catch (e) {
