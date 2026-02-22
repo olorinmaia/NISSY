@@ -968,7 +968,15 @@ window.addEventListener('beforeunload', () => {
           if (pre2000) {
             const xmlStr2000 = unescape(pre2000[1])
               .replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
-            const xmlDoc2000 = parser.parseFromString(xmlStr2000, "text/xml");
+            let xmlDoc2000 = parser.parseFromString(xmlStr2000, "text/xml");
+            
+            if (xmlDoc2000.querySelector('parsererror')) {
+              console.warn("2000 XML-parserfeil – prøver HTML-parser");
+              const htmlDoc2000 = parser.parseFromString(xmlStr2000, "text/html");
+              if (htmlDoc2000.querySelector('SUTI')) {
+                xmlDoc2000 = htmlDoc2000;
+              }
+            }
             
             if (!xmlDoc2000.querySelector('parsererror')) {
               // Hent avtalenavn fra orgReceiver
