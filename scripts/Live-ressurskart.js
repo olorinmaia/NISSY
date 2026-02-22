@@ -567,7 +567,7 @@ window.addVehicleMarkers = function(vehicles) {
     const avtaleRow = v.avtaleNavn
       ? '<div class="popup-row">' +
           '<span class="popup-label">Avtale:</span>' +
-          '<span class="popup-value">' + v.avtaleNavn + '</span>' +
+          '<span class="popup-value" title="' + v.avtaleNavn + '" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">' + v.avtaleNavn + '</span>' +
         '</div>'
       : '';
 
