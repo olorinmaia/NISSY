@@ -115,7 +115,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
    - Tidspunkt for mottak av 3003 XML
    - Link til NISSY admin for bestilling og tur
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
-   - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
+   - Faktisk kjørerute til bilen åpnes i Leaflet/OpenStreetMap med ikoner/farger med tilhørende pop-up for hver hendelse
    - Link til løyveregister til Trøndertaxi hvis bilen tilhører de
 
 

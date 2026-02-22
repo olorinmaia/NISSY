@@ -43,6 +43,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🚕 **Ressursinfo (Alt+D)**
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
   - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
+  - Faktisk kjørerute plottes med rutekalkulering i Leaflet / OpenStreetMap med ikoner/farger for hver enkelt hendelse.
   - WIP: Når NISSY kan ta imot 5021 XML (bilens nåværende posisjon) kan dette vises i samme bilde.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8011143e-8647-4530-9783-31bb27960fbe" />
 - 📝 **Bestillingsmodul (Alt+N)**
