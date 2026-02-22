@@ -7,6 +7,20 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 
 ---
+## 🚀 [3.8.0] - 22.02.2026
+
+### Ressursinfo bruker nå nytt og bedre kart med mer funksjonalitet
+- 🚕 **Ressursinfo**
+  - Kjørerute/Koordinat-visning bruker nå Leaflet/OpenStreetMap (open source) i stedet for Google Maps.
+  - Fordeler:
+    - Bedre personvern - all data behandles lokalt i nettleseren
+    - Gratis og ubegrenset bruk
+    - Fargekodede hendelse-ikoner med tidsstempel
+    - Støtter også ruting med fallback til luftlinje (OSRM ruting)
+    - Automatisk clustering av overlappende hendelser
+  - Datasikkerhet:
+    - Kun koordinater sendes til routing-tjeneste - ingen pasientnavn, løyvenummer eller adresser sendes eksternt.
+
 ## 🚀 [3.7.0] - 19.02.2026
 
 ### Overvåk-Ventende forbedret og ny sjekk for Sjekk-bestilling

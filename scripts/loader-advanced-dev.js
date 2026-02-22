@@ -25,6 +25,7 @@
     'Hentetid.js',
     'Ressursinfo.js',
     'Samkjøring.js',
+    'Live-ressurskart.js',
     'Logg.js'
   ];
   
@@ -173,6 +174,14 @@
       loggBtn.textContent = '📋 Handlingslogg';
       loggBtn.addEventListener('click', () => triggerHotkey('l'));
 
+      const liveKartBtn = document.createElement('button');
+      liveKartBtn.id = 'nissy-livekart-btn';
+      liveKartBtn.className = 'nissy-header-btn';
+      liveKartBtn.type = 'button';
+      liveKartBtn.title = 'Viser siste hendelse og plassering i kart med tilhørende info for merkede ressurser. Oppdateres automatisk om vindu ikke lukkes';
+      liveKartBtn.textContent = '📡Live Ressurskart (Alt+Z)';
+      liveKartBtn.addEventListener('click', () => triggerHotkey('z'));
+
       function triggerHotkey(key) {
         document.dispatchEvent(
           new KeyboardEvent('keydown', {
@@ -191,6 +200,7 @@
       firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);
       firstTd.appendChild(loggBtn);
+      firstTd.appendChild(liveKartBtn);
 
       // Oppdater monitor-knappens status basert på om overvåking er aktiv
       function updateMonitorButtonStatus() {
@@ -409,6 +419,7 @@
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
           • ALT+L → Handlingslogg<br>
+          • ALT+Z → Live ressurskart<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -421,7 +432,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.7.0):</strong><br>
+          <strong>📝 Endringslogg (V4.0.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">
