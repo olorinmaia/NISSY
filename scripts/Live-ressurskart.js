@@ -915,7 +915,10 @@ window.addEventListener('beforeunload', () => {
         if (xmlDoc4010.querySelector('parsererror')) continue;
         
         const idVeh = xmlDoc4010.querySelector("referencesTo > idVehicle");
-        if (!idVeh || idVeh.getAttribute("id") !== licensePlate) continue;
+        if (!idVeh || idVeh.getAttribute("id") !== licensePlate) {
+          console.log(`⏭️ 4010 #${i + 1} mangler idVehicle (SUTI override) – prøver eldre`);
+          continue;
+        }
         
         const pickup = xmlDoc4010.querySelector("pickupConfirmation");
         if (!pickup) continue;
