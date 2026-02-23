@@ -849,9 +849,9 @@ window.addEventListener('beforeunload', () => {
       const resp = await fetch(detailUrl);
       const detailHtml = await resp.text();
       
-      // Finn siste 4010, samt 3003 og 2000 XML-lenker
+      // Finn alle 4010-URLer (nyeste sist), samt 3003 og 2000
       const rows = detailHtml.split('<tr');
-      let latest4010Url = null;
+      const all4010Urls = [];
       let latest3003Url = null;
       let latest2000Url = null;
       
@@ -871,8 +871,7 @@ window.addEventListener('beforeunload', () => {
         if (sutiCode === '4010') {
           const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
           if (xmlLinkMatch) {
-            latest4010Url = xmlLinkMatch[1];
-            // Ta siste 4010 (ikke break, fortsett å søke)
+            all4010Urls.push(xmlLinkMatch[1]); // Samle alle, nyeste havner sist
           }
         } else if (sutiCode === '3003') {
           const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
@@ -887,19 +886,13 @@ window.addEventListener('beforeunload', () => {
         }
       }
       
-      if (!latest4010Url) return null;
+      if (all4010Urls.length === 0) return null;
       
-      // Hent 4010, 3003 og 2000 parallelt
-      const fetchPromises = [fetch(latest4010Url)];
-      if (latest3003Url) fetchPromises.push(fetch(latest3003Url));
-      if (latest2000Url) fetchPromises.push(fetch(latest2000Url));
-      
-      const [resp4010, resp3003, resp2000] = await Promise.all(fetchPromises);
-      
-      // ── Parse 4010 XML ──
-      const xmlText = await resp4010.text();
-      const preMatch = xmlText.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-      if (!preMatch) return null;
+      // Hent 3003 og 2000 parallelt (uavhengig av hvilken 4010 vi ender opp med)
+      const [resp3003, resp2000] = await Promise.all([
+        latest3003Url ? fetch(latest3003Url) : Promise.resolve(null),
+        latest2000Url ? fetch(latest2000Url) : Promise.resolve(null)
+      ]);
       
       const unescape = raw => {
         const ta = document.createElement("textarea");
@@ -909,31 +902,48 @@ window.addEventListener('beforeunload', () => {
       
       const parser = new DOMParser();
       
-      const xmlDoc4010 = parser.parseFromString(unescape(preMatch[1]), "text/xml");
-      if (xmlDoc4010.querySelector('parsererror')) return null;
+      // ── Parse 4010 XML – prøv fra nyeste til eldste til vi finner koordinater ──
+      let eventType = null, timestamp = null, lat = null, lon = null;
+      let bookingId4010 = null, nodeType4010 = null;
       
-      const idVeh = xmlDoc4010.querySelector("referencesTo > idVehicle");
-      if (!idVeh || idVeh.getAttribute("id") !== licensePlate) return null;
+      for (let i = all4010Urls.length - 1; i >= 0; i--) {
+        const xmlText = await fetch(all4010Urls[i]).then(r => r.text());
+        const preMatch = xmlText.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+        if (!preMatch) continue;
+        
+        const xmlDoc4010 = parser.parseFromString(unescape(preMatch[1]), "text/xml");
+        if (xmlDoc4010.querySelector('parsererror')) continue;
+        
+        const idVeh = xmlDoc4010.querySelector("referencesTo > idVehicle");
+        if (!idVeh || idVeh.getAttribute("id") !== licensePlate) continue;
+        
+        const pickup = xmlDoc4010.querySelector("pickupConfirmation");
+        if (!pickup) continue;
+        
+        const node4010 = pickup.querySelector("nodeConfirmed");
+        if (!node4010) continue;
+        
+        const geo = node4010.querySelector("addressNode > geographicLocation");
+        const candidateLat = geo?.getAttribute("lat");
+        const candidateLon = geo?.getAttribute("long");
+        
+        if (!candidateLat || !candidateLon) {
+          console.log(`⏭️ 4010 #${i + 1} mangler koordinater (SUTI override) – prøver eldre`);
+          continue;
+        }
+        
+        // Funnet et 4010 med koordinater
+        eventType = pickup.getAttribute("eventType");
+        timestamp = node4010.querySelector("timesNode > time")?.getAttribute("time") || null;
+        lat = candidateLat;
+        lon = candidateLon;
+        const idOrderNode4010 = node4010.querySelector("subOrderContent > idOrder");
+        bookingId4010 = idOrderNode4010?.getAttribute("id") || null;
+        nodeType4010 = node4010.getAttribute("nodeType") || null;
+        break;
+      }
       
-      const pickup = xmlDoc4010.querySelector("pickupConfirmation");
-      if (!pickup) return null;
-      
-      const eventType = pickup.getAttribute("eventType");
-      const node4010 = pickup.querySelector("nodeConfirmed");
-      if (!node4010) return null;
-      
-      const timeNode4010 = node4010.querySelector("timesNode > time");
-      const timestamp = timeNode4010?.getAttribute("time") || null;
-      
-      const geo = node4010.querySelector("addressNode > geographicLocation");
-      const lat = geo?.getAttribute("lat");
-      const lon = geo?.getAttribute("long");
-      if (!lat || !lon) return null;
-      
-      // Hent bookingId og nodeType fra 4010-noden for adresse-oppslag mot 2000
-      const idOrderNode4010 = node4010.querySelector("subOrderContent > idOrder");
-      const bookingId4010 = idOrderNode4010?.getAttribute("id") || null;
-      const nodeType4010 = node4010.getAttribute("nodeType") || null;
+      if (!lat || !lon) return null; // Ingen 4010 hadde koordinater
       
       // address settes etter at bookingMap er bygget fra 2000
       let address = null;
