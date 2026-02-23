@@ -1368,7 +1368,7 @@ function formatTimestamp(isoString) {
   return pad(dt.getHours()) + ":" + pad(dt.getMinutes());
 }
 
-const map = L.map('map').setView([window.initData.lat, window.initData.lon], 17);
+const map = L.map('map').setView([window.initData.lat, window.initData.lon], 16);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors',
@@ -1451,7 +1451,7 @@ window.updateEventData = function(newEvent) {
   );
   
   // Zoom til ny posisjon
-  map.setView([newEvent.lat, newEvent.lon], 17);
+  map.setView([newEvent.lat, newEvent.lon], 16);
 };
 
     `;
