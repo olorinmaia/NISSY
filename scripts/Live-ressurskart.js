@@ -456,7 +456,8 @@ window.addVehicleMarkers = function(vehicles) {
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: false,
-    spiderfyOnEveryZoom: true
+    spiderfyOnEveryZoom: true,
+    animate: true
   });
   
   // Toggle spiderfy ved klikk på cluster
@@ -648,18 +649,21 @@ window.addVehicleMarkers = function(vehicles) {
     bounds.push([lat, lon]);
   });
   
-  // Legg cluster til kart
-  map.addLayer(markerCluster);
-  
-  // Zoom til alle markører
+  // Sett kartvisning FØR markørene legges til – unngår innflyvningsanimasjon
   if (bounds.length > 0) {
     if (bounds.length === 1) {
-      map.setView(bounds[0], singleMarkerZoom);
-      // Kun én ressurs – åpne popup automatisk
-      markers[0].openPopup();
+      map.setView(bounds[0], singleMarkerZoom, { animate: false });
     } else {
-      map.fitBounds(bounds, { padding: [50, 50] });
+      map.fitBounds(bounds, { padding: [50, 50], animate: false });
     }
+  }
+  
+  // Legg cluster til kart (kartet er allerede på riktig posisjon)
+  map.addLayer(markerCluster);
+  
+  // Åpne popup automatisk ved én ressurs
+  if (bounds.length === 1) {
+    markers[0].openPopup();
   }
 };
 
