@@ -20,6 +20,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - Automatisk clustering av overlappende hendelser
   - Datasikkerhet:
     - Kun koordinater sendes til routing-tjeneste - ingen pasientnavn, løyvenummer eller adresser sendes eksternt.
+- ⚙️ **Adminmodul** 
+  - Husker nå siste besøkte URL når modul lukkes og gjenåpner denne ved neste gang modul åpnes
 
 ## 🚀 [3.7.0] - 19.02.2026
 
