@@ -26,7 +26,8 @@
 
     // Konfigurasjon
     const CONFIG = {
-        moduleUrl: '/administrasjon/admin/findPatient'
+        moduleUrl: '/administrasjon/admin/findPatient',
+        sessionKey: 'adminmodul_last_url'
     };
 
     let activeOverlay = null;
@@ -196,7 +197,7 @@
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
-            <iframe src="${CONFIG.moduleUrl}"></iframe>
+            <iframe src="${sessionStorage.getItem(CONFIG.sessionKey) || CONFIG.moduleUrl}"></iframe>
         `;
 
         document.body.appendChild(overlay);
@@ -218,6 +219,11 @@
                 const iframeWin = iframe.contentWindow;
                 
                 if (iframeDoc && iframeWin) {
+                    // Lagre gjeldende URL slik at vi kan gjenoppta der vi slapp
+                    try {
+                        sessionStorage.setItem(CONFIG.sessionKey, iframeWin.location.href);
+                    } catch (e) { /* ignorer */ }
+
                     // Håndter F5 inne i iframe
                     const iframeF5Handler = (e) => {
                         const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
