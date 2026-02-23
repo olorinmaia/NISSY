@@ -815,13 +815,15 @@ async function runResourceInfo() {
         <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; overflow: hidden; }
+          html, body { height: 100%; }
+          body { font-family: Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
           
           #header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0;
           }
           
           #header h1 {
@@ -830,8 +832,9 @@ async function runResourceInfo() {
           }
           
           #map {
-            height: calc(100vh - 60px);
+            flex: 1;
             width: 100%;
+            min-height: 0;
           }
           
           .custom-marker-wrapper {
@@ -1284,13 +1287,15 @@ window.reloadRouteData = function() {
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; overflow: hidden; }
+          html, body { height: 100%; }
+          body { font-family: Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
           
           #header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0;
           }
           
           #header h1 {
@@ -1299,8 +1304,9 @@ window.reloadRouteData = function() {
           }
           
           #map {
-            height: calc(100vh - 60px);
+            flex: 1;
             width: 100%;
+            min-height: 0;
           }
           
           .custom-marker-wrapper {

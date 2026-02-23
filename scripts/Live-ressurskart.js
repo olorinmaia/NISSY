@@ -197,9 +197,14 @@
             box-sizing: border-box;
           }
           
+          html, body {
+            height: 100%;
+          }
           body {
             font-family: Arial, sans-serif;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
           }
           
           #header {
@@ -210,6 +215,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0;
           }
           
           #header h1 {
@@ -254,8 +260,9 @@
           }
           
           #map {
-            height: calc(100vh - 60px);
+            flex: 1;
             width: 100%;
+            min-height: 0;
           }
           
           .custom-marker-wrapper {
