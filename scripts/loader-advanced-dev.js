@@ -93,7 +93,7 @@
         style.id = 'nissy-header-button-styles';
         style.textContent = `
           .nissy-header-btn {
-            background: linear-gradient(135deg, #047CA1 0%, #169bbd 100%);
+            background: linear-gradient(135deg, #4076B5 0%, #6896CA 100%);
             color: white;
             border: none;
             padding: 6px 12px;
@@ -108,7 +108,7 @@
             margin-left: 6px;
           }
           .nissy-header-btn:hover {
-            background: linear-gradient(135deg, #025671 0%, #047CA1 100%);
+            background: linear-gradient(135deg, #35659E 0%, #5785B9 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           }
@@ -275,7 +275,7 @@
         style.id = 'nissy-script-button-styles';
         style.textContent = `
           .nissy-script-btn {
-            background: linear-gradient(135deg, #047CA1 0%, #169bbd 100%);
+            background: linear-gradient(135deg, #4076B5 0%, #6896CA 100%);
             color: white;
             border: none;
             padding: 6px 14px;
@@ -289,7 +289,7 @@
             min-width: 140px;
           }
           .nissy-script-btn:hover {
-            background: linear-gradient(135deg, #025671 0%, #047CA1 100%);
+            background: linear-gradient(135deg, #35659E 0%, #5785B9 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           }
