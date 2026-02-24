@@ -1,6 +1,7 @@
 // ============================================================
-// LIVE RESSURSKART SCRIPT (ALT+O)
+// LIVE RESSURSKART SCRIPT (ALT+Z)
 // Viser sanntidsposisjon for alle merkede ressurser i Leaflet-kart
+// Henter siste 2000 og 3003 XML og presenterer relevant data i popup
 // Henter siste 4010 XML-posisjon og oppdaterer hvert 5. minutt
 // ============================================================
 
