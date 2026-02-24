@@ -767,7 +767,7 @@
         style.id = 'nissy-manual-button-styles';
         style.textContent = `
           .nissy-manual-btn {
-            background: linear-gradient(135deg, #047CA1 0%, #169bbd 100%);
+            background: linear-gradient(135deg, #4076B5 0%, #6896CA 100%);
             color: white;
             border: none;
             padding: 6px 12px;
@@ -780,7 +780,7 @@
             margin-right: 4px;
           }
           .nissy-manual-btn:hover {
-            background: linear-gradient(135deg, #025671 0%, #047CA1 100%);
+            background: linear-gradient(135deg, #35659E 0%, #5785B9 100%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           }
