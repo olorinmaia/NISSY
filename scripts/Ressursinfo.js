@@ -819,7 +819,7 @@ async function runResourceInfo() {
           body { font-family: Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
           
           #header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #025671, #169bbd);
             color: white;
             padding: 15px 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -1291,7 +1291,7 @@ window.reloadRouteData = function() {
           body { font-family: Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
           
           #header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #025671, #169bbd);
             color: white;
             padding: 15px 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);

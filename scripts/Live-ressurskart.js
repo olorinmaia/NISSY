@@ -208,7 +208,7 @@
           }
           
           #header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #025671, #169bbd);
             color: white;
             padding: 15px 20px;
             display: flex;
@@ -245,8 +245,8 @@
           
           #refreshBtn {
             padding: 8px 16px;
-            background: white;
-            color: #667eea;
+            background: #CFECF5;
+            color: #047CA1;
             border: none;
             border-radius: 4px;
             font-weight: 600;
@@ -255,7 +255,7 @@
           }
           
           #refreshBtn:hover {
-            background: #f0f0f0;
+            background: #81C5DA;
             transform: translateY(-1px);
           }
           
@@ -303,7 +303,7 @@
           }
           
           .popup-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #025671, #169bbd);
             color: white;
             padding: 12px 15px;
             font-weight: 600;
@@ -339,7 +339,7 @@
             display: inline-block;
             margin-top: 10px;
             padding: 8px 16px;
-            background: #667eea !important;
+            background: #047CA1 !important;
             color: #F5F5F5 !important;
             text-decoration: none !important;
             border-radius: 4px;
@@ -349,7 +349,7 @@
           }
           
           .popup-link:hover {
-            background: #5568d3 !important;
+            background: #035f7d !important;
           }
         </style>
       </head>
