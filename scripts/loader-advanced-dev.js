@@ -93,7 +93,7 @@
         style.id = 'nissy-header-button-styles';
         style.textContent = `
           .nissy-header-btn {
-            background: linear-gradient(135deg, #4076B5 0%, #6896CA 100%);
+            background: linear-gradient(135deg, #4A81BF 0%, #6896CA 100%);
             color: white;
             border: none;
             padding: 6px 12px;
@@ -275,7 +275,7 @@
         style.id = 'nissy-script-button-styles';
         style.textContent = `
           .nissy-script-btn {
-            background: linear-gradient(135deg, #4076B5 0%, #6896CA 100%);
+            background: linear-gradient(135deg, #4A81BF 0%, #6896CA 100%);
             color: white;
             border: none;
             padding: 6px 14px;
