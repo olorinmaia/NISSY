@@ -114,6 +114,7 @@
     "SL. Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Gastro dagbeh, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SLS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Geriatrisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -150,6 +151,8 @@
     ".../Gastro 4. Sengeområde Seksjon lindrende behandling, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "Nevro 1. Hovedinngang vest, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "KVB 4. Barn 4, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "AHL 1. Poliklinikk karkirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    ".../BVS 4. Revma pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Ålesund Sykehus
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
@@ -168,6 +171,7 @@
     "./Dagrehab kurbad, 7500 Stjørdal": "Breidablikkvegen 3, 7500 Stjørdal",
     "Seterbakkvegen 5, 7796 FOLLAFOSS": "Seterbakkveien 5, 7796 FOLLAFOSS",
     "Synnesvegen 279, 7960 Salsbruket": "64.81815371052468, 11.902412511524009",
+    "Namsskogan fysikalske/Fys. Domås, 7890 Namsskogan": "Storholmveien 6, 7890 Namsskogan",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:

@@ -815,13 +815,15 @@ async function runResourceInfo() {
         <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; overflow: hidden; }
+          html, body { height: 100%; }
+          body { font-family: Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
           
           #header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #025671, #169bbd);
             color: white;
             padding: 15px 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0;
           }
           
           #header h1 {
@@ -830,8 +832,9 @@ async function runResourceInfo() {
           }
           
           #map {
-            height: calc(100vh - 60px);
+            flex: 1;
             width: 100%;
+            min-height: 0;
           }
           
           .custom-marker-wrapper {
@@ -982,8 +985,7 @@ function createMarkerWithPopup(event, index) {
   // Tooltip
   marker.bindTooltip(
     '<strong>' + (index + 1) + '. ' + eventInfo.title + '</strong><br>' +
-    event.name + '<br>' +
-    timeLabel,
+    event.name,
     { direction: 'top', offset: [0, -30] }
   );
   
@@ -993,8 +995,7 @@ function createMarkerWithPopup(event, index) {
     '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
     '<strong>Navn:</strong> ' + event.name + '<br>' +
     '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
-    '<strong>Adresse:</strong> ' + event.address + '<br>' +
-    '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
+    '<strong>Adresse:</strong> ' + event.address +
     '</div>',
     { offset: [0, -15] }  // Popup offset
   );
@@ -1284,13 +1285,15 @@ window.reloadRouteData = function() {
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; overflow: hidden; }
+          html, body { height: 100%; }
+          body { font-family: Arial, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
           
           #header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #025671, #169bbd);
             color: white;
             padding: 15px 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0;
           }
           
           #header h1 {
@@ -1299,8 +1302,9 @@ window.reloadRouteData = function() {
           }
           
           #map {
-            height: calc(100vh - 60px);
+            flex: 1;
             width: 100%;
+            min-height: 0;
           }
           
           .custom-marker-wrapper {
@@ -1414,8 +1418,7 @@ function createEventMarker(lat, lon, name, address, timestamp, eventInfo) {
     '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
     '<strong>Navn:</strong> ' + name + '<br>' +
     '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
-    '<strong>Adresse:</strong> ' + address + '<br>' +
-    '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
+    '<strong>Adresse:</strong> ' + address +
     '</div>',
     { offset: [0, -15] }
   ).openPopup();
