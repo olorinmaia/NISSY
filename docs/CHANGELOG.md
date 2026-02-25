@@ -10,14 +10,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ---
 ## 🚀 [3.8.1] - 25.02.2026
 
-### Små forbedringer til Ressursinfo og små justeringer på andre script
+### Forbedringer til Ressursinfo og små justeringer på andre script
 - 🚕 **Ressursinfo**
- - Forbedret visning i enkelthendelse og kjørerute og farger i header
- - Forbedret kartvisning uavhengig av skjermstørrelse/zoom
+  - Forbedret visning i enkelthendelse og kjørerute og farger i header
+  - Forbedret kartvisning uavhengig av skjermstørrelse/zoom
 - 🗺️ **Rutekalkulering** 
   - Lagt til mappinger på diverse sykehus og adresser
 - **Loadere**
- - Justert fargekontraster på knapper for bedre synlighet
+  - Justert fargekontraster på knapper for bedre synlighet
 
 ## 🚀 [3.8.0] - 22.02.2026
 
