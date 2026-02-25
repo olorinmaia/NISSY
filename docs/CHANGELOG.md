@@ -3,8 +3,9 @@
 Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## Planlagt
-- Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig
+- Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig.
 - Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
+- Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
 ## 🚀 [3.8.1] - 25.02.2026
