@@ -985,8 +985,7 @@ function createMarkerWithPopup(event, index) {
   // Tooltip
   marker.bindTooltip(
     '<strong>' + (index + 1) + '. ' + eventInfo.title + '</strong><br>' +
-    event.name + '<br>' +
-    timeLabel,
+    event.name,
     { direction: 'top', offset: [0, -30] }
   );
   
@@ -996,8 +995,7 @@ function createMarkerWithPopup(event, index) {
     '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
     '<strong>Navn:</strong> ' + event.name + '<br>' +
     '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
-    '<strong>Adresse:</strong> ' + event.address + '<br>' +
-    '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
+    '<strong>Adresse:</strong> ' + event.address +
     '</div>',
     { offset: [0, -15] }  // Popup offset
   );
@@ -1420,8 +1418,7 @@ function createEventMarker(lat, lon, name, address, timestamp, eventInfo) {
     '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
     '<strong>Navn:</strong> ' + name + '<br>' +
     '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
-    '<strong>Adresse:</strong> ' + address + '<br>' +
-    '<strong>Koordinat:</strong> ' + lat.toFixed(4) + ', ' + lon.toFixed(4) +
+    '<strong>Adresse:</strong> ' + address +
     '</div>',
     { offset: [0, -15] }
   ).openPopup();
