@@ -767,7 +767,7 @@
         style.id = 'nissy-manual-button-styles';
         style.textContent = `
           .nissy-manual-btn {
-            background: linear-gradient(135deg, #4076B5 0%, #6896CA 100%);
+            background: linear-gradient(135deg, #4A81BF 0%, #6896CA 100%);
             color: white;
             border: none;
             padding: 6px 12px;
