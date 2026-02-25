@@ -150,6 +150,7 @@
     ".../Gastro 4. Sengeområde Seksjon lindrende behandling, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "Nevro 1. Hovedinngang vest, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "KVB 4. Barn 4, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "AHL 1. Poliklinikk karkirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim", 
 
     // Ålesund Sykehus
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
