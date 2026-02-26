@@ -8,6 +8,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.8.2] - 26.02.2026
+
+### Forbedringer til flere script
+- 📝 **Bestillingsmodul** + 🔠 **Rek-knapper** + ⚙️ **Adminmodul** 
+  - Forbedret plassering av iframe modal / "pop-up".
+  - Forbedret scrolling og fokus i rek-knapper og bestillingsmodul
+- **"Vis i kart"-knapp har nå samme bakgrunnsfarge i de fleste script**
+- 🚕 **Ressursinfo**
+  - Skjuler automatisk 4010-1709 (bil ved node) når det er mange hendelser for å unngå scrolling
+
 ## 🚀 [3.8.1] - 25.02.2026
 
 ### Forbedringer til Ressursinfo og små justeringer på andre script
