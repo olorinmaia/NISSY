@@ -164,7 +164,7 @@
             .bestillingsmodul-iframe-modal.meetingplace-modal {
                 width: 1500px;
                 max-width: 90%;
-                left: 20px;
+                left: 0px;
                 transform: none;
             }
 
