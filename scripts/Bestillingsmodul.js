@@ -135,7 +135,7 @@
 
             .bestillingsmodul-modal {
                 position: fixed;
-                top: 20px;
+                top: 0px;
                 left: 50%;
                 transform: translateX(-50%);
                 background: #ffffff;
@@ -153,7 +153,7 @@
             .bestillingsmodul-iframe-modal {
                 width: 90vw;
                 max-width: 1700px;
-                height: calc(100vh - 40px);
+                height: calc(100vh - 0px);
                 display: none;
             }
 
@@ -1037,11 +1037,14 @@
     /**
      * Hjelpefunksjon: Scroll til og fokuser på pickupTime-feltet
      */
-    function focusPickupTime(doc) {
+    function focusPickupTime(doc, win) {
         try {
             const pickupTimeField = doc.getElementById('pickupTime');
             if (pickupTimeField) {
-                pickupTimeField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const iframeWin = win || doc.defaultView;
+                // Scroll til bunnen av siden minus en fast avstand fra bunn
+                const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
+                iframeWin.scrollTo({ top: scrollBottom, behavior: 'smooth' });
                 setTimeout(() => {
                     pickupTimeField.focus();
                     pickupTimeField.select();
@@ -1123,14 +1126,14 @@
                                 const style = iframeWin.getComputedStyle(redigerBtn);
                                 if (style.display !== 'none' && style.visibility !== 'hidden') {
                                     redigerBtn.click();
-                                    setTimeout(() => focusPickupTime(iframeDoc), 50);
+                                    setTimeout(() => focusPickupTime(iframeDoc, iframeWin), 50);
                                 } else {
                                     // Knappen er skjult, bare fokuser på feltet
-                                    focusPickupTime(iframeDoc);
+                                    focusPickupTime(iframeDoc, iframeWin);
                                 }
                             } else {
                                 // Knappen finnes ikke, bare fokuser på feltet
-                                focusPickupTime(iframeDoc);
+                                focusPickupTime(iframeDoc, iframeWin);
                             }
                         }, 100);
                     }
