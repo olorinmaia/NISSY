@@ -1607,7 +1607,7 @@ window.updateEventData = function(newEvent) {
               Vognløpshendelser
             </h3>
             <label style="font-size: 13px; cursor: pointer;" title="Vis/skjul 4010-1709 XML i Vognløpshendelser">
-              <input type="checkbox" id="toggle1709" checked>
+              <input type="checkbox" id="toggle1709" ${eventData.events.length <= 13 ? "checked" : ""}>
               Vis📍(Bil ved node)
             </label>
           </div>
