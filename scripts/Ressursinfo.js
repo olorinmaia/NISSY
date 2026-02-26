@@ -1717,7 +1717,7 @@ window.updateEventData = function(newEvent) {
       html += `
         <button id="showRouteMap" style="
              padding: 10px 16px;
-             background: #1976d2;
+             background: #2980b9;
              color: white;
              border: none;
              border-radius: 6px;

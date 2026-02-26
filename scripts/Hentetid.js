@@ -1768,7 +1768,7 @@
             id="showMapButton"
             style="
               padding: 8px 16px;
-              background: #17a2b8;
+              background: #2980b9;
               color: #fff;
               border: none;
               border-radius: 6px;
