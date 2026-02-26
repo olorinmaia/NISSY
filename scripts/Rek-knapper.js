@@ -113,7 +113,7 @@
     // Styling
     Object.assign(toast.style, {
       position: "fixed",
-      bottom: "200px",
+      bottom: "70px",
       left: "800px", // Sentrert i modal-området (1580px / 2 + 10px margin)
       transform: "translateX(-50%)",
       background: "#b09f2b", // Mørkegul bakgrunn for advarsel
@@ -411,11 +411,14 @@
       }
 
       // Hjelpefunksjon: Scroll til og fokuser på hentetid-feltet
-      const focusPickupTime = (doc) => {
+      const focusPickupTime = (doc, win) => {
         try {
           const pickupTimeField = doc.getElementById("pickupTime");
           if (pickupTimeField) {
-            pickupTimeField.scrollIntoView({ behavior: "smooth", block: "center" });
+            const iframeWin = win || doc.defaultView;
+            // Scroll til bunnen av siden minus en fast avstand fra bunn
+            const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
+            iframeWin.scrollTo({ top: scrollBottom, behavior: "smooth" });
             setTimeout(() => {
               pickupTimeField.focus();
               pickupTimeField.select();
@@ -873,8 +876,9 @@
       Object.assign(modalContainer.style, {
         position: "relative",
         width: "1580px",
-        height: "95vh",
-        marginLeft: "10px",
+        height: "100vh",
+        marginRight: "0px",
+        marginLeft: "0px",
         backgroundColor: "white",
         borderRadius: "8px",
         boxShadow: "0 0 10px rgba(0,0,0,0.5)",

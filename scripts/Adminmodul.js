@@ -82,11 +82,11 @@
 
             .adminmodul-modal {
                 position: fixed;
-                top: 20px;
+                top: 0px;
                 left: 50%;
                 transform: translateX(-50%);
                 width: 90vw;
-                height: calc(100vh - 40px);
+                height: calc(100vh - 0px);
                 background: #ffffff;
                 border-radius: 12px;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);

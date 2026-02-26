@@ -3235,7 +3235,7 @@
                         ✓ Velg bestillinger
                     </button>
                     <button id="auto-group-map-btn" onclick="window.showAutoGroupInMap()" 
-                        style="background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        style="background: #2980b9; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
                         🗺️ Vis i kart
                     </button>
                     <button id="auto-group-next-btn" onclick="window.nextAutoGrouping()" 
