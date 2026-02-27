@@ -13,7 +13,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ### Ressursinfo viser posisjon når bil bekrefter oppdrag (3003) og bugfix for rekmodul
 - 🚕 **Ressursinfo**
   - "Vis i kart"-knapp ved Oppdrag bekreftet (3003) hvis koordinater er tilgjengelig. Kun Cencom som sender dette per nå
-  - Bilens posisjon ved oppdrag bekreftet vises også i bilens faktiske kjørerute
+  - Posisjon og tidspunkt når oppdrag ble bekreftet vises også i bilens faktiske kjørerute
 - 📝 **Bestillingsmodul** og 🔠 **Rek-knapper**
   - Fikset bug med "Tilbake"-knappen som ikke virker når det søkes på hente/leveringssted i 4-stegs/ensides
 
