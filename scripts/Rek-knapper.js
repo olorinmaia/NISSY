@@ -414,16 +414,18 @@
       const focusPickupTime = (doc, win) => {
         try {
           const pickupTimeField = doc.getElementById("pickupTime");
-          if (pickupTimeField) {
-            const iframeWin = win || doc.defaultView;
-            // Scroll til bunnen av siden minus en fast avstand fra bunn
-            const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
-            iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
-            setTimeout(() => {
-              pickupTimeField.focus();
+          if (!pickupTimeField) return;
+          const iframeWin = win || doc.defaultView;
+          // Vent to render-sykluser (rAF x2) slik at scrollHeight er ferdig
+          // beregnet av nettleseren før vi måler og scroller.
+          iframeWin.requestAnimationFrame(() => {
+            iframeWin.requestAnimationFrame(() => {
+              const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
+              iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
+              pickupTimeField.focus({ preventScroll: true });
               pickupTimeField.select();
-            }, 100);
-          }
+            });
+          });
         } catch (err) {}
       };
 
@@ -440,17 +442,18 @@
           iframe.onload = function() {
             try {
               const doc = iframe.contentDocument || iframe.contentWindow.document;
+              const win = iframe.contentWindow;
               setTimeout(() => {
                 const redigerBtn = doc.getElementById("redigerKlarFra");
                 if (redigerBtn && 
-                    window.getComputedStyle(redigerBtn).display !== "none" && 
-                    window.getComputedStyle(redigerBtn).visibility !== "hidden") {
+                    win.getComputedStyle(redigerBtn).display !== "none" && 
+                    win.getComputedStyle(redigerBtn).visibility !== "hidden") {
                   redigerBtn.click();
-                  setTimeout(() => focusPickupTime(doc), 0);
+                  setTimeout(() => focusPickupTime(doc, win), 50);
                 } else {
-                  focusPickupTime(doc);
+                  focusPickupTime(doc, win);
                 }
-              }, 0);
+              }, 100);
             } catch (err) {}
           };
         }
