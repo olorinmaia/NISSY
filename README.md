@@ -54,6 +54,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
+  - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up isteden for ny fane.
 - ⚙️ **Adminmodul (Alt+A)**
