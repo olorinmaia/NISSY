@@ -60,6 +60,23 @@
     let activeKeyboardListener = null;
     
     /**
+     * Tvinger Tilbake-knappen i søk-fieldset til alltid å bruke korrekt URL.
+     * Buggen skjer fordi href inneholder absolutt server-URL med feil path
+     * (findTreatmentCenter i stedet for altRequisition) i noen tilfeller.
+     */
+    function fixTilbakeLink(doc) {
+        try {
+            const links = doc.querySelectorAll('a[href*="findTreatmentCenter"], a[href*="altRequisition"]');
+            links.forEach(link => {
+                const btn = link.querySelector('button[accesskey="T"]');
+                if (btn) {
+                    link.href = '/rekvisisjon/requisition/altRequisition?clear=false#anchorNameA';
+                }
+            });
+        } catch (e) {}
+    }
+
+    /**
      * Aktiverer modal-modus (blokkerer CTRL+F søk i bakgrunnen)
      */
     function enableModalMode() {
@@ -460,6 +477,8 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+
+                        fixTilbakeLink(iframeDoc);
                         
                     }
                 } catch (e) {
@@ -1119,7 +1138,8 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
-                        
+
+                        fixTilbakeLink(iframeDoc);
                         
                         // Klikk på "Rediger klar fra" knappen hvis den finnes og er synlig
                         setTimeout(() => {
