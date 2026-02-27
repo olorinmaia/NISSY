@@ -462,7 +462,7 @@
                                             const targetTop = scrollTarget.getBoundingClientRect().top + iframeWin.scrollY;
                                             iframeWin.scrollTo({
                                                 top: targetTop - 20, // 20px margin fra toppen
-                                                behavior: 'smooth'
+                                                behavior: 'instant'
                                             });
                                         }, 200);
                                     } else {
