@@ -429,6 +429,37 @@
         } catch (err) {}
       };
 
+      // Tvinger Tilbake-knappen til alltid å bruke korrekt URL.
+      // 4-stegs: table.top_navigation er synlig → addTrip-URL
+      // Rekvirenttilhørighet: h2.wizard_middle med tekst "Rekvirent" → commissionerAndTreatmentCenter-URL
+      // Ensides: ingen av over → altRequisition-URL
+      const fixTilbakeLink = (doc) => {
+        try {
+          const isFourStep = !!doc.querySelector('table.top_navigation');
+          const isCommissioner = isFourStep && Array.from(doc.querySelectorAll('h2.wizard_middle'))
+            .some(h2 => h2.textContent.trim() === 'Rekvirent');
+          const correctUrl = isCommissioner
+            ? '/rekvisisjon/requisition/commissionerAndTreatmentCenter#anchorNameA'
+            : isFourStep
+              ? '/rekvisisjon/requisition/addTrip?idx=0#anchorNameA'
+              : '/rekvisisjon/requisition/altRequisition?clear=false#anchorNameA';
+          doc.querySelectorAll('a[href*="findTreatmentCenter"], a[href*="altRequisition"], a[href*="addTrip"], a[href*="commissionerAndTreatmentCenter"]').forEach(link => {
+            if (link.querySelector('button[accesskey="T"]')) {
+              link.href = correctUrl;
+            }
+          });
+        } catch (e) {}
+      };
+
+      // Persistent load-lytter som fikser Tilbake-knappen ved hver
+      // navigering inne i iframen (t.d. etter søk på behandlingssted).
+      iframe.addEventListener("load", function onIframeLoad() {
+        try {
+          const doc = iframe.contentDocument || iframe.contentWindow.document;
+          if (doc) fixTilbakeLink(doc);
+        } catch (e) {}
+      });
+
       // Scenario 1: Åpne direkte URL (hendelseslogg, manuell status, etc.)
       if (url) {
         iframe.src = url;
@@ -445,8 +476,8 @@
               const win = iframe.contentWindow;
               setTimeout(() => {
                 const redigerBtn = doc.getElementById("redigerKlarFra");
-                if (redigerBtn && 
-                    win.getComputedStyle(redigerBtn).display !== "none" && 
+                if (redigerBtn &&
+                    win.getComputedStyle(redigerBtn).display !== "none" &&
                     win.getComputedStyle(redigerBtn).visibility !== "hidden") {
                   redigerBtn.click();
                   setTimeout(() => focusPickupTime(doc, win), 50);
@@ -492,7 +523,6 @@
                 iframe.contentWindow.eval(`javascript:makeReturn('${window.lastEditedReqId}','&ns=true');`);
                 
                 // makeReturn() trigger en ny sidelasting — vent på onload
-                // slik at DOM er klar før vi klikker og fokuserer
                 if (isReturnButton) {
                   iframe.onload = function() {
                     iframe.onload = null;
