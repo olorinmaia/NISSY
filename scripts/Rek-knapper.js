@@ -491,24 +491,30 @@
               try {
                 iframe.contentWindow.eval(`javascript:makeReturn('${window.lastEditedReqId}','&ns=true');`);
                 
-                // Hvis det er retur-knappen, klikk "Rediger klar fra" og fokuser hentetid
+                // makeReturn() trigger en ny sidelasting — vent på onload
+                // slik at DOM er klar før vi klikker og fokuserer
                 if (isReturnButton) {
-                  setTimeout(() => {
-                    const doc = iframe.contentDocument || iframe.contentWindow.document;
-                    const redigerBtn = doc.getElementById("redigerKlarFra");
-                    if (redigerBtn && 
-                        window.getComputedStyle(redigerBtn).display !== "none" && 
-                        window.getComputedStyle(redigerBtn).visibility !== "hidden") {
-                      redigerBtn.click();
-                      setTimeout(() => focusPickupTime(doc), 300);
-                    } else {
-                      focusPickupTime(doc);
-                    }
-                  }, 500);
+                  iframe.onload = function() {
+                    iframe.onload = null;
+                    try {
+                      const doc = iframe.contentDocument || iframe.contentWindow.document;
+                      const win = iframe.contentWindow;
+                      const redigerBtn = doc.getElementById("redigerKlarFra");
+                      if (redigerBtn &&
+                          win.getComputedStyle(redigerBtn).display !== "none" &&
+                          win.getComputedStyle(redigerBtn).visibility !== "hidden") {
+                        redigerBtn.click();
+                        setTimeout(() => focusPickupTime(doc, win), 50);
+                      } else {
+                        focusPickupTime(doc, win);
+                      }
+                    } catch (err) {}
+                  };
+                } else {
+                  iframe.onload = null;
                 }
               } catch (err) {}
             }
-            iframe.onload = null;
           }
         };
       }
