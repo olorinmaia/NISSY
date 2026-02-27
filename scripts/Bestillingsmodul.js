@@ -61,16 +61,24 @@
     
     /**
      * Tvinger Tilbake-knappen i søk-fieldset til alltid å bruke korrekt URL.
-     * Buggen skjer fordi href inneholder absolutt server-URL med feil path
-     * (findTreatmentCenter i stedet for altRequisition) i noen tilfeller.
+     * 4-stegs: table.top_navigation er synlig → addTrip-URL
+     * Rekvirenttilhørighet: h2.wizard_middle med tekst "Rekvirent" → commissionerAndTreatmentCenter-URL
+     * Ensides: ingen av over → altRequisition-URL
      */
     function fixTilbakeLink(doc) {
         try {
-            const links = doc.querySelectorAll('a[href*="findTreatmentCenter"], a[href*="altRequisition"]');
+            const isFourStep = !!doc.querySelector('table.top_navigation');
+            const isCommissioner = isFourStep && Array.from(doc.querySelectorAll('h2.wizard_middle'))
+                .some(h2 => h2.textContent.trim() === 'Rekvirent');
+            const correctUrl = isCommissioner
+                ? '/rekvisisjon/requisition/commissionerAndTreatmentCenter#anchorNameA'
+                : isFourStep
+                    ? '/rekvisisjon/requisition/addTrip?idx=0#anchorNameA'
+                    : '/rekvisisjon/requisition/altRequisition?clear=false#anchorNameA';
+            const links = doc.querySelectorAll('a[href*="findTreatmentCenter"], a[href*="altRequisition"], a[href*="addTrip"], a[href*="commissionerAndTreatmentCenter"]');
             links.forEach(link => {
-                const btn = link.querySelector('button[accesskey="T"]');
-                if (btn) {
-                    link.href = '/rekvisisjon/requisition/altRequisition?clear=false#anchorNameA';
+                if (link.querySelector('button[accesskey="T"]')) {
+                    link.href = correctUrl;
                 }
             });
         } catch (e) {}
