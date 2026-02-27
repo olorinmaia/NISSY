@@ -316,11 +316,11 @@ async function runResourceInfo() {
 
     // Parse data
     const { orderMap, agreementInfo } = await extractOrderData(xml2000Links);
-    const { phoneNumber, senderIdOrg, licensePlate: licensePlate3003 } = await extractPhoneNumber(xml3003Links);
+    const { phoneNumber, senderIdOrg, licensePlate: licensePlate3003, dispatchCoord } = await extractPhoneNumber(xml3003Links);
     const eventData = await extractEventData(xml4010Links, orderMap);
 
     // Vis popup
-    showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003);
+    showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003, dispatchCoord);
   }
 
   /* ==========================
@@ -574,6 +574,7 @@ async function runResourceInfo() {
     let foundPhone = null;
     let senderIdOrg = null;
     let licensePlateFrom3003 = null;
+    let dispatchCoord = null;
 
     for (const url of xmlUrls) {
       try {
@@ -584,6 +585,18 @@ async function runResourceInfo() {
           const orgSenderIdOrg = xmlDoc.querySelector('orgSender > idOrg');
           if (orgSenderIdOrg) {
             senderIdOrg = orgSenderIdOrg.getAttribute('id');
+          }
+        }
+
+        // Hent koordinater fra vehiclestartLocation (hvis finnes)
+        if (!dispatchCoord) {
+          const startLoc = xmlDoc.querySelector('vehiclestartLocation');
+          if (startLoc) {
+            const lat = startLoc.getAttribute('lat');
+            const lon = startLoc.getAttribute('long');
+            if (lat && lon) {
+              dispatchCoord = { lat: parseFloat(lat), lon: parseFloat(lon) };
+            }
           }
         }
 
@@ -644,7 +657,8 @@ async function runResourceInfo() {
     return { 
       phoneNumber: foundPhone, 
       senderIdOrg: senderIdOrg,
-      licensePlate: licensePlateFrom3003
+      licensePlate: licensePlateFrom3003,
+      dispatchCoord: dispatchCoord
     };
   }
 
@@ -755,6 +769,7 @@ async function runResourceInfo() {
       case "1702": return { icon: "➖", title: "Avstigning" };
       case "1703": return { icon: "❌", title: "Bomtur" };
       case "1709": return { icon: "📍", title: "Bil ved node" };
+      case "3003": return { icon: "🏴", title: "Oppdrag bekreftet" };
       default: return { icon: "", title: "Ukjent type" };
     }
   }
@@ -762,7 +777,7 @@ async function runResourceInfo() {
   /* ==========================
      9. ÅPNE KJØRERUTE I LEAFLET-KART
      ========================== */
-  async function openRouteMap(events, licensePlate, turId) {
+  async function openRouteMap(events, licensePlate, turId, dispatchCoord) {
     // Åpne nytt vindu
     const width = Math.floor(window.innerWidth / 2);
     const height = Math.floor(window.innerHeight * 0.9);
@@ -801,6 +816,7 @@ async function runResourceInfo() {
     // Lagre events i parent window for child window access
     window.currentRouteEvents = events;
     window.currentRoutingMode = ROUTING_MODE; // Send routing-modus til map-vindu
+    window.currentDispatchCoord = dispatchCoord || null;
     
     // Bygg HTML med Leaflet
     mapWindow.document.write(`
@@ -920,6 +936,7 @@ function getIconAndTitle(eventType) {
     case "1702": return { icon: "➖", title: "Avstigning", color: "event-1702" };
     case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
     case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
+    case "3003": return { icon: "🏴", title: "Oppdrag bekreftet", color: "event-unknown" };
     default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
   }
 }
@@ -1016,6 +1033,31 @@ events.forEach((event, index) => {
 // Legg cluster til kart
 map.addLayer(markerCluster);
 
+// 🏴 Legg til dispatchkoordinat fra 3003 XML hvis tilgjengelig
+const dispatchCoord = window.opener.currentDispatchCoord;
+if (dispatchCoord && dispatchCoord.lat && dispatchCoord.lon) {
+  const dispatchTimeLabel = dispatchCoord.timeLabel || '';
+  const dispatchIcon = L.divIcon({
+    className: 'custom-marker-wrapper',
+    html: '<div style="text-align: center;">' +
+          '<div class="event-marker" style="background: white; font-size:18px; line-height:32px;">🏴</div>' +
+          '<div style="font-size: 10px; font-weight: 600; color: #333; background: rgba(255,255,255,0.9); padding: 2px 4px; border-radius: 3px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">' + (dispatchTimeLabel || 'Bekreftet') + '</div>' +
+          '</div>',
+    iconSize: [60, 60],
+    iconAnchor: [30, 30]
+  });
+  const dispatchMarker = L.marker([dispatchCoord.lat, dispatchCoord.lon], { icon: dispatchIcon });
+  dispatchMarker.bindTooltip('<strong>🏴 Bil ved oppdragsbekreftelse</strong>', { direction: 'top', offset: [0, -30] });
+  dispatchMarker.bindPopup(
+    '<div style="min-width: 180px;"><strong>🏴 Oppdrag bekreftet</strong><br>' +
+    'Bilens posisjon ved 3003-melding<br>' +
+    dispatchCoord.lat.toFixed(6) + ', ' + dispatchCoord.lon.toFixed(6) + '</div>',
+    { offset: [0, -15] }
+  );
+  dispatchMarker.addTo(map);
+  routeCoords.unshift([dispatchCoord.lat, dispatchCoord.lon]);
+}
+
 // Hent routing-modus fra parent window
 const routingMode = window.opener.currentRoutingMode || 'road';
 
@@ -1108,6 +1150,7 @@ window.reloadRouteData = function() {
   // Hent oppdatert data fra parent
   const newEvents = window.opener.currentRouteEvents;
   const routingMode = window.opener.currentRoutingMode || 'road';
+  const newDispatchCoord = window.opener.currentDispatchCoord;
   
   if (!newEvents || newEvents.length === 0) {
     console.warn('Ingen events å vise');
@@ -1464,7 +1507,7 @@ window.updateEventData = function(newEvent) {
   /* ==========================
      10. VIS KOMBINERT POPUP
      ========================== */
-  function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003) {
+  function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003, dispatchCoord) {
     const rowRect = row.getBoundingClientRect();
 
     // Overlay
@@ -1530,6 +1573,15 @@ window.updateEventData = function(newEvent) {
     if (time3003) {
       // Konverter "24/12/2025 20:55:09" til "20:55"
       const timeOnly = time3003.split(' ')[1]?.substring(0, 5) || time3003;
+      if (dispatchCoord) {
+        dispatchCoord.timeLabel = timeOnly;
+        // Konverter "DD/MM/YYYY HH:MM:SS" til ISO for formatTimestamp
+        try {
+          const [datePart, timePart] = time3003.split(' ');
+          const [d, m, y] = datePart.split('/');
+          dispatchCoord.timestamp = `${y}-${m}-${d}T${timePart}`;
+        } catch (e) {}
+      }
       
       // Sjekk om avsender er ITF (itf0010.967332550)
       const showLoyveLink = senderIdOrg && senderIdOrg.includes('itf0010.967332550');
@@ -1539,6 +1591,7 @@ window.updateEventData = function(newEvent) {
           <div>
             <span style="font-weight: bold;">🚕 Oppdrag bekreftet: </span>
             <span style="font-size: 15px; font-weight: bold; color: #856404;">${timeOnly}</span>
+            ${dispatchCoord ? `<a href="#" id="dispatchMapLink" style="margin-left: 10px; font-size: 13px; color: #1976d2; text-decoration: none; padding: 2px 6px; background: #e3f2fd; border-radius: 4px;" title="Se i kart hvor bilen var når oppdrag ble bekreftet">🗺️ Vis i kart</a>` : ''}
             ${!phoneNumber ? '<span style="margin-left: 10px; color: #d32f2f;">⚠️ Fant ikke telefonnummer</span>' : ''}
           </div>
       `;
@@ -1817,6 +1870,22 @@ window.updateEventData = function(newEvent) {
       toggle1709.dispatchEvent(new Event("change"));
     }
 
+    // Dispatch-koordinat lenke (🗺️ Vis i kart ved Oppdrag bekreftet)
+    const dispatchMapLink = popup.querySelector("#dispatchMapLink");
+    if (dispatchMapLink && dispatchCoord) {
+      dispatchMapLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        openSingleEventMap({
+          lat: String(dispatchCoord.lat),
+          lon: String(dispatchCoord.lon),
+          eventType: "3003",
+          name: licensePlate,
+          address: "Posisjon ved oppdragsbekreftelse",
+          timestamp: dispatchCoord.timestamp || null
+        }, licensePlate, turId);
+      });
+    }
+
     const coordLinks = popup.querySelectorAll(".coord-link");
     coordLinks.forEach(link => {
       link.addEventListener("click", e => {
@@ -1860,7 +1929,7 @@ window.updateEventData = function(newEvent) {
     const showRouteMapBtn = popup.querySelector("#showRouteMap");
     if (showRouteMapBtn) {
       showRouteMapBtn.addEventListener("click", () => {
-        openRouteMap(eventData.events, licensePlate, turId);
+        openRouteMap(eventData.events, licensePlate, turId, dispatchCoord);
       });
     }
 
