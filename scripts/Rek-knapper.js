@@ -418,7 +418,7 @@
             const iframeWin = win || doc.defaultView;
             // Scroll til bunnen av siden minus en fast avstand fra bunn
             const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
-            iframeWin.scrollTo({ top: scrollBottom, behavior: "smooth" });
+            iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
             setTimeout(() => {
               pickupTimeField.focus();
               pickupTimeField.select();
