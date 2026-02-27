@@ -424,6 +424,7 @@ function getIconAndTitle(eventType) {
     case "1702": return { icon: "➖", title: "Avstigning" };
     case "1703": return { icon: "❌", title: "Bomtur" };
     case "1709": return { icon: "📍", title: "Bil ved node" };
+    case "3003": return { icon: "🏴", title: "Oppdrag bekreftet (3003)" };
     default: return { icon: "❓", title: "Ukjent hendelse" };
   }
 }
@@ -598,6 +599,18 @@ window.addVehicleMarkers = function(vehicles) {
           '<span class="popup-label">Hendelse:</span>' +
           '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title + '</span>' +
         '</div>' +
+        (v.dispatchCoord ? (
+          '<div class="popup-row">' +
+            '<span class="popup-label">Hendelse:</span>' +
+            '<span class="popup-value">🏴 Oppdrag bekreftet (3003)' +
+              (v.time3003 ? (' <span style="color:#856404;font-weight:bold;">' + (v.time3003.split(' ')[1]?.substring(0,5) || v.time3003) + '</span>') : '') +
+            '</span>' +
+          '</div>' +
+          '<div class="popup-row">' +
+            '<span class="popup-label">Adresse:</span>' +
+            '<span class="popup-value" style="font-family:monospace;font-size:12px;">' + v.dispatchCoord.lat.toFixed(6) + ', ' + v.dispatchCoord.lon.toFixed(6) + '</span>' +
+          '</div>'
+        ) : '') +
         '<div class="popup-row">' +
           '<span class="popup-label">Tidspunkt:</span>' +
           '<span class="popup-value">' + formatTimestamp(v.timestamp) + '</span>' +
@@ -855,6 +868,7 @@ window.addEventListener('beforeunload', () => {
       const all4010Urls = [];
       let latest3003Url = null;
       let latest2000Url = null;
+      let time3003 = null;
       
       for (const row of rows) {
         const tdMatches = row.match(/<td[^>]*>.*?<\/td>/g);
@@ -878,6 +892,12 @@ window.addEventListener('beforeunload', () => {
           const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
           if (xmlLinkMatch && !latest3003Url) {
             latest3003Url = xmlLinkMatch[1]; // Første/nyeste 3003
+            // Hent tidspunkt fra 2. <td> (samme metode som Ressursinfo)
+            if (!time3003 && tdMatches && tdMatches.length >= 2) {
+              const timeCell = tdMatches[1];
+              const timeMatch = timeCell.match(/<nobr>(\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2})<\/nobr>/);
+              if (timeMatch) time3003 = timeMatch[1];
+            }
           }
         } else if (sutiCode === '2000') {
           const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
@@ -947,13 +967,14 @@ window.addEventListener('beforeunload', () => {
         break;
       }
       
-      if (!lat || !lon) return null; // Ingen 4010 hadde koordinater
+      // Ingen 4010 hadde koordinater – kan fortsatt ha 3003-koordinat
       
       // address settes etter at bookingMap er bygget fra 2000
       let address = null;
       
-      // ── Parse 3003 XML (mobilnummer) ──
+      // ── Parse 3003 XML (mobilnummer + posisjon ved oppdragsbekreftelse) ──
       let phoneNumber = null;
+      let dispatchCoord = null;
       if (resp3003) {
         try {
           const buf3003 = await resp3003.arrayBuffer();
@@ -979,12 +1000,50 @@ window.addEventListener('beforeunload', () => {
                 }
               }
             }
+            // Hent kjøretøyposisjon ved oppdragsbekreftelse
+            const startLoc = xmlDoc3003.querySelector('vehiclestartLocation');
+            if (startLoc) {
+              const slat = startLoc.getAttribute('lat');
+              const slon = startLoc.getAttribute('long');
+              if (slat && slon) dispatchCoord = { lat: parseFloat(slat), lon: parseFloat(slon) };
+            }
           }
         } catch (e) {
           console.warn("Feil ved parsing av 3003:", e);
         }
       }
       
+      // ── Velg nyeste hendelse mellom 4010 og 3003 ──
+      // Konverter time3003 "DD/MM/YYYY HH:MM:SS" til ISO for sammenligning
+      let time3003Iso = null;
+      if (time3003) {
+        try {
+          const [dp, tp] = time3003.split(' ');
+          const [d, m, y] = dp.split('/');
+          time3003Iso = `${y}-${m}-${d}T${tp}`;
+        } catch (e) {}
+      }
+
+      const has4010 = !!(lat && lon);
+      const has3003 = !!(dispatchCoord);
+
+      if (!has4010 && !has3003) return null; // Ingen koordinater i det hele tatt
+
+      // Bruk 3003 som aktiv hendelse hvis:
+      // a) det ikke finnes 4010-koordinater, ELLER
+      // b) 3003 er nyere enn siste 4010 (det skjer rett etter oppdragsbekreftelse)
+      const use3003 = has3003 && (
+        !has4010 ||
+        (time3003Iso && timestamp && time3003Iso > timestamp)
+      );
+
+      if (use3003) {
+        lat = String(dispatchCoord.lat);
+        lon = String(dispatchCoord.lon);
+        timestamp = time3003Iso;
+        eventType = '3003';
+      }
+
       // ── Parse 2000 XML (planlagte turer + avtalenavn) ──
       let tripData = [];
       let avtaleNavn = null;
@@ -1090,7 +1149,9 @@ window.addEventListener('beforeunload', () => {
         address,
         phoneNumber,
         tripData,
-        avtaleNavn
+        avtaleNavn,
+        dispatchCoord,
+        time3003
       };
       
     } catch (e) {
