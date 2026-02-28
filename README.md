@@ -54,6 +54,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
+  - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up isteden for ny fane.
 - ⚙️ **Adminmodul (Alt+A)**
@@ -98,7 +99,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - Duplikater, flere enn 2 bestillinger, flere bestillinger med samme fra- eller til-adresse
     - Om de har forskjellig dato på hentetid og leveringstid
     - Om hentetid er senere enn leveringstid (kun til behandling)
-    - Om returer som har tidligere hentetid enn reisen til behandling for samme behandlingssted 
+    - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
     - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 - 🚩 **Sjekk-Plakat**

@@ -8,6 +8,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.8.5] - 02.03.2026
+
+### Ressursinfo viser posisjon når bil bekrefter oppdrag (3003) og bugfiks for rekmodulene
+- 🚕 **Ressursinfo**
+  - Lagt til "Vis i kart"-knapp ved Oppdrag bekreftet (3003) hvis koordinater er tilgjengelig. Kun Cencom som sender dette per nå
+  - Posisjon og tidspunkt når oppdrag ble bekreftet vises også i bilens faktiske kjørerute
+- 📝 **Bestillingsmodul** og 🔠 **Rek-knapper**
+  - Fikset bug med "Tilbake"-knappen som ikke virker når det søkes på hente/leveringssted i 4-stegs/ensides
+  - Bestillingsmodul: Hvis bestilling(er)/ressurs(er) var merket før redigering/møteplass så merkes de nå på nytt etter lukking av pop-up
+- 🔍 **Sjekk-Bestilling**
+  - Forbedret sjekk for: Retur-hentetid lik eller før oppmøtetid
+
 ## 🚀 [3.8.2] - 26.02.2026
 
 ### Forbedringer til flere script

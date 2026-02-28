@@ -8,7 +8,7 @@
 // - Datofeil: Hentetid og leveringstid har ulik dato
 // - Tidsfeil: Hentetid er senere enn leveringstid (logisk umulig)
 //   → Konfigurerbart: CHECK_TO_TREATMENT / CHECK_FROM_TREATMENT
-// - Retur før reise: Retur planlagt tidligere enn reise til behandling
+// - Retur-tidsfeil: Retur-hentetid lik eller før oppmøtetid på reisen til behandling
 // - Problematiske spesielle behov: Kombinasjoner som ERS+RB som skaper problemer
 // 
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
@@ -716,9 +716,16 @@
         }
         
         if (isReturn && direction === 'FROM_TREATMENT') {
-          returnTrips.push({ ...item, parsedTime: hentetidMinutes });
+          returnTrips.push({ 
+            ...item, 
+            parsedPickupTime: hentetidMinutes 
+          });
         } else if (direction === 'TO_TREATMENT') {
-          outboundTrips.push({ ...item, parsedTime: hentetidMinutes });
+          outboundTrips.push({ 
+            ...item, 
+            parsedPickupTime: hentetidMinutes,
+            parsedArrivalTime: leveringstidMinutes 
+          });
         }
       }
       
@@ -730,12 +737,12 @@
         for (const outboundTrip of outboundTrips) {
           // Sjekk om det er til samme behandlingssted
           if (outboundTrip.til === treatmentLocation) {
-            // Sjekk om returen er før utgående reise
-            if (returnTrip.parsedTime < outboundTrip.parsedTime) {
+            // Sjekk om retur-hentetid er <= oppmøtetid (leveringstid på utgående reise)
+            if (returnTrip.parsedPickupTime <= outboundTrip.parsedArrivalTime) {
               errors.push({
                 navn: navn,
                 items: [returnTrip, outboundTrip],
-                reason: `Retur (${returnTrip.hentetid}) er planlagt før reise til behandling (${outboundTrip.hentetid})`
+                reason: `Retur-hentetid (${returnTrip.hentetid}) er lik eller før oppmøtetid (${outboundTrip.leveringstid})`
               });
             }
           }
@@ -879,7 +886,7 @@
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⏰ ${timeLogicErrors.length} bestilling${timeLogicErrors.length === 1 ? '' : 'er'} hvor hentetid er senere enn leveringstid</div>`;
       }
       if (returnBeforeOutbound.length > 0) {
-        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">🔄⏰ ${returnBeforeOutbound.length} pasient${returnBeforeOutbound.length === 1 ? '' : 'er'} hvor retur er planlagt før reise til behandling</div>`;
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">🔄⏰ ${returnBeforeOutbound.length} pasient${returnBeforeOutbound.length === 1 ? '' : 'er'} hvor retur-hentetid er lik eller før oppmøtetid</div>`;
       }
       html += '</div>';
       
@@ -894,7 +901,7 @@
       }
       
       if (returnBeforeOutbound.length > 0) {
-        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄⏰ Retur planlagt før reise til behandling</h3>';
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄⏰ Retur-hentetid lik eller før oppmøtetid</h3>';
         html += renderDuplicates(returnBeforeOutbound, 'returnbeforeout');
       }
       

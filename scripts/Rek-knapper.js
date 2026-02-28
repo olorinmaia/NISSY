@@ -414,18 +414,55 @@
       const focusPickupTime = (doc, win) => {
         try {
           const pickupTimeField = doc.getElementById("pickupTime");
-          if (pickupTimeField) {
-            const iframeWin = win || doc.defaultView;
-            // Scroll til bunnen av siden minus en fast avstand fra bunn
-            const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
-            iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
-            setTimeout(() => {
-              pickupTimeField.focus();
-              pickupTimeField.select();
-            }, 100);
-          }
+          if (!pickupTimeField) return;
+          const iframeWin = win || doc.defaultView;
+          // Vent to render-sykluser (rAF x2) slik at scrollHeight er ferdig
+          // beregnet av nettleseren før vi måler og scroller.
+          iframeWin.requestAnimationFrame(() => {
+            iframeWin.requestAnimationFrame(() => {
+              const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
+              iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
+              pickupTimeField.focus({ preventScroll: true });
+              // Tredje rAF: vent til nettleseren har prosessert focus-eventet
+              // før select() kalles – hindrer sjeldne tilfeller der markering uteblir
+              iframeWin.requestAnimationFrame(() => {
+                pickupTimeField.select();
+              });
+            });
+          });
         } catch (err) {}
       };
+
+      // Tvinger Tilbake-knappen til alltid å bruke korrekt URL.
+      // 4-stegs: table.top_navigation er synlig → addTrip-URL
+      // Rekvirenttilhørighet: h2.wizard_middle med tekst "Rekvirent" → commissionerAndTreatmentCenter-URL
+      // Ensides: ingen av over → altRequisition-URL
+      const fixTilbakeLink = (doc) => {
+        try {
+          const isFourStep = !!doc.querySelector('table.top_navigation');
+          const isCommissioner = isFourStep && Array.from(doc.querySelectorAll('h2.wizard_middle'))
+            .some(h2 => h2.textContent.trim() === 'Rekvirent');
+          const correctUrl = isCommissioner
+            ? '/rekvisisjon/requisition/commissionerAndTreatmentCenter#anchorNameA'
+            : isFourStep
+              ? '/rekvisisjon/requisition/addTrip?idx=0#anchorNameA'
+              : '/rekvisisjon/requisition/altRequisition?clear=false#anchorNameA';
+          doc.querySelectorAll('a[href*="findTreatmentCenter"], a[href*="altRequisition"], a[href*="addTrip"], a[href*="commissionerAndTreatmentCenter"]').forEach(link => {
+            if (link.querySelector('button[accesskey="T"]')) {
+              link.href = correctUrl;
+            }
+          });
+        } catch (e) {}
+      };
+
+      // Persistent load-lytter som fikser Tilbake-knappen ved hver
+      // navigering inne i iframen (t.d. etter søk på behandlingssted).
+      iframe.addEventListener("load", function onIframeLoad() {
+        try {
+          const doc = iframe.contentDocument || iframe.contentWindow.document;
+          if (doc) fixTilbakeLink(doc);
+        } catch (e) {}
+      });
 
       // Scenario 1: Åpne direkte URL (hendelseslogg, manuell status, etc.)
       if (url) {
@@ -440,17 +477,18 @@
           iframe.onload = function() {
             try {
               const doc = iframe.contentDocument || iframe.contentWindow.document;
+              const win = iframe.contentWindow;
               setTimeout(() => {
                 const redigerBtn = doc.getElementById("redigerKlarFra");
-                if (redigerBtn && 
-                    window.getComputedStyle(redigerBtn).display !== "none" && 
-                    window.getComputedStyle(redigerBtn).visibility !== "hidden") {
+                if (redigerBtn &&
+                    win.getComputedStyle(redigerBtn).display !== "none" &&
+                    win.getComputedStyle(redigerBtn).visibility !== "hidden") {
                   redigerBtn.click();
-                  setTimeout(() => focusPickupTime(doc), 0);
+                  setTimeout(() => focusPickupTime(doc, win), 50);
                 } else {
-                  focusPickupTime(doc);
+                  focusPickupTime(doc, win);
                 }
-              }, 0);
+              }, 100);
             } catch (err) {}
           };
         }
@@ -488,24 +526,32 @@
               try {
                 iframe.contentWindow.eval(`javascript:makeReturn('${window.lastEditedReqId}','&ns=true');`);
                 
-                // Hvis det er retur-knappen, klikk "Rediger klar fra" og fokuser hentetid
+                // makeReturn() trigger en ny sidelasting — vent på onload
                 if (isReturnButton) {
-                  setTimeout(() => {
-                    const doc = iframe.contentDocument || iframe.contentWindow.document;
-                    const redigerBtn = doc.getElementById("redigerKlarFra");
-                    if (redigerBtn && 
-                        window.getComputedStyle(redigerBtn).display !== "none" && 
-                        window.getComputedStyle(redigerBtn).visibility !== "hidden") {
-                      redigerBtn.click();
-                      setTimeout(() => focusPickupTime(doc), 300);
-                    } else {
-                      focusPickupTime(doc);
-                    }
-                  }, 500);
+                  iframe.onload = function() {
+                    iframe.onload = null;
+                    try {
+                      const doc = iframe.contentDocument || iframe.contentWindow.document;
+                      const win = iframe.contentWindow;
+                      setTimeout(() => {
+                        const redigerBtn = doc.getElementById("redigerKlarFra");
+                        if (redigerBtn &&
+                            win.getComputedStyle(redigerBtn).display !== "none" &&
+                            win.getComputedStyle(redigerBtn).visibility !== "hidden") {
+                          redigerBtn.click();
+                          setTimeout(() => focusPickupTime(doc, win), 50);
+                        } else {
+                          focusPickupTime(doc, win);
+                        }
+                      //Ekstra tid for å sikre at makeReturn har fullført alle DOM-endringer før vi prøver å finne og klikke på rediger-knappen  
+                      }, 200);
+                    } catch (err) {}
+                  };
+                } else {
+                  iframe.onload = null;
                 }
               } catch (err) {}
             }
-            iframe.onload = null;
           }
         };
       }

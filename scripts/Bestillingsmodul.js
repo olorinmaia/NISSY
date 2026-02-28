@@ -60,6 +60,31 @@
     let activeKeyboardListener = null;
     
     /**
+     * Tvinger Tilbake-knappen i søk-fieldset til alltid å bruke korrekt URL.
+     * 4-stegs: table.top_navigation er synlig → addTrip-URL
+     * Rekvirenttilhørighet: h2.wizard_middle med tekst "Rekvirent" → commissionerAndTreatmentCenter-URL
+     * Ensides: ingen av over → altRequisition-URL
+     */
+    function fixTilbakeLink(doc) {
+        try {
+            const isFourStep = !!doc.querySelector('table.top_navigation');
+            const isCommissioner = isFourStep && Array.from(doc.querySelectorAll('h2.wizard_middle'))
+                .some(h2 => h2.textContent.trim() === 'Rekvirent');
+            const correctUrl = isCommissioner
+                ? '/rekvisisjon/requisition/commissionerAndTreatmentCenter#anchorNameA'
+                : isFourStep
+                    ? '/rekvisisjon/requisition/addTrip?idx=0#anchorNameA'
+                    : '/rekvisisjon/requisition/altRequisition?clear=false#anchorNameA';
+            const links = doc.querySelectorAll('a[href*="findTreatmentCenter"], a[href*="altRequisition"], a[href*="addTrip"], a[href*="commissionerAndTreatmentCenter"]');
+            links.forEach(link => {
+                if (link.querySelector('button[accesskey="T"]')) {
+                    link.href = correctUrl;
+                }
+            });
+        } catch (e) {}
+    }
+
+    /**
      * Aktiverer modal-modus (blokkerer CTRL+F søk i bakgrunnen)
      */
     function enableModalMode() {
@@ -460,6 +485,8 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+
+                        fixTilbakeLink(iframeDoc);
                         
                     }
                 } catch (e) {
@@ -523,8 +550,11 @@
                 openPopp("-1");
             }
         } catch (error) {
-            console.error('Error calling openPopp:', error);
+            console.error('[BM] Feil ved openPopp:', error);
         }
+
+        // Gjenopprett merkede rader etter at openPopp har re-rendret tabellen
+        restoreSelectedRows();
     }
 
     /**
@@ -667,7 +697,7 @@
         });
 
         // Overlay-klikk for å lukke
-        overlay.addEventListener('click', closeAll);
+        overlay.addEventListener('click', () => closeAll());
 
         // Fokuser på første valg
         options[0].focus();
@@ -678,10 +708,23 @@
      */
     async function init() {
         try {
-            // Lukk eventuelt åpne modaler først
-            await closeAll();
-            
-            // Steg 1: Nullstill modul
+            // Lagre merkede rader før vi rydder eventuelle åpne modaler
+            saveSelectedRows();
+
+            // Rydd eksisterende modaler uten å kjøre exit eller openPopp
+            if (activeKeyboardListener) {
+                document.removeEventListener('keydown', activeKeyboardListener);
+                activeKeyboardListener = null;
+            }
+            if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+            activeModals.forEach(m => m && m.parentNode && m.remove());
+            activeModals = [];
+            document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
+            document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+            disableModalMode();
+            disableF5Handler();
+
+            // Steg 1: Nullstill modul (exit) – kun én gang
             await resetModule();
             
             // Steg 2: Injiser stiler
@@ -792,7 +835,7 @@
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', closeAll);
+            overlay.addEventListener('click', () => closeAll());
             
         } catch (error) {
             console.error('Error opening URL in modal:', error);
@@ -844,12 +887,21 @@
             // Bygg URL med valgt bestilling
             const url = buildMeetingplaceUrl(reqId);
             
-            // Lukk eventuelt åpne modaler først
-            await closeAll();
-            
-            // Nullstill modul
-            await resetModule();
-            
+            // Lagre merkede rader før modal åpnes
+            saveSelectedRows();
+
+            // Dedikert lukke-funksjon: ingen exit requisition, bare openPopp og restore
+            const closeMeetingplace = () => {
+                if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+                document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
+                document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+                activeModals = [];
+                disableModalMode();
+                disableF5Handler();
+                try { if (typeof openPopp === 'function') openPopp('-1'); } catch (e) {}
+                restoreSelectedRows();
+            };
+
             // Injiser stiler
             injectStyles();
             
@@ -906,10 +958,12 @@
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
                         
                         
-                        // Override window.close() i iframe for å lukke modal istedenfor
-                        iframeWin.close = function() {
-                            closeAll();
-                        };
+                        // Fjern onclick på Avbryt-knappen og erstatt med vår lukke-funksjon
+                        const cancelBtn = iframeDoc.getElementById('cancel');
+                        if (cancelBtn) {
+                            cancelBtn.removeAttribute('onclick');
+                            cancelBtn.addEventListener('click', () => closeMeetingplace());
+                        }
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -924,14 +978,14 @@
             const closeBtn = modal.querySelector('.bestillingsmodul-close');
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                closeAll();
+                closeMeetingplace();
             });
 
             modal.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', closeAll);
+            overlay.addEventListener('click', () => closeMeetingplace());
             
         } catch (error) {
             console.error('Error opening Møteplass in modal:', error);
@@ -1040,19 +1094,68 @@
     function focusPickupTime(doc, win) {
         try {
             const pickupTimeField = doc.getElementById('pickupTime');
-            if (pickupTimeField) {
-                const iframeWin = win || doc.defaultView;
-                // Scroll til bunnen av siden minus en fast avstand fra bunn
-                const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
-                iframeWin.scrollTo({ top: scrollBottom, behavior: 'instant' });
-                setTimeout(() => {
-                    pickupTimeField.focus();
-                    pickupTimeField.select();
-                }, 100);
-            }
+            if (!pickupTimeField) return;
+            const iframeWin = win || doc.defaultView;
+            // Vent to render-sykluser (rAF x2) slik at scrollHeight er ferdig
+            // beregnet av nettleseren før vi måler og scroller.
+            iframeWin.requestAnimationFrame(() => {
+                iframeWin.requestAnimationFrame(() => {
+                    const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
+                    iframeWin.scrollTo({ top: scrollBottom, behavior: 'instant' });
+                    pickupTimeField.focus({ preventScroll: true });
+                    // Tredje rAF: vent til nettleseren har prosessert focus-eventet
+                    // før select() kalles – hindrer 1/20 tilfeller der markering uteblir
+                    iframeWin.requestAnimationFrame(() => {
+                        pickupTimeField.select();
+                    });
+                });
+            });
         } catch (err) {
             console.error('Error focusing pickupTime:', err);
         }
+    }
+
+    /**
+     * Lagrer ID-ene til alle merkede rader (blå bakgrunn) før modal åpnes
+     */
+    /**
+     * Lagrer IDs til merkede ventende-bestillinger (V-) og ressurser (Rxxx)
+     * Kalles rett før modal åpnes, mens radene fortsatt er synlige.
+     */
+    function saveSelectedRows() {
+        window._bestillingsmodulSavedRows = new Set();
+        document.querySelectorAll('tr[id^="V-"], tr[id^="Rxxx"]').forEach(row => {
+            const bg = window.getComputedStyle(row).backgroundColor;
+            if (bg === 'rgb(148, 169, 220)') {
+                window._bestillingsmodulSavedRows.add(row.id);
+            }
+        });
+    }
+
+    /**
+     * Gjenoppretter merking etter openPopp har re-rendret tabellene.
+     * Bruker MutationObserver for å vente til radene faktisk finnes i DOM
+     * istedenfor en fast timeout (openPopp er asynkron/AJAX).
+     */
+    function restoreSelectedRows() {
+        if (window._bestillingsmodulSkipRestore) return;
+        const saved = window._bestillingsmodulSavedRows;
+        if (!saved || saved.size === 0) return;
+        window._bestillingsmodulSavedRows = new Set();
+        // Vent 300ms slik at openPopp rekker å re-rendre tabellene
+        setTimeout(() => {
+            saved.forEach(rowId => {
+                const row = document.getElementById(rowId);
+                if (!row) return;
+                try {
+                    const td = row.querySelector('td[onclick*="selectRow"]');
+                    if (td) {
+                        const match = td.getAttribute('onclick').match(/selectRow\([^)]+\)/);
+                        if (match) eval(match[0]);
+                    }
+                } catch (err) {}
+            });
+        }, 300);
     }
 
     /**
@@ -1060,6 +1163,9 @@
      */
     async function openReditInModal(url) {
         try {
+            // Lagre merkede rader før modal åpnes
+            saveSelectedRows();
+
             // Steg 1: Nullstill modul
             await resetModule();
             
@@ -1117,7 +1223,8 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
-                        
+
+                        fixTilbakeLink(iframeDoc);
                         
                         // Klikk på "Rediger klar fra" knappen hvis den finnes og er synlig
                         setTimeout(() => {
@@ -1157,7 +1264,7 @@
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', closeAll);
+            overlay.addEventListener('click', () => closeAll());
             
         } catch (error) {
             console.error('Error opening redit in modal:', error);
