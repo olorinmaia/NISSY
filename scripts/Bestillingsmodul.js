@@ -1076,7 +1076,11 @@
                     const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
                     iframeWin.scrollTo({ top: scrollBottom, behavior: 'instant' });
                     pickupTimeField.focus({ preventScroll: true });
-                    pickupTimeField.select();
+                    // Tredje rAF: vent til nettleseren har prosessert focus-eventet
+                    // før select() kalles – hindrer sjeldne tilfeller der markering uteblir
+                    iframeWin.requestAnimationFrame(() => {
+                        pickupTimeField.select();
+                    });
                 });
             });
         } catch (err) {

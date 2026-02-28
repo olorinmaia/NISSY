@@ -423,7 +423,11 @@
               const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
               iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
               pickupTimeField.focus({ preventScroll: true });
-              pickupTimeField.select();
+              // Tredje rAF: vent til nettleseren har prosessert focus-eventet
+              // før select() kalles – hindrer sjeldne tilfeller der markering uteblir
+              iframeWin.requestAnimationFrame(() => {
+                pickupTimeField.select();
+              });
             });
           });
         } catch (err) {}
@@ -529,15 +533,18 @@
                     try {
                       const doc = iframe.contentDocument || iframe.contentWindow.document;
                       const win = iframe.contentWindow;
-                      const redigerBtn = doc.getElementById("redigerKlarFra");
-                      if (redigerBtn &&
-                          win.getComputedStyle(redigerBtn).display !== "none" &&
-                          win.getComputedStyle(redigerBtn).visibility !== "hidden") {
-                        redigerBtn.click();
-                        setTimeout(() => focusPickupTime(doc, win), 50);
-                      } else {
-                        focusPickupTime(doc, win);
-                      }
+                      setTimeout(() => {
+                        const redigerBtn = doc.getElementById("redigerKlarFra");
+                        if (redigerBtn &&
+                            win.getComputedStyle(redigerBtn).display !== "none" &&
+                            win.getComputedStyle(redigerBtn).visibility !== "hidden") {
+                          redigerBtn.click();
+                          setTimeout(() => focusPickupTime(doc, win), 50);
+                        } else {
+                          focusPickupTime(doc, win);
+                        }
+                      //Ekstra tid for å sikre at makeReturn har fullført alle DOM-endringer før vi prøver å finne og klikke på rediger-knappen  
+                      }, 200);
                     } catch (err) {}
                   };
                 } else {
