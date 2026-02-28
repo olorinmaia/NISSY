@@ -708,13 +708,23 @@
      */
     async function init() {
         try {
-            // Lagre merkede rader, deretter lukk eventuelle modaler
+            // Lagre merkede rader før vi rydder eventuelle åpne modaler
             saveSelectedRows();
-            await closeAll();
-            // Re-lagre etter closeAll (restoreSelectedRows tømmer settet)
-            saveSelectedRows();
-            
-            // Steg 1: Nullstill modul
+
+            // Rydd eksisterende modaler uten å kjøre exit eller openPopp
+            if (activeKeyboardListener) {
+                document.removeEventListener('keydown', activeKeyboardListener);
+                activeKeyboardListener = null;
+            }
+            if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+            activeModals.forEach(m => m && m.parentNode && m.remove());
+            activeModals = [];
+            document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
+            document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+            disableModalMode();
+            disableF5Handler();
+
+            // Steg 1: Nullstill modul (exit) – kun én gang
             await resetModule();
             
             // Steg 2: Injiser stiler
@@ -814,30 +824,18 @@
             // Aktiver F5-håndtering
             enableF5Handler(iframe);
 
-            // Lukke-funksjon for møteplass: ingen exit requisition, bare openPopp og restore
-            const closeMeetingplace = () => {
-                if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
-                document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
-                document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
-                activeModals = [];
-                disableModalMode();
-                disableF5Handler();
-                try { if (typeof openPopp === 'function') openPopp('-1'); } catch (e) {}
-                restoreSelectedRows();
-            };
-
             // Setup close handlers
             const closeBtn = modal.querySelector('.bestillingsmodul-close');
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                closeMeetingplace();
+                closeAll();
             });
 
             modal.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', () => closeMeetingplace());
+            overlay.addEventListener('click', () => closeAll());
             
         } catch (error) {
             console.error('Error opening URL in modal:', error);
@@ -891,7 +889,19 @@
             
             // Lagre merkede rader før modal åpnes
             saveSelectedRows();
-            
+
+            // Dedikert lukke-funksjon: ingen exit requisition, bare openPopp og restore
+            const closeMeetingplace = () => {
+                if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+                document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
+                document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+                activeModals = [];
+                disableModalMode();
+                disableF5Handler();
+                try { if (typeof openPopp === 'function') openPopp('-1'); } catch (e) {}
+                restoreSelectedRows();
+            };
+
             // Injiser stiler
             injectStyles();
             
@@ -948,10 +958,12 @@
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
                         
                         
-                        // Override window.close() i iframe for å lukke modal istedenfor
-                        iframeWin.close = function() {
-                            closeMeetingplace();
-                        };
+                        // Fjern onclick på Avbryt-knappen og erstatt med vår lukke-funksjon
+                        const cancelBtn = iframeDoc.getElementById('cancel');
+                        if (cancelBtn) {
+                            cancelBtn.removeAttribute('onclick');
+                            cancelBtn.addEventListener('click', () => closeMeetingplace());
+                        }
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -966,14 +978,14 @@
             const closeBtn = modal.querySelector('.bestillingsmodul-close');
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                closeAll();
+                closeMeetingplace();
             });
 
             modal.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', () => closeAll());
+            overlay.addEventListener('click', () => closeMeetingplace());
             
         } catch (error) {
             console.error('Error opening Møteplass in modal:', error);
