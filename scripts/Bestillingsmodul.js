@@ -550,8 +550,11 @@
                 openPopp("-1");
             }
         } catch (error) {
-            console.error('Error calling openPopp:', error);
+            console.error('[BM] Feil ved openPopp:', error);
         }
+
+        // Gjenopprett merkede rader etter at openPopp har re-rendret tabellen
+        restoreSelectedRows();
     }
 
     /**
@@ -694,7 +697,7 @@
         });
 
         // Overlay-klikk for å lukke
-        overlay.addEventListener('click', closeAll);
+        overlay.addEventListener('click', () => closeAll());
 
         // Fokuser på første valg
         options[0].focus();
@@ -705,8 +708,11 @@
      */
     async function init() {
         try {
-            // Lukk eventuelt åpne modaler først
+            // Lagre merkede rader, deretter lukk eventuelle modaler
+            saveSelectedRows();
             await closeAll();
+            // Re-lagre etter closeAll (restoreSelectedRows tømmer settet)
+            saveSelectedRows();
             
             // Steg 1: Nullstill modul
             await resetModule();
@@ -808,18 +814,30 @@
             // Aktiver F5-håndtering
             enableF5Handler(iframe);
 
+            // Lukke-funksjon for møteplass: ingen exit requisition, bare openPopp og restore
+            const closeMeetingplace = () => {
+                if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+                document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
+                document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+                activeModals = [];
+                disableModalMode();
+                disableF5Handler();
+                try { if (typeof openPopp === 'function') openPopp('-1'); } catch (e) {}
+                restoreSelectedRows();
+            };
+
             // Setup close handlers
             const closeBtn = modal.querySelector('.bestillingsmodul-close');
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                closeAll();
+                closeMeetingplace();
             });
 
             modal.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', closeAll);
+            overlay.addEventListener('click', () => closeMeetingplace());
             
         } catch (error) {
             console.error('Error opening URL in modal:', error);
@@ -871,11 +889,8 @@
             // Bygg URL med valgt bestilling
             const url = buildMeetingplaceUrl(reqId);
             
-            // Lukk eventuelt åpne modaler først
-            await closeAll();
-            
-            // Nullstill modul
-            await resetModule();
+            // Lagre merkede rader før modal åpnes
+            saveSelectedRows();
             
             // Injiser stiler
             injectStyles();
@@ -935,7 +950,7 @@
                         
                         // Override window.close() i iframe for å lukke modal istedenfor
                         iframeWin.close = function() {
-                            closeAll();
+                            closeMeetingplace();
                         };
                     }
                 } catch (e) {
@@ -958,7 +973,7 @@
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', closeAll);
+            overlay.addEventListener('click', () => closeAll());
             
         } catch (error) {
             console.error('Error opening Møteplass in modal:', error);
@@ -1077,7 +1092,7 @@
                     iframeWin.scrollTo({ top: scrollBottom, behavior: 'instant' });
                     pickupTimeField.focus({ preventScroll: true });
                     // Tredje rAF: vent til nettleseren har prosessert focus-eventet
-                    // før select() kalles – hindrer sjeldne tilfeller der markering uteblir
+                    // før select() kalles – hindrer 1/20 tilfeller der markering uteblir
                     iframeWin.requestAnimationFrame(() => {
                         pickupTimeField.select();
                     });
@@ -1089,10 +1104,56 @@
     }
 
     /**
+     * Lagrer ID-ene til alle merkede rader (blå bakgrunn) før modal åpnes
+     */
+    /**
+     * Lagrer IDs til merkede ventende-bestillinger (V-) og ressurser (Rxxx)
+     * Kalles rett før modal åpnes, mens radene fortsatt er synlige.
+     */
+    function saveSelectedRows() {
+        window._bestillingsmodulSavedRows = new Set();
+        document.querySelectorAll('tr[id^="V-"], tr[id^="Rxxx"]').forEach(row => {
+            const bg = window.getComputedStyle(row).backgroundColor;
+            if (bg === 'rgb(148, 169, 220)') {
+                window._bestillingsmodulSavedRows.add(row.id);
+            }
+        });
+    }
+
+    /**
+     * Gjenoppretter merking etter openPopp har re-rendret tabellene.
+     * Bruker MutationObserver for å vente til radene faktisk finnes i DOM
+     * istedenfor en fast timeout (openPopp er asynkron/AJAX).
+     */
+    function restoreSelectedRows() {
+        if (window._bestillingsmodulSkipRestore) return;
+        const saved = window._bestillingsmodulSavedRows;
+        if (!saved || saved.size === 0) return;
+        window._bestillingsmodulSavedRows = new Set();
+        // Vent 300ms slik at openPopp rekker å re-rendre tabellene
+        setTimeout(() => {
+            saved.forEach(rowId => {
+                const row = document.getElementById(rowId);
+                if (!row) return;
+                try {
+                    const td = row.querySelector('td[onclick*="selectRow"]');
+                    if (td) {
+                        const match = td.getAttribute('onclick').match(/selectRow\([^)]+\)/);
+                        if (match) eval(match[0]);
+                    }
+                } catch (err) {}
+            });
+        }, 300);
+    }
+
+    /**
      * Åpner en redit URL i bestillingsmodul-modal
      */
     async function openReditInModal(url) {
         try {
+            // Lagre merkede rader før modal åpnes
+            saveSelectedRows();
+
             // Steg 1: Nullstill modul
             await resetModule();
             
@@ -1191,7 +1252,7 @@
                 e.stopPropagation();
             });
 
-            overlay.addEventListener('click', closeAll);
+            overlay.addEventListener('click', () => closeAll());
             
         } catch (error) {
             console.error('Error opening redit in modal:', error);
