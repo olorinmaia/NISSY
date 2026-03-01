@@ -26,6 +26,7 @@
     'Ressursinfo.js',
     'Samkjøring.js',
     'Live-ressurskart.js',
+    'Hurtigmeny.js',
     'Logg.js'
   ];
   
