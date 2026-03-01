@@ -1160,6 +1160,24 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Reparer duplikate bestillinger på ressurs (NISSY-bug)
+  // Toggles alle unike bestillings-IDer to ganger (på og av) for å tvinge
+  // NISSY til å re-synkronisere ressursvisningen uten å endre status.
+  // ============================================================
+  async function fixDuplicatesOnResource(uniqueIds) {
+    console.log('[Hentetid] Fikser duplikater på ressurs, ID-er:', [...uniqueIds]);
+    const toggle = (id) => fetch(
+      `/planlegging/ajax-dispatch?update=false&action=toggleManualStatusRequisition&rid=${id}`,
+      { credentials: 'same-origin' }
+    );
+    // Toggle 5 ganger for å komme tilbake til opprinnelig status
+    for (let pass = 0; pass < 5; pass++) {
+      for (const id of uniqueIds) { await toggle(id); }
+    }
+    console.log('[Hentetid] Duplikat-fix fullført');
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Engangs XHR-interceptor for openPopp(-1)
   // Fyrer callback når /planlegging/ajax-dispatch?action=openres&rid=-1 er ferdig
   // ============================================================
@@ -1551,8 +1569,7 @@
       const statusDivs = statusIndex !== -1 ? cells[statusIndex]?.querySelectorAll('div.row-image') : [];
       
       // Iterer gjennom hver bestilling basert på index
-      // seenIds brukes for å filtrere ut duplikater som skyldes en NISSY-bug
-      // der samme bestillings-ID vises flere ganger på en ressurs
+      // seenIds filtrerer duplikate bestillings-IDer som skyldes en NISSY-bug
       const seenIds = new Set();
       for (let i = 0; i < numBestillinger; i++) {
         // Hent status for denne bestillingen
@@ -1571,7 +1588,7 @@
         
         if (!id) continue;
         
-        // Hopp over duplikater (NISSY-bug: samme ID kan vises flere ganger)
+        // Hopp over duplikater (NISSY-bug)
         if (seenIds.has(id)) continue;
         seenIds.add(id);
         
@@ -1607,7 +1624,7 @@
   // ============================================================
   // POPUP: Rediger hentetid for flere bestillinger
   // ============================================================
-  function showTimeEditPopup(bestillinger, allSelectedRows) {
+  function showTimeEditPopup(bestillinger, allSelectedRows, paagaaendeRows) {
     isPopupOpen = true;
     
     const { overlay, popup } = createPopupBase("620px");
@@ -2085,7 +2102,38 @@
       
       // Oppdater pågående oppdrag (dette oppdaterer alt)
       if (typeof openPopp === "function") {
-        onceAfterOpenPopp(() => reselectAllRows(allSelectedRows));
+        onceAfterOpenPopp(async () => {
+          // Sjekk for duplikater som kan ha oppstått etter lagring.
+          // openPopp har re-rendret DOM, så vi må re-hente radene via ID.
+          const freshRows = paagaaendeRows
+            .map(r => document.getElementById(r.id))
+            .filter(Boolean);
+          for (const row of freshRows) {
+            const tCell = row.querySelectorAll('td')[2];
+            const seenInRow = new Set();
+            const allIds = [];
+            let hasDuplicates = false;
+            if (tCell) {
+              tCell.querySelectorAll('img[id^="popp_"]').forEach(img => {
+                const match = img.id.match(/popp_(\d+)/);
+                if (match) {
+                  const id = match[1];
+                  if (seenInRow.has(id)) { hasDuplicates = true; }
+                  else { seenInRow.add(id); allIds.push(id); }
+                }
+              });
+            }
+            if (hasDuplicates) {
+              console.log('[Hentetid] Duplikater etter lagring - fikser...');
+              await fixDuplicatesOnResource(allIds);
+              // Vent på ny openPopp før remerking
+              onceAfterOpenPopp(() => reselectAllRows(allSelectedRows));
+              if (typeof openPopp === 'function') openPopp('-1');
+              return;
+            }
+          }
+          reselectAllRows(allSelectedRows);
+        });
         openPopp('-1');
       }
       
@@ -2392,7 +2440,7 @@
       return;
     }
 
-    showTimeEditPopup(allBestillinger, allSelectedRows);
+    showTimeEditPopup(allBestillinger, allSelectedRows, paagaaendeRows);
   }
 
   console.log("✅ Hentetid-script lastet");
