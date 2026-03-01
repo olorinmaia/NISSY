@@ -1551,6 +1551,9 @@
       const statusDivs = statusIndex !== -1 ? cells[statusIndex]?.querySelectorAll('div.row-image') : [];
       
       // Iterer gjennom hver bestilling basert på index
+      // seenIds brukes for å filtrere ut duplikater som skyldes en NISSY-bug
+      // der samme bestillings-ID vises flere ganger på en ressurs
+      const seenIds = new Set();
       for (let i = 0; i < numBestillinger; i++) {
         // Hent status for denne bestillingen
         const statusDiv = statusDivs[i];
@@ -1567,6 +1570,10 @@
         const id = img ? img.id.match(/popp_(\d+)/)?.[1] : '';
         
         if (!id) continue;
+        
+        // Hopp over duplikater (NISSY-bug: samme ID kan vises flere ganger)
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
         
         // Hent data for denne bestillingen basert på index
         const name = nameDivs[i] ? nameDivs[i].textContent.trim() : '(ukjent)';
