@@ -544,6 +544,9 @@
             console.error('Error resetting module on close:', error);
         }
         
+        // Gjenopprett merkede rader når openPopp er ferdig (interceptor må settes opp før kallet)
+        restoreSelectedRows();
+
         // Oppdater bestillinger som er laget/endret
         try {
             if (typeof openPopp === 'function') {
@@ -552,9 +555,6 @@
         } catch (error) {
             console.error('[BM] Feil ved openPopp:', error);
         }
-
-        // Gjenopprett merkede rader etter at openPopp har re-rendret tabellen
-        restoreSelectedRows();
     }
 
     /**
@@ -898,8 +898,8 @@
                 activeModals = [];
                 disableModalMode();
                 disableF5Handler();
-                try { if (typeof openPopp === 'function') openPopp('-1'); } catch (e) {}
                 restoreSelectedRows();
+                try { if (typeof openPopp === 'function') openPopp('-1'); } catch (e) {}
             };
 
             // Injiser stiler
@@ -1133,17 +1133,47 @@
     }
 
     /**
+     * Setter opp en engangs XHR-interceptor som fyrer callback når
+     * openPopp(-1) sitt AJAX-kall mot /planlegging/ajax-dispatch er ferdig.
+     * Rydder seg selv opp umiddelbart etter første treff, eller etter 3s sikkerhetsnett.
+     */
+    function onceAfterOpenPopp(callback) {
+        const originalOpen = XMLHttpRequest.prototype.open;
+        let restored = false;
+
+        const restore = () => {
+            if (!restored) {
+                restored = true;
+                XMLHttpRequest.prototype.open = originalOpen;
+            }
+        };
+
+        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
+                restore();
+                this.addEventListener('load', function() {
+                    callback();
+                }, { once: true });
+            }
+            return originalOpen.call(this, method, url, ...rest);
+        };
+
+        // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
+        setTimeout(restore, 3000);
+    }
+
+    /**
      * Gjenoppretter merking etter openPopp har re-rendret tabellene.
-     * Bruker MutationObserver for å vente til radene faktisk finnes i DOM
-     * istedenfor en fast timeout (openPopp er asynkron/AJAX).
+     * Bruker XHR-interception mot /planlegging/ajax-dispatch?action=openres&rid=-1
+     * for å vite nøyaktig når openPopp er ferdig, uavhengig av hvor lang tid det tar.
      */
     function restoreSelectedRows() {
         if (window._bestillingsmodulSkipRestore) return;
         const saved = window._bestillingsmodulSavedRows;
         if (!saved || saved.size === 0) return;
         window._bestillingsmodulSavedRows = new Set();
-        // Vent 300ms slik at openPopp rekker å re-rendre tabellene
-        setTimeout(() => {
+
+        onceAfterOpenPopp(() => {
             saved.forEach(rowId => {
                 const row = document.getElementById(rowId);
                 if (!row) return;
@@ -1155,7 +1185,7 @@
                     }
                 } catch (err) {}
             });
-        }, 300);
+        });
     }
 
     /**
