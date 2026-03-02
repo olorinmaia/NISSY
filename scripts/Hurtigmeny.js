@@ -51,6 +51,8 @@
     #cm-popup.cm-ventende  .cm-header { background: #047CA1; }
     #cm-popup.cm-paagaende .cm-header { background: #5a6ea0; }
     #cm-popup.cm-ressurser .cm-header { background: #5a7a5a; }
+    #cm-popup.cm-general   .cm-header { background: #4a4a6a; }
+    #cm-popup.cm-general   .cm-item:hover { background: #e8e8f5; color: #4a4a6a; }
 
     #cm-popup .cm-item {
       display: flex;
@@ -142,7 +144,40 @@
   function clickManualScript(name) {
     const btn = document.querySelector(`#nissy-manual-scripts [data-script="${name}"]`);
     if (btn) btn.click();
-    else console.warn('[ContextMenu] Fant ikke manual-script:', name);
+    else console.warn('[Hurtigmeny] Fant ikke manual-script:', name);
+  }
+
+  // ── Kontor-tilgang ───────────────────────────────────────────
+  const SJEKK_PLAKAT_OFFICES = [
+    'Pasientreiser Nord-Trøndelag',
+    // Legg til flere kontorer her etter hvert
+    // 'Pasientreiser Sør-Trøndelag',
+  ];
+
+  function getCurrentOffice() {
+    // Prøv globale variabler først
+    if (window.currentOffice)       return window.currentOffice;
+    if (window.g_currentOfficeName) return window.g_currentOfficeName;
+    // Prøv vanlige DOM-steder i NISSY
+    const candidates = [
+      '#officeSelect option:checked',
+      '#office-name',
+      '.office-name',
+      '[id*="office"] option:checked',
+      'select[name*="office"] option:checked',
+      'select[name*="Office"] option:checked',
+    ];
+    for (const sel of candidates) {
+      const el = document.querySelector(sel);
+      const txt = el?.textContent?.trim() || el?.value?.trim();
+      if (txt) return txt;
+    }
+    return null;
+  }
+
+  function hasSjekkPlakatAccess() {
+    const office = getCurrentOffice();
+    return office && SJEKK_PLAKAT_OFFICES.includes(office);
   }
 
   // ── Pasientnavn / ressursnavn fra rad ────────────────────────
@@ -182,7 +217,50 @@
   }
   function sep() { return { type: 'sep' }; }
 
-  // ── Menydefinisjoner ─────────────────────────────────────────
+  // ── Klippebord-elementer (felles for alle menyer) ────────────
+  function clipboardItems() {
+    const items = [];
+    const selectedText = window.getSelection()?.toString().trim() || '';
+    const active = document.activeElement;
+    const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'tel', 'url', 'number', 'password']);
+    const isEditable = active && (
+      active.tagName === 'TEXTAREA' ||
+      active.isContentEditable ||
+      (active.tagName === 'INPUT' && TEXT_INPUT_TYPES.has((active.type || 'text').toLowerCase()))
+    );
+
+    if (selectedText || isEditable) items.push(sep());
+
+    if (selectedText) {
+      items.push(item('✂️', 'Kopier merket tekst', 'Ctrl+C', () => {
+        navigator.clipboard?.writeText(selectedText).catch(() => {
+          document.execCommand('copy');
+        });
+      }));
+    }
+
+    if (isEditable) {
+      items.push(item('📋', 'Lim inn tekst', 'Ctrl+V', () => {
+        navigator.clipboard?.readText().then(text => {
+          if (!text) return;
+          const el = active;
+          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            const start = el.selectionStart ?? el.value.length;
+            const end   = el.selectionEnd   ?? el.value.length;
+            el.value = el.value.slice(0, start) + text + el.value.slice(end);
+            el.selectionStart = el.selectionEnd = start + text.length;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          } else {
+            document.execCommand('insertText', false, text);
+          }
+        }).catch(() => document.execCommand('paste'));
+      }));
+    }
+
+    return items;
+  }
+
+
 
   function ventendeMeny(row) {
     return [
@@ -205,6 +283,7 @@
         row.querySelector('[onclick*="searchStatus"]')?.click();
       }, true),
       item('✖️', 'Avbestilling',     'Alt+K', () => triggerAlt('k')),
+      ...clipboardItems(),
     ];
   }
 
@@ -229,6 +308,7 @@
         else console.warn('[ContextMenu] Fant ikke admin-link for ressurs:', ressursId);
       }, true),
       item('✖️', 'Avbestilling',      'Alt+K', () => triggerAlt('k')),
+      ...clipboardItems(),
     ];
   }
 
@@ -240,8 +320,10 @@
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
       }, true),
+      ...clipboardItems(),
     ];
   }
+
 
   // ── Vis popup ────────────────────────────────────────────────
   function showMenu(x, y, items, type, row) {
@@ -311,9 +393,63 @@
   }
 
   // ── Høyreklikk-handler ───────────────────────────────────────
+  // ── Er elementet inne i en annen pop-up? ────────────────────
+  // Traverserer DOM oppover og sjekker etter flytende vinduer
+  // (position fixed/absolute med z-index) som ikke er våre egne.
+  function isInsidePopup(el) {
+    const OWN_IDS = new Set(['cm-overlay', 'cm-popup']);
+    let node = el;
+    while (node && node !== document.body) {
+      if (OWN_IDS.has(node.id)) return false; // våre egne — OK
+      const tag = node.tagName?.toLowerCase();
+      if (tag === 'dialog') return true;
+      const cs = window.getComputedStyle(node);
+      const pos = cs.position;
+      const z   = parseInt(cs.zIndex, 10);
+      if ((pos === 'fixed' || pos === 'absolute') && z > 100) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  // ── Høyreklikk-handler ───────────────────────────────────────
   function onContextMenu(e) {
+    // Ikke aktiver inne i andre pop-ups (Ressursinfo, Hentetid osv.)
+    if (e.target.id !== 'cm-overlay' && isInsidePopup(e.target)) return;
+
+    // Hvis menyen allerede er åpen dekker overlay-en alt —
+    // finn det faktiske elementet under musepekeren og behandle det
+    if (e.target.id === 'cm-overlay') {
+      closeMenu();
+      const elUnder = document.elementFromPoint(e.clientX, e.clientY);
+      if (elUnder && isInsidePopup(elUnder)) return;
+      const found = elUnder ? findRow(elUnder) : null;
+      e.preventDefault();
+      e.stopPropagation();
+      if (found) {
+        const { row, type } = found;
+        selectRowIfNeeded(row, type);
+        const menuItems = {
+          ventende:  ventendeMeny(row),
+          paagaende: paagaaendeMeny(row),
+          ressurser: ressurserMeny(row),
+        }[type];
+        showMenu(e.clientX, e.clientY, menuItems, type, row);
+      } else {
+        showGeneralMenu(e.clientX, e.clientY);
+      }
+      return;
+    }
+
     const found = findRow(e.target);
-    if (!found) return; // standard meny utenfor tabellene
+
+    if (!found) {
+      // Utenfor tabellene → generell meny
+      e.preventDefault();
+      e.stopPropagation();
+      showGeneralMenu(e.clientX, e.clientY);
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
@@ -330,6 +466,107 @@
     }[type];
 
     showMenu(e.clientX, e.clientY, menuItems, type, row);
+  }
+
+  // ── Hjelpefunksjon: Sjekk hvilket kontor brukeren er på ─────
+  function getCurrentOffice() {
+    const topframeCell = document.querySelector('.topframe_small');
+    if (!topframeCell) return null;
+    const text  = topframeCell.textContent;
+    const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+    return match?.[1]?.trim() || null;
+  }
+
+  // ── Sjekk-Plakat tilgang ─────────────────────────────────────
+  function hasSjekkPlakatAccess() {
+    const SJEKK_PLAKAT_OFFICES = [
+      'Pasientreiser Nord-Trøndelag',
+      // Legg til flere kontorer her etter hvert
+    ];
+    if (typeof getCurrentOffice !== 'function') return false;
+    const office = getCurrentOffice();
+    return office && SJEKK_PLAKAT_OFFICES.includes(office);
+  }
+
+  // ── Generell meny (utenfor tabellene) ───────────────────────
+  function generalMeny() {
+    const plakatAccess = hasSjekkPlakatAccess();
+    return [
+      // ── Moduler ──────────────────────────────────────────────
+      item('📝', 'Bestillingsmodul', 'Alt+N', () => triggerAlt('n')),
+      item('⚙️', 'Adminmodul',       'Alt+A', () => triggerAlt('a')),
+      item('📋', 'Handlingslogg',    'Alt+L', () => triggerAlt('l')),
+      sep(),
+      // ── Sjekk-verktøy ────────────────────────────────────────
+      item('🔍', 'Sjekk-Bestilling', null, () => clickManualScript('sjekk-bestilling')),
+      ...(plakatAccess
+        ? [item('🚩', 'Sjekk-Plakat', null, () => clickManualScript('sjekk-plakat'))]
+        : []),
+      item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
+      sep(),
+      // ── Diverse verktøy ──────────────────────────────────────
+      item('🔔', 'Overvåk-Ventende', null, () => {
+        const btn = document.getElementById('nissy-monitor-btn');
+        if (btn) btn.click();
+        else console.warn('[Hurtigmeny] Fant ikke #nissy-monitor-btn');
+      }),
+      item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
+      item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
+      sep(),
+      item('📖', 'Brukerveiledning', null, () => {
+        const btn = document.getElementById('nissy-help-btn');
+        if (btn) btn.click();
+        else console.warn('[Hurtigmeny] Fant ikke #nissy-help-btn');
+      }),
+      ...clipboardItems(),
+    ];
+  }
+
+  // ── Vis generell meny ────────────────────────────────────────
+  function showGeneralMenu(x, y) {
+    closeMenu();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cm-overlay';
+    overlay.addEventListener('click', closeMenu);
+    overlay.addEventListener('contextmenu', e => { e.preventDefault(); closeMenu(); });
+    document.body.appendChild(overlay);
+
+    const popup = document.createElement('div');
+    popup.id = 'cm-popup';
+    popup.classList.add('cm-general');
+
+    const header = document.createElement('div');
+    header.className = 'cm-header';
+    header.textContent = '⚡ Hurtigmeny';
+    popup.appendChild(header);
+
+    generalMeny().forEach(it => {
+      if (it.type === 'sep') {
+        const s = document.createElement('div');
+        s.className = 'cm-separator';
+        popup.appendChild(s);
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = 'cm-item';
+      const badgeHtml = it.hotkey ? `<span class="cm-badge">${it.hotkey}</span>` : '';
+      el.innerHTML = `<span class="cm-icon">${it.icon}</span><span class="cm-label">${it.label}</span>${badgeHtml}`;
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        closeMenu();
+        it.action();
+      });
+      popup.appendChild(el);
+    });
+
+    document.body.appendChild(popup);
+
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const pw = popup.offsetWidth  || 240;
+    const ph = popup.offsetHeight || 350;
+    popup.style.left = Math.min(x + 2, vw - pw - 8) + 'px';
+    popup.style.top  = Math.min(y + 2, vh - ph - 8) + 'px';
   }
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
