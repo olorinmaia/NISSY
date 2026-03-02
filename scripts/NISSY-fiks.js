@@ -1108,6 +1108,7 @@
   /* ======================================================
      DEL 8: BEGRENS TEKST I KOLONNER
      Finner dynamisk hvilke kolonner som skal begrenses
+     Inkluderer: Ventende/Pågående oppdrag, Ressurser, Transportører/Avtaler
      Med retry-mekanisme for kolonner som lastes sent
      ====================================================== */
 
@@ -1138,7 +1139,7 @@
         return -1;
       }
 
-      // Finn kolonneindekser
+      // Finn kolonneindekser for Ventende og Pågående oppdrag
       const ventende = {
         patientName: findColumnIndex('ventendeoppdrag', 'sortVentendeOppdragList', 'patientName'),
         address: findColumnIndex('ventendeoppdrag', 'sortVentendeOppdragList', 'tripFromAddress')
@@ -1150,7 +1151,16 @@
         toAddress: findColumnIndex('pagaendeoppdrag', 'sortPopp', 'tripToAddress')
       };
 
-      // Sjekk om vi fant alle kritiske kolonner
+      // FASTE kolonneindekser for Ressurser og Transportører/Avtaler (aldri endres)
+      const ressurser = {
+        permissionNr: 2 // Kolonne 2: "Ressurs"
+      };
+
+      const transportorer = {
+        name: 2 // Kolonne 2: "Navn"
+      };
+
+      // Sjekk om vi fant alle kritiske kolonner (kun dynamiske)
       const allColumnsFound = 
         ventende.patientName > 0 &&
         ventende.address > 0 &&
@@ -1161,7 +1171,7 @@
       // Bygg CSS dynamisk basert på funne kolonner
       let cssRules = '';
 
-      // Ventende oppdrag
+      // === VENTENDE OPPDRAG ===
       if (ventende.patientName > 0) {
         cssRules += `
           #ventendeoppdrag tbody tr td:nth-child(${ventende.patientName}) {
@@ -1183,7 +1193,7 @@
         `;
       }
 
-      // Pågående oppdrag
+      // === PÅGÅENDE OPPDRAG ===
       if (paagaaende.patientName > 0) {
         cssRules += `
           #pagaendeoppdrag tbody tr td:nth-child(${paagaaende.patientName}) {
@@ -1226,25 +1236,42 @@
         `;
       }
 
-      // Legg til CSS hvis vi fant noen kolonner
-      if (cssRules) {
-        // Fjern eksisterende style hvis den finnes
-        const existingStyle = document.getElementById('nissy-column-limit-styles');
-        if (existingStyle) {
-          existingStyle.remove();
+      // === RESSURSER (FAST KOLONNE) ===
+      cssRules += `
+        #resurser tbody tr td:nth-child(${ressurser.permissionNr}) {
+          max-width: 140px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
+      `;
 
-        const style = document.createElement('style');
-        style.id = 'nissy-column-limit-styles';
-        style.textContent = cssRules;
-        document.head.appendChild(style);
-        
-        if (allColumnsFound) {
-          stylesApplied = true;
+      // === TRANSPORTØRER/AVTALE (FAST KOLONNE) ===
+      cssRules += `
+        #transportorer tbody tr td:nth-child(${transportorer.name}) {
+          max-width: 250px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
+      `;
+
+      // Legg til CSS
+      const existingStyle = document.getElementById('nissy-column-limit-styles');
+      if (existingStyle) {
+        existingStyle.remove();
       }
 
-      // Retry hvis ikke alle kolonner er funnet og vi har forsøk igjen
+      const style = document.createElement('style');
+      style.id = 'nissy-column-limit-styles';
+      style.textContent = cssRules;
+      document.head.appendChild(style);
+      
+      if (allColumnsFound) {
+        stylesApplied = true;
+      }
+
+      // Retry hvis ikke alle DYNAMISKE kolonner er funnet og vi har forsøk igjen
       if (!allColumnsFound && retryCount < MAX_RETRIES) {
         retryCount++;
         setTimeout(setupColumnLimits, RETRY_INTERVAL);

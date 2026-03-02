@@ -1160,6 +1160,35 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Engangs XHR-interceptor for openPopp(-1)
+  // Fyrer callback når /planlegging/ajax-dispatch?action=openres&rid=-1 er ferdig
+  // ============================================================
+  function onceAfterOpenPopp(callback) {
+    const originalOpen = XMLHttpRequest.prototype.open;
+    let restored = false;
+
+    const restore = () => {
+      if (!restored) {
+        restored = true;
+        XMLHttpRequest.prototype.open = originalOpen;
+      }
+    };
+
+    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+      if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
+        restore();
+        this.addEventListener('load', function() {
+          callback();
+        }, { once: true });
+      }
+      return originalOpen.call(this, method, url, ...rest);
+    };
+
+    // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
+    setTimeout(restore, 3000);
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Marker rader på nytt (V-, P- og Rxxx)
   // ============================================================
   function reselectAllRows(selectedRows) {
@@ -1522,6 +1551,9 @@
       const statusDivs = statusIndex !== -1 ? cells[statusIndex]?.querySelectorAll('div.row-image') : [];
       
       // Iterer gjennom hver bestilling basert på index
+      // seenIds brukes for å filtrere ut duplikater som skyldes en NISSY-bug
+      // der samme bestillings-ID vises flere ganger på en ressurs
+      const seenIds = new Set();
       for (let i = 0; i < numBestillinger; i++) {
         // Hent status for denne bestillingen
         const statusDiv = statusDivs[i];
@@ -1538,6 +1570,10 @@
         const id = img ? img.id.match(/popp_(\d+)/)?.[1] : '';
         
         if (!id) continue;
+        
+        // Hopp over duplikater (NISSY-bug: samme ID kan vises flere ganger)
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
         
         // Hent data for denne bestillingen basert på index
         const name = nameDivs[i] ? nameDivs[i].textContent.trim() : '(ukjent)';
@@ -2049,11 +2085,8 @@
       
       // Oppdater pågående oppdrag (dette oppdaterer alt)
       if (typeof openPopp === "function") {
+        onceAfterOpenPopp(() => reselectAllRows(allSelectedRows));
         openPopp('-1');
-        
-        setTimeout(() => {
-          reselectAllRows(allSelectedRows);
-        }, 500);
       }
       
       const closeButton = document.createElement("button");

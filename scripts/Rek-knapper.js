@@ -209,6 +209,7 @@
 
     // Initialiser globale variabler
     window.lastEditedReqId = null;
+    window.lastModalButton = null;
     window.popupObserver = null;
     window.escapeHandler = null;
     window.rowObserver = null;
@@ -380,7 +381,7 @@
     // RESET IFRAME
     // Brukes for å resette session før handlinger
     // ============================================================
-    const resetIframe = () => {
+    const resetIframe = () => new Promise((resolve) => {
       let iframe = document.getElementById("resetIframe");
       if (!iframe) {
         iframe = document.createElement("iframe");
@@ -388,8 +389,9 @@
         iframe.style.display = "none";
         document.body.appendChild(iframe);
       }
+      iframe.onload = () => { iframe.onload = null; resolve(); };
       iframe.src = "/rekvisisjon/requisition/exit";
-    };
+    });
 
     // ============================================================
     // ÅPNE MODAL MED IFRAME
@@ -560,6 +562,33 @@
     // ============================================================
     // LUKK MODAL
     // ============================================================
+    // Engangs XHR-interceptor som fyrer callback når openPopp(-1) sitt
+    // AJAX-kall mot /planlegging/ajax-dispatch er ferdig.
+    const onceAfterOpenPopp = (callback) => {
+      const originalOpen = XMLHttpRequest.prototype.open;
+      let restored = false;
+
+      const restore = () => {
+        if (!restored) {
+          restored = true;
+          XMLHttpRequest.prototype.open = originalOpen;
+        }
+      };
+
+      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
+          restore();
+          this.addEventListener('load', function() {
+            callback();
+          }, { once: true });
+        }
+        return originalOpen.call(this, method, url, ...rest);
+      };
+
+      // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
+      setTimeout(restore, 3000);
+    };
+
     const closeModal = () => {
       const modal = document.getElementById("iframeModal");
       const iframe = document.getElementById("iframeModalContent");
@@ -573,13 +602,18 @@
         iframe.onload = null;
       }
 
-      // Refresh data
+      window.popupObserver?.disconnect();
+
+      // Avslutt aktiv rekvisisjonssesjon (ikke nødvendig for H og S)
+      if (window.lastModalButton !== "H" && window.lastModalButton !== "S") {
+        resetIframe();
+      }
+
+      // Refresh data og gjenopprett popups når openPopp(-1) sitt XHR-kall er ferdig
+      onceAfterOpenPopp(() => refreshAllPopups());
       if (typeof openPopp === "function") {
         openPopp("-1");
       }
-
-      window.popupObserver?.disconnect();
-      setTimeout(() => refreshAllPopups(), 300);
     };
 
     // ============================================================
@@ -697,9 +731,6 @@
       if (!lastCol) return;
       const statusImages = lastCol.querySelectorAll("img[onclick*='searchStatus?nr=']");
 
-      // Reset iframe før handlinger
-      resetIframe();
-
       // ============================================================
       // LAG KNAPPER FOR HVER REQUISITION
       // ============================================================
@@ -770,6 +801,7 @@
           btn.onclick = () => {
             window.isVentendeOppdrag = isVentende;
             window.lastEditedReqId = reqId;
+            window.lastModalButton = label;
 
             // Sjekk for advarsel ved redigering av pågående oppdrag
             if (label === "R") {
@@ -790,18 +822,21 @@
                 alert("Kunne ikke finne requisitionNumber for T-knappen.");
                 return;
               }
-              openModal({ requisitionNumber, isReturnButton: true });
+              resetIframe().then(() => openModal({ requisitionNumber, isReturnButton: true }));
             } else {
               // Andre knapper: Åpne direkte URL
-              openModal({
-                url: {
-                  S: `/administrasjon/admin/manualStatus?id=${reqId}`,
-                  H: `/administrasjon/admin/displayLog?id=${reqId}&type=requisition&db=1`,
-                  K: `/rekvisisjon/requisition/patient?copyReqId=${reqId}`,
-                  R: `/rekvisisjon/requisition/redit?id=${reqId}&noSerial=true`,
-                }[label],
-                isEditButton: label === "R",
-              });
+              const urlMap = {
+                S: `/administrasjon/admin/manualStatus?id=${reqId}`,
+                H: `/administrasjon/admin/displayLog?id=${reqId}&type=requisition&db=1`,
+                K: `/rekvisisjon/requisition/patient?copyReqId=${reqId}`,
+                R: `/rekvisisjon/requisition/redit?id=${reqId}&noSerial=true`,
+              };
+              const openArgs = { url: urlMap[label], isEditButton: label === "R" };
+              if (label === "H" || label === "S") {
+                openModal(openArgs);
+              } else {
+                resetIframe().then(() => openModal(openArgs));
+              }
             }
           };
 

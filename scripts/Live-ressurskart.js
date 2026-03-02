@@ -907,7 +907,7 @@ window.addEventListener('beforeunload', () => {
         }
       }
       
-      if (all4010Urls.length === 0) return null;
+      if (all4010Urls.length === 0 && !latest3003Url) return null;
       
       // Hent 3003 og 2000 parallelt (uavhengig av hvilken 4010 vi ender opp med)
       const [resp3003, resp2000] = await Promise.all([

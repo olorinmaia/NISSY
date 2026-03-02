@@ -160,6 +160,7 @@
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
     "Brit&Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
+    "Brit&amp;Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Steinkjer rehab/Fysioterapi, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
     "Steinkjer rehab, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
     "Dialyse, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
@@ -172,6 +173,8 @@
     "Seterbakkvegen 5, 7796 FOLLAFOSS": "Seterbakkveien 5, 7796 FOLLAFOSS",
     "Synnesvegen 279, 7960 Salsbruket": "64.81815371052468, 11.902412511524009",
     "Namsskogan fysikalske/Fys. Domås, 7890 Namsskogan": "Storholmveien 6, 7890 Namsskogan",
+    "Midtbyen logoped, 7606 Levanger": "Moafjæra 8C, 7606 Levanger",
+    "Namdalseid fys., 7750 Namdalseid": "Gløttvegen 2, 7750 Namdalseid",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
