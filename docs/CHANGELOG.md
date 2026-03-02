@@ -16,12 +16,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🚕 **Ressursinfo**
   - 3003-koordinater vises nå i vognløpshendelser isteden (Kun Cencom)
 - 🕐 **Hentetid** 
-  - Viser en unik bestilling kun en gang 
-    - NISSY har en visningsbug av "duplikate" bestillinger når de redigeres på tildelt ressurs: Kan fikses med å toggle alle bestillinger eller avbestille/tildele på nytt
   - Forbedret re-markering av rader etter lagring
+  - Viser en unik bestilling kun en gang på merket ressurs hvis bestillinger er "duplisert"
+    - NISSY har en sporadisk visningsbug av "duplikate" bestillinger når de redigeres på tildelt ressurs
+    - Kan fikses med å toggle alle bestillinger, avbestille/tildele turen på nytt eller "B"-e ut turen (Bare visningsfeil, vil rette seg selv automatisk til slutt)
 - 📝 **Bestillingsmodul** og 🔠 **Rek-knapper**
   - Forbedret re-markering av rader etter lukking av iframe modal.
-  - Forbedret nullstilling av rekmodul ved åpning/lukking av iframe modaler for å unngå datasmitte mellom bestillinger
+  - Forbedret nullstilling av rekmodul ved åpning/lukking av iframe modaler for å unngå NISSY-bug med datasmitte mellom bestillinger
 
 ## 🚀 [3.8.5] - 02.03.2026
 

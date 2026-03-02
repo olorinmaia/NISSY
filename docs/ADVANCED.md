@@ -161,9 +161,9 @@ Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildel
 "Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Rutekalkulering" åpner bestillingene i Google maps.
 
 **Tips:**
-- NISSY har en visningsbug av "duplikate" bestillinger når de redigeres på tildelt ressurs. 
+- NISSY har en sporadisk visningsbug av "duplikate" bestillinger når de redigeres på tildelt ressurs. 
    - Kan fikses med å toggle alle bestillinger, avbestille/tildele på nytt eller "B"-e ut turen.
-   - Bestillingene er ikke duplisert, det er bare en visningsfeil, sjekk feks i admin.
+   - Bestillingene er ikke duplisert, det er bare en visningsfeil, sjekk feks i admin. Vil automatisk rette seg selv til slutt.
 
 
 ### 🔠 Rek-knapper (ALT+R)
