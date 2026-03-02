@@ -172,6 +172,7 @@
     "Seterbakkvegen 5, 7796 FOLLAFOSS": "Seterbakkveien 5, 7796 FOLLAFOSS",
     "Synnesvegen 279, 7960 Salsbruket": "64.81815371052468, 11.902412511524009",
     "Namsskogan fysikalske/Fys. Domås, 7890 Namsskogan": "Storholmveien 6, 7890 Namsskogan",
+    "Midtbyen logoped, 7606 Levanger": "Moafjæra 8C, 7606 Levanger",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
