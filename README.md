@@ -16,7 +16,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
   - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
   - Lukker alle typer plakater ved trykk utenfor.
-  - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag dynamisk.
+  - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
   - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
   - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
@@ -39,7 +39,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
 - 🗺️ **Rutekalkulering (Alt+Q)**
-  - Åpner merkede bestillinger/turer for rutekalkulering i Google maps.
+  - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
+  - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse.
 - 🚕 **Ressursinfo (Alt+D)**
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
   - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
@@ -53,8 +54,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - <img width="500" alt="image" src="https://github.com/user-attachments/assets/be203274-df7b-4799-8caa-76d3af2bbd3c" />
 
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
-  - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
-  - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides.
+  - Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
+  - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up isteden for ny fane.
 - ⚙️ **Adminmodul (Alt+A)**
@@ -215,30 +216,6 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+E` | Hentetid |
 | `ALT+X` | Samkjøring |
 | `ALT+L` | Handlingslogg |
-
-## 🔧 Funksjonalitet
-
-### Smart-Tildeling (ALT+S)
-- **Automatisk RB/ERS-deteksjon**: Tildeler til riktig avtale når RB eller ERS er påkrevd selv om første reisende ikke har RB/ERS-behov
-- **Passasjertelling**: Teller overlappende passasjerer og velger riktig avtale ved >3 reisende
-- **Ressurs-tildeling**: Støtter direkte tildeling til valgt ressurs
-- **Avtale-tildeling**: Støtter direkte tildeling til valgt avtale
-- **Visuell feedback**: Grå-markering av bestillinger under planlegging
-- **Kø-støtte**: Kan planlegge flere batch mens tidligere fortsatt pågår
-
-### Tilordningsstøtte 2.0 (ALT+T)
-- Tildeler hver bestilling til sin egen avtale
-- Ingen begrensning på antall bestillinger
-- Viser popup med resultat for alle bestillinger
-- Visuell feedback med grå-markering
-
-### Passasjertelling
-Scriptet teller automatisk:
-- Antall bestillinger
-- Ledsagere per bestilling
-- Overlappende tidsperioder
-- Maksimalt antall samtidig reisende
-- Hensyntar enkelte spesielle behov som LB (tar 1 ekstra kapasitet)
 
 ## 🐛 Kjente feil / ofte stilte spørsmål
 

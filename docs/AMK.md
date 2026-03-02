@@ -100,9 +100,9 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 4. Google Maps åpnes med rute for alle merkede bestillinger
 
 **Tips:**
+- Bruker adressene som står i NISSY og søker i Google maps, hvis de ikke finnes kan de mappes manuelt, ta kontakt!
 - Fungerer både for ventende og pågående oppdrag
-- Filtrerer automatisk ut stopp som er markert som "Framme"
-- Optimaliserer rekkefølgen for logisk flyt
+- Filtrerer automatisk ut bestillinger som er markert som "Framme"
 
 
 ### 🚕 Ressursinfo (ALT+D)
@@ -128,7 +128,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
 - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
 - Lukker alle typer plakater ved trykk utenfor.
-- Begrenser bredden på navn og adresse på ventende/pågående oppdrag hvis det ikke er plass til alt.
+- Begrenser bredden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
 - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
 - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
 - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass. 

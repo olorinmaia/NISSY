@@ -8,6 +8,21 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.8.6] - 03.03.2026
+
+### NISSY-fiks begrenser tekstlengde på Avtalenavn/Ressursnavn og forbedringer til en rekke scripts
+- ⌛ **NISSY-fiks**
+  - Begrenser tekstlengden på avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
+- 🚕 **Ressursinfo**
+  - 3003-koordinater vises nå i vognløpshendelser isteden (Kun Cencom)
+- 🕐 **Hentetid** 
+  - Viser en unik bestilling kun en gang 
+    - NISSY har en visningsbug av "duplikate" bestillinger når de redigeres på tildelt ressurs: Kan fikses med å toggle alle bestillinger eller avbestille/tildele på nytt
+  - Forbedret re-markering av rader etter lagring
+- 📝 **Bestillingsmodul** og 🔠 **Rek-knapper**
+  - Forbedret re-markering av rader etter lukking av iframe modal.
+  - Forbedret nullstilling av rekmodul ved åpning/lukking av iframe modaler for å unngå datasmitte mellom bestillinger
+
 ## 🚀 [3.8.5] - 02.03.2026
 
 ### Ressursinfo viser posisjon når bil bekrefter oppdrag (3003) og bugfiks for rekmodulene
