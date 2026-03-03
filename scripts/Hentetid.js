@@ -2024,6 +2024,14 @@
     };
 
     confirmButton.onclick = async () => {
+      // Sorter visuelt før validering hvis rekkefølgen ikke er kronologisk
+      const currentlySorted = sortBestillingerByTime(bestillinger, popup);
+      const isOutOfOrder = currentlySorted.some((b, i) => (b.uniqueId || b.id) !== (bestillinger[i].uniqueId || bestillinger[i].id));
+      if (isOutOfOrder) {
+        rebuildBestillingsList(bestillinger, popup, confirmButton);
+        bestillinger.splice(0, bestillinger.length, ...currentlySorted);
+      }
+
       const changes = [];
       let invalidFields = [];
       
@@ -2085,8 +2093,8 @@
       
       // Oppdater pågående oppdrag (dette oppdaterer alt)
       if (typeof openPopp === "function") {
-        onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 200));
-        openPopp('-1');
+        onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 50));
+        setTimeout(() => openPopp('-1'), 100);
       }
       
       const closeButton = document.createElement("button");
