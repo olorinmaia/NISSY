@@ -175,6 +175,8 @@
     "Namsskogan fysikalske/Fys. Domås, 7890 Namsskogan": "Storholmveien 6, 7890 Namsskogan",
     "Midtbyen logoped, 7606 Levanger": "Moafjæra 8C, 7606 Levanger",
     "Namdalseid fys., 7750 Namdalseid": "Gløttvegen 2, 7750 Namdalseid",
+    "Styrk/Fys. Brandt, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
+    "Styrk/Fys. Selseth, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:

@@ -1239,7 +1239,7 @@
       // === RESSURSER (FAST KOLONNE) ===
       cssRules += `
         #resurser tbody tr td:nth-child(${ressurser.permissionNr}) {
-          max-width: 140px;
+          max-width: 100px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;

@@ -16,7 +16,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🚕 **Ressursinfo**
   - 3003-koordinater vises nå i vognløpshendelser isteden (Kun Cencom)
 - 🕐 **Hentetid** 
-  - Forbedret re-markering av rader etter lagring
+  - Forbedret kronologisk rekkefølge av bestillinger i pop-up og re-markering av rader etter lagring
   - Viser en unik bestilling kun en gang på merket ressurs hvis bestillinger er "duplisert"
     - NISSY har en sporadisk visningsbug av "duplikate" bestillinger når de redigeres på tildelt ressurs
     - Kan fikses med å toggle alle bestillinger, avbestille/tildele turen på nytt eller "B"-e ut turen (Bare visningsfeil, vil rette seg selv automatisk til slutt)
