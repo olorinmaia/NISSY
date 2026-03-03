@@ -674,7 +674,7 @@
     return errors;
   }
 
-  function findReturnBeforeOutbound() {
+  function findReturnBeforeOutbound(excludedNames) {
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
     const allData = [...ventendeData, ...pagaendeData];
@@ -692,6 +692,9 @@
     
     // Sjekk hver pasient
     for (const [navn, items] of grouped.entries()) {
+      // Skip pasienter som allerede er flagget for >2 bestillinger
+      if (excludedNames.has(navn)) continue;
+      
       if (items.length < 2) continue; // Trenger minst 2 reiser
       
       // Identifiser reiser og returer
@@ -704,23 +707,23 @@
         
         if (hentetidMinutes === null || leveringstidMinutes === null) continue;
         
-        const direction = getTripDirection(item.fra, item.til);
-        
-        // Identifiser om det er retur
-        const isReturn = (hentetidMinutes >= leveringstidMinutes) || (direction === 'FROM_TREATMENT');
-        
         // Skip ubekreftede returtider (21:59 eller 16:59)
         const timeStr = item.hentetid.replace(/<[^>]*>/g, '').trim();
         if (timeStr.includes('21:59') || timeStr.includes('16:59')) {
           continue;
         }
         
-        if (isReturn && direction === 'FROM_TREATMENT') {
+        // Identifiser om det er retur basert KUN på tidspunkt
+        // Retur = hentetid >= leveringstid
+        const isReturn = (hentetidMinutes >= leveringstidMinutes);
+        
+        if (isReturn) {
           returnTrips.push({ 
             ...item, 
             parsedPickupTime: hentetidMinutes 
           });
-        } else if (direction === 'TO_TREATMENT') {
+        } else {
+          // Utgående reise (hentetid < leveringstid)
           outboundTrips.push({ 
             ...item, 
             parsedPickupTime: hentetidMinutes,
@@ -729,14 +732,14 @@
         }
       }
       
-      // Sammenlign returer med utgående reiser til samme behandlingssted
+      // Sammenlign returer med utgående reiser til samme sted
       for (const returnTrip of returnTrips) {
-        // Finn behandlingsstedet (Fra-adressen på returen)
-        const treatmentLocation = returnTrip.fra;
+        // Finn stedet (Fra-adressen på returen)
+        const location = returnTrip.fra;
         
         for (const outboundTrip of outboundTrips) {
-          // Sjekk om det er til samme behandlingssted
-          if (outboundTrip.til === treatmentLocation) {
+          // Sjekk om det er til samme sted
+          if (outboundTrip.til === location) {
             // Sjekk om retur-hentetid er <= oppmøtetid (leveringstid på utgående reise)
             if (returnTrip.parsedPickupTime <= outboundTrip.parsedArrivalTime) {
               errors.push({
@@ -1053,7 +1056,7 @@
     const dateMismatches = findDateMismatches();
     const problematicNeeds = findProblematicNeeds();
     const timeLogicErrors = findTimeLogicErrors();
-    const returnBeforeOutbound = findReturnBeforeOutbound();
+    const returnBeforeOutbound = findReturnBeforeOutbound(excludedNames);
     showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound);
   } catch (error) {
     // Feil under kolonnevalidering eller datainnhenting
