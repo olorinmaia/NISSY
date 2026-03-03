@@ -2085,7 +2085,7 @@
       
       // Oppdater pågående oppdrag (dette oppdaterer alt)
       if (typeof openPopp === "function") {
-        onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 50));
+        onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 100));
         openPopp('-1');
       }
       
