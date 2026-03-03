@@ -610,7 +610,7 @@
       }
 
       // Refresh data og gjenopprett popups når openPopp(-1) sitt XHR-kall er ferdig
-      onceAfterOpenPopp(() => refreshAllPopups());
+      onceAfterOpenPopp(() => setTimeout(() => refreshAllPopups(), 50));
       if (typeof openPopp === "function") {
         openPopp("-1");
       }

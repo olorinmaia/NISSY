@@ -1173,7 +1173,7 @@
         if (!saved || saved.size === 0) return;
         window._bestillingsmodulSavedRows = new Set();
 
-        onceAfterOpenPopp(() => {
+        onceAfterOpenPopp(() => setTimeout(() => {
             saved.forEach(rowId => {
                 const row = document.getElementById(rowId);
                 if (!row) return;
@@ -1185,7 +1185,7 @@
                     }
                 } catch (err) {}
             });
-        });
+        }, 50));
     }
 
     /**
