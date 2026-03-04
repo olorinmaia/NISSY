@@ -95,64 +95,167 @@
   // ============================================================
   // BEKREFTELSESDIALOG
   // Viser en custom dialog med Ja/Nei-knapper
+  // Sentrert horisontalt over ventende oppdrag i NISSY-stil
   // ============================================================
   function showConfirm(message) {
     return new Promise(resolve => {
+      // Finn ventende oppdrag container for horisontal sentrering
+      const col2 = document.getElementById("bodyVentendeOppdrag");
+      const col2Rect = col2 ? col2.getBoundingClientRect() : null;
+
       // Opprett overlay (mørk bakgrunn)
       const overlay = document.createElement("div");
-      overlay.style.position = "fixed";
-      overlay.style.inset = "0";
-      overlay.style.background = "rgba(0,0,0,0.4)";
-      overlay.style.zIndex = "1000000";
-      overlay.style.display = "flex";
-      overlay.style.alignItems = "center";
-      overlay.style.justifyContent = "center";
+      Object.assign(overlay.style, {
+        position: "fixed",
+        inset: "0",
+        background: "rgba(0, 0, 0, 0.4)",
+        zIndex: "1000000",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      });
 
       // Opprett dialog-boks
       const box = document.createElement("div");
-      box.style.background = "#fff";
-      box.style.padding = "20px";
-      box.style.borderRadius = "8px";
-      box.style.maxWidth = "420px";
-      box.style.fontFamily = "Arial, sans-serif";
-      box.style.textAlign = "center";
+      Object.assign(box.style, {
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "8px",
+        maxWidth: "420px",
+        fontFamily: "Arial, sans-serif",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+        border: "1px solid rgba(0, 0, 0, 0.1)"
+      });
+
+      // Horisontal sentrering over col2 hvis mulig
+      if (col2Rect) {
+        box.style.position = "absolute";
+        box.style.left = `${col2Rect.left + (col2Rect.width / 2)}px`;
+        box.style.transform = "translateX(-50%)";
+      }
+
+      // Header med ikon
+      const header = document.createElement("div");
+      Object.assign(header.style, {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginBottom: "12px"
+      });
+      
+      const icon = document.createElement("span");
+      icon.textContent = "🚗";
+      icon.style.fontSize = "20px";
+      
+      const title = document.createElement("span");
+      title.textContent = "Bekreft Alenebil";
+      Object.assign(title.style, {
+        fontSize: "16px",
+        fontWeight: "600",
+        color: "#333"
+      });
+      
+      header.append(icon, title);
 
       // Melding
       const text = document.createElement("div");
       text.textContent = message;
-      text.style.marginBottom = "20px";
+      Object.assign(text.style, {
+        marginBottom: "16px",
+        lineHeight: "1.4",
+        color: "#555",
+        fontSize: "14px"
+      });
 
-      // Ja-knapp (grønn)
-      const btnYes = document.createElement("button");
-      btnYes.textContent = "Ja";
-      btnYes.style.background = "#28a745";
-      btnYes.style.color = "#fff";
-      btnYes.style.border = "none";
-      btnYes.style.padding = "8px 16px";
-      btnYes.style.marginRight = "10px";
-      btnYes.style.borderRadius = "4px";
-      btnYes.onclick = () => {
-        overlay.remove();
-        resolve(true); // Returner true når bruker klikker Ja
+      // Knapp-container
+      const btnContainer = document.createElement("div");
+      Object.assign(btnContainer.style, {
+        display: "flex",
+        gap: "10px",
+        justifyContent: "flex-end"
+      });
+
+      // Cleanup-funksjon for å unngå dobbel-remove
+      let isResolved = false;
+      const cleanup = (result) => {
+        if (isResolved) return;
+        isResolved = true;
+        
+        document.removeEventListener("keydown", escHandler);
+        if (overlay.parentNode) {
+          overlay.remove();
+        }
+        resolve(result);
       };
 
-      // Nei-knapp (rød)
+      // Nei-knapp
       const btnNo = document.createElement("button");
       btnNo.textContent = "Nei";
-      btnNo.style.background = "#dc3545";
-      btnNo.style.color = "#fff";
-      btnNo.style.border = "none";
-      btnNo.style.padding = "8px 16px";
-      btnNo.style.borderRadius = "4px";
-      btnNo.onclick = () => {
-        overlay.remove();
-        resolve(false); // Returner false når bruker klikker Nei
+      Object.assign(btnNo.style, {
+        background: "#6c757d",
+        color: "#fff",
+        border: "none",
+        padding: "8px 16px",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "14px",
+        fontWeight: "500",
+        transition: "all 0.2s"
+      });
+      btnNo.onmouseover = () => {
+        btnNo.style.background = "#5a6268";
+        btnNo.style.transform = "translateY(-1px)";
       };
+      btnNo.onmouseout = () => {
+        btnNo.style.background = "#6c757d";
+        btnNo.style.transform = "translateY(0)";
+      };
+      btnNo.onclick = () => cleanup(false);
+
+      // Ja-knapp (NISSY blå)
+      const btnYes = document.createElement("button");
+      btnYes.textContent = "Ja";
+      Object.assign(btnYes.style, {
+        background: "linear-gradient(135deg, #4A81BF 0%, #6896CA 100%)",
+        color: "#fff",
+        border: "none",
+        padding: "8px 16px",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "14px",
+        fontWeight: "500",
+        transition: "all 0.2s"
+      });
+      btnYes.onmouseover = () => {
+        btnYes.style.background = "linear-gradient(135deg, #35659E 0%, #5785B9 100%)";
+        btnYes.style.transform = "translateY(-1px)";
+      };
+      btnYes.onmouseout = () => {
+        btnYes.style.background = "linear-gradient(135deg, #4A81BF 0%, #6896CA 100%)";
+        btnYes.style.transform = "translateY(0)";
+      };
+      btnYes.onclick = () => cleanup(true);
 
       // Bygg dialogen
-      box.append(text, btnYes, btnNo);
+      btnContainer.append(btnNo, btnYes);
+      box.append(header, text, btnContainer);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
+
+      // ESC for å lukke
+      const escHandler = (e) => {
+        if (e.key === "Escape") {
+          cleanup(false);
+        }
+      };
+      document.addEventListener("keydown", escHandler);
+
+      // Klikk utenfor for å lukke
+      overlay.onclick = (e) => {
+        if (e.target === overlay) {
+          cleanup(false);
+        }
+      };
     });
   }
 
@@ -317,9 +420,58 @@
     }
 
     // ============================================================
-    // REFRESH DATA
-    // Oppdater siden for å vise endringene
+    // HJELPEFUNKSJON: Engangs XHR-interceptor for openPopp(-1)
+    // Fyrer callback når /planlegging/ajax-dispatch?action=openres&rid=-1 er ferdig
     // ============================================================
+    function onceAfterOpenPopp(callback) {
+      const originalOpen = XMLHttpRequest.prototype.open;
+      let restored = false;
+
+      const restore = () => {
+        if (!restored) {
+          restored = true;
+          XMLHttpRequest.prototype.open = originalOpen;
+        }
+      };
+
+      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
+          restore();
+          this.addEventListener('load', function() {
+            // 50ms delay for DOM-oppdatering
+            setTimeout(callback, 50);
+          }, { once: true });
+        }
+        return originalOpen.call(this, method, url, ...rest);
+      };
+
+      // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
+      setTimeout(restore, 3000);
+    }
+
+    // ============================================================
+    // REFRESH DATA OG RE-MARKER BESTILLINGER
+    // Oppdater siden for å vise endringene, deretter marker på nytt
+    // ============================================================
+    
+    // Lagre bestillings-IDer for re-markering
+    const rowIds = rows.map(row => row.id);
+    
+    // Sett opp callback for re-markering
+    onceAfterOpenPopp(() => {
+      // Marker bestillingene på nytt
+      rowIds.forEach(rowId => {
+        try {
+          if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
+            selectRow(rowId, g_voppLS);
+          }
+        } catch (e) {
+          // Ignorer feil hvis rad ikke finnes lenger
+        }
+      });
+    });
+
+    // Trigger refresh
     openPopp("-1");
   });
 })();
