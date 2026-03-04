@@ -310,10 +310,37 @@
   }
 
   function ressurserMeny(row) {
+    const rid = row.getAttribute('name');
+    function openAjaxPopup(action) {
+      const eidMap = {
+        showResourceDeviation: { eid: 'showResourceDeviation', poster: 'showResourceDeviationPoster', close: 'closeResourceDeviation' },
+        showResourceComment:   { eid: 'showResourceComment',   poster: 'showResourceCommentPoster',   close: 'closeResourceComment'   },
+      };
+      const cfg = eidMap[action];
+      if (!cfg) { console.warn('[Hurtigmeny] Ukjent action:', action); return; }
+
+      // Send XHR via ajaxEngine med riktig rid (den høyreklikket rad)
+      if (typeof ajaxEngine !== 'undefined') {
+        ajaxEngine.sendRequest('getSyncronizedData', 'update=false', `action=${action}`, `rid=${rid}`);
+      }
+
+      // Vis popup-elementet og sett loading-tekst — samme som NISSY gjør
+      const htmlElement       = document.getElementById(cfg.eid);
+      const htmlElementPoster = document.getElementById(cfg.poster);
+      if (htmlElement) {
+        htmlElement.innerHTML = `<table width="100%"><tr><td align="right"><img src="images/remove.gif" onclick="${cfg.close}()"/></td></tr></table><center>- Henter data -</center><br/>&nbsp;<br/>&nbsp;`;
+        htmlElementPoster.style.display = '';
+      } else {
+        console.warn('[Hurtigmeny] Fant ikke element:', cfg.eid);
+      }
+    }
     return [
       ...clipboardSection(),
       item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
+      sep(),
+      item('📝', 'Merknad', null, () => openAjaxPopup('showResourceComment'), true),
+      item('⚠️', 'Avvik',   null, () => openAjaxPopup('showResourceDeviation'), true),
       sep(),
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
@@ -349,7 +376,7 @@
     const navn = getDisplayName(row, type);
     header.innerHTML = `<div>${typeLabel}${navn ? ` — ${navn}` : ''}</div>`
       + (nSelected > 1
-        ? `<div class="cm-subheader">${nSelected} rader merket — de fleste valg gjelder alle</div>`
+        ? `<div class="cm-subheader">${nSelected} rader merket — ${type === 'ressurser' ? 'de fleste valg gjelder kun denne' : 'de fleste valg gjelder alle'}</div>`
         : '');
     popup.appendChild(header);
 

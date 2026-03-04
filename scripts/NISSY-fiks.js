@@ -911,18 +911,42 @@
   })();
 
   /* ======================================================
-     DEL 7: LUKK PLAKATER VED KLIKK UTENFOR
+     DEL 7: LUKK PLAKATER/POPUPS VED KLIKK UTENFOR
      ====================================================== */
 
   document.addEventListener('click', (e) => {
-    // Finn åpne plakater
+    // Finn åpne plakater/popups
     const reqPoster = document.getElementById('reqposter');
     const resPoster = document.getElementById('resposter');
     const showCost = document.getElementById('showcost');
     const showFilter = document.getElementById('showfilter');
     const showWait = document.getElementById('showwait');
     const showCapacity = document.getElementById('showcapacity');
+    const showResourceComment = document.getElementById('showResourceComment');
+    const showResourceDeviation = document.getElementById('showResourceDeviation');
+    
+    // Sjekk MerknadRessurs-popup
+    if (showResourceComment && showResourceComment.style.display !== 'none') {
+      // Sjekk om klikket var utenfor popupen
+      if (!showResourceComment.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof closeResourceComment === 'function') {
+          closeResourceComment();
+        }
+      }
+    }
 
+    // Sjekk AvvikRessurs-popup
+    if (showResourceDeviation && showResourceDeviation.style.display !== 'none') {
+      // Sjekk om klikket var utenfor popupen
+      if (!showResourceDeviation.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof closeResourceDeviation === 'function') {
+          closeResourceDeviation();
+        }
+      }
+    }
+    
     // Sjekk rekvisisjon-plakat
     if (reqPoster && reqPoster.style.display !== 'none') {
       // Sjekk om klikket var utenfor plakaten
