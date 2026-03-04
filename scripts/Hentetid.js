@@ -1933,9 +1933,8 @@
     
     // Event handler for "Vis i kart" knappen
     showMapButton.onclick = () => {
-      const clearButton = document.getElementById('buttonClearSelection');
-      if (clearButton && !clearButton.disabled) {
-        clearButton.click();
+      if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+          ListSelectionGroup.clearAllSelections();
         
         setTimeout(() => {
           reselectAllRows(allSelectedRows);
@@ -1966,9 +1965,8 @@
     // Event handler for "Rutekalkulering" knappen (trigger Alt+Q)
     showRouteButton.onclick = () => {
       // Reselecter bestillinger først
-      const clearButton = document.getElementById('buttonClearSelection');
-      if (clearButton && !clearButton.disabled) {
-        clearButton.click();
+      if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+          ListSelectionGroup.clearAllSelections();
         
         setTimeout(() => {
           reselectAllRows(allSelectedRows);
@@ -2093,8 +2091,8 @@
       
       // Oppdater pågående oppdrag (dette oppdaterer alt)
       if (typeof openPopp === "function") {
-        onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 50));
-        setTimeout(() => openPopp('-1'), 100);
+        onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 100));
+        setTimeout(() => openPopp('-1'), 200);
       }
       
       const closeButton = document.createElement("button");

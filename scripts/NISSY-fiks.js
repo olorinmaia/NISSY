@@ -113,17 +113,15 @@
   
     /* ---------- ALT + B : Blank ---------- */
     if (e.altKey && e.key.toLowerCase() === "b") {
-      const btn = document.getElementById("buttonClearSelection");
-      if (!btn || btn.disabled) return;
-      btn.click();
+      e.preventDefault();
+      clearSelection();
       return;
     }
   
     /* ---------- ALT + P : Merk alle ressurser pågående oppdrag ---------- */
     if (e.altKey && e.key.toLowerCase() === "p") {
       e.preventDefault();
-      const b = document.getElementById("buttonClearSelection");
-      if (b) b.click();
+      clearSelection();
   
       setTimeout(() => {
         const c = document.getElementById("pagaendeoppdrag");
@@ -138,8 +136,7 @@
     /* ---------- ALT + V : Merk alle bestillinger ventende oppdrag ---------- */
     if (e.altKey && e.key.toLowerCase() === "v") {
       e.preventDefault();
-      const b = document.getElementById("buttonClearSelection");
-      if (b) b.click();
+      clearSelection();
   
       setTimeout(() => {
         const c = document.getElementById("ventendeoppdrag");
@@ -529,10 +526,9 @@
     "hide-popp-columns"
   ];
 
-  function clickClearButton() {
-    const btn = document.getElementById("buttonClearSelection");
-    if (btn) {
-      btn.click();
+  function clearSelection() {
+    if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+        ListSelectionGroup.clearAllSelections();
     }
   }
 
@@ -541,12 +537,12 @@
     if (!select || select.tagName !== "SELECT") return;
   
     if (SELECTS_CLEAR_ONLY.includes(select.name)) {
-      clickClearButton();
+      clearSelection();
       return;
     }
   
     if (SELECTS_FULL_ACTION.includes(select.name)) {
-      clickClearButton();
+      clearSelection();
   
       waitForAjaxThen("filter", () => {
         openPopp("-1");
@@ -911,18 +907,42 @@
   })();
 
   /* ======================================================
-     DEL 7: LUKK PLAKATER VED KLIKK UTENFOR
+     DEL 7: LUKK PLAKATER/POPUPS VED KLIKK UTENFOR
      ====================================================== */
 
   document.addEventListener('click', (e) => {
-    // Finn åpne plakater
+    // Finn åpne plakater/popups
     const reqPoster = document.getElementById('reqposter');
     const resPoster = document.getElementById('resposter');
     const showCost = document.getElementById('showcost');
     const showFilter = document.getElementById('showfilter');
     const showWait = document.getElementById('showwait');
     const showCapacity = document.getElementById('showcapacity');
+    const showResourceComment = document.getElementById('showResourceComment');
+    const showResourceDeviation = document.getElementById('showResourceDeviation');
+    
+    // Sjekk MerknadRessurs-popup
+    if (showResourceComment && showResourceComment.style.display !== 'none') {
+      // Sjekk om klikket var utenfor popupen
+      if (!showResourceComment.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof closeResourceComment === 'function') {
+          closeResourceComment();
+        }
+      }
+    }
 
+    // Sjekk AvvikRessurs-popup
+    if (showResourceDeviation && showResourceDeviation.style.display !== 'none') {
+      // Sjekk om klikket var utenfor popupen
+      if (!showResourceDeviation.contains(e.target)) {
+        // Kall eksisterende funksjon for å lukke
+        if (typeof closeResourceDeviation === 'function') {
+          closeResourceDeviation();
+        }
+      }
+    }
+    
     // Sjekk rekvisisjon-plakat
     if (reqPoster && reqPoster.style.display !== 'none') {
       // Sjekk om klikket var utenfor plakaten

@@ -28,17 +28,17 @@
       border-radius: 5px;
       box-shadow: 0 4px 18px rgba(0,0,0,0.25);
       min-width: 230px;
-      padding: 4px 0;
+      padding: 0 0 4px 0;
       font-family: Arial, sans-serif;
       font-size: 12px;
       user-select: none;
+      overflow: hidden;
     }
     #cm-popup .cm-header {
       padding: 6px 12px 5px;
       font-weight: bold;
       font-size: 11px;
       color: #fff;
-      border-radius: 4px 4px 0 0;
       margin-bottom: 3px;
       line-height: 1.3;
     }
@@ -154,25 +154,13 @@
     // 'Pasientreiser Sør-Trøndelag',
   ];
 
+  // ── Hjelpefunksjon: Sjekk hvilket kontor brukeren er på ─────
   function getCurrentOffice() {
-    // Prøv globale variabler først
-    if (window.currentOffice)       return window.currentOffice;
-    if (window.g_currentOfficeName) return window.g_currentOfficeName;
-    // Prøv vanlige DOM-steder i NISSY
-    const candidates = [
-      '#officeSelect option:checked',
-      '#office-name',
-      '.office-name',
-      '[id*="office"] option:checked',
-      'select[name*="office"] option:checked',
-      'select[name*="Office"] option:checked',
-    ];
-    for (const sel of candidates) {
-      const el = document.querySelector(sel);
-      const txt = el?.textContent?.trim() || el?.value?.trim();
-      if (txt) return txt;
-    }
-    return null;
+    const topframeCell = document.querySelector('.topframe_small');
+    if (!topframeCell) return null;
+    const text  = topframeCell.textContent;
+    const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+    return match?.[1]?.trim() || null;
   }
 
   function hasSjekkPlakatAccess() {
@@ -229,8 +217,6 @@
       (active.tagName === 'INPUT' && TEXT_INPUT_TYPES.has((active.type || 'text').toLowerCase()))
     );
 
-    if (selectedText || isEditable) items.push(sep());
-
     if (selectedText) {
       items.push(item('✂️', 'Kopier merket tekst', 'Ctrl+C', () => {
         navigator.clipboard?.writeText(selectedText).catch(() => {
@@ -262,8 +248,17 @@
 
 
 
+  // ── Klippebord-seksjon med separator (kun hvis innhold) ─────
+  // Brukes øverst i tabellmenyene — separator legges kun til
+  // hvis minst ett clipboard-valg faktisk er tilgjengelig.
+  function clipboardSection() {
+    const items = clipboardItems();
+    return items.length > 0 ? [...items, sep()] : [];
+  }
+
   function ventendeMeny(row) {
     return [
+      ...clipboardSection(),
       item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s')),
       item('📆', 'Tilordning 2.0',  'Alt+T', () => triggerAlt('t')),
       item('🚐', 'Samkjøring',      'Alt+X', () => triggerAlt('x')),
@@ -273,6 +268,7 @@
         const link = row.querySelector('a[href*="redit"]');
         if (link) window.open(link.href, '_blank');
       }, true /* kun denne rad */),
+      item('↔️', 'Møteplass',       'Alt+M', () => triggerAlt('m'), true),
       item('🔠', 'Rek-knapper',     'Alt+R', () => triggerAlt('r')),
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
@@ -282,13 +278,14 @@
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
       }, true),
+      sep(),
       item('✖️', 'Avbestilling',     'Alt+K', () => triggerAlt('k')),
-      ...clipboardItems(),
     ];
   }
 
   function paagaaendeMeny(row) {
     return [
+      ...clipboardSection(),
       item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
       item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x')),
@@ -305,25 +302,55 @@
         const ressursRow = document.getElementById('Rxxx' + ressursId);
         const qBtn = ressursRow?.querySelector('[onclick*="searchStatus"]');
         if (qBtn) qBtn.click();
-        else console.warn('[ContextMenu] Fant ikke admin-link for ressurs:', ressursId);
+        else console.warn('[Hurtigmeny] Fant ikke admin-link for ressurs:', ressursId);
       }, true),
+      sep(),
       item('✖️', 'Avbestilling',      'Alt+K', () => triggerAlt('k')),
-      ...clipboardItems(),
     ];
   }
 
   function ressurserMeny(row) {
+    const rid = row.getAttribute('name');
+    function openAjaxPopup(action) {
+      const eidMap = {
+        showResourceDeviation: { eid: 'showResourceDeviation', poster: 'showResourceDeviationPoster', close: 'closeResourceDeviation' },
+        showResourceComment:   { eid: 'showResourceComment',   poster: 'showResourceCommentPoster',   close: 'closeResourceComment'   },
+      };
+      const cfg = eidMap[action];
+      if (!cfg) { console.warn('[Hurtigmeny] Ukjent action:', action); return; }
+
+      // Send XHR via ajaxEngine med riktig rid (den høyreklikket rad)
+      if (typeof ajaxEngine !== 'undefined') {
+        ajaxEngine.sendRequest('getSyncronizedData', 'update=false', `action=${action}`, `rid=${rid}`);
+      }
+
+      // Vis popup-elementet og sett loading-tekst — samme som NISSY gjør
+      const htmlElement       = document.getElementById(cfg.eid);
+      const htmlElementPoster = document.getElementById(cfg.poster);
+      if (htmlElement) {
+        htmlElement.innerHTML = `<table width="100%"><tr><td align="right"><img src="images/remove.gif" onclick="${cfg.close}()"/></td></tr></table><center>- Henter data -</center><br/>&nbsp;<br/>&nbsp;`;
+        htmlElementPoster.style.display = '';
+      } else {
+        console.warn('[Hurtigmeny] Fant ikke element:', cfg.eid);
+      }
+    }
     return [
+      ...clipboardSection(),
       item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
+      sep(),
+      item('📝', 'Merknad', null, () => openAjaxPopup('showResourceComment'), true),
+      item('⚠️', 'Avvik',   null, () => openAjaxPopup('showResourceDeviation'), true),
       sep(),
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
       }, true),
-      ...clipboardItems(),
+      sep(),
+      item('✖️', 'Avbestilling', null, () => {
+        row.querySelector('[onclick*="removeRes"]')?.click();
+      }, true),
     ];
   }
-
 
   // ── Vis popup ────────────────────────────────────────────────
   function showMenu(x, y, items, type, row) {
@@ -349,7 +376,7 @@
     const navn = getDisplayName(row, type);
     header.innerHTML = `<div>${typeLabel}${navn ? ` — ${navn}` : ''}</div>`
       + (nSelected > 1
-        ? `<div class="cm-subheader">${nSelected} rader merket — de fleste valg gjelder alle</div>`
+        ? `<div class="cm-subheader">${nSelected} rader merket — ${type === 'ressurser' ? 'de fleste valg gjelder kun denne' : 'de fleste valg gjelder alle'}</div>`
         : '');
     popup.appendChild(header);
 
@@ -469,33 +496,16 @@
   }
 
   // ── Hjelpefunksjon: Sjekk hvilket kontor brukeren er på ─────
-  function getCurrentOffice() {
-    const topframeCell = document.querySelector('.topframe_small');
-    if (!topframeCell) return null;
-    const text  = topframeCell.textContent;
-    const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
-    return match?.[1]?.trim() || null;
-  }
-
-  // ── Sjekk-Plakat tilgang ─────────────────────────────────────
-  function hasSjekkPlakatAccess() {
-    const SJEKK_PLAKAT_OFFICES = [
-      'Pasientreiser Nord-Trøndelag',
-      // Legg til flere kontorer her etter hvert
-    ];
-    if (typeof getCurrentOffice !== 'function') return false;
-    const office = getCurrentOffice();
-    return office && SJEKK_PLAKAT_OFFICES.includes(office);
-  }
+  // (funksjon allerede definert øverst — denne er fjernet)
 
   // ── Generell meny (utenfor tabellene) ───────────────────────
   function generalMeny() {
     const plakatAccess = hasSjekkPlakatAccess();
     return [
+      ...clipboardSection(),
       // ── Moduler ──────────────────────────────────────────────
       item('📝', 'Bestillingsmodul', 'Alt+N', () => triggerAlt('n')),
       item('⚙️', 'Adminmodul',       'Alt+A', () => triggerAlt('a')),
-      item('📋', 'Handlingslogg',    'Alt+L', () => triggerAlt('l')),
       sep(),
       // ── Sjekk-verktøy ────────────────────────────────────────
       item('🔍', 'Sjekk-Bestilling', null, () => clickManualScript('sjekk-bestilling')),
@@ -505,20 +515,21 @@
       item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
       sep(),
       // ── Diverse verktøy ──────────────────────────────────────
+      item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
+      item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
+      sep(),
       item('🔔', 'Overvåk-Ventende', null, () => {
         const btn = document.getElementById('nissy-monitor-btn');
         if (btn) btn.click();
         else console.warn('[Hurtigmeny] Fant ikke #nissy-monitor-btn');
       }),
-      item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
-      item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
+      item('📋', 'Handlingslogg',    'Alt+L', () => triggerAlt('l')),
       sep(),
       item('📖', 'Brukerveiledning', null, () => {
         const btn = document.getElementById('nissy-help-btn');
         if (btn) btn.click();
         else console.warn('[Hurtigmeny] Fant ikke #nissy-help-btn');
       }),
-      ...clipboardItems(),
     ];
   }
 

@@ -474,6 +474,13 @@
           enableModalMode();
         }
 
+        // Sett fokus på iframe etter lasting slik at snarveier virker uten klikk
+        if (!isEditButton) {
+          iframe.onload = function() {
+            try { iframe.contentWindow.focus(); } catch (e) {}
+          };
+        }
+
         // Hvis det er rediger-knappen, klikk automatisk på "Rediger klar fra" og fokuser hentetid
         if (isEditButton) {
           iframe.onload = function() {
