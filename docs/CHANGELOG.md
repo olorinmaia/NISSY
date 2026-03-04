@@ -13,9 +13,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ### Liten forbedring til Alenebil-script og Rek-knapper
 - 🚗 **Alenebil**
-  - Forbedre pop-up og legg til remarkering etter lagring av behov
+  - Forbedret pop-up og lagt til remarkering av bestilling(er) etter lagring av alenebil-behovet
 - 🔠 **Rek-knapper**
-  - Sett fokus i iframe ved bruk av K, H og S slik at hurtigtaster kan benyttes uten å klikke først
+  - Setter nå fokus i iframe ved bruk av K, H og S slik at hurtigtaster kan benyttes uten å klikke først
 
 ## 🚀 [3.8.6] - 03.03.2026
 
