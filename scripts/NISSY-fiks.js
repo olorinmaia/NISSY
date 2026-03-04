@@ -113,17 +113,15 @@
   
     /* ---------- ALT + B : Blank ---------- */
     if (e.altKey && e.key.toLowerCase() === "b") {
-      const btn = document.getElementById("buttonClearSelection");
-      if (!btn || btn.disabled) return;
-      btn.click();
+      e.preventDefault();
+      clearSelection();
       return;
     }
   
     /* ---------- ALT + P : Merk alle ressurser pågående oppdrag ---------- */
     if (e.altKey && e.key.toLowerCase() === "p") {
       e.preventDefault();
-      const b = document.getElementById("buttonClearSelection");
-      if (b) b.click();
+      clearSelection();
   
       setTimeout(() => {
         const c = document.getElementById("pagaendeoppdrag");
@@ -138,8 +136,7 @@
     /* ---------- ALT + V : Merk alle bestillinger ventende oppdrag ---------- */
     if (e.altKey && e.key.toLowerCase() === "v") {
       e.preventDefault();
-      const b = document.getElementById("buttonClearSelection");
-      if (b) b.click();
+      clearSelection();
   
       setTimeout(() => {
         const c = document.getElementById("ventendeoppdrag");
@@ -529,10 +526,9 @@
     "hide-popp-columns"
   ];
 
-  function clickClearButton() {
-    const btn = document.getElementById("buttonClearSelection");
-    if (btn) {
-      btn.click();
+  function clearSelection() {
+    if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+        ListSelectionGroup.clearAllSelections();
     }
   }
 
@@ -541,12 +537,12 @@
     if (!select || select.tagName !== "SELECT") return;
   
     if (SELECTS_CLEAR_ONLY.includes(select.name)) {
-      clickClearButton();
+      clearSelection();
       return;
     }
   
     if (SELECTS_FULL_ACTION.includes(select.name)) {
-      clickClearButton();
+      clearSelection();
   
       waitForAjaxThen("filter", () => {
         openPopp("-1");
