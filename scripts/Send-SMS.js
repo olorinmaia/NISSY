@@ -264,19 +264,27 @@
   }
 
   // ============================================================
-  // SEND SMS VIA AJAX-DISPATCH
+  // SEND SMS VIA AJAX-DISPATCH (XHR, som NISSY bruker internt)
   // ============================================================
-  async function sendSMS(rowId, telefon, melding) {
-    const url =
-      `/planlegging/ajax-dispatch` +
-      `?update=false&action=setSendSMS` +
-      `&to=${encodeURIComponent(telefon)}` +
-      `&message=${encodeISO(melding)}` +
-      `&id=${encodeURIComponent(rowId)}` +
-      `&template=`;
-    const resp = await fetch(url, { credentials: "include" });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    return true;
+  function sendSMS(rowId, telefon, melding) {
+    return new Promise((resolve, reject) => {
+      const url =
+        `/planlegging/ajax-dispatch` +
+        `?update=false&action=setSendSMS` +
+        `&to=${encodeURIComponent(telefon)}` +
+        `&message=${encodeISO(melding)}` +
+        `&id=${encodeURIComponent(rowId)}` +
+        `&template=`;
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", url, true);
+      xhr.withCredentials = true;
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve(true);
+        else reject(new Error(`HTTP ${xhr.status}`));
+      };
+      xhr.onerror = () => reject(new Error("Nettverksfeil"));
+      xhr.send();
+    });
   }
 
   // ============================================================
@@ -376,7 +384,6 @@
 
     document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
     document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) closePopup(); });
     document.addEventListener("keydown", escHandler);
 
     function oppdaterEnkeltSendKnapp() {
@@ -607,7 +614,6 @@
 
     document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
     document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) closePopup(); });
     document.addEventListener("keydown", escHandler);
 
     function oppdaterSendKnapp(malValgt) {
@@ -769,6 +775,10 @@
           console.error("[SendSMS] Feil for", item.info.id, e);
           if (stCell) stCell.innerHTML = `<span style="color:#d9534f;">❌</span>`;
           antallFeil++;
+        }
+
+        if (gyldige.indexOf(item) < gyldige.length - 1) {
+          await new Promise(res => setTimeout(res, 1000));
         }
       }
 
