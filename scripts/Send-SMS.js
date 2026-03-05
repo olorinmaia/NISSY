@@ -25,19 +25,19 @@
     {
       navn: "Hentetidspunkt",
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}! Din transport er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}. Spørsmål? Ring 05515. Hilsen Pasientreiser Nord-Trøndelag`,
+        `Hei${info.fornavn ? " " + info.fornavn : ""}.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nTidspunkt kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser Nord-Trøndelag.`,
     },
     {
-      navn: "Planlagt transport",
+      navn: "Planlagt reise til behandling",
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}! Din transport til oppmøte ${formaterTid(info.oppTid)} er planlagt. Estimert henting ca. ${formaterTid(info.reiseTid)}. Spørsmål? Ring 05515. Hilsen Pasientreiser Nord-Trøndelag`,
+        `Hei${info.fornavn ? " " + info.fornavn : ""}.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\n\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}. Tidspunkt kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser Nord-Trøndelag.`,
     },
     {
       navn: "Trondheim lufthavn",
       autoVelgHvis: (info) =>
         /trondheim lufthavn|værnes|TRD/i.test(info.fraAdresse),
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt tilrettelagt transport fra Trondheim Lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nMinner om at du kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        `Hei${info.fornavn ? " " + info.fornavn : ""}.\n\nVi kan bekrefte at det er bestilt tilrettelagt transport fra Trondheim Lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nMinner om at du kan se og endre dine pasientreiser på Helsenorge.\n\nHilsen Pasientreiser Nord-Trøndelag.`,
     },
   ];
   // ============================================================
