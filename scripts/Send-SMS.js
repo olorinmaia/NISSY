@@ -175,6 +175,41 @@
   }
 
   // ============================================================
+  // ENGANGS XHR-INTERCEPTOR + RE-MARKERING
+  // ============================================================
+  function onceAfterOpenPopp(callback) {
+    const originalOpen = XMLHttpRequest.prototype.open;
+    let restored = false;
+    const restore = () => {
+      if (!restored) { restored = true; XMLHttpRequest.prototype.open = originalOpen; }
+    };
+    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+      if (typeof url === "string" && url.includes("action=openres") && url.includes("rid=-1")) {
+        restore();
+        this.addEventListener("load", () => setTimeout(callback, 50), { once: true });
+      }
+      return originalOpen.call(this, method, url, ...rest);
+    };
+    setTimeout(restore, 3000);
+  }
+
+  function reMarkerRader(rowIds) {
+    rowIds.forEach(rowId => {
+      try {
+        if (typeof selectRow === "function" && typeof g_voppLS !== "undefined") {
+          selectRow(rowId, g_voppLS);
+        }
+      } catch (e) { /* ignorer hvis rad ikke finnes */ }
+    });
+  }
+
+  function lukkOgOppdater(rowIds) {
+    if (typeof openPopp !== "function") return;
+    onceAfterOpenPopp(() => reMarkerRader(rowIds));
+    openPopp("-1");
+  }
+
+  // ============================================================
   // HENT ALLE MERKEDE VENTENDE BESTILLINGER
   // ============================================================
   function getVentendeRader() {
@@ -328,16 +363,21 @@
     `;
     popup.appendChild(btnRow);
 
-    const closePopup = () => { document.removeEventListener("keydown", escHandler); overlay.remove(); };
-    document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
-    document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) closePopup(); });
-    const escHandler = (e) => { if (e.key === "Escape") closePopup(); };
-    document.addEventListener("keydown", escHandler);
-
     const malSelect = document.getElementById("__smsMal");
     const msgArea   = document.getElementById("__smsMsg");
     const tegnSpan  = document.getElementById("__smsTegn");
+
+    const escHandler = (e) => { if (e.key === "Escape") closePopup(); };
+    let lukket = false;
+    const closePopup = () => {
+      if (lukket) return; lukket = true;
+      document.removeEventListener("keydown", escHandler); overlay.remove(); lukkOgOppdater([info.id]);
+    };
+
+    document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
+    document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closePopup(); });
+    document.addEventListener("keydown", escHandler);
 
     function oppdaterEnkeltSendKnapp() {
       const sendBtn   = document.getElementById("__smsBtnSend");
@@ -557,14 +597,19 @@
     `;
     popup.appendChild(btnRow);
 
-    const closePopup = () => { document.removeEventListener("keydown", escHandler); overlay.remove(); };
+    const rowIds = items.map(it => it.info.id);
+    const escHandler = (e) => { if (e.key === "Escape") closePopup(); };
+    let lukket = false;
+    const closePopup = () => {
+      if (lukket) return; lukket = true;
+      document.removeEventListener("keydown", escHandler); overlay.remove(); lukkOgOppdater(rowIds);
+    };
+
     document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
     document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closePopup(); });
-    const escHandler = (e) => { if (e.key === "Escape") closePopup(); };
     document.addEventListener("keydown", escHandler);
 
-    // Oppdater Send-knapp
     function oppdaterSendKnapp(malValgt) {
       const sendBtn = document.getElementById("__smsBtnSend");
       if (!sendBtn) return;
@@ -747,6 +792,7 @@
   // INNGANG: dispatcher enkelt vs. masse
   // ============================================================
   async function openSendSMSPopup() {
+    if (document.getElementById("__sendSMSOverlay")) return;
     const rader = getVentendeRader();
     if (rader.length === 0) {
       showToast("Merk minst én bestilling i ventende oppdrag.", "warning");
