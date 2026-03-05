@@ -32,12 +32,29 @@
       tekst: (info) =>
         `Hei${info.fornavn ? " " + info.fornavn : ""}! Din transport til oppmøte kl. ${info.oppTid} er planlagt. Estimert henting ca. kl. ${info.reiseTid}. Spørsmål? Ring 800 41 004. Hilsen Pasientreiser Nord-Trøndelag`,
     },
+    {
+      navn: "Trondheim lufthavn",
+      autoVelgHvis: (info) =>
+        /trondheim lufthavn|værnes|TRD/i.test(info.fraAdresse),
+      tekst: () =>
+        `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt tilrettelagt transport fra Trondheim Lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nMinner om at du kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+    },
   ];
   // ============================================================
 
   // ============================================================
-  // TOAST-FUNKSJONER
+  // KONFIGURASJON
   // ============================================================
+  const MAX_TEGN           = 480;
+  const MAX_NAVN_LENGDE    = 25;
+  const MAX_ADRESSE_LENGDE = 35;
+  // ============================================================
+
+  function kortTekst(str, maks) {
+    if (!str) return "";
+    return str.length > maks ? str.slice(0, maks) + "…" : str;
+  }
+
   let _currentToast = null;
 
   function showToast(msg, type = "info", duration = 3500) {
@@ -221,11 +238,12 @@
   // ============================================================
   // HJELPEFUNKSJON: Encode melding til ISO-8859-1 percent-encoding
   // NISSY-serveren dekoder som ISO-8859-1, ikke UTF-8.
-  // encodeURIComponent gir f.eks. æ → %C3%A6 (UTF-8),
-  // men serveren forventer %E6 (ISO-8859-1).
+  // I tillegg sender NISSY via ajaxEngine som gjør en ekstra
+  // encoding-runde, slik at % → %25 → %2525.
+  // Vi pre-escaper % → %25 før encodeURIComponent for å matche.
   // ============================================================
   function encodeISO(str) {
-    return encodeURIComponent(str)
+    return encodeURIComponent(str.replace(/%/g, "%25"))
       .replace(/%C3%A6/gi, "%E6")   // æ
       .replace(/%C3%B8/gi, "%F8")   // ø
       .replace(/%C3%A5/gi, "%E5")   // å
@@ -309,12 +327,17 @@
       marginBottom: "16px",
       lineHeight:   "1.6",
     });
+    const visOppTid = info.reiseTid && info.oppTid && info.reiseTid < info.oppTid;
     infoBox.innerHTML = `
-      <strong>${info.pasientNavn || "(ukjent)"}</strong>
-      <span style="color:#555;margin-left:10px;">Reisetid: <b>${info.reiseTid}</b></span>
-      <span style="color:#555;margin-left:10px;">Oppmøte: <b>${info.oppTid}</b></span>
-      ${info.fraAdresse
-        ? `<div style="font-size:11px;color:#777;margin-top:2px;">${info.fraAdresse}</div>`
+      <strong>${kortTekst(info.pasientNavn, MAX_NAVN_LENGDE) || "(ukjent)"}</strong>
+      <span style="color:#555;margin-left:10px;">Hentetid: <b>${info.reiseTid}</b></span>
+      ${visOppTid ? `<span style="color:#555;margin-left:10px;">Oppmøte: <b>${info.oppTid}</b></span>` : ""}
+      ${(info.fraAdresse || info.tilAdresse)
+        ? `<div style="font-size:11px;color:#777;margin-top:4px;">
+             ${kortTekst(info.fraAdresse, MAX_ADRESSE_LENGDE) || "?"}
+             &nbsp;→&nbsp;
+             ${kortTekst(info.tilAdresse, MAX_ADRESSE_LENGDE) || "?"}
+           </div>`
         : ""}
     `;
     popup.appendChild(infoBox);
@@ -360,7 +383,7 @@
                  border-radius:4px;font-size:13px;resize:vertical;
                  box-sizing:border-box;"></textarea>
        <div style="text-align:right;font-size:11px;color:#888;margin-top:3px;">
-         <span id="__smsTegn">0</span> tegn
+         <span id="__smsTegn">0</span> / ${MAX_TEGN} tegn
        </div>`
     );
 
@@ -373,22 +396,25 @@
       marginTop:      "6px",
     });
     btnRow.innerHTML = `
-      <button id="__smsBtnAvbryt"
-        style="padding:7px 18px;border:1px solid #ccc;border-radius:5px;
-               background:#f5f5f5;cursor:pointer;font-size:13px;">
-        Avbryt
-      </button>
       <button id="__smsBtnSend"
         style="padding:7px 20px;border:none;border-radius:5px;
                background:#025671;color:#fff;cursor:pointer;
                font-size:13px;font-weight:bold;">
         Send SMS
       </button>
+      <button id="__smsBtnAvbryt"
+        style="padding:7px 18px;border:1px solid #ccc;border-radius:5px;
+               background:#f5f5f5;cursor:pointer;font-size:13px;">
+        Avbryt
+      </button>
     `;
     popup.appendChild(btnRow);
 
     // ── Event-handlers ──────────────────────────────────────
-    const closePopup = () => overlay.remove();
+    const closePopup = () => {
+      document.removeEventListener("keydown", escHandler);
+      overlay.remove();
+    };
 
     document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
     document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
@@ -396,7 +422,7 @@
 
     // ESC lukker
     const escHandler = (e) => {
-      if (e.key === "Escape") { closePopup(); document.removeEventListener("keydown", escHandler); }
+      if (e.key === "Escape") closePopup();
     };
     document.addEventListener("keydown", escHandler);
 
@@ -405,16 +431,32 @@
     const msgArea   = document.getElementById("__smsMsg");
     const tegnSpan  = document.getElementById("__smsTegn");
 
+    function oppdaterTegnteller() {
+      const len = msgArea.value.length;
+      tegnSpan.textContent = len;
+      tegnSpan.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
+    }
+
+    function velgMal(idx) {
+      malSelect.value   = idx;
+      msgArea.value     = SMS_MALER[idx].tekst(info).slice(0, MAX_TEGN);
+      msgArea.style.height = "auto";
+      msgArea.style.height = msgArea.scrollHeight + "px";
+      oppdaterTegnteller();
+    }
+
     malSelect.addEventListener("change", () => {
       const idx = parseInt(malSelect.value, 10);
-      if (!isNaN(idx) && SMS_MALER[idx]) {
-        msgArea.value  = SMS_MALER[idx].tekst(info);
-        tegnSpan.textContent = msgArea.value.length;
-      }
+      if (!isNaN(idx) && SMS_MALER[idx]) velgMal(idx);
     });
 
+    // Auto-velg mal basert på hentested
+    const autoIdx = SMS_MALER.findIndex(m => m.autoVelgHvis?.(info));
+    if (autoIdx !== -1) velgMal(autoIdx);
+
     msgArea.addEventListener("input", () => {
-      tegnSpan.textContent = msgArea.value.length;
+      if (msgArea.value.length > MAX_TEGN) msgArea.value = msgArea.value.slice(0, MAX_TEGN);
+      oppdaterTegnteller();
     });
 
     // Send-knapp
@@ -426,8 +468,9 @@
         showToast("Telefonnummer mangler.", "warning");
         return;
       }
-      if (!meldingTxt) {
-        showToast("Meldingen er tom.", "warning");
+      if (!meldingTxt) return;
+      if (meldingTxt.length > MAX_TEGN) {
+        showToast(`Meldingen er for lang (maks ${MAX_TEGN} tegn).`, "warning");
         return;
       }
 
