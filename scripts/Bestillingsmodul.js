@@ -874,10 +874,10 @@
     /**
      * Åpner Møteplass i modal
      */
-    async function openMeetingplace() {
+    async function openMeetingplace(reqId = null) {
         try {
-            // Hent valgt bestilling (kun ventende oppdrag)
-            const reqId = getSelectedRequisition();
+            // Hent valgt bestilling (kun ventende oppdrag), eller bruk oppgitt rid
+            if (!reqId) reqId = getSelectedRequisition();
             
             if (!reqId) {
                 alert('Du må velge én bestilling fra ventende oppdrag først.');

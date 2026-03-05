@@ -268,7 +268,16 @@
         const link = row.querySelector('a[href*="redit"]');
         if (link) window.open(link.href, '_blank');
       }, true /* kun denne rad */),
-      item('↔️', 'Møteplass',       'Alt+M', () => triggerAlt('m'), true),
+      item('↔️', 'Møteplass',
+        countSelected('ventende') === 1 ? 'Alt+M' : null,
+        () => {
+          const rid = row.getAttribute('name');
+          if (window.Bestillingsmodul?.openMeetingplace) {
+            window.Bestillingsmodul.openMeetingplace(rid);
+          } else {
+            triggerAlt('m');
+          }
+        }, true),
       item('🔠', 'Rek-knapper',     'Alt+R', () => triggerAlt('r')),
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
