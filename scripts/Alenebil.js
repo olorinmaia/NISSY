@@ -237,7 +237,7 @@
       btnYes.onclick = () => cleanup(true);
 
       // Bygg dialogen
-      btnContainer.append(btnNo, btnYes);
+      btnContainer.append(btnYes, btnNo);
       box.append(header, text, btnContainer);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
