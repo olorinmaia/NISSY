@@ -25,12 +25,12 @@
     {
       navn: "Hentetidspunkt",
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}! Din transport er planlagt med henting kl. ${info.reiseTid} fra ${info.fraAdresse}. Spørsmål? Ring 05515. Hilsen Pasientreiser Nord-Trøndelag`,
+        `Hei${info.fornavn ? " " + info.fornavn : ""}! Din transport er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}. Spørsmål? Ring 05515. Hilsen Pasientreiser Nord-Trøndelag`,
     },
     {
       navn: "Planlagt transport",
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}! Din transport til oppmøte kl. ${info.oppTid} er planlagt. Estimert henting ca. kl. ${info.reiseTid}. Spørsmål? Ring 05515. Hilsen Pasientreiser Nord-Trøndelag`,
+        `Hei${info.fornavn ? " " + info.fornavn : ""}! Din transport til oppmøte ${formaterTid(info.oppTid)} er planlagt. Estimert henting ca. ${formaterTid(info.reiseTid)}. Spørsmål? Ring 05515. Hilsen Pasientreiser Nord-Trøndelag`,
     },
     {
       navn: "Trondheim lufthavn",
@@ -53,6 +53,33 @@
   function kortTekst(str, maks) {
     if (!str) return "";
     return str.length > maks ? str.slice(0, maks) + "…" : str;
+  }
+
+  function titleCase(str) {
+    if (!str) return "";
+    return str.toLowerCase()
+      .split(/( |-)/g)
+      .map(part => part.length > 0 && part !== " " && part !== "-"
+        ? part.charAt(0).toUpperCase() + part.slice(1)
+        : part)
+      .join("");
+  }
+
+  // Formaterer tidstreng fra NISSY til lesbar SMS-tekst.
+  // Samme dag: "16:59"     → "kl. 16:59"
+  // Frem i tid: "06.03 08:00" → "06.03 kl. 08:00"
+  function formaterTid(str) {
+    if (!str) return str;
+    const fremTid = str.match(/^(\d{2}\.\d{2})\s+(\d{2}:\d{2})$/);
+    if (fremTid) return `${fremTid[1]} kl. ${fremTid[2]}`;
+    const sammeDag = str.match(/^(\d{2}:\d{2})$/);
+    if (sammeDag) return `kl. ${sammeDag[1]}`;
+    return str;
+  }
+
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
   function erGyldigMobil(nr) {
@@ -166,7 +193,7 @@
     const navnIdx     = findColumnIndex("#ventendeoppdrag", "patientName");
     const adresseIdx  = findColumnIndex("#ventendeoppdrag", "tripFromAddress");
 
-    const pasientNavn  = navnIdx !== -1 ? (cells[navnIdx]?.textContent.trim() || "") : "";
+    const pasientNavn  = navnIdx !== -1 ? titleCase(cells[navnIdx]?.textContent.trim() || "") : "";
     const fornavnMatch = pasientNavn.match(/,\s*(.+)/);
     const fornavn      = fornavnMatch ? fornavnMatch[1].trim() : "";
     const reiseTid     = reiseTidIdx !== -1 ? (cells[reiseTidIdx]?.textContent.trim().replace(/\s+/g, " ") || "") : "";
@@ -175,8 +202,8 @@
     let fraAdresse = "", tilAdresse = "";
     if (adresseIdx !== -1 && cells[adresseIdx]) {
       const parts = cells[adresseIdx].innerHTML.split(/<br\s*\/?>/i);
-      fraAdresse = (parts[0] || "").replace(/<[^>]+>/g, "").trim();
-      tilAdresse = (parts[1] || "").replace(/<[^>]+>/g, "").trim();
+      fraAdresse = cleanAddressSuffixes((parts[0] || "").replace(/<[^>]+>/g, "").trim());
+      tilAdresse = cleanAddressSuffixes((parts[1] || "").replace(/<[^>]+>/g, "").trim());
     }
 
     return { id, pasientNavn, fornavn, reiseTid, oppTid, fraAdresse, tilAdresse };
@@ -411,14 +438,14 @@
     `;
     popup.appendChild(header);
 
-    // Mal-velger (påkrevd)
+    // Mal-velger
     const malRad = document.createElement("div");
     Object.assign(malRad.style, { display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" });
     malRad.innerHTML = `
       <label style="font-weight:bold;flex-shrink:0;">Mal:</label>
       <select id="__smsMassMal"
         style="flex:1;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:13px;">
-        <option value="">– Velg mal (påkrevd) –</option>
+        <option value="">– Velg mal –</option>
         ${SMS_MALER.map((m, i) => `<option value="${i}">${m.navn}</option>`).join("")}
       </select>
     `;
