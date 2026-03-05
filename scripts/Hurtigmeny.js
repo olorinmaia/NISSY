@@ -281,6 +281,8 @@
       item('🔠', 'Rek-knapper',     'Alt+R', () => triggerAlt('r')),
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
+      item('📱', 'Send SMS',     'Alt+C', () => triggerAlt('c')),
+      sep(),
       item('🗺️', 'Vis i kart',      'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering', 'Alt+Q', () => triggerAlt('q')),
       sep(),
