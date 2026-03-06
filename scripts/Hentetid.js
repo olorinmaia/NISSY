@@ -1037,6 +1037,7 @@
           
           handleFormat(e);
           input.blur();
+          rebuildBestillingsList(bestillinger, popup, confirmButton);
           
           setTimeout(() => {
             confirmButton.click();
