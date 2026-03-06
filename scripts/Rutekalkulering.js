@@ -177,6 +177,7 @@
     "Namdalseid fys., 7750 Namdalseid": "Gløttvegen 2, 7750 Namdalseid",
     "Styrk/Fys. Brandt, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     "Styrk/Fys. Selseth, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
+    "Lierne fysioterapi/Fys. Hellgren, 7882 Nordli": "Stortangveien 16, 7882 Nordli",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
