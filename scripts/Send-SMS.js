@@ -13,7 +13,7 @@
   // ============================================================
   // EGENDEFINERTE MALER – rediger tekstene her i kildekoden
   // Tilgjengelige variabler i mal-funksjonen:
-  //   info.pasientNavn   – f.eks. "NISSY, Alf"
+  //   info.pasientNavn   – f.eks. "NISSY, Alf" ${info.fornavn ? " " + info.fornavn : ""}
   //   info.fornavn       – f.eks. "Alf"
   //   info.reiseTid      – f.eks. "18:36"
   //   info.oppTid        – f.eks. "19:00"
@@ -25,24 +25,24 @@
     {
       navn: "Hentetidspunkt",
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nTidspunkt kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nTidspunkt kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
     {
       navn: "Planlagt reise til behandling",
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\n\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}. Tidspunkt kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\n\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}. Tidspunkt kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
     {
       navn: "Trondheim lufthavn",
       autoVelgHvis: (info) =>
         /trondheim lufthavn|værnes|TRD/i.test(info.fraAdresse),
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
     {
       navn: "Trondheim lufthavn - etter åpningstid",
       tekst: (info) =>
-        `Hei${info.fornavn ? " " + info.fornavn : ""}. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)} som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)} som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
   ];
   // ============================================================
