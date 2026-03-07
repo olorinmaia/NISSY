@@ -216,7 +216,10 @@
   function reMarkerRader(rowIds) {
     rowIds.forEach(rowId => {
       try {
-        if (typeof selectRow === "function" && typeof g_voppLS !== "undefined") {
+        if (typeof selectRow !== "function") return;
+        if (rowId.startsWith("P-") && typeof g_poppLS !== "undefined") {
+          selectRow(rowId, g_poppLS);
+        } else if (typeof g_voppLS !== "undefined") {
           selectRow(rowId, g_voppLS);
         }
       } catch (e) { /* ignorer hvis rad ikke finnes */ }
@@ -239,8 +242,73 @@
   }
 
   // ============================================================
-  // EKSTRAHER BESTILLINGSDATA FRA DOM-RAD
+  // HENT ALLE MERKEDE PÅGÅENDE OPPDRAG
   // ============================================================
+  function getPaagaaendeRader() {
+    const SELECTED_BG = "rgb(148, 169, 220)";
+    return Array.from(document.querySelectorAll("#pagaendeoppdrag tbody tr"))
+      .filter(r => r.id && r.id.startsWith("P-") && r.style.backgroundColor === SELECTED_BG);
+  }
+
+  // Ekstraher enkeltbestillinger fra én pågående-rad.
+  // Returnerer array av booking-objekter med valgbar=true for multi-booking rader.
+  function extractPaagaaendeBookings(tr) {
+    const cells   = tr.querySelectorAll("td");
+    const lastCell = cells[cells.length - 1];
+
+    // Hent RIDs fra removePaagaaendeOppdrag onclick-attributter
+    const rids = Array.from(lastCell.querySelectorAll("img[onclick*='removePaagaaendeOppdrag']"))
+      .map(img => { const m = img.getAttribute("onclick").match(/removePaagaaendeOppdrag\('(\d+)'/); return m?.[1]; })
+      .filter(Boolean);
+
+    if (rids.length === 0) return [];
+
+    // Sjekk om rad har flere bestillinger (Start-kolonnen inneholder .row-image divs)
+    const isMulti = cells[3]?.querySelectorAll(".row-image").length > 1;
+
+    if (!isMulti) {
+      // Singel bestilling – data direkte i td-celler
+      const getText = (idx) => cells[idx]?.textContent.trim().replace(/\s+/g, " ") || "";
+      const navn = titleCase(getText(5));
+      return [{
+        id:          `V-${rids[0]}`,
+        pasientNavn: navn,
+        fornavn:     navn.match(/,\s*(.+)/)?.[1]?.trim() || "",
+        reiseTid:    getText(3),
+        oppTid:      getText(4),
+        fraAdresse:  cleanAddressSuffixes(getText(8)),
+        tilAdresse:  cleanAddressSuffixes(getText(9)),
+        valgbar:     false,
+      }];
+    } else {
+      // Flere bestillinger – data i .row-image divs
+      const getDivTexts = (idx) =>
+        Array.from(cells[idx]?.querySelectorAll(".row-image") || [])
+          .map(d => d.textContent.trim().replace(/\s+/g, " "));
+
+      const starts  = getDivTexts(3);
+      const opptids = getDivTexts(4);
+      const navns   = getDivTexts(5);
+      const fraer   = getDivTexts(8);
+      const tiler   = getDivTexts(9);
+
+      return rids.map((rid, i) => {
+        const navn = titleCase(navns[i] || "");
+        return {
+          id:          `V-${rid}`,
+          pasientNavn: navn,
+          fornavn:     navn.match(/,\s*(.+)/)?.[1]?.trim() || "",
+          reiseTid:    starts[i]  || "",
+          oppTid:      opptids[i] || "",
+          fraAdresse:  cleanAddressSuffixes(fraer[i] || ""),
+          tilAdresse:  cleanAddressSuffixes(tiler[i] || ""),
+          valgbar:     true, // kan velges bort individuelt
+        };
+      });
+    }
+  }
+
+
   function extractRowInfo(id, row) {
     const cells       = row.querySelectorAll("td");
     const reiseTidIdx = findColumnIndex("#ventendeoppdrag", "tripStartDate");
@@ -310,7 +378,7 @@
   // ============================================================
   // ENKELT-SENDING (1 bestilling)
   // ============================================================
-  async function openEnkeltPopup(info, telefon) {
+  async function openEnkeltPopup(info, telefon, reselektId = null) {
     const existing = document.getElementById("__sendSMSOverlay");
     if (existing) existing.remove();
 
@@ -399,7 +467,7 @@
     let lukket = false;
     const closePopup = () => {
       if (lukket) return; lukket = true;
-      document.removeEventListener("keydown", escHandler); overlay.remove(); lukkOgOppdater([info.id]);
+      document.removeEventListener("keydown", escHandler); overlay.remove(); lukkOgOppdater(reselektId ? [reselektId] : [info.id]);
     };
 
     document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
@@ -486,15 +554,16 @@
 
   // ============================================================
   // MASSE-SENDING (2+ bestillinger)
+  // Tar en liste med {id, pasientNavn, fornavn, reiseTid, oppTid, fraAdresse, tilAdresse, valgbar}
   // ============================================================
-  async function openMassePopup(rader) {
+  async function openMassePopup(infoObjekter, ekstraReselektIds = []) {
     const existing = document.getElementById("__sendSMSOverlay");
     if (existing) existing.remove();
 
-    const items = rader.map(row => ({
-      info:    extractRowInfo(row.id, row),
-      telefon: null,
-      status:  "laster",
+    const items = infoObjekter.map(info => ({
+      info,
+      telefon:    null,
+      inkludert:  true,  // kan settes false via checkbox
     }));
 
     const { overlay, popup } = createPopupBase("660px");
@@ -507,7 +576,7 @@
       marginBottom: "16px", borderBottom: "2px solid #025671", paddingBottom: "10px",
     });
     header.innerHTML = `
-      <span style="font-size:15px;font-weight:bold;color:#025671;">📱 Send SMS – ${rader.length} bestillinger</span>
+      <span style="font-size:15px;font-weight:bold;color:#025671;">📱 Send SMS – ${items.length} bestillinger</span>
       <button id="__smsBtnLukk" title="Lukk (Esc)"
         style="background:none;border:none;font-size:20px;line-height:1;cursor:pointer;color:#666;padding:0 2px;">×</button>
     `;
@@ -564,6 +633,7 @@
     tbl.innerHTML = `
       <thead>
         <tr style="background:#025671;color:#fff;text-align:left;">
+          <th style="padding:7px 8px;font-weight:600;width:24px;text-align:center;"></th>
           <th style="padding:7px 8px;font-weight:600;">Pasient</th>
           <th style="padding:7px 8px;font-weight:600;">Fra → Til</th>
           <th style="padding:7px 8px;font-weight:600;width:90px;">Mobil</th>
@@ -587,7 +657,13 @@
 
       const tr = document.createElement("tr");
       tr.style.background = i % 2 === 0 ? "#fff" : "#f8f8f8";
+
+      const cbDisabled = !info.valgbar ? "disabled title=\"Kan ikke velges bort\"" : "";
       tr.innerHTML = `
+        <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;vertical-align:middle;">
+          <input type="checkbox" data-idx="${i}" ${cbDisabled} checked
+            style="cursor:${info.valgbar ? "pointer" : "default"};width:14px;height:14px;" />
+        </td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;vertical-align:top;">
           <strong>${kortTekst(info.pasientNavn, MAX_NAVN_LENGDE) || "(ukjent)"}</strong>
         </td>
@@ -605,6 +681,16 @@
             id="__smsSt_${i}">⏳</td>
       `;
       tbody.appendChild(tr);
+
+      // Checkbox-logikk
+      const cb = tr.querySelector(`input[data-idx="${i}"]`);
+      if (info.valgbar) {
+        cb.addEventListener("change", () => {
+          item.inkludert = cb.checked;
+          tr.style.opacity = cb.checked ? "1" : "0.4";
+          oppdaterSendKnapp(malErValgt);
+        });
+      }
 
       tr.style.cursor = "pointer";
       tr.title = "Klikk for å se SMS-forhåndsvisning";
@@ -632,7 +718,10 @@
     `;
     popup.appendChild(btnRow);
 
-    const rowIds = items.map(it => it.info.id);
+    const rowIds = [
+      ...items.map(it => it.info.id).filter(id => !id.startsWith("P-")),
+      ...ekstraReselektIds,
+    ];
     const escHandler = (e) => { if (e.key === "Escape") closePopup(); };
     let lukket = false;
     const closePopup = () => {
@@ -649,7 +738,9 @@
       if (!sendBtn) return;
       const fritekstTekst = document.getElementById("__smsMassFritekst")?.value.trim() || "";
       const sendOk = malValgt || fritekstTekst.length > 0;
-      const antallGyldig = items.filter(it => erGyldigMobil(it.telefon || "")).length;
+      const inkluderte = items.filter(it => it.inkludert);
+      const antallGyldig = inkluderte.filter(it => erGyldigMobil(it.telefon || "")).length;
+      const antallTotal  = inkluderte.length;
       if (!sendOk || antallGyldig === 0) {
         sendBtn.disabled = true;
         sendBtn.style.background = "#aaa";
@@ -659,8 +750,8 @@
         sendBtn.disabled = false;
         sendBtn.style.background = "#025671";
         sendBtn.style.cursor = "pointer";
-        sendBtn.textContent = antallGyldig < items.length
-          ? `Send SMS til ${antallGyldig} av ${items.length}`
+        sendBtn.textContent = antallGyldig < antallTotal
+          ? `Send SMS til ${antallGyldig} av ${antallTotal}`
           : `Send SMS til ${antallGyldig}`;
       }
     }
@@ -782,7 +873,7 @@
       avbrytBtn.disabled = true;
       document.getElementById("__smsBtnLukk").style.pointerEvents = "none";
 
-      const gyldige = items.filter(it => erGyldigMobil(it.telefon || ""));
+      const gyldige = items.filter(it => it.inkludert && erGyldigMobil(it.telefon || ""));
       let antallSendt = 0;
       let antallFeil  = 0;
 
@@ -816,6 +907,7 @@
       massMalSelect.disabled = true;
       const fritekstEl = document.getElementById("__smsMassFritekst");
       if (fritekstEl) fritekstEl.disabled = true;
+      tbl.querySelectorAll("input[type='checkbox']").forEach(cb => { cb.disabled = true; });
       avbrytBtn.textContent = "Lukk";
       avbrytBtn.disabled = false;
       document.getElementById("__smsBtnLukk").style.pointerEvents = "";
@@ -978,17 +1070,33 @@
   // INNGANG: dispatcher
   async function openSendSMSPopup() {
     if (document.getElementById("__sendSMSOverlay")) return;
-    const rader = getVentendeRader();
-    if (rader.length === 0) {
+
+    // Ventende rader → info-objekter (valgbar=false)
+    const ventendeRader = getVentendeRader();
+    const ventendeInfo = ventendeRader.map(row => ({
+      ...extractRowInfo(row.id, row),
+      valgbar: false,
+    }));
+
+    // Pågående rader → flat liste av sub-bestillinger
+    const paagaaendeRader = getPaagaaendeRader();
+    const paagaaendeInfo = paagaaendeRader.flatMap(row => extractPaagaaendeBookings(row));
+
+    const paagaaendeRadIds = paagaaendeRader.map(r => r.id); // P-44014985 osv.
+
+    const alleInfo = [...ventendeInfo, ...paagaaendeInfo];
+
+    if (alleInfo.length === 0) {
       openFritekstPopup();
       return;
     }
-    if (rader.length === 1) {
-      const info = extractRowInfo(rader[0].id, rader[0]);
-      const telefon = await fetchTelefon(rader[0].id);
-      openEnkeltPopup(info, telefon);
+    if (alleInfo.length === 1) {
+      const info = alleInfo[0];
+      const telefon = await fetchTelefon(info.id);
+      const reselektId = paagaaendeRadIds.length === 1 ? paagaaendeRadIds[0] : null;
+      openEnkeltPopup(info, telefon, reselektId);
     } else {
-      openMassePopup(rader);
+      openMassePopup(alleInfo, paagaaendeRadIds);
     }
   }
 
