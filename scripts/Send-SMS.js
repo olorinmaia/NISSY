@@ -252,7 +252,7 @@
 
   // Ekstraher enkeltbestillinger fra én pågående-rad.
   // Returnerer array av booking-objekter med valgbar=true for multi-booking rader.
-  function extractPaagaaendeBookings(tr) {
+  function extractPaagaaendeBookings(tr, idxMap) {
     const cells   = tr.querySelectorAll("td");
     const lastCell = cells[cells.length - 1];
 
@@ -263,34 +263,31 @@
 
     if (rids.length === 0) return [];
 
-    // Sjekk om rad har flere bestillinger (Start-kolonnen inneholder .row-image divs)
-    const isMulti = cells[3]?.querySelectorAll(".row-image").length > 1;
+    const isMulti = cells[idxMap.reiseTid]?.querySelectorAll(".row-image").length > 1;
 
     if (!isMulti) {
-      // Singel bestilling – data direkte i td-celler
       const getText = (idx) => cells[idx]?.textContent.trim().replace(/\s+/g, " ") || "";
-      const navn = titleCase(getText(5));
+      const navn = titleCase(getText(idxMap.navn));
       return [{
         id:          `V-${rids[0]}`,
         pasientNavn: navn,
         fornavn:     navn.match(/,\s*(.+)/)?.[1]?.trim() || "",
-        reiseTid:    getText(3),
-        oppTid:      getText(4),
-        fraAdresse:  cleanAddressSuffixes(getText(8)),
-        tilAdresse:  cleanAddressSuffixes(getText(9)),
+        reiseTid:    getText(idxMap.reiseTid),
+        oppTid:      getText(idxMap.oppTid),
+        fraAdresse:  cleanAddressSuffixes(getText(idxMap.fra)),
+        tilAdresse:  cleanAddressSuffixes(getText(idxMap.til)),
         valgbar:     false,
       }];
     } else {
-      // Flere bestillinger – data i .row-image divs
       const getDivTexts = (idx) =>
         Array.from(cells[idx]?.querySelectorAll(".row-image") || [])
           .map(d => d.textContent.trim().replace(/\s+/g, " "));
 
-      const starts  = getDivTexts(3);
-      const opptids = getDivTexts(4);
-      const navns   = getDivTexts(5);
-      const fraer   = getDivTexts(8);
-      const tiler   = getDivTexts(9);
+      const starts  = getDivTexts(idxMap.reiseTid);
+      const opptids = getDivTexts(idxMap.oppTid);
+      const navns   = getDivTexts(idxMap.navn);
+      const fraer   = getDivTexts(idxMap.fra);
+      const tiler   = getDivTexts(idxMap.til);
 
       return rids.map((rid, i) => {
         const navn = titleCase(navns[i] || "");
@@ -302,29 +299,25 @@
           oppTid:      opptids[i] || "",
           fraAdresse:  cleanAddressSuffixes(fraer[i] || ""),
           tilAdresse:  cleanAddressSuffixes(tiler[i] || ""),
-          valgbar:     true, // kan velges bort individuelt
+          valgbar:     true,
         };
       });
     }
   }
 
 
-  function extractRowInfo(id, row) {
-    const cells       = row.querySelectorAll("td");
-    const reiseTidIdx = findColumnIndex("#ventendeoppdrag", "tripStartDate");
-    const oppTidIdx   = findColumnIndex("#ventendeoppdrag", "tripTreatmentDate");
-    const navnIdx     = findColumnIndex("#ventendeoppdrag", "patientName");
-    const adresseIdx  = findColumnIndex("#ventendeoppdrag", "tripFromAddress");
-
-    const pasientNavn  = navnIdx !== -1 ? titleCase(cells[navnIdx]?.textContent.trim() || "") : "";
+  function extractRowInfo(id, row, idxMap) {
+    const cells = row.querySelectorAll("td");
+    const pasientNavn  = titleCase(cells[idxMap.navn]?.textContent.trim().replace(/\s+/g, " ") || "");
     const fornavnMatch = pasientNavn.match(/,\s*(.+)/);
     const fornavn      = fornavnMatch ? fornavnMatch[1].trim() : "";
-    const reiseTid     = reiseTidIdx !== -1 ? (cells[reiseTidIdx]?.textContent.trim().replace(/\s+/g, " ") || "") : "";
-    const oppTid       = oppTidIdx   !== -1 ? (cells[oppTidIdx]?.textContent.trim().replace(/\s+/g, " ") || "") : "";
+    const reiseTid     = cells[idxMap.reiseTid]?.textContent.trim().replace(/\s+/g, " ") || "";
+    const oppTid       = cells[idxMap.oppTid]?.textContent.trim().replace(/\s+/g, " ") || "";
 
     let fraAdresse = "", tilAdresse = "";
-    if (adresseIdx !== -1 && cells[adresseIdx]) {
-      const parts = cells[adresseIdx].innerHTML.split(/<br\s*\/?>/i);
+    const fraCell = cells[idxMap.fra];
+    if (fraCell) {
+      const parts = fraCell.innerHTML.split(/<br\s*\/?>/i);
       fraAdresse = cleanAddressSuffixes((parts[0] || "").replace(/<[^>]+>/g, "").trim());
       tilAdresse = cleanAddressSuffixes((parts[1] || "").replace(/<[^>]+>/g, "").trim());
     }
@@ -1071,19 +1064,59 @@
   async function openSendSMSPopup() {
     if (document.getElementById("__sendSMSOverlay")) return;
 
-    // Ventende rader → info-objekter (valgbar=false)
-    const ventendeRader = getVentendeRader();
-    const ventendeInfo = ventendeRader.map(row => ({
-      ...extractRowInfo(row.id, row),
-      valgbar: false,
-    }));
-
-    // Pågående rader → flat liste av sub-bestillinger
+    const ventendeRader   = getVentendeRader();
     const paagaaendeRader = getPaagaaendeRader();
-    const paagaaendeInfo = paagaaendeRader.flatMap(row => extractPaagaaendeBookings(row));
 
-    const paagaaendeRadIds = paagaaendeRader.map(r => r.id); // P-44014985 osv.
+    // ---- Ventende: kolonnevalidering ----
+    let ventendeInfo = [];
+    if (ventendeRader.length > 0) {
+      const idx = {
+        reiseTid: findColumnIndex("#ventendeoppdrag", "tripStartDate"),
+        oppTid:   findColumnIndex("#ventendeoppdrag", "tripTreatmentDate"),
+        navn:     findColumnIndex("#ventendeoppdrag", "patientName"),
+        fra:      findColumnIndex("#ventendeoppdrag", "tripFromAddress"),
+        til:      findColumnIndex("#ventendeoppdrag", "tripToAddress"),
+      };
+      const mangler = [];
+      if (idx.reiseTid === -1) mangler.push("'Reisetid'");
+      if (idx.oppTid   === -1) mangler.push("'Oppmøtetid'");
+      if (idx.navn     === -1) mangler.push("'Pnavn'");
+      if (idx.fra      === -1) mangler.push("'Fra'");
+      if (idx.til      === -1) mangler.push("'Til'");
+      if (mangler.length > 0) {
+        showToast(`Mangler kolonne(r) på ventende oppdrag: ${mangler.join(", ")}. Legg til i tabellen.`, "warning");
+        return;
+      }
+      ventendeInfo = ventendeRader.map(row => ({
+        ...extractRowInfo(row.id, row, idx),
+        valgbar: false,
+      }));
+    }
 
+    // ---- Pågående: kolonnevalidering ----
+    let paagaaendeInfo = [];
+    if (paagaaendeRader.length > 0) {
+      const idx = {
+        reiseTid: findColumnIndex("#pagaendeoppdrag", "tripStartTime"),
+        oppTid:   findColumnIndex("#pagaendeoppdrag", "tripTreatmentDate"),
+        navn:     findColumnIndex("#pagaendeoppdrag", "patientName"),
+        fra:      findColumnIndex("#pagaendeoppdrag", "tripFromAddress"),
+        til:      findColumnIndex("#pagaendeoppdrag", "tripToAddress"),
+      };
+      const mangler = [];
+      if (idx.reiseTid === -1) mangler.push("'Start' (hentetid)");
+      if (idx.oppTid   === -1) mangler.push("'Oppmøtetid'");
+      if (idx.navn     === -1) mangler.push("'Pnavn'");
+      if (idx.fra      === -1) mangler.push("'Fra'");
+      if (idx.til      === -1) mangler.push("'Til'");
+      if (mangler.length > 0) {
+        showToast(`Mangler kolonne(r) på pågående oppdrag: ${mangler.join(", ")}. Legg til i tabellen.`, "warning");
+        return;
+      }
+      paagaaendeInfo = paagaaendeRader.flatMap(row => extractPaagaaendeBookings(row, idx));
+    }
+
+    const paagaaendeRadIds = paagaaendeRader.map(r => r.id);
     const alleInfo = [...ventendeInfo, ...paagaaendeInfo];
 
     if (alleInfo.length === 0) {
