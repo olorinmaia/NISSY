@@ -48,7 +48,22 @@
   // ============================================================
 
   // ============================================================
-  // KONFIGURASJON
+  // MALER FOR FRITEKST-MODUS (ingen bestilling valgt)
+  // Ingen info-variabler tilgjengelig – statiske tekster
+  // ============================================================
+  const SMS_MALER_FRITEKST = [
+    {
+      navn: "Henting bestilt",
+      tekst: () =>
+        `Hei. Dette er en melding som ikke kan besvares.\n\nVi har bestilt tilrettelagt transport til deg. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+    },
+    {
+      navn: "Forsinkelse",
+      tekst: () =>
+        `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+    },
+  ];
+  // ============================================================
   // ============================================================
   const MAX_TEGN           = 480;
   const MAX_NAVN_LENGDE    = 22;
@@ -393,12 +408,19 @@
 
     function oppdaterEnkeltSendKnapp() {
       const sendBtn   = document.getElementById("__smsBtnSend");
-      const telefonnr = document.getElementById("__smsTo")?.value.trim() || "";
+      const smsTo     = document.getElementById("__smsTo");
+      const telefonnr = smsTo?.value.trim() || "";
       const harTekst  = msgArea.value.trim().length > 0;
-      const aktiv     = telefonnr.length > 0 && harTekst;
-      sendBtn.disabled        = !aktiv;
+      const gyldigTlf = erGyldigMobil(telefonnr);
+      const aktiv     = gyldigTlf && harTekst;
+      sendBtn.disabled         = !aktiv;
       sendBtn.style.background = aktiv ? "#025671" : "#aaa";
       sendBtn.style.cursor     = aktiv ? "pointer" : "not-allowed";
+      if (smsTo && telefonnr.length > 0) {
+        smsTo.style.borderColor = gyldigTlf ? "#ccc" : "#d9534f";
+      } else if (smsTo) {
+        smsTo.style.borderColor = "#ccc";
+      }
     }
 
     function oppdaterTegnteller() {
@@ -431,11 +453,12 @@
 
     const autoIdx = SMS_MALER.findIndex(m => m.autoVelgHvis?.(info));
     if (autoIdx !== -1) velgMal(autoIdx);
+    else oppdaterEnkeltSendKnapp();
 
     document.getElementById("__smsBtnSend").addEventListener("click", async () => {
       const telefonnr  = document.getElementById("__smsTo").value.trim();
       const meldingTxt = msgArea.value.trim();
-      if (!telefonnr) { showToast("Telefonnummer mangler.", "warning"); return; }
+      if (!erGyldigMobil(telefonnr)) { showToast("Ugyldig mobilnummer (8 siffer).", "warning"); return; }
       if (!meldingTxt) return;
       if (meldingTxt.length > MAX_TEGN) {
         showToast(`Meldingen er for lang (maks ${MAX_TEGN} tegn).`, "warning"); return;
@@ -543,7 +566,7 @@
         <tr style="background:#025671;color:#fff;text-align:left;">
           <th style="padding:7px 8px;font-weight:600;">Pasient</th>
           <th style="padding:7px 8px;font-weight:600;">Fra → Til</th>
-          <th style="padding:7px 8px;font-weight:600;width:110px;">Mobil</th>
+          <th style="padding:7px 8px;font-weight:600;width:90px;">Mobil</th>
           <th style="padding:7px 8px;font-weight:600;width:50px;text-align:center;">Status</th>
         </tr>
       </thead>
@@ -804,13 +827,160 @@
   }
 
   // ============================================================
-  // INNGANG: dispatcher enkelt vs. masse
+  // FRITEKST-MODUS (ingen bestilling valgt)
   // ============================================================
+  function openFritekstPopup() {
+    const existing = document.getElementById("__sendSMSOverlay");
+    if (existing) existing.remove();
+
+    const { overlay, popup } = createPopupBase("480px");
+    overlay.id = "__sendSMSOverlay";
+
+    // Tittel
+    const header = document.createElement("div");
+    Object.assign(header.style, {
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      marginBottom: "16px", borderBottom: "2px solid #025671", paddingBottom: "10px",
+    });
+    header.innerHTML = `
+      <span style="font-size:15px;font-weight:bold;color:#025671;">📱 Send SMS</span>
+      <button id="__smsBtnLukk" title="Lukk (Esc)"
+        style="background:none;border:none;font-size:20px;line-height:1;cursor:pointer;color:#666;padding:0 2px;">×</button>
+    `;
+    popup.appendChild(header);
+
+    function skjemaRad(label, innhold) {
+      const d = document.createElement("div");
+      Object.assign(d.style, { display: "flex", alignItems: "flex-start", marginBottom: "11px", gap: "10px" });
+      d.innerHTML = `
+        <label style="width:82px;flex-shrink:0;font-weight:bold;padding-top:5px;">${label}</label>
+        <div style="flex:1;">${innhold}</div>
+      `;
+      popup.appendChild(d);
+      return d;
+    }
+
+    skjemaRad("Mobil:",
+      `<input id="__smsTo" type="text"
+         style="width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;" />`);
+
+    skjemaRad("Mal:",
+      `<select id="__smsMal" style="width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:13px;">
+        <option value="">– Velg mal –</option>
+        ${SMS_MALER_FRITEKST.map((m, i) => `<option value="${i}">${m.navn}</option>`).join("")}
+       </select>`);
+
+    skjemaRad("Melding:",
+      `<textarea id="__smsMsg" rows="5"
+          style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
+                 font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
+       <div style="text-align:right;font-size:11px;margin-top:3px;">
+         <span id="__smsTegn" style="color:#888;">0</span>
+         <span style="color:#888;"> / ${MAX_TEGN} tegn</span>
+       </div>`);
+
+    const btnRow = document.createElement("div");
+    Object.assign(btnRow.style, { display: "flex", justifyContent: "flex-end", gap: "9px", marginTop: "6px" });
+    btnRow.innerHTML = `
+      <button id="__smsBtnSend"
+        style="padding:7px 20px;border:none;border-radius:5px;background:#aaa;
+               color:#fff;font-size:13px;font-weight:bold;cursor:not-allowed;"
+        disabled>Send SMS</button>
+      <button id="__smsBtnAvbryt"
+        style="padding:7px 18px;border:1px solid #ccc;border-radius:5px;
+               background:#f5f5f5;cursor:pointer;font-size:13px;">Avbryt</button>
+    `;
+    popup.appendChild(btnRow);
+
+    const escHandler = (e) => { if (e.key === "Escape") closePopup(); };
+    let lukket = false;
+    const closePopup = () => {
+      if (lukket) return; lukket = true;
+      document.removeEventListener("keydown", escHandler); overlay.remove();
+      if (typeof openPopp === "function") openPopp("-1");
+    };
+    document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
+    document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
+    document.addEventListener("keydown", escHandler);
+
+    const malSelect = document.getElementById("__smsMal");
+    const msgArea   = document.getElementById("__smsMsg");
+    const tegnSpan  = document.getElementById("__smsTegn");
+
+    function oppdaterSendKnapp() {
+      const sendBtn   = document.getElementById("__smsBtnSend");
+      const smsTo     = document.getElementById("__smsTo");
+      const telefonnr = smsTo?.value.trim() || "";
+      const gyldigTlf = erGyldigMobil(telefonnr);
+      const aktiv     = gyldigTlf && msgArea.value.trim().length > 0;
+      sendBtn.disabled         = !aktiv;
+      sendBtn.style.background = aktiv ? "#025671" : "#aaa";
+      sendBtn.style.cursor     = aktiv ? "pointer" : "not-allowed";
+      if (smsTo && telefonnr.length > 0) {
+        smsTo.style.borderColor = gyldigTlf ? "#ccc" : "#d9534f";
+      } else if (smsTo) {
+        smsTo.style.borderColor = "#ccc";
+      }
+    }
+
+    function oppdaterTegnteller() {
+      const len = msgArea.value.length;
+      tegnSpan.textContent = len;
+      tegnSpan.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
+      oppdaterSendKnapp();
+    }
+
+    malSelect.addEventListener("change", () => {
+      const idx = parseInt(malSelect.value, 10);
+      if (!isNaN(idx) && SMS_MALER_FRITEKST[idx]) {
+        msgArea.value        = SMS_MALER_FRITEKST[idx].tekst().slice(0, MAX_TEGN);
+        msgArea.style.height = "auto";
+        msgArea.style.height = msgArea.scrollHeight + "px";
+      } else {
+        msgArea.value = "";
+      }
+      oppdaterTegnteller();
+    });
+
+    msgArea.addEventListener("input", () => {
+      if (msgArea.value.length > MAX_TEGN) msgArea.value = msgArea.value.slice(0, MAX_TEGN);
+      oppdaterTegnteller();
+    });
+
+    document.getElementById("__smsTo").addEventListener("input", oppdaterSendKnapp);
+
+    document.getElementById("__smsBtnSend").addEventListener("click", async () => {
+      const telefonnr  = document.getElementById("__smsTo").value.trim();
+      const meldingTxt = msgArea.value.trim();
+      if (!erGyldigMobil(telefonnr) || !meldingTxt) return;
+      const sendBtn = document.getElementById("__smsBtnSend");
+      sendBtn.disabled = true; sendBtn.textContent = "Sender…"; sendBtn.style.background = "#888";
+      try {
+        // Fritekst-modus har ingen rad-ID – bruker tom streng
+        await sendSMS("", telefonnr, meldingTxt);
+        document.getElementById("__smsTo").disabled = true;
+        malSelect.disabled  = true;
+        msgArea.disabled    = true;
+        sendBtn.textContent = "✅ Sendt";
+        sendBtn.style.background = "#27ae60";
+        document.getElementById("__smsBtnAvbryt").textContent = "Lukk";
+      } catch (e) {
+        console.error("[SendSMS] Feil:", e);
+        showToast("Feil ved sending av SMS. Sjekk konsoll.", "error");
+        sendBtn.disabled = false; sendBtn.textContent = "Send SMS"; sendBtn.style.background = "#025671";
+      }
+    });
+
+    setTimeout(() => document.getElementById("__smsTo").focus(), 50);
+  }
+
+  // ============================================================
+  // INNGANG: dispatcher
   async function openSendSMSPopup() {
     if (document.getElementById("__sendSMSOverlay")) return;
     const rader = getVentendeRader();
     if (rader.length === 0) {
-      showToast("Merk minst én bestilling i ventende oppdrag.", "warning");
+      openFritekstPopup();
       return;
     }
     if (rader.length === 1) {
