@@ -327,19 +327,36 @@
 
   // ============================================================
   // HENT TELEFONNUMMER VIA NISSY
+  // Primær: showSendSMS (smsTo-felt)
+  // Fallback: showreq (Tlf fra EPJ)
   // ============================================================
   async function fetchTelefon(rowId) {
-    const url = `/planlegging/ajax-dispatch?update=false&action=showSendSMS&id=${encodeURIComponent(rowId)}`;
+    // Hent rid som tall – rowId er f.eks. "V-53221832"
+    const rid = rowId.replace(/^[A-Z]-/i, "");
+
     try {
+      const url = `/planlegging/ajax-dispatch?update=false&action=showSendSMS&id=${encodeURIComponent(rowId)}`;
       const resp = await fetch(url, { credentials: "include" });
       const html = await resp.text();
-      // Hent value= fra smsTo-feltet – matcher også tom streng
       let m = html.match(/id=["']smsTo["'][^>]*value=["']([^"']*)["']/i);
       if (!m) m = html.match(/value=["']([^"']*)["'][^>]*id=["']smsTo["']/i);
-      if (m) return m[1].trim();
-      return "";
+      const tlf = m?.[1]?.trim() || "";
+      if (tlf) return tlf;
     } catch (e) {
-      console.error("[SendSMS] fetchTelefon feil:", e);
+      console.error("[SendSMS] fetchTelefon (showSendSMS) feil:", e);
+    }
+
+    // Fallback: hent fra rekvisisjonsvisning
+    try {
+      const url2 = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${encodeURIComponent(rid)}`;
+      const resp2 = await fetch(url2, { credentials: "include" });
+      const html2 = await resp2.text();
+      const m2 = html2.match(/Tlf fra EPJ:<\/td>\s*<td[^>]*class="reqv_value"[^>]*>([^<]+)<\/td>/i);
+      const tlf2 = (m2?.[1]?.trim() || "").replace(/^\+47/, "");
+      if (tlf2) console.log(`[SendSMS] Bruker 'Tlf fra EPJ' for rid ${rid}: ${tlf2}`);
+      return tlf2;
+    } catch (e) {
+      console.error("[SendSMS] fetchTelefon (showreq) feil:", e);
       return "";
     }
   }
