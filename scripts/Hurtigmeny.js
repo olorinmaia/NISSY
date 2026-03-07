@@ -217,14 +217,27 @@
       (active.tagName === 'INPUT' && TEXT_INPUT_TYPES.has((active.type || 'text').toLowerCase()))
     );
 
+    // Klipp ut — kun når tekst er merket inne i et redigerbart felt
+    if (selectedText && isEditable) {
+      items.push(item('✂️', 'Klipp ut tekst', 'Ctrl+X', () => {
+        navigator.clipboard?.writeText(selectedText).then(() => {
+          document.execCommand('cut');
+        }).catch(() => {
+          document.execCommand('cut');
+        });
+      }));
+    }
+
+    // Kopier — når tekst er merket (også utenfor redigerbart felt)
     if (selectedText) {
-      items.push(item('✂️', 'Kopier merket tekst', 'Ctrl+C', () => {
+      items.push(item('📄', 'Kopier tekst', 'Ctrl+C', () => {
         navigator.clipboard?.writeText(selectedText).catch(() => {
           document.execCommand('copy');
         });
       }));
     }
 
+    // Lim inn — kun i redigerbart felt
     if (isEditable) {
       items.push(item('📋', 'Lim inn tekst', 'Ctrl+V', () => {
         navigator.clipboard?.readText().then(text => {
