@@ -1492,5 +1492,14 @@
     }
   });
 
+  // Intercept NISSY sin Send SMS-knapp
+  const _smsKnapp = document.getElementById("buttonSendSMS");
+  if (_smsKnapp) {
+    _smsKnapp.addEventListener("click", (e) => {
+      e.stopImmediatePropagation();
+      openSendSMSPopup();
+    }, true);
+  }
+
   console.log("✅ SendSMS lastet – Alt+C for å sende SMS");
 })();
