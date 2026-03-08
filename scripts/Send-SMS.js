@@ -544,7 +544,10 @@
     malSelect.addEventListener("change", () => {
       const idx = parseInt(malSelect.value, 10);
       if (!isNaN(idx) && SMS_MALER[idx]) velgMal(idx);
-      else oppdaterEnkeltSendKnapp();
+      else {
+        msgArea.value = "";
+        oppdaterTegnteller();
+      }
     });
 
     msgArea.addEventListener("input", () => {
@@ -584,7 +587,7 @@
       }
     });
 
-    setTimeout(() => { (telefon ? msgArea : document.getElementById("__smsTo")).focus(); }, 50);
+    setTimeout(() => document.getElementById("__smsMal").focus(), 50);
   }
 
   // ============================================================
@@ -951,6 +954,8 @@
         antallFeil ? "warning" : "success"
       );
     });
+
+    setTimeout(() => document.getElementById("__smsMassMal").focus(), 50);
   }
 
   // ============================================================
