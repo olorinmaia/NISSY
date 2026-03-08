@@ -541,6 +541,7 @@
       item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
       sep(),
       // ── Diverse verktøy ──────────────────────────────────────
+      item('📱', 'Send SMS',         'Alt+C', () => triggerAlt('c')),
       item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
       item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
       sep(),
