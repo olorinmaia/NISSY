@@ -1525,14 +1525,15 @@
     }
   });
 
-  // Intercept NISSY sin Send SMS-knapp
-  const _smsKnapp = document.getElementById("buttonSendSMS");
-  if (_smsKnapp) {
-    _smsKnapp.addEventListener("click", (e) => {
+  // Intercept NISSY sin Send SMS-knapp via event delegation.
+  // NISSY-fiks gjenoppretter tbody.innerHTML og ødelegger direktelistenere,
+  // så vi lytter på document i capture-fasen for å fange klikk uansett.
+  document.addEventListener("click", (e) => {
+    if (e.target?.id === "buttonSendSMS") {
       e.stopImmediatePropagation();
       openSendSMSPopup();
-    }, true);
-  }
+    }
+  }, true);
 
   console.log("✅ SendSMS lastet – Alt+C for å sende SMS");
 })();
