@@ -111,6 +111,11 @@
           tekst: () =>
             `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
       ],
 
       sjaafor: [
