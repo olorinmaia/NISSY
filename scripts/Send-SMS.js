@@ -8,6 +8,20 @@
     console.log("✅ SendSMS er allerede aktiv");
     return;
   }
+
+  // ── Kontor-tilgang ───────────────────────────────────────────
+  const SEND_SMS_OFFICES = [
+    'Pasientreiser Nord-Trøndelag',
+    // Legg til flere kontorer her etter hvert
+  ];
+  const _officeCell  = document.querySelector('.topframe_small');
+  const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+  const _office      = _officeMatch?.[1]?.trim() || null;
+  if (!_office || !SEND_SMS_OFFICES.includes(_office)) {
+    console.log(`ℹ️ SendSMS ikke tilgjengelig for kontor: ${_office || '(ukjent)'}`);
+    return;
+  }
+
   window.__sendSMSActive = true;
 
   // ============================================================

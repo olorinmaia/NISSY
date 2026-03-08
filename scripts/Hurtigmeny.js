@@ -154,6 +154,11 @@
     // 'Pasientreiser Sør-Trøndelag',
   ];
 
+  const SEND_SMS_OFFICES = [
+    'Pasientreiser Nord-Trøndelag',
+    // Legg til flere kontorer her etter hvert
+  ];
+
   // ── Hjelpefunksjon: Sjekk hvilket kontor brukeren er på ─────
   function getCurrentOffice() {
     const topframeCell = document.querySelector('.topframe_small');
@@ -166,6 +171,11 @@
   function hasSjekkPlakatAccess() {
     const office = getCurrentOffice();
     return office && SJEKK_PLAKAT_OFFICES.includes(office);
+  }
+
+  function hasSendSMSAccess() {
+    const office = getCurrentOffice();
+    return office && SEND_SMS_OFFICES.includes(office);
   }
 
   // ── Pasientnavn / ressursnavn fra rad ────────────────────────
@@ -294,8 +304,7 @@
       item('🔠', 'Rek-knapper',     'Alt+R', () => triggerAlt('r')),
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
-      item('📱', 'Send SMS',        'Alt+C', () => triggerAlt('c')),
-      sep(),
+      ...(hasSendSMSAccess() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
       item('🗺️', 'Vis i kart',      'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering', 'Alt+Q', () => triggerAlt('q')),
       sep(),
@@ -317,8 +326,7 @@
       item('🕐', 'Hentetid',         'Alt+E', () => triggerAlt('e')),
       item('🔠', 'Rek-knapper',      'Alt+R', () => triggerAlt('r')),
       sep(),
-      item('📱', 'Send SMS',         'Alt+C', () => triggerAlt('c')),
-      sep(),
+      ...(hasSendSMSAccess() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
       item('🗺️', 'Vis i kart',       'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering',  'Alt+Q', () => triggerAlt('q')),
       sep(),
@@ -365,7 +373,7 @@
       item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
       sep(),
-      ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) ? [
+      ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) && hasSendSMSAccess() ? [
         item('📱', 'Send SMS til sjåfør', null, () => {
           if (typeof window.__openSjaaforSMSPopup === 'function') {
             window.__openSjaaforSMSPopup(row);
@@ -551,7 +559,7 @@
       item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
       sep(),
       // ── Diverse verktøy ──────────────────────────────────────
-      item('📱', 'Send SMS',         'Alt+C', () => triggerAlt('c')),
+      ...(hasSendSMSAccess() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c'))] : []),
       item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
       item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
       sep(),
