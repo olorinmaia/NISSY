@@ -45,7 +45,7 @@
         `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)} som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
     {
-      navn: "Pasient ring tilbake",
+      navn: "Ring oss tilbake",
       tekst: () =>
         `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
@@ -78,7 +78,7 @@
         `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
     {
-      navn: "Pasient ring tilbake",
+      navn: "Ring oss tilbake",
       tekst: () =>
         `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
@@ -89,6 +89,20 @@
     },
   ];
   // ============================================================
+  // MALER FOR SJÅFØR-SMS (sendes på ressurs, ikke pasient)
+  // ============================================================
+  const SMS_MALER_SJAAFOR = [
+    {
+      navn: "Tildelt bestilling i ventetiden",
+      tekst: () =>
+        `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+    },
+    {
+      navn: "Ring oss tilbake",
+      tekst: () =>
+        `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+    },
+  ];
   // ============================================================
   const MAX_TEGN           = 480;
   const MAX_NAVN_LENGDE    = 22;
@@ -1107,7 +1121,281 @@
   }
 
   // ============================================================
-  // INNGANG: dispatcher
+  // SJÅFØR-SMS (åpnes fra høyreklikk-meny på ressurs)
+  // ============================================================
+
+  // Henter telefonnummer fra SUTI 3003 for en ressurs-rad.
+  // Returnerer streng eller null.
+  async function fetchSjaaforTelefon(licensePlate, turId) {
+    try {
+      // 1) POST til searchStatus for å finne requisitionId
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/administrasjon/admin/searchStatus", false);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.send(
+        "submit_action=tripSearch&requisitionNumber=&attestId=&ssn=&treatmentDateFromSsn=" +
+        "&treatmentDateToSsn=&lastName=&firstName=&treatmentDateFromName=&treatmentDateToName=" +
+        "&council=-999999&tripNr=" + encodeURIComponent(turId) +
+        "&treatmentDateFromCommissioner=&treatmentDateToCommissioner=&commissionerUsername=" +
+        "&chosenDispatchCenter.id=&treatmentDateFromAttention=&treatmentDateToAttention=" +
+        "&_attentionUnresolvedOnly=on&dbSelect=1"
+      );
+      if (xhr.status !== 200) return null;
+
+      const m = xhr.responseText.match(/getRequisitionDetails\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/);
+      if (!m) return null;
+      const [, requisitionId, db, tripId, highlightTripNr] = m;
+
+      // 2) Hent detaljer inkl. SUTI-XML-lenker
+      const detailUrl =
+        "/administrasjon/admin/ajax_reqdetails?id=" + requisitionId +
+        "&db=" + db + "&tripid=" + tripId +
+        "&showSutiXml=true&hideEvents=&full=true&highlightTripNr=" + highlightTripNr;
+      const detailResp = await fetch(detailUrl);
+      const detailHtml = await detailResp.text();
+
+      // 3) Finn første/nyeste 3003-URL
+      let latest3003Url = null;
+      for (const row of detailHtml.split("<tr")) {
+        const sutiMatch = row.match(/<td\s+valign="top">(\d+)/);
+        if (sutiMatch?.[1] !== "3003") continue;
+        const linkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
+        if (linkMatch) { latest3003Url = linkMatch[1]; break; }
+      }
+      if (!latest3003Url) return null;
+
+      // 4) Parse 3003-XML for telefonnummer
+      const resp3003  = await fetch(latest3003Url);
+      const buf3003   = await resp3003.arrayBuffer();
+      let decoded     = new TextDecoder("iso-8859-1").decode(buf3003);
+      if (decoded.includes("charset=UTF-8") && !decoded.includes("�")) {
+        decoded = new TextDecoder("utf-8").decode(buf3003);
+      }
+
+      const pre3003 = decoded.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+      let xmlStr;
+      if (pre3003) {
+        // HTML-unescape via textarea (samme metode som Ressursinfo.js)
+        const txt = document.createElement("textarea");
+        txt.innerHTML = pre3003[1].trim();
+        xmlStr = txt.value;
+      } else {
+        xmlStr = decoded;
+      }
+
+      const parser  = new DOMParser();
+      const xmlDoc  = parser.parseFromString(xmlStr, "text/xml");
+
+      // ITF/Cencom-format
+      const driverPhone = xmlDoc.querySelector(
+        'resourceDispatch > driver > contactInfoDriver > contactInfo[contactType="phone"]'
+      );
+      if (driverPhone) return driverPhone.getAttribute("contactInfo")?.trim() || null;
+
+      // Frogne-format (fallback)
+      for (const veh of xmlDoc.querySelectorAll("resourceDispatch > vehicle")) {
+        if (veh.querySelector("idVehicle")?.getAttribute("id") === licensePlate) {
+          const ph = veh.querySelector('contactInfoVehicle > contactInfo[contactType="phone"]');
+          if (ph) return ph.getAttribute("contactInfo")?.trim() || null;
+        }
+      }
+      return null;
+    } catch (e) {
+      console.error("[SendSMS] fetchSjaaforTelefon feil:", e);
+      return null;
+    }
+  }
+
+  async function openSjaaforPopup(row) {
+    if (document.getElementById("__sendSMSOverlay")) return;
+
+    const licensePlate = row.querySelector("td[id*='loyvexxx']")?.textContent.trim() || "";
+    const ressursId    = row.id;
+
+    const turId = row.querySelector("img[onclick*='searchStatus?id=']")
+      ?.getAttribute("onclick")?.match(/searchStatus\?id=(\d+)/)?.[1];
+    if (!turId) {
+      showToast("Fant ikke ressursens turn-ID.", "warning");
+      return;
+    }
+
+    const har3003 = !/-\d{7,}$/.test(licensePlate);
+    let telefon = null;
+    if (har3003) {
+      telefon = await fetchSjaaforTelefon(licensePlate, turId);
+    }
+
+    const { overlay, popup } = createPopupBase("480px");
+    overlay.id = "__sendSMSOverlay";
+
+    const header = document.createElement("div");
+    Object.assign(header.style, {
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      marginBottom: "16px", borderBottom: "2px solid #5a7a5a", paddingBottom: "10px",
+    });
+    header.innerHTML = `
+      <span style="font-size:15px;font-weight:bold;color:#5a7a5a;">🚕 Send SMS til sjåfør – ${licensePlate}</span>
+      <button id="__smsBtnLukk" title="Lukk (Esc)"
+        style="background:none;border:none;font-size:20px;line-height:1;cursor:pointer;color:#666;padding:0 2px;">×</button>
+    `;
+    popup.appendChild(header);
+
+    function skjemaRad(label, html) {
+      const d = document.createElement("div");
+      Object.assign(d.style, { display: "flex", alignItems: "flex-start", marginBottom: "11px", gap: "10px" });
+      d.innerHTML = `
+        <label style="width:82px;flex-shrink:0;font-weight:bold;padding-top:5px;">${label}</label>
+        <div style="flex:1;">${html}</div>
+      `;
+      popup.appendChild(d);
+      return d;
+    }
+
+    const tlfVerdi  = telefon ? telefon.replace(/^\+47/, "") : "";
+    skjemaRad("Mobil:",
+      `<input id="__smsTo" type="text" value="${tlfVerdi}"
+         style="width:100%;padding:5px 8px;border:1px solid ${tlfVerdi ? "#ccc" : "#d9534f"};border-radius:4px;font-size:13px;box-sizing:border-box;" />`);
+
+    if (!tlfVerdi) {
+      const noTlf = document.createElement("div");
+      noTlf.style.cssText = "color:#d9534f;font-size:11px;margin-top:-7px;margin-bottom:8px;margin-left:92px;";
+      noTlf.textContent = "Telefonnummer ikke funnet i SUTI 3003 – fyll inn manuelt";
+      popup.appendChild(noTlf);
+    }
+
+    skjemaRad("Mal:",
+      `<select id="__smsMal" style="width:100%;padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:13px;">
+        <option value="">– Velg mal –</option>
+        ${SMS_MALER_SJAAFOR.map((m, i) => `<option value="${i}">${m.navn}</option>`).join("")}
+       </select>`);
+
+    skjemaRad("Melding:",
+      `<textarea id="__smsMsg" rows="5"
+          style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
+                 font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
+       <div style="text-align:right;font-size:11px;margin-top:3px;">
+         <span id="__smsTegn" style="color:#888;">0</span>
+         <span style="color:#888;"> / ${MAX_TEGN} tegn</span>
+       </div>`);
+
+    const btnRow = document.createElement("div");
+    Object.assign(btnRow.style, { display: "flex", justifyContent: "flex-end", gap: "9px", marginTop: "6px" });
+    btnRow.innerHTML = `
+      <button id="__smsBtnSend"
+        style="padding:7px 20px;border:none;border-radius:5px;background:#aaa;
+               color:#fff;font-size:13px;font-weight:bold;cursor:not-allowed;"
+        disabled>Send SMS</button>
+      <button id="__smsBtnAvbryt"
+        style="padding:7px 18px;border:1px solid #ccc;border-radius:5px;
+               background:#f5f5f5;cursor:pointer;font-size:13px;">Avbryt</button>
+    `;
+    popup.appendChild(btnRow);
+
+    const escHandler = (e) => { if (e.key === "Escape") closePopup(); };
+    let lukket = false;
+    const closePopup = () => {
+      if (lukket) return; lukket = true;
+      document.removeEventListener("keydown", escHandler);
+      overlay.remove();
+      if (typeof openPopp === "function") {
+        if (typeof selectRow === "function" && typeof g_resLS !== "undefined") {
+          const originalOpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            if (typeof url === "string" && url.includes("action=openres")) {
+              const origOnload = this.onload;
+              this.addEventListener("load", () => {
+                XMLHttpRequest.prototype.open = originalOpen;
+                setTimeout(() => selectRow(ressursId, g_resLS), 50);
+              }, { once: true });
+            }
+            return originalOpen.call(this, method, url, ...rest);
+          };
+          setTimeout(() => XMLHttpRequest.prototype.open = originalOpen, 3000);
+        }
+        openPopp("-1");
+      }
+    };
+    document.getElementById("__smsBtnLukk").addEventListener("click", closePopup);
+    document.getElementById("__smsBtnAvbryt").addEventListener("click", closePopup);
+    document.addEventListener("keydown", escHandler);
+
+    const malSelect = document.getElementById("__smsMal");
+    const msgArea   = document.getElementById("__smsMsg");
+    const tegnSpan  = document.getElementById("__smsTegn");
+
+    function oppdaterSendKnapp() {
+      const sendBtn   = document.getElementById("__smsBtnSend");
+      const smsTo     = document.getElementById("__smsTo");
+      const tlf       = smsTo?.value.trim() || "";
+      const gyldig    = erGyldigMobil(tlf);
+      const harTekst  = msgArea.value.trim().length > 0;
+      const aktiv     = gyldig && harTekst;
+      sendBtn.disabled         = !aktiv;
+      sendBtn.style.background = aktiv ? "#5a7a5a" : "#aaa";
+      sendBtn.style.cursor     = aktiv ? "pointer" : "not-allowed";
+      if (smsTo && tlf.length > 0) {
+        smsTo.style.borderColor = gyldig ? "#ccc" : "#d9534f";
+      } else if (smsTo) {
+        smsTo.style.borderColor = "#ccc";
+      }
+    }
+
+    function oppdaterTegnteller() {
+      const len = msgArea.value.length;
+      tegnSpan.textContent = len;
+      tegnSpan.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
+      oppdaterSendKnapp();
+    }
+
+    malSelect.addEventListener("change", () => {
+      const idx = parseInt(malSelect.value, 10);
+      if (!isNaN(idx) && SMS_MALER_SJAAFOR[idx]) {
+        msgArea.value        = SMS_MALER_SJAAFOR[idx].tekst().slice(0, MAX_TEGN);
+        msgArea.style.height = "auto";
+        msgArea.style.height = msgArea.scrollHeight + "px";
+      } else {
+        msgArea.value = "";
+      }
+      oppdaterTegnteller();
+    });
+
+    msgArea.addEventListener("input", () => {
+      if (msgArea.value.length > MAX_TEGN) msgArea.value = msgArea.value.slice(0, MAX_TEGN);
+      oppdaterTegnteller();
+    });
+
+    document.getElementById("__smsTo").addEventListener("input", oppdaterSendKnapp);
+
+    document.getElementById("__smsBtnSend").addEventListener("click", async () => {
+      const tlf       = document.getElementById("__smsTo").value.trim();
+      const meldingTxt = msgArea.value.trim();
+      if (!erGyldigMobil(tlf) || !meldingTxt) return;
+      const sendBtn = document.getElementById("__smsBtnSend");
+      sendBtn.disabled = true; sendBtn.textContent = "Sender…"; sendBtn.style.background = "#888";
+      try {
+        await sendSMS(ressursId, tlf, meldingTxt);
+        document.getElementById("__smsTo").disabled = true;
+        malSelect.disabled  = true;
+        msgArea.disabled    = true;
+        sendBtn.textContent        = "✅ Sendt";
+        sendBtn.style.background   = "#27ae60";
+        document.getElementById("__smsBtnAvbryt").textContent = "Lukk";
+      } catch (e) {
+        console.error("[SendSMS] Sjåfør-feil:", e);
+        showToast("Feil ved sending av SMS. Sjekk konsoll.", "error");
+        sendBtn.disabled = false; sendBtn.textContent = "Send SMS"; sendBtn.style.background = "#5a7a5a";
+      }
+    });
+
+    oppdaterSendKnapp();
+    setTimeout(() => document.getElementById("__smsMal").focus(), 50);
+  }
+
+  // Eksponér for Hurtigmeny.js
+  window.__openSjaaforSMSPopup = openSjaaforPopup;
+
+  // ============================================================
   async function openSendSMSPopup() {
     if (document.getElementById("__sendSMSOverlay")) return;
 

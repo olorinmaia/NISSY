@@ -365,6 +365,16 @@
       item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
       sep(),
+      ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) ? [
+        item('📱', 'Send SMS til sjåfør', null, () => {
+          if (typeof window.__openSjaaforSMSPopup === 'function') {
+            window.__openSjaaforSMSPopup(row);
+          } else {
+            alert('SendSMS.js er ikke lastet.');
+          }
+        }, true),
+        sep(),
+      ] : []),
       item('📝', 'Merknad', null, () => openAjaxPopup('showResourceComment'), true),
       item('⚠️', 'Avvik',   null, () => openAjaxPopup('showResourceDeviation'), true),
       sep(),
