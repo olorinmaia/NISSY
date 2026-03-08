@@ -25,98 +25,126 @@
   window.__sendSMSActive = true;
 
   // ============================================================
-  // EGENDEFINERTE MALER – rediger tekstene her i kildekoden
-  // Tilgjengelige variabler i mal-funksjonen:
-  //   info.pasientNavn   – f.eks. "NISSY, Alf" ${info.fornavn ? " " + info.fornavn : ""}
-  //   info.fornavn       – f.eks. "Alf"
-  //   info.reiseTid      – f.eks. "18:36"
-  //   info.oppTid        – f.eks. "19:00"
-  //   info.fraAdresse    – f.eks. "Brubakken 15, 7608 Levanger"
-  //   info.tilAdresse    – f.eks. "St. Olavs Hospital, 7006 Trondheim"
-  // autoVelgHvis(info): valgfri funksjon – returnerer true for å auto-velge
-  // ============================================================
-  const SMS_MALER = [
-    {
-      navn: "Hentetidspunkt",
-      tekst: (info) =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nHentetid kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Planlagt reise til behandling",
-      tekst: (info) =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nHentetid kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Trondheim lufthavn",
-      autoVelgHvis: (info) =>
-        /trondheim lufthavn|værnes|TRD/i.test(info.fraAdresse),
-      tekst: (info) =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Trondheim lufthavn - etter åpningstid",
-      tekst: (info) =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)} som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Ring oss tilbake",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Forsinkelse",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-  ];
+  // MALER PER KONTOR
+  //
+  // Hver kontor-nøkkel må matche eksakt navn i SEND_SMS_OFFICES.
+  // Tre mal-typer per kontor:
+  //   bestilling  – enkelt/masse-modus (har tilgang til info-variabler)
+  //   fritekst    – ingen bestilling merket (kun statiske tekster)
+  //   sjaafor     – sjåfør-SMS via ressurser-tabell (kun statiske tekster)
+  //
+  // Tilgjengelige variabler i bestilling-maler:
+  //   info.pasientNavn  – f.eks. "Johnsen, Alf"
+  //   info.fornavn      – f.eks. "Alf"
+  //   info.reiseTid     – f.eks. "18:36"
+  //   info.oppTid       – f.eks. "19:00"
+  //   info.fraAdresse   – f.eks. "Brubakken 15, 7608 Levanger"
+  //   info.tilAdresse   – f.eks. "St. Olavs Hospital, 7006 Trondheim"
+  // autoVelgHvis(info): valgfri – returnerer true for å auto-velge malen
   // ============================================================
 
+  const MALER_PER_KONTOR = {
+
+    // ----------------------------------------------------------
+    // Pasientreiser Nord-Trøndelag
+    // ----------------------------------------------------------
+    'Pasientreiser Nord-Trøndelag': {
+
+      bestilling: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nHentetid kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Planlagt reise til behandling",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nHentetid kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Trondheim lufthavn",
+          autoVelgHvis: (info) =>
+            /trondheim lufthavn|værnes|TRD/i.test(info.fraAdresse),
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Trondheim lufthavn - etter åpningstid",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn med henting ${formaterTid(info.reiseTid)} som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+      ],
+
+      fritekst: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting kl. TT:MM.\n\nHentetid kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Trondheim lufthavn",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Trondheim lufthavn - etter åpningstid",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+      ],
+
+      sjaafor: [
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
+      ],
+
+    },
+
+    // ----------------------------------------------------------
+    // Legg til nye kontor her:
+    // ----------------------------------------------------------
+    // 'Pasientreiser Sør-Trøndelag': {
+    //   bestilling: [ ... ],
+    //   fritekst:   [ ... ],
+    //   sjaafor:    [ ... ],
+    // },
+
+  };
+
+  // Hent maler for innlogget kontor
+  const _kontorMaler    = MALER_PER_KONTOR[_office] || {};
+  const SMS_MALER         = _kontorMaler.bestilling || [];
+  const SMS_MALER_FRITEKST = _kontorMaler.fritekst  || [];
+  const SMS_MALER_SJAAFOR  = _kontorMaler.sjaafor   || [];
   // ============================================================
-  // MALER FOR FRITEKST-MODUS (ingen bestilling valgt)
-  // Ingen info-variabler tilgjengelig – statiske tekster
-  // ============================================================
-  const SMS_MALER_FRITEKST = [
-    {
-      navn: "Hentetidspunkt",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting kl. TT:MM.\n\nHentetid kan variere med +/- 15 minutter.\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Trondheim lufthavn",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Trondheim lufthavn - etter åpningstid",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Trondheim Lufthavn som er tildelt transportør.\nRing 07373 når du har landet og er reiseklar.\n\nDu kan se dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Ring oss tilbake",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Forsinkelse",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-  ];
-  // ============================================================
-  // MALER FOR SJÅFØR-SMS (sendes på ressurs, ikke pasient)
-  // ============================================================
-  const SMS_MALER_SJAAFOR = [
-    {
-      navn: "Tildelt bestilling i ventetiden",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-    {
-      navn: "Ring oss tilbake",
-      tekst: () =>
-        `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
-    },
-  ];
   // ============================================================
   const MAX_TEGN           = 480;
   const MAX_NAVN_LENGDE    = 22;
