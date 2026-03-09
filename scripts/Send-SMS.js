@@ -1535,5 +1535,37 @@
     }
   }, true);
 
+  // Hold Send SMS-knappen alltid aktivert.
+  // NISSY-fiks gjenskaper kontrollpanel-tbody med en setTimeout-forsinkelse,
+  // så vi venter med en engangs-observer til tabellen faktisk finnes i DOM
+  // før vi kobler oss til den lettere tbody-observeren.
+  function observerSmsKnapp(knapp) {
+    new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.target.disabled) m.target.disabled = false;
+      }
+    }).observe(knapp, { attributes: true, attributeFilter: ["disabled"] });
+  }
+
+  function kobleSmsObserver() {
+    const tbody = document.querySelector("table[data-nissy-simplified] tbody");
+    if (!tbody) return false;
+    new MutationObserver(() => {
+      const knapp = document.getElementById("buttonSendSMS");
+      if (knapp) observerSmsKnapp(knapp);
+    }).observe(tbody, { childList: true });
+    const knapp = document.getElementById("buttonSendSMS");
+    if (knapp) observerSmsKnapp(knapp);
+    return true;
+  }
+
+  if (!kobleSmsObserver()) {
+    // Tabellen finnes ikke ennå – vent på at NISSY-fiks setter den opp
+    const _ventObserver = new MutationObserver(() => {
+      if (kobleSmsObserver()) _ventObserver.disconnect();
+    });
+    _ventObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
   console.log("✅ SendSMS lastet – Alt+C for å sende SMS");
 })();
