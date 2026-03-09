@@ -451,6 +451,57 @@
   // ============================================================
   // SEND SMS VIA AJAX-DISPATCH (XHR, som NISSY bruker internt)
   // ============================================================
+  // ============================================================
+  // HENT REKVISISJONSNUMMER FRA RID (for logging)
+  // Ventende: title-attributt på tr[name=rid] i #ventendeoppdrag
+  // Pågående: searchStatus?nr= i question.gif onclick for aktuell rid
+  // ============================================================
+  function hentRekvnrFraRid(rid) {
+    // Ventende: title="rekvnr" på raden
+    const vRow = document.querySelector(`#ventendeoppdrag tr[name="${rid}"]`);
+    if (vRow) return vRow.getAttribute("title") || null;
+
+    // Pågående: finn riktig row-image via posisjon (indeks) av statusImg i sin td,
+    // søk deretter question.gif i samme-indekserte row-image i siste td.
+    const statusImg = document.querySelector(
+      `#pagaendeoppdrag img[onclick*="toggleManualStatusRequisition(this,${rid})"]`
+    );
+    if (statusImg) {
+      const rowImageDiv = statusImg.closest(".row-image");
+      if (rowImageDiv) {
+        // Finn hvilken indeks denne row-image har i sin parent-td
+        const siblings = Array.from(rowImageDiv.parentElement.querySelectorAll(".row-image"));
+        const idx = siblings.indexOf(rowImageDiv);
+        // Gå opp til tr og finn siste td
+        const tr = rowImageDiv.closest("tr");
+        if (tr && idx !== -1) {
+          const tds = tr.querySelectorAll("td");
+          const lastTd = tds[tds.length - 1];
+          const rowImages = lastTd?.querySelectorAll(".row-image");
+          const targetDiv = rowImages?.[idx];
+          if (targetDiv) {
+            const qImg = targetDiv.querySelector(`img[onclick*="searchStatus?nr="]`);
+            if (qImg) {
+              const m = qImg.getAttribute("onclick").match(/searchStatus\?nr=(\d+)/);
+              if (m) return m[1];
+            }
+          }
+        }
+      } else {
+        // Enkeltbestilling uten row-image-divs
+        const pRow = statusImg.closest("tr");
+        if (pRow) {
+          const qImg = pRow.querySelector(`img[onclick*="searchStatus?nr="]`);
+          if (qImg) {
+            const m = qImg.getAttribute("onclick").match(/searchStatus\?nr=(\d+)/);
+            if (m) return m[1];
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   function sendSMS(rowId, telefon, melding) {
     return new Promise((resolve, reject) => {
       const url =
@@ -642,6 +693,14 @@
         sendBtn.textContent = "✅ Sendt";
         sendBtn.style.background = "#27ae60";
         document.getElementById("__smsBtnAvbryt").textContent = "Lukk";
+        // Logg SMS
+        if (typeof window.nissyLoggSMS === "function") {
+          const rid    = info.id.replace(/^[A-Z]-/i, "");
+          const rekvnr = hentRekvnrFraRid(rid);
+          const malIdx = parseInt(malSelect.value, 10);
+          const malNavn = (!isNaN(malIdx) && SMS_MALER[malIdx]) ? SMS_MALER[malIdx].navn : "Fritekst";
+          window.nissyLoggSMS([{ reqId: rid, title: rekvnr || rid, mal: malNavn }]);
+        }
       } catch (e) {
         console.error("[SendSMS] Send feil:", e);
         showToast("Feil ved sending av SMS. Sjekk konsoll.", "error");
@@ -1015,6 +1074,21 @@
         antallFeil ? `Sendt ${antallSendt}, feil på ${antallFeil}` : `✅ Alle ${antallSendt} SMS sendt`,
         antallFeil ? "warning" : "success"
       );
+      // Logg vellykkede SMS-sendinger
+      if (typeof window.nissyLoggSMS === "function" && antallSendt > 0) {
+        const malNavn = harMal ? SMS_MALER[malIdx].navn : "Fritekst";
+        const loggDetails = gyldige
+          .filter((_, gi) => {
+            const stCell = document.getElementById(`__smsSt_${items.indexOf(gyldige[gi])}`);
+            return stCell?.innerHTML.includes("✅");
+          })
+          .map(item => {
+            const rid    = item.info.id.replace(/^[A-Z]-/i, "");
+            const rekvnr = hentRekvnrFraRid(rid);
+            return { reqId: rid, title: rekvnr || rid, mal: malNavn };
+          });
+        if (loggDetails.length > 0) window.nissyLoggSMS(loggDetails);
+      }
     });
 
     setTimeout(() => document.getElementById("__smsMassMal").focus(), 50);
@@ -1429,6 +1503,18 @@
         sendBtn.textContent        = "✅ Sendt";
         sendBtn.style.background   = "#27ae60";
         document.getElementById("__smsBtnAvbryt").textContent = "Lukk";
+        // Logg SMS til sjåfør
+        if (typeof window.nissyLoggSMS === "function") {
+          const malIdx  = parseInt(malSelect.value, 10);
+          const malNavn = (!isNaN(malIdx) && SMS_MALER_SJAAFOR[malIdx]) ? SMS_MALER_SJAAFOR[malIdx].navn : "Fritekst";
+          window.nissyLoggSMS([{
+            reqId:  turId,
+            title:  licensePlate,
+            avtale: licensePlate,
+            status: malNavn,
+            mal:    malNavn,
+          }]);
+        }
       } catch (e) {
         console.error("[SendSMS] Sjåfør-feil:", e);
         showToast("Feil ved sending av SMS. Sjekk konsoll.", "error");
