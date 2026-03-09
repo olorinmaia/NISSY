@@ -316,6 +316,17 @@
     ];
   }
 
+  // ── Sjekk om minst én merket pågående-rad har ressurs med status Tildelt ──
+  function hasTildeltPaagaende() {
+    const selectedRows = document.querySelectorAll('#pagaendeoppdrag tr[style*="rgb(148, 169, 220)"]');
+    for (const row of selectedRows) {
+      const resourceId = row.getAttribute('name');
+      const statusCell = document.getElementById(`Rxxxstatusxxx${resourceId}`);
+      if (statusCell?.textContent.trim() === 'Tildelt') return true;
+    }
+    return false;
+  }
+
   function paagaaendeMeny(row) {
     return [
       ...clipboardSection(),
@@ -323,7 +334,7 @@
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
       item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x')),
       sep(),
-      item('🕐', 'Hentetid',         'Alt+E', () => triggerAlt('e')),
+      ...(hasTildeltPaagaende() ? [item('🕐', 'Hentetid', 'Alt+E', () => triggerAlt('e'))] : []),
       item('🔠', 'Rek-knapper',      'Alt+R', () => triggerAlt('r')),
       sep(),
       ...(hasSendSMSAccess() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
