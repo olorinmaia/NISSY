@@ -325,16 +325,6 @@
       targetTable.setAttribute('data-nissy-simplified', 'true');
 
       console.log("✅ Kontrollpanel-tabell forenklet");
-
-      // Hold Send SMS-knappen alltid aktivert – NISSY sin ButtonController
-      // vil forsøke å disable den ved tomme valg, men vi fanger det opp
-      // øyeblikkelig via MutationObserver og fjerner disabled-attributtet.
-      const _smsBtn = document.getElementById("buttonSendSMS");
-      if (_smsBtn) {
-        new MutationObserver(() => {
-          if (_smsBtn.disabled) _smsBtn.disabled = false;
-        }).observe(_smsBtn, { attributes: true, attributeFilter: ["disabled"] });
-      }
       
       // Sett opp event handlers ETTER at tabellen er erstattet
       setupButtonHandlers();
