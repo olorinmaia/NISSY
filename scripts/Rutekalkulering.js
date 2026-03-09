@@ -143,6 +143,7 @@
     "Fysio- og ergoterapi, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Gyn/Føde/Barsel sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "SN. Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "./Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
@@ -178,6 +179,7 @@
     "Styrk/Fys. Brandt, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     "Styrk/Fys. Selseth, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     "Lierne fysioterapi/Fys. Hellgren, 7882 Nordli": "Stortangveien 16, 7882 Nordli",
+    "Fysio og ergoterapitjenesten, 7804 Namsos": "Prestegårdsstien 4, 7804 Namsos",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
