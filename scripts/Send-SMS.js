@@ -339,17 +339,18 @@
   // Ekstraher enkeltbestillinger fra én pågående-rad.
   // Returnerer array av booking-objekter med valgbar=true for multi-booking rader.
   function extractPaagaaendeBookings(tr, idxMap) {
-    const cells   = tr.querySelectorAll("td");
-    const lastCell = cells[cells.length - 1];
+    const cells = tr.querySelectorAll("td");
 
-    // Hent RIDs fra removePaagaaendeOppdrag onclick-attributter
-    const rids = Array.from(lastCell.querySelectorAll("img[onclick*='removePaagaaendeOppdrag']"))
-      .map(img => { const m = img.getAttribute("onclick").match(/removePaagaaendeOppdrag\('(\d+)'/); return m?.[1]; })
+    // RID hentes fra toggleManualStatusRequisition – finnes alltid på alle bestillinger,
+    // til forskjell fra removePaagaaendeOppdrag som mangler på enkeltrad og første multi-booking.
+    const statusImgs = Array.from(tr.querySelectorAll("img[onclick*='toggleManualStatusRequisition']"));
+    const rids = statusImgs
+      .map(img => img.getAttribute("onclick").match(/toggleManualStatusRequisition\(this,(\d+)\)/)?.[1])
       .filter(Boolean);
 
     if (rids.length === 0) return [];
 
-    const isMulti = cells[idxMap.reiseTid]?.querySelectorAll(".row-image").length > 1;
+    const isMulti = rids.length > 1;
 
     if (!isMulti) {
       const getText = (idx) => cells[idx]?.textContent.trim().replace(/\s+/g, " ") || "";
