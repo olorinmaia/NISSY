@@ -188,6 +188,32 @@
     return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
+  // Normaliserer adresser fra CAPSLOCK til lesbar form.
+  // Regler per mellomrom-separert token:
+  //   – Inneholder både bokstav og siffer (f.eks. "7A", "25B", "10A") → behold store bokstaver
+  //   – Er nøyaktig "veg", "vei" eller "gate" (uansett case) → skriv med små bokstaver
+  //   – Alt annet → stor forbokstav, resten små
+  // Kommaer og andre tegn bevares; behandles per token rundt komma.
+  function normaliserAdresse(address) {
+    if (!address) return address;
+
+    // Normaliser kun vegadresser – disse kjennetegnes ved at delen før første komma
+    // slutter på et husnummer (siffer, evt. etterfulgt av én bokstav): "35C," / "24,"
+    // Behandlingssteder som "St. Olavs Hospital, 7006 Trondheim" har ikke dette mønsteret.
+    const erVegadresse = /\d+[A-ZÆØÅa-zæøå]?\s*,/.test(address);
+    if (!erVegadresse) return address;
+
+    const ALLTID_LITEN = /^(veg|vei|gate)$/i;
+    const BOKSTAV_OG_TALL = /^[a-zA-ZæøåÆØÅ]*\d+[a-zA-ZæøåÆØÅ]+$|^[a-zA-ZæøåÆØÅ]+\d+[a-zA-ZæøåÆØÅ]*$/;
+
+    return address.replace(/[^\s,]+/g, token => {
+      if (ALLTID_LITEN.test(token)) return token.toLowerCase();
+      if (BOKSTAV_OG_TALL.test(token)) return token.toUpperCase();
+      // Stor forbokstav, resten små – håndterer norske tegn
+      return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+    });
+  }
+
   function erGyldigMobil(nr) {
     return /^[4-9]\d{7}$/.test(nr.replace(/\s/g, ""));
   }
@@ -361,8 +387,8 @@
         fornavn:     navn.match(/,\s*(.+)/)?.[1]?.trim() || "",
         reiseTid:    getText(idxMap.reiseTid),
         oppTid:      getText(idxMap.oppTid),
-        fraAdresse:  cleanAddressSuffixes(getText(idxMap.fra)),
-        tilAdresse:  cleanAddressSuffixes(getText(idxMap.til)),
+        fraAdresse:  normaliserAdresse(cleanAddressSuffixes(getText(idxMap.fra))),
+        tilAdresse:  normaliserAdresse(cleanAddressSuffixes(getText(idxMap.til))),
         valgbar:     false,
       }];
     } else {
@@ -384,8 +410,8 @@
           fornavn:     navn.match(/,\s*(.+)/)?.[1]?.trim() || "",
           reiseTid:    starts[i]  || "",
           oppTid:      opptids[i] || "",
-          fraAdresse:  cleanAddressSuffixes(fraer[i] || ""),
-          tilAdresse:  cleanAddressSuffixes(tiler[i] || ""),
+          fraAdresse:  normaliserAdresse(cleanAddressSuffixes(fraer[i] || "")),
+          tilAdresse:  normaliserAdresse(cleanAddressSuffixes(tiler[i] || "")),
           valgbar:     true,
         };
       });
@@ -405,8 +431,8 @@
     const fraCell = cells[idxMap.fra];
     if (fraCell) {
       const parts = fraCell.innerHTML.split(/<br\s*\/?>/i);
-      fraAdresse = cleanAddressSuffixes((parts[0] || "").replace(/<[^>]+>/g, "").trim());
-      tilAdresse = cleanAddressSuffixes((parts[1] || "").replace(/<[^>]+>/g, "").trim());
+      fraAdresse = normaliserAdresse(cleanAddressSuffixes((parts[0] || "").replace(/<[^>]+>/g, "").trim()));
+      tilAdresse = normaliserAdresse(cleanAddressSuffixes((parts[1] || "").replace(/<[^>]+>/g, "").trim()));
     }
 
     return { id, pasientNavn, fornavn, reiseTid, oppTid, fraAdresse, tilAdresse };
