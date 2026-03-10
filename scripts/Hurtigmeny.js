@@ -5,12 +5,11 @@
 (function () {
   'use strict';
 
-  const SCRIPT_ID = 'Hurtigmeny_v1';
-  if (window[SCRIPT_ID]) {
-    console.log('[Hurtigmeny] Allerede installert.');
+  if (window.__hurtigmenyInstalled) {
+    console.log('✅ Hurtigmeny er allerede aktiv');
     return;
   }
-  window[SCRIPT_ID] = true;
+  window.__hurtigmenyInstalled = true;
 
   // ── Stil ────────────────────────────────────────────────────
   const style = document.createElement('style');
@@ -154,11 +153,6 @@
     // 'Pasientreiser Sør-Trøndelag',
   ];
 
-  const SEND_SMS_OFFICES = [
-    'Pasientreiser Nord-Trøndelag',
-    // Legg til flere kontorer her etter hvert
-  ];
-
   // ── Hjelpefunksjon: Sjekk hvilket kontor brukeren er på ─────
   function getCurrentOffice() {
     const topframeCell = document.querySelector('.topframe_small');
@@ -171,11 +165,6 @@
   function hasSjekkPlakatAccess() {
     const office = getCurrentOffice();
     return office && SJEKK_PLAKAT_OFFICES.includes(office);
-  }
-
-  function hasSendSMSAccess() {
-    const office = getCurrentOffice();
-    return office && SEND_SMS_OFFICES.includes(office);
   }
 
   // ── Pasientnavn / ressursnavn fra rad ────────────────────────
@@ -282,10 +271,10 @@
   function ventendeMeny(row) {
     return [
       ...clipboardSection(),
-      item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s')),
-      item('📆', 'Tilordning 2.0',  'Alt+T', () => triggerAlt('t')),
-      item('🚐', 'Samkjøring',      'Alt+X', () => triggerAlt('x')),
-      sep(),
+      ...(scriptLoaded.smartTildeling()  ? [item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s'))] : []),
+      ...(scriptLoaded.smartTildeling()  ? [item('📆', 'Tilordning 2.0',  'Alt+T', () => triggerAlt('t'))] : []),
+      ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',      'Alt+X', () => triggerAlt('x'))] : []),
+      ...(scriptLoaded.smartTildeling() || scriptLoaded.samkjoring() ? [sep()] : []),
       item('🕐', 'Hentetid',        'Alt+E', () => triggerAlt('e')),
       item('✏️', 'Rediger', null, () => {
         const link = row.querySelector('a[href*="redit"]');
@@ -304,7 +293,7 @@
       item('🔠', 'Rek-knapper',     'Alt+R', () => triggerAlt('r')),
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
-      ...(hasSendSMSAccess() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
+      ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
       item('🗺️', 'Vis i kart',      'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering', 'Alt+Q', () => triggerAlt('q')),
       sep(),
@@ -315,6 +304,14 @@
       item('✖️', 'Avbestilling',     'Alt+K', () => triggerAlt('k')),
     ];
   }
+
+  // ── Sjekk om scripts er installert via loader ────────────────
+  const scriptLoaded = {
+    smartTildeling:  () => !!window.__smartTildelingInstalled,
+    samkjoring:      () => !!window.nissySamkjoringLoaded,
+    liveRessurskart: () => !!window.__liveRessurskartHotkeyInstalled,
+    sendSMS:         () => !!window.__sendSMSActive,
+  };
 
   // ── Sjekk om minst én merket pågående-rad har ressurs med status Tildelt ──
   function hasTildeltPaagaende() {
@@ -330,14 +327,14 @@
   function paagaaendeMeny(row) {
     return [
       ...clipboardSection(),
-      item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
+      ...(scriptLoaded.liveRessurskart() ? [item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z'))] : []),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
-      item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x')),
+      ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x'))] : []),
       sep(),
       ...(hasTildeltPaagaende() ? [item('🕐', 'Hentetid', 'Alt+E', () => triggerAlt('e'))] : []),
       item('🔠', 'Rek-knapper',      'Alt+R', () => triggerAlt('r')),
       sep(),
-      ...(hasSendSMSAccess() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
+      ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
       item('🗺️', 'Vis i kart',       'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering',  'Alt+Q', () => triggerAlt('q')),
       sep(),
@@ -381,10 +378,10 @@
     }
     return [
       ...clipboardSection(),
-      item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
+      ...(scriptLoaded.liveRessurskart() ? [item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z'))] : []),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
       sep(),
-      ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) && hasSendSMSAccess() ? [
+      ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) && scriptLoaded.sendSMS() ? [
         item('📱', 'Send SMS til sjåfør', null, () => {
           if (typeof window.__openSjaaforSMSPopup === 'function') {
             window.__openSjaaforSMSPopup(row);
@@ -570,7 +567,7 @@
       item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
       sep(),
       // ── Diverse verktøy ──────────────────────────────────────
-      ...(hasSendSMSAccess() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c'))] : []),
+      ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c'))] : []),
       item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
       item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
       sep(),
@@ -640,6 +637,6 @@
   document.addEventListener('contextmenu', onContextMenu, true);
 
   console.log('[Hurtigmeny] Installert — høyreklikk i ventende / pågående / ressurser.');
-  if (typeof showToast === 'function') showToast('🖱️ Hurtigmeny aktivert', 2000);
+  console.log('✅ Hurtigmeny aktivert');
 
 })();
