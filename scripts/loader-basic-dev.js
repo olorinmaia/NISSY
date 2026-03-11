@@ -23,6 +23,8 @@
     'Hentetid.js',
     'Rek-knapper.js',
     'Rutekalkulering.js',
+    'Hurtigmeny.js',
+    'Send-SMS.js',
     'Logg.js'
   ];
   
@@ -395,7 +397,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.8.7):</strong><br>
+          <strong>📝 Endringslogg (V3.9.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

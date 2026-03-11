@@ -81,6 +81,23 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/060daa07-6149-48ac-9cb5-d373b25eeaf9" />
 
+- 📱 **Send-SMS (Alt+C)**
+  - Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
+  - "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
+  - Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+  - Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+  - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
+  - Logger SMS-utsendelser i Handlingslogg.
+  - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+
+- 🖱️ **Hurtigmeny**
+  - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
+  - Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
+  - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
+  - Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
+  - Støtter Kopier / Klipp ut / Lim inn.
+  - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
+
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
 
@@ -136,11 +153,13 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 📞 Sjekk-Telefon | ✅ | ✅ | ✅ |
 | 📊 Statistikk | ✅ | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
+| 🖱️ Hurtigmeny | ❌ | ✅ | ✅ |
 | 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
 | ⚙️ Adminmodul (ALT+A) | ✅ | ✅ | ✅ |
 | 📋 Handlingslogg (ALT+L) | ✅ | ✅ | ✅ |
+| 📱 Send-SMS (ALT+C) | ✅ | ✅ | ✅ |
 | ✖️ Avbestill (ALT+K) | ❌ | ✅ | ✅ |
 | 🕐 Hentetid (ALT+E) | ❌ | ✅ | ✅ |
 | 🔠 Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |
@@ -216,6 +235,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+E` | Hentetid |
 | `ALT+X` | Samkjøring |
 | `ALT+L` | Handlingslogg |
+| `ALT+C` | Send-SMS |
 
 ## 🐛 Kjente feil / ofte stilte spørsmål
 

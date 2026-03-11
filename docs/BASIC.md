@@ -22,6 +22,8 @@ NISSY Basic er perfekt for deg som:
 - ✖️ **Avbestilling** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 - 📋 **Handlingslogg** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
 - 🔔 **Overvåk-Ventende** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
+- 📱 **Send-SMS** - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag. Send SMS til sjåfør ved å høyreklikke på løyve, henter automatisk nummer fra 3003.
+- 🖱️ **Hurtigmeny** - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene. Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og dato/tidsfeil, lar deg søke opp disse for å rette opp.
@@ -89,6 +91,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | `ALT+A` | Adminmodul |
 | `ALT+K` | Avbestilling av merkede turer/bestillinger |
 | `ALT+L` | Handlingslogg |
+| `ALT+C` | Send-SMS |
 
 ## 📖 Detaljert brukerveiledning
 
@@ -214,6 +217,23 @@ Start og stopp scriptet ved å trykke på knappen over ventende oppdrag.
 - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
 - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
+
+### 📱 **Send-SMS (Alt+C)**
+Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
+"Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
+- Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+- Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+- Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
+- Logger SMS-utsendelser i Handlingslogg.
+- Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+
+### 🖱️ **Hurtigmeny**
+Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
+Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
+- Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
+- Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
+- Støtter Kopier / Klipp ut / Lim inn.
+- Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
 
 ## 🆙 Oppgradering
 

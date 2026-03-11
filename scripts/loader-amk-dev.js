@@ -20,6 +20,7 @@
     'Bestillingsmodul.js',
     'Adminmodul.js',
     'Ressursinfo.js',
+    'Send-SMS.js',
     'Logg.js'
   ];
   
