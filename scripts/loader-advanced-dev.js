@@ -27,6 +27,7 @@
     'Samkjøring.js',
     'Live-ressurskart.js',
     'Hurtigmeny.js',
+    'Send-SMS.js',
     'Logg.js'
   ];
   
@@ -421,6 +422,7 @@
           • ALT+A → Adminmodul<br>
           • ALT+L → Handlingslogg<br>
           • ALT+Z → Live ressurskart<br>
+          • ALT+C → Send SMS<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">

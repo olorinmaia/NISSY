@@ -23,6 +23,8 @@
     'Hentetid.js',
     'Rek-knapper.js',
     'Rutekalkulering.js',
+    'Hurtigmeny.js',
+    'Send-SMS.js',
     'Logg.js'
   ];
   
@@ -402,6 +404,7 @@
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
           • ALT+L → Handlingslogg<br>
+          • ALT+C → Send SMS<br>
         </div>
 
         <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
@@ -414,7 +417,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.8.7):</strong><br>
+          <strong>📝 Endringslogg (V3.9.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

@@ -5,12 +5,11 @@
 (function () {
   'use strict';
 
-  const SCRIPT_ID = 'Hurtigmeny_v1';
-  if (window[SCRIPT_ID]) {
-    console.log('[Hurtigmeny] Allerede installert.');
+  if (window.__hurtigmenyInstalled) {
+    console.log('✅ Hurtigmeny er allerede aktiv');
     return;
   }
-  window[SCRIPT_ID] = true;
+  window.__hurtigmenyInstalled = true;
 
   // ── Stil ────────────────────────────────────────────────────
   const style = document.createElement('style');
@@ -217,14 +216,27 @@
       (active.tagName === 'INPUT' && TEXT_INPUT_TYPES.has((active.type || 'text').toLowerCase()))
     );
 
+    // Klipp ut — kun når tekst er merket inne i et redigerbart felt
+    if (selectedText && isEditable) {
+      items.push(item('✂️', 'Klipp ut tekst', 'Ctrl+X', () => {
+        navigator.clipboard?.writeText(selectedText).then(() => {
+          document.execCommand('cut');
+        }).catch(() => {
+          document.execCommand('cut');
+        });
+      }));
+    }
+
+    // Kopier — når tekst er merket (også utenfor redigerbart felt)
     if (selectedText) {
-      items.push(item('✂️', 'Kopier merket tekst', 'Ctrl+C', () => {
+      items.push(item('📄', 'Kopier tekst', 'Ctrl+C', () => {
         navigator.clipboard?.writeText(selectedText).catch(() => {
           document.execCommand('copy');
         });
       }));
     }
 
+    // Lim inn — kun i redigerbart felt
     if (isEditable) {
       items.push(item('📋', 'Lim inn tekst', 'Ctrl+V', () => {
         navigator.clipboard?.readText().then(text => {
@@ -259,40 +271,73 @@
   function ventendeMeny(row) {
     return [
       ...clipboardSection(),
-      item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s')),
-      item('📆', 'Tilordning 2.0',  'Alt+T', () => triggerAlt('t')),
-      item('🚐', 'Samkjøring',      'Alt+X', () => triggerAlt('x')),
-      sep(),
-      item('🕐', 'Hentetid',        'Alt+E', () => triggerAlt('e')),
+      ...(scriptLoaded.smartTildeling()  ? [item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s'))] : []),
+      ...(scriptLoaded.smartTildeling()  ? [item('📆', 'Tilordning 2.0',  'Alt+T', () => triggerAlt('t'))] : []),
+      ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',      'Alt+X', () => triggerAlt('x'))] : []),
+      ...(scriptLoaded.smartTildeling() || scriptLoaded.samkjoring() ? [sep()] : []),
+      ...(scriptLoaded.hentetid()    ? [item('🕐', 'Hentetid',    'Alt+E', () => triggerAlt('e'))] : []),
       item('✏️', 'Rediger', null, () => {
         const link = row.querySelector('a[href*="redit"]');
         if (link) window.open(link.href, '_blank');
       }, true /* kun denne rad */),
-      item('↔️', 'Møteplass',       'Alt+M', () => triggerAlt('m'), true),
-      item('🔠', 'Rek-knapper',     'Alt+R', () => triggerAlt('r')),
+      item('↔️', 'Møteplass',
+        countSelected('ventende') === 1 ? 'Alt+M' : null,
+        () => {
+          const rid = row.getAttribute('name');
+          if (window.Bestillingsmodul?.openMeetingplace) {
+            window.Bestillingsmodul.openMeetingplace(rid);
+          } else {
+            triggerAlt('m');
+          }
+        }, true),
+      ...(scriptLoaded.rekKnapper() ? [item('🔠', 'Rek-knapper', 'Alt+R', () => triggerAlt('r'))] : []),
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
+      ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
       item('🗺️', 'Vis i kart',      'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering', 'Alt+Q', () => triggerAlt('q')),
       sep(),
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
       }, true),
-      sep(),
-      item('✖️', 'Avbestilling',     'Alt+K', () => triggerAlt('k')),
+      ...(scriptLoaded.avbestilling() ? [sep()] : []),
+      ...(scriptLoaded.avbestilling() ? [item('✖️', 'Avbestilling', 'Alt+K', () => triggerAlt('k'))] : []),
     ];
+  }
+
+  // ── Sjekk om scripts er installert via loader ────────────────
+  const scriptLoaded = {
+    smartTildeling:  () => !!window.__smartTildelingInstalled,
+    samkjoring:      () => !!window.nissySamkjoringLoaded,
+    liveRessurskart: () => !!window.__liveRessurskartHotkeyInstalled,
+    sendSMS:         () => !!window.__sendSMSActive,
+    hentetid:        () => !!window.__endreTidHotkeyInstalled,
+    rekKnapper:      () => !!window.__rekKnapperHotkeyInstalled,
+    avbestilling:    () => !!window.__avbestillingHotkeyInstalled,
+  };
+
+  // ── Sjekk om minst én merket pågående-rad har ressurs med status Tildelt ──
+  function hasTildeltPaagaende() {
+    const selectedRows = document.querySelectorAll('#pagaendeoppdrag tr[style*="rgb(148, 169, 220)"]');
+    for (const row of selectedRows) {
+      const resourceId = row.getAttribute('name');
+      const statusCell = document.getElementById(`Rxxxstatusxxx${resourceId}`);
+      if (statusCell?.textContent.trim() === 'Tildelt') return true;
+    }
+    return false;
   }
 
   function paagaaendeMeny(row) {
     return [
       ...clipboardSection(),
-      item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
+      ...(scriptLoaded.liveRessurskart() ? [item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z'))] : []),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
-      item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x')),
+      ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x'))] : []),
       sep(),
-      item('🕐', 'Hentetid',         'Alt+E', () => triggerAlt('e')),
-      item('🔠', 'Rek-knapper',      'Alt+R', () => triggerAlt('r')),
-      sep(),
+      ...(scriptLoaded.hentetid() && hasTildeltPaagaende() ? [item('🕐', 'Hentetid', 'Alt+E', () => triggerAlt('e'))] : []),
+      ...(scriptLoaded.rekKnapper() ? [item('🔠', 'Rek-knapper', 'Alt+R', () => triggerAlt('r'))] : []),
+      ...(scriptLoaded.hentetid() || scriptLoaded.rekKnapper() ? [sep()] : []),
+      ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
       item('🗺️', 'Vis i kart',       'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering',  'Alt+Q', () => triggerAlt('q')),
       sep(),
@@ -304,8 +349,8 @@
         if (qBtn) qBtn.click();
         else console.warn('[Hurtigmeny] Fant ikke admin-link for ressurs:', ressursId);
       }, true),
-      sep(),
-      item('✖️', 'Avbestilling',      'Alt+K', () => triggerAlt('k')),
+      ...(scriptLoaded.avbestilling() ? [sep()] : []),
+      ...(scriptLoaded.avbestilling() ? [item('✖️', 'Avbestilling', 'Alt+K', () => triggerAlt('k'))] : []),
     ];
   }
 
@@ -336,9 +381,19 @@
     }
     return [
       ...clipboardSection(),
-      item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z')),
+      ...(scriptLoaded.liveRessurskart() ? [item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z'))] : []),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
       sep(),
+      ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) && scriptLoaded.sendSMS() ? [
+        item('📱', 'Send SMS til sjåfør', null, () => {
+          if (typeof window.__openSjaaforSMSPopup === 'function') {
+            window.__openSjaaforSMSPopup(row);
+          } else {
+            alert('SendSMS.js er ikke lastet.');
+          }
+        }, true),
+        sep(),
+      ] : []),
       item('📝', 'Merknad', null, () => openAjaxPopup('showResourceComment'), true),
       item('⚠️', 'Avvik',   null, () => openAjaxPopup('showResourceDeviation'), true),
       sep(),
@@ -515,6 +570,7 @@
       item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
       sep(),
       // ── Diverse verktøy ──────────────────────────────────────
+      ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c'))] : []),
       item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
       item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
       sep(),
@@ -584,6 +640,6 @@
   document.addEventListener('contextmenu', onContextMenu, true);
 
   console.log('[Hurtigmeny] Installert — høyreklikk i ventende / pågående / ressurser.');
-  if (typeof showToast === 'function') showToast('🖱️ Hurtigmeny aktivert', 2000);
+  console.log('✅ Hurtigmeny aktivert');
 
 })();

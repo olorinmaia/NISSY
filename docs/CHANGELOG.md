@@ -4,11 +4,29 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## Planlagt
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig.
-- Ny og forbedret SMS-modul med kontor-spesifikke maler. Se på mulighet for automatisk SMS-utsendelse basert på gitte parametre.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
-- Hurtigmeny ved høyreklikking i ressurser, ventende/pågående oppdrag og utenfor med rask tilgang til nyttige funksjoner/script
 
 ---
+## 🚀 [3.9.0] - 11.03.2026
+
+### To nye script 📱 Send-SMS og 🖱️ Hurtigmeny lansert
+
+- 📱 **Send-SMS (Alt+C)**
+  - Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
+  - "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
+  - Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+  - Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+  - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
+  - Logger SMS-utsendelser i Handlingslogg.
+  - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+- 🖱️ **Hurtigmeny**
+  - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
+  - Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
+  - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
+  - Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
+  - Støtter Kopier / Klipp ut / Lim inn.
+  - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
+
 ## 🚀 [3.8.7] - 05.03.2026
 
 ### Liten forbedring til Alenebil-script og Rek-knapper

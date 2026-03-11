@@ -3317,6 +3317,11 @@
     
     // Global funksjoner for knappene
     window.nextAutoGrouping = function() {
+        // Lukk eksisterende popup først (fjerner også event listeners)
+        if (window.closeAutoGroupPopup) {
+            window.closeAutoGroupPopup();
+        }
+        
         const nextResult = findVentendeGrouping(currentAutoGroupIndex + 1);
         if (nextResult) {
             showAutoGroupingPopup(nextResult);

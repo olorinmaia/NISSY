@@ -18,6 +18,8 @@ NISSY AMK er perfekt for deg som:
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen og åpner i pop-up over planleggingsvindu.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
 - 📋 **Handlingslogg** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
+- 📱 **Send-SMS** - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag. Send SMS til sjåfør ved å høyreklikke på løyve, henter automatisk nummer fra 3003.
+- 🖱️ **Hurtigmeny** - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene. Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
 - 🔔 **Overvåk-Ventende** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
@@ -83,6 +85,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | `ALT+H` | Hent Rekvisisjon |
 | `ALT+A` | Adminmodul |
 | `ALT+L` | Handlingslogg |
+| `ALT+C` | Send-SMS |
 
 ## 📖 Detaljert brukerveiledning
 
@@ -161,6 +164,22 @@ Fanger opp "?"-linker i planleggingsvinduet og søker frem tur/bestilling velger
 
 Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
 Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
+
+### 📱 **Send-SMS (Alt+C)**
+Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
+"Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
+- Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+- Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+- Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
+- Logger SMS-utsendelser i Handlingslogg.
+- Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+
+### 🖱️ **Hurtigmeny**
+Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
+Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
+- Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
+- Støtter Kopier / Klipp ut / Lim inn.
+- Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
 
 ## ❓ Feilsøking
 

@@ -432,6 +432,17 @@
     return count;
   }
 
+  function countTodaysSMS() {
+    const log = getLogEntries();
+    let count = 0;
+    log.forEach(entry => {
+      if (entry.action === 'SMS' && entry.details) {
+        count += entry.details.length;
+      }
+    });
+    return count;
+  }
+
   /**
    * Vis logg i popup
    */
@@ -664,6 +675,17 @@
       }
       statsText.appendChild(createFilterBadge('Fjerning', todaysRemovals2, '#95a5a6'));
     }
+
+    const todaysSMS = countTodaysSMS();
+    if (todaysSMS > 0) {
+      if (todaysAssignments > 0 || todaysCancellations > 0 || todaysRemovals > 0 || todaysRemovals2 > 0) {
+        const sep = document.createElement('span');
+        sep.style.color = '#999';
+        sep.textContent = '·';
+        statsText.appendChild(sep);
+      }
+      statsText.appendChild(createFilterBadge('SMS', todaysSMS, '#2e7d32'));
+    }
     
     // Total count (ikke klikkbar) - tell antall elementer, ikke entries
     const totalSep = document.createElement('span');
@@ -811,7 +833,8 @@
                          data-admin-link="true" title="Søk etter ${detail.reqId} i NISSY admin">
                          ${detail.title || detail.reqId}
                       </a>`;
-              if (detail.status) html += ` <span style="color: #999;">Status: ${detail.status}</span>`;
+              if (detail.status && entry.action !== 'SMS') html += ` <span style="color: #999;">Status: ${detail.status}</span>`;
+              if (detail.mal) html += ` <span style="color: #2e7d32;">📱 ${detail.mal}</span>`;
             } else {
               // BESTILLING: Vis rekvisisjonsnummer med link (nr-basert), reisetid og adresser
               html = `<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
@@ -831,6 +854,7 @@
                   : (detail.fromPostal || detail.toPostal);
                 html += ` <span style="color: #999;">📍 ${route}</span>`;
               }
+              if (detail.mal) html += ` <span style="color: #2e7d32;">📱 ${detail.mal}</span>`;
               
               html += `</div>`;
               
@@ -938,6 +962,7 @@
       'Avplanlegging': '↩️',
       'Fjerning': '🗑️',
       'Endring': '✏️',
+      'SMS': '📱',
       'Annet': '📝'
     };
     return icons[actionType] || '📝';
@@ -1535,6 +1560,18 @@
           searchButton.click();
         }
       }, 100);
+    }
+  };
+
+  /**
+   * PUBLIC API: Logg SMS-utsending fra Send-SMS.js
+   * details: array av { reqId, title, mal, avtale?, status? }
+   *   - Bestilling: reqId=intern rid, title=rekvnr, mal=malnavn
+   *   - Sjåfør:     reqId=turnummer, title=løyvenummer, avtale=løyvenummer, status=malnavn, mal=malnavn
+   */
+  window.nissyLoggSMS = function(details) {
+    if (Array.isArray(details) && details.length > 0) {
+      saveLogEntry('SMS', details);
     }
   };
 })();
