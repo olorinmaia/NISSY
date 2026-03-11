@@ -7,6 +7,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.1] - 11.03.2026
+
+### Lagt til kontor-spesifikke maler i Send-SMS
+
+- 📱 **Send-SMS**
+  - Lagt til kontor-spesifikke maler for Pasientreiser Møre og Romsdal.
+
 ## 🚀 [3.9.0] - 11.03.2026
 
 ### To nye script 📱 Send-SMS og 🖱️ Hurtigmeny lansert
