@@ -12,6 +12,7 @@
   // ── Kontor-tilgang ───────────────────────────────────────────
   const SEND_SMS_OFFICES = [
     'Pasientreiser Nord-Trøndelag',
+    'Kontoret for pasientreiser, Ålesund',
     // Legg til flere kontorer her etter hvert
   ];
   const _officeCell  = document.querySelector('.topframe_small');
@@ -132,7 +133,120 @@
       ],
 
     },
+    
+    // ----------------------------------------------------------
+    // Pasientreiser Møre og Romsdal
+    // ----------------------------------------------------------
+    'Kontoret for pasientreiser, Ålesund': {
 
+      bestilling: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Planlagt reise til behandling",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Kristiansund lufthavn",
+          autoVelgHvis: (info) =>
+            /kristiansund lufthavn|kvernberget|KSU/i.test(info.fraAdresse),
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Kristiansund lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Molde lufthavn",
+          autoVelgHvis: (info) =>
+            /molde lufthavn|årø|MOL/i.test(info.fraAdresse),
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Molde lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Ørsta/Volda lufthavn",
+          autoVelgHvis: (info) =>
+            /volda lufthavn|hovden|ørstad|HOV/i.test(info.fraAdresse),
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Ørsta/Volda lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Ålesund lufthavn",
+          autoVelgHvis: (info) =>
+            /ålesund lufthavn|vigra|AES/i.test(info.fraAdresse),
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Ålesund lufthavn med henting ${formaterTid(info.reiseTid)}.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+      ],
+
+      fritekst: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting kl. TT:MM.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Kristiansund lufthavn",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Kristiansund lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Molde lufthavn",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Molde lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Ørsta/Volda lufthavn",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Ørsta/Volda lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Ålesund lufthavn",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi kan bekrefte at det er bestilt drosje fra Ålesund Lufthavn.\nRing 05515 når du har landet og er reiseklar slik at vi kan tildele din bestilling til transportør.\n\nDu kan se og endre dine pasientreiser på Helsenorge.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+      ],
+
+      sjaafor: [
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+      ],
+
+    },
     // ----------------------------------------------------------
     // Legg til nye kontor her:
     // ----------------------------------------------------------
