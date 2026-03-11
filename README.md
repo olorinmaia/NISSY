@@ -89,6 +89,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
   - Logger SMS-utsendelser i Handlingslogg.
   - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+  - <img width="300" alt="image" src="https://github.com/user-attachments/assets/0f0780f4-e2cd-4c6a-a66e-e82704673130" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/e48215bb-a6b6-4f08-8697-152a7c61a32a" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/4400471f-a0da-4ed5-848c-2b0d9376f560" />
 
 - 🖱️ **Hurtigmeny**
   - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
@@ -97,6 +98,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
   - Støtter Kopier / Klipp ut / Lim inn.
   - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
+  - <img width="200" alt="image" src="https://github.com/user-attachments/assets/3f6d6dd2-69d7-4f53-aadf-8dfc52591d92" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/b2bfe108-22ea-4bce-98f9-72b3e1b9b8c7" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/c1d70557-4dcb-4e35-b0a5-22da016fc649" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/00835359-f1f7-46eb-b67a-3b60364f7787" />
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
