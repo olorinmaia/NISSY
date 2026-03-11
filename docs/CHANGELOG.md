@@ -11,8 +11,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ### To nye script 📱 Send-SMS og 🖱️ Hurtigmeny lansert
 
-- 📱 **Send-SMS**
-  - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
+- 📱 **Send-SMS (Alt+C)**
+  - Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
   - "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
   - Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
   - Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
