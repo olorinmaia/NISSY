@@ -138,7 +138,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 Intelligent tildeling som automatisk:
 - Detekterer RB/ERS i bestillinger
 - Teller overlappende passasjerer, ledsager og enkelte spesielle behov
-- Velger riktig avtale basert på regler (KREVER KONFIGURASJON, TA KONTAKT FOR HJELP)
+- Velger riktig avtale basert på regler **(OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING, TA KONTAKT FOR HJELP)**
 
 **Slik bruker du:**
 
