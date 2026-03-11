@@ -275,7 +275,7 @@
       ...(scriptLoaded.smartTildeling()  ? [item('📆', 'Tilordning 2.0',  'Alt+T', () => triggerAlt('t'))] : []),
       ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',      'Alt+X', () => triggerAlt('x'))] : []),
       ...(scriptLoaded.smartTildeling() || scriptLoaded.samkjoring() ? [sep()] : []),
-      item('🕐', 'Hentetid',        'Alt+E', () => triggerAlt('e')),
+      ...(scriptLoaded.hentetid()    ? [item('🕐', 'Hentetid',    'Alt+E', () => triggerAlt('e'))] : []),
       item('✏️', 'Rediger', null, () => {
         const link = row.querySelector('a[href*="redit"]');
         if (link) window.open(link.href, '_blank');
@@ -290,7 +290,7 @@
             triggerAlt('m');
           }
         }, true),
-      item('🔠', 'Rek-knapper',     'Alt+R', () => triggerAlt('r')),
+      ...(scriptLoaded.rekKnapper() ? [item('🔠', 'Rek-knapper', 'Alt+R', () => triggerAlt('r'))] : []),
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
       ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
@@ -300,8 +300,8 @@
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
       }, true),
-      sep(),
-      item('✖️', 'Avbestilling',     'Alt+K', () => triggerAlt('k')),
+      ...(scriptLoaded.avbestilling() ? [sep()] : []),
+      ...(scriptLoaded.avbestilling() ? [item('✖️', 'Avbestilling', 'Alt+K', () => triggerAlt('k'))] : []),
     ];
   }
 
@@ -311,6 +311,9 @@
     samkjoring:      () => !!window.nissySamkjoringLoaded,
     liveRessurskart: () => !!window.__liveRessurskartHotkeyInstalled,
     sendSMS:         () => !!window.__sendSMSActive,
+    hentetid:        () => !!window.__endreTidHotkeyInstalled,
+    rekKnapper:      () => !!window.__rekKnapperHotkeyInstalled,
+    avbestilling:    () => !!window.__avbestillingHotkeyInstalled,
   };
 
   // ── Sjekk om minst én merket pågående-rad har ressurs med status Tildelt ──
@@ -331,9 +334,9 @@
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
       ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x'))] : []),
       sep(),
-      ...(hasTildeltPaagaende() ? [item('🕐', 'Hentetid', 'Alt+E', () => triggerAlt('e'))] : []),
-      item('🔠', 'Rek-knapper',      'Alt+R', () => triggerAlt('r')),
-      sep(),
+      ...(scriptLoaded.hentetid() && hasTildeltPaagaende() ? [item('🕐', 'Hentetid', 'Alt+E', () => triggerAlt('e'))] : []),
+      ...(scriptLoaded.rekKnapper() ? [item('🔠', 'Rek-knapper', 'Alt+R', () => triggerAlt('r'))] : []),
+      ...(scriptLoaded.hentetid() || scriptLoaded.rekKnapper() ? [sep()] : []),
       ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
       item('🗺️', 'Vis i kart',       'Alt+W', () => triggerAlt('w')),
       item('🗺️', 'Rutekalkulering',  'Alt+Q', () => triggerAlt('q')),
@@ -346,8 +349,8 @@
         if (qBtn) qBtn.click();
         else console.warn('[Hurtigmeny] Fant ikke admin-link for ressurs:', ressursId);
       }, true),
-      sep(),
-      item('✖️', 'Avbestilling',      'Alt+K', () => triggerAlt('k')),
+      ...(scriptLoaded.avbestilling() ? [sep()] : []),
+      ...(scriptLoaded.avbestilling() ? [item('✖️', 'Avbestilling', 'Alt+K', () => triggerAlt('k'))] : []),
     ];
   }
 

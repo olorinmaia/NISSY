@@ -153,7 +153,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 📞 Sjekk-Telefon | ✅ | ✅ | ✅ |
 | 📊 Statistikk | ✅ | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
-| 🖱️ Hurtigmeny | ❌ | ✅ | ✅ |
+| 🖱️ Hurtigmeny | ✅ | ✅ | ✅ |
 | 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
