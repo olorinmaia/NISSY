@@ -110,6 +110,25 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Detect mulig samkjøring (overlappende kjørevinduer)
+  // ============================================================
+  function detectSamkjortWarning(bestillinger) {
+    const utgaende = bestillinger.filter(b => {
+      if (!b.existingTime || !b.oppmotetid) return false;
+      return b.existingTime.replace(':', '') < b.oppmotetid.replace(':', '');
+    });
+    if (utgaende.length < 4) return null;
+
+    const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const senestStart = Math.max(...utgaende.map(b => toMin(b.existingTime)));
+    const tidligstSlutt = Math.min(...utgaende.map(b => toMin(b.oppmotetid)));
+
+    if (senestStart >= tidligstSlutt) return null;
+
+    return { count: utgaende.length, extraMinutes: utgaende.length * 5 };
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Trim tekst til maks lengde
   // ============================================================
   function truncateText(text, maxLength) {
@@ -1795,6 +1814,25 @@
     `;
     }).join('');
 
+    const samkjortAdvarsel = detectSamkjortWarning(bestillinger);
+    const samkjortWarningHtml = samkjortAdvarsel ? `
+      <div style="
+        background: #fff8e1;
+        border: 1px solid #f9a825;
+        border-left: 4px solid #f57f17;
+        padding: 10px 12px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+        font-size: 12px;
+        color: #5d4037;
+      ">
+        ⚠️ <strong>${samkjortAdvarsel.count} opphentinger med overlappende kjørevinduer</strong><br>
+        Husk å legge til ekstra tid på første henting for av-/påstigningstid og evt. omkjøringtid.<br>
+        <strong>Tommelfingerregel:</strong> ca. ${samkjortAdvarsel.extraMinutes} min ekstra
+        (${samkjortAdvarsel.count} × 5 min).
+      </div>
+    ` : '';
+
     popup.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h2 style="margin: 0; font-size: 18px; color: #333;">
@@ -1853,7 +1891,9 @@
       ">
         <strong>${bestillinger.length} bestillinger valgt</strong>${sourceInfo} - Juster hentetid individuelt
       </div>
-      
+
+      ${samkjortWarningHtml}
+
       <div id="bestillingerContainer" style="
         max-height: 550px;
         overflow-y: auto;
