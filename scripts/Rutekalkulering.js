@@ -115,6 +115,7 @@
     "Gastro dagbeh, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SLS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Geriatrisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Kir post 3, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
