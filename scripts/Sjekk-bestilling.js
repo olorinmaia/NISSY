@@ -756,6 +756,39 @@
     return errors;
   }
 
+  // ============================================================
+  // SJEKK: Bestillinger med veldig kort reisetid (1-9 minutter)
+  // Fanger opp bestillinger der hentetid er kun 1-9 min før oppmøtetid,
+  // noe som tyder på manglende tidstillegg for på-/avstigning.
+  // ============================================================
+  function findShortTravelTime() {
+    const ventendeData = extractVentendeData();
+    const pagaendeData = extractPagaendeData();
+    const allData = [...ventendeData, ...pagaendeData];
+
+    const errors = [];
+
+    for (const item of allData) {
+      const hentetidMinutes = parseTimeFlexible(item.hentetid);
+      const leveringstidMinutes = parseTimeFlexible(item.leveringstid);
+
+      if (hentetidMinutes === null || leveringstidMinutes === null) continue;
+
+      const diff = leveringstidMinutes - hentetidMinutes;
+
+      // Fang opp bestillinger med 1-9 minutters reisetid
+      if (diff >= 1 && diff <= 9) {
+        errors.push({
+          navn: item.navn,
+          items: [item],
+          reason: `Veldig kort reisetid: ${diff} minutt${diff === 1 ? '' : 'er'} (hent ${item.hentetid.replace(/<[^>]*>/g, '').trim()} → oppmøte ${item.leveringstid.replace(/<[^>]*>/g, '').trim()})`
+        });
+      }
+    }
+
+    return errors;
+  }
+
   function searchInPlanning(navn) {
     closeModal();
     
@@ -826,7 +859,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -853,7 +886,7 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length;
     
     let html = `
       <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -891,6 +924,9 @@
       if (returnBeforeOutbound.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">🔄⏰ ${returnBeforeOutbound.length} pasient${returnBeforeOutbound.length === 1 ? '' : 'er'} hvor retur-hentetid er lik eller før oppmøtetid</div>`;
       }
+      if (shortTravelTime.length > 0) {
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⚡ ${shortTravelTime.length} bestilling${shortTravelTime.length === 1 ? '' : 'er'} med veldig kort reisetid (1–9 minutter)</div>`;
+      }
       html += '</div>';
       
       if (problematicNeeds.length > 0) {
@@ -918,6 +954,11 @@
         html += renderDuplicates(countDuplicates, 'count');
       }
       
+      if (shortTravelTime.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⚡ Bestillinger med veldig kort reisetid</h3>';
+        html += renderDuplicates(shortTravelTime, 'shorttravel');
+      }
+
       if (routeDuplicates.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄 Duplikater med samme fra- eller til-adresse</h3>';
         html += renderDuplicates(routeDuplicates, 'route');
@@ -965,7 +1006,8 @@
       'date': '#dc3545',
       'problematic': '#dc3545',
       'timelogic': '#dc3545',
-      'returnbeforeout': '#dc3545'
+      'returnbeforeout': '#dc3545',
+      'shorttravel': '#dc3545'
     };
     
     const color = colorMap[type] || '#6c757d';
@@ -1057,7 +1099,8 @@
     const problematicNeeds = findProblematicNeeds();
     const timeLogicErrors = findTimeLogicErrors();
     const returnBeforeOutbound = findReturnBeforeOutbound(excludedNames);
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound);
+    const shortTravelTime = findShortTravelTime();
+    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime);
   } catch (error) {
     // Feil under kolonnevalidering eller datainnhenting
     // Feilmelding er allerede vist via showErrorToast()
