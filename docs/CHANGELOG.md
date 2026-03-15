@@ -7,6 +7,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.2] - 16.03.2026
+
+### Ny tidspunkt-sjekk i Sjekk-bestilling og forbedring til Hentetid
+
+- 🔍 **Sjekk-Bestilling**
+  - Finner nå bestillinger som har svært kort reisetid (mellom 1-9 minutter)
+- 🕐 **Hentetid** 
+  - Gir nå påminner om å gi ekstra tid ved 4+ bestillinger som skal samkjøres
+- 🔠 **Rek-knapper**
+  - Forbedret lukke-knapp til å se og oppføre seg likt som i bestillingsmodul/adminmodul
+
 ## 🚀 [3.9.1] - 11.03.2026
 
 ### Lagt til kontor-spesifikke maler i Send-SMS
