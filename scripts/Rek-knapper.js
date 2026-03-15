@@ -976,23 +976,35 @@
       });
 
       const closeButton = document.createElement("button");
-      closeButton.innerHTML = "&times;";
+      closeButton.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;stroke:#374151;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
       Object.assign(closeButton.style, {
         position: "absolute",
-        top: "8px",
-        right: "12px",
-        fontSize: "28px",
-        background: "transparent",
+        top: "16px",
+        right: "16px",
+        width: "36px",
+        height: "36px",
+        background: "rgba(255,255,255,0.95)",
         border: "none",
         cursor: "pointer",
-        color: "#444",
-        fontWeight: "bold",
-        lineHeight: "1",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "8px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         padding: "0",
         userSelect: "none",
         zIndex: "1000001",
+        transition: "all 0.2s ease",
       });
-      closeButton.title = "Lukk";
+      closeButton.setAttribute("aria-label", "Lukk");
+      closeButton.onmouseover = () => {
+        closeButton.style.background = "#ffffff";
+        closeButton.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+      };
+      closeButton.onmouseout = () => {
+        closeButton.style.background = "rgba(255,255,255,0.95)";
+        closeButton.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+      };
       closeButton.onclick = closeModal;
 
       const iframe = document.createElement("iframe");
