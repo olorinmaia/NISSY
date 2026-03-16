@@ -484,6 +484,15 @@
         }
       });
 
+      // Normaliser returturer: levertid før hentetid = dårlig NISSY-datakvalitet
+      // Sett levertid = hentetid slik at segmentlogikken håndterer dem korrekt
+      for (const booking of allBookings) {
+        if (booking.pickupTime !== null && booking.deliveryTime !== null &&
+            booking.deliveryTime < booking.pickupTime) {
+          booking.deliveryTime = booking.pickupTime;
+        }
+      }
+
       // Sorter kronologisk etter hentetid (bestillinger uten tid legges til slutt)
       allBookings.sort((a, b) => {
         if (a.pickupTime === null && b.pickupTime === null) return 0;
