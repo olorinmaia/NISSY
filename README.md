@@ -39,6 +39,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
+  - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
 - 🗺️ **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
   - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse.
@@ -57,6 +58,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
   - Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides.
+  - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up isteden for ny fane.
 - ⚙️ **Adminmodul (Alt+A)**
