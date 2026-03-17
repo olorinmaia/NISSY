@@ -268,6 +268,71 @@
     }
 
     /**
+     * Lagrer IDs til merkede rader før modal åpnes.
+     */
+    function saveSelectedRows() {
+        window._adminmodulSavedRows = new Set();
+        document.querySelectorAll('tr[id^="V-"], tr[id^="Rxxx"]').forEach(row => {
+            const bg = window.getComputedStyle(row).backgroundColor;
+            if (bg === 'rgb(148, 169, 220)') {
+                window._adminmodulSavedRows.add(row.id);
+            }
+        });
+    }
+
+    /**
+     * Setter opp en engangs XHR-interceptor som fyrer callback når
+     * openPopp(-1) sitt AJAX-kall mot /planlegging/ajax-dispatch er ferdig.
+     */
+    function onceAfterOpenPopp(callback) {
+        const originalOpen = XMLHttpRequest.prototype.open;
+        let restored = false;
+
+        const restore = () => {
+            if (!restored) {
+                restored = true;
+                XMLHttpRequest.prototype.open = originalOpen;
+            }
+        };
+
+        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
+                restore();
+                this.addEventListener('load', function() {
+                    callback();
+                }, { once: true });
+            }
+            return originalOpen.call(this, method, url, ...rest);
+        };
+
+        // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
+        setTimeout(restore, 3000);
+    }
+
+    /**
+     * Gjenoppretter merking etter openPopp har re-rendret tabellene.
+     */
+    function restoreSelectedRows() {
+        const saved = window._adminmodulSavedRows;
+        if (!saved || saved.size === 0) return;
+        window._adminmodulSavedRows = new Set();
+
+        onceAfterOpenPopp(() => setTimeout(() => {
+            saved.forEach(rowId => {
+                const row = document.getElementById(rowId);
+                if (!row) return;
+                try {
+                    const td = row.querySelector('td[onclick*="selectRow"]');
+                    if (td) {
+                        const match = td.getAttribute('onclick').match(/selectRow\([^)]+\)/);
+                        if (match) eval(match[0]);
+                    }
+                } catch (err) {}
+            });
+        }, 50));
+    }
+
+    /**
      * Lukker modal
      */
     function closeAll() {
@@ -275,16 +340,19 @@
             activeOverlay.remove();
             activeOverlay = null;
         }
-        
+
         if (activeModal && activeModal.parentNode) {
             activeModal.remove();
             activeModal = null;
         }
-        
+
         // Deaktiver modal-modus
         disableModalMode();
-        
+
         disableF5Handler();
+
+        restoreSelectedRows();
+        try { if (typeof openPopp === 'function') openPopp('-1'); } catch (e) {}
     }
 
     /**
@@ -318,6 +386,9 @@
         }
 
         try {
+            // Lagre merkede rader før modal åpnes
+            saveSelectedRows();
+
             // Steg 1: Injiser stiler
             injectStyles();
             
@@ -376,6 +447,9 @@
 
         // Ellers åpne ny modal med den spesifikke URL-en
         try {
+            // Lagre merkede rader før modal åpnes
+            saveSelectedRows();
+
             injectStyles();
             
             // Opprett overlay

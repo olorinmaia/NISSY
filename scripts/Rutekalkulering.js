@@ -112,10 +112,12 @@
     "PD pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "./Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SL. Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Gastro dagbeh, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SLS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Geriatrisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Kir post 3, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "ARA pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -157,12 +159,16 @@
     ".../BVS 4. Revma pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "AHL 1. Lunge pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "FORS 3. Polikinikk endokrinologi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "KSS 1. Hud pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "AHL 5. Sengetun bryst- og endokrinkirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "AHL 4. Sengetun hjertemedisin (tun 4-5), 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Ålesund Sykehus
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
 
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
+    "Bjønndalsvegen 54A, 7670 Inderøy": "63.843515, 11.120222",
     "Brit&Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Brit&amp;Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Steinkjer rehab/Fysioterapi, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
@@ -183,6 +189,7 @@
     "Styrk/Fys. Selseth, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     "Lierne fysioterapi/Fys. Hellgren, 7882 Nordli": "Stortangveien 16, 7882 Nordli",
     "Fysio og ergoterapitjenesten, 7804 Namsos": "Prestegårdsstien 4, 7804 Namsos",
+    "Inderøy kom.fys./Fys. Sende, 7670 Inderøy": "Øvergata 20, 7670 Inderøy",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
@@ -199,6 +206,18 @@
     // Fjern space etterfulgt av H eller U og 4 siffer
     // Eksempel: "NAMSOSVEGEN 23 H0201, 7750 NAMDALSEID" → "NAMSOSVEGEN 23, 7750 NAMDALSEID"
     return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  /**
+   * Parser en tidsstreng (HH:MM) til minutter fra midnatt
+   * @param {string} timeStr - Tidsstreng f.eks. "08:30"
+   * @returns {number|null} - Minutter fra midnatt, eller null
+   */
+  function parseTime(timeStr) {
+    if (!timeStr) return null;
+    const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
   }
 
   /**
@@ -350,137 +369,181 @@
         return url;
       }
 
+
       // ============================================================
-      // HJELPEFUNKSJON: Hent adresser fra en celle
+      // PROSESSER ALLE MERKEDE BESTILLINGER I FELLES POOL
+      // Ventende og pågående behandles likt: sorteres kronologisk
+      // etter hentetid, grupperes i segmenter der passasjerer sitter
+      // i bilen samtidig (hente-adresser først, lever-adresser etter).
       // ============================================================
-      function extractAddressesFromCell(cell) {
-        if (!cell) return [];
-        
-        const addresses = [];
-        
-        // Sjekk om cellen har sub-divs (for sammensatte turer)
-        const rowDivs = cell.querySelectorAll("div.even.row-image, div.odd.row-image");
-        
-        if (rowDivs.length) {
-          // Cellen har sub-divs - hent fra hver div
-          rowDivs.forEach(div => {
-            const text = div.textContent.trim();
-            if (addressRegex.test(text)) {
-              const normalizedText = text.replace(/\s+/g, " "); // Normaliser whitespace
-              addresses.push(normalizeAddress(normalizedText)); // Normaliser adresse
-            }
-          });
-        } else {
-          // Cellen har kun tekst direkte
-          const text = cell.textContent.trim();
-          if (addressRegex.test(text)) {
-            const normalizedText = text.replace(/\s+/g, " ");
-            addresses.push(normalizeAddress(normalizedText)); // Normaliser adresse
-          }
+      const allBookings = [];
+
+      // Felles hjelpefunksjon: finn kolonneindeks via header-link-attributt
+      function findColIdx(tableSelector, headerLink) {
+        const headers = document.querySelectorAll(`${tableSelector} thead th`);
+        for (let i = 0; i < headers.length; i++) {
+          if (headers[i].querySelector(`a[href*="${headerLink}"]`)) return i;
         }
-        
-        return addresses;
+        return -1;
       }
 
-      // ============================================================
-      // HJELPEFUNKSJON: Filtrer ut adresser merket som "Framme"
-      // Brukes for pågående oppdrag hvor noen stopp allerede er besøkt
-      // ============================================================
-      function filterOutFrammeAddresses(row, addressList) {
-        const cells = [...row.querySelectorAll("td")];
-        
-        // Finn cellen som inneholder status-divs
-        const statusCell = cells.find(cell => {
-          const divs = [...cell.querySelectorAll("div.even.row-image, div.odd.row-image")];
-          return divs.some(div => div.textContent.trim() === "Framme");
-        });
-        
-        if (!statusCell) return addressList; // Ingen "Framme" status funnet
-        
-        // Hent alle status-divs
-        const statusDivs = [...statusCell.querySelectorAll("div.even.row-image, div.odd.row-image")];
-        
-        // Filtrer ut adresser hvor tilsvarende status er "Framme"
-        return addressList.filter((address, index) => {
-          return statusDivs[index]?.textContent.trim() !== "Framme";
-        });
-      }
+      // --- Ventende rader: kolonneindekser fra #ventendeoppdrag ---
+      const vStartIdx   = findColIdx('#ventendeoppdrag', 'tripStartDate');
+      const vTreatIdx   = findColIdx('#ventendeoppdrag', 'tripTreatmentDate');
+      const vAdresseIdx = findColIdx('#ventendeoppdrag', 'tripFromAddress'); // Fra+Til i samme kolonne
 
-      // ============================================================
-      // PROSESSER VENTENDE OPPDRAG
-      // Ventende oppdrag har fra/til i samme celle, separert med <br>
-      // ============================================================
-      const ventendeFromAddresses = [];
-      const ventendeToAddresses = [];
-      
       ventendeRows.forEach(row => {
-        // Finn celle med klassen 'd' som inneholder <br>
-        const addressCell = [...row.querySelectorAll("td.d")].find(cell => 
-          cell.innerHTML.includes("<br>")
-        );
-        
+        const cells = [...row.querySelectorAll("td")];
+
+        // Hent adressecelle via kolonneindeks, fall tilbake på td.d med <br>
+        const addressCell = vAdresseIdx !== -1
+          ? cells[vAdresseIdx]
+          : [...row.querySelectorAll("td.d")].find(cell => cell.innerHTML.includes("<br>"));
         if (!addressCell) return;
-        
-        // Split på <br> for å få fra/til
+
         const parts = addressCell.innerHTML
           .split(/<br\s*\/?>/i)
           .map(part => part.trim());
-        
-        // Legg til fra-adresse
+
+        const fromAddresses = [];
+        const toAddresses = [];
         if (addressRegex.test(parts[0])) {
-          const normalizedAddress = parts[0].replace(/\s+/g, " ");
-          ventendeFromAddresses.push(normalizeAddress(normalizedAddress));
+          fromAddresses.push(normalizeAddress(parts[0].replace(/\s+/g, " ")));
         }
-        
-        // Legg til til-adresse
-        if (addressRegex.test(parts[1])) {
-          const normalizedAddress = parts[1].replace(/\s+/g, " ");
-          ventendeToAddresses.push(normalizeAddress(normalizedAddress));
+        if (parts[1] && addressRegex.test(parts[1])) {
+          toAddresses.push(normalizeAddress(parts[1].replace(/\s+/g, " ")));
         }
+        if (!fromAddresses.length && !toAddresses.length) return;
+
+        const startText = vStartIdx !== -1 ? (cells[vStartIdx]?.textContent.trim() ?? '') : '';
+        const treatText = vTreatIdx !== -1 ? (cells[vTreatIdx]?.textContent.trim() ?? '') : '';
+
+        allBookings.push({
+          pickupTime:   parseTime(startText),
+          deliveryTime: parseTime(treatText),
+          fromAddresses,
+          toAddresses
+        });
       });
 
-      // ============================================================
-      // PROSESSER PÅGÅENDE OPPDRAG
-      // Pågående oppdrag har separate celler for hver adresse
-      // ============================================================
-      const paagaaendeFromAddresses = [];
-      const paagaaendeToAddresses = [];
-      
+      // --- Pågående rader: kolonneindekser fra #pagaendeoppdrag ---
+      const pStartIdx  = findColIdx('#pagaendeoppdrag', 'tripStartTime');
+      const pTreatIdx  = findColIdx('#pagaendeoppdrag', 'tripTreatmentDate');
+      const pFromIdx   = findColIdx('#pagaendeoppdrag', 'tripFromAddress');
+      const pToIdx     = findColIdx('#pagaendeoppdrag', 'tripToAddress');
+      const pStatusIdx = findColIdx('#pagaendeoppdrag', 'resourceStatus');
+
       paagaaendeRows.forEach(row => {
-        // Finn alle celler som inneholder adresser
-        const addressCells = [...row.querySelectorAll("td")]
-          .filter(cell => extractAddressesFromCell(cell).length > 0);
-        
-        if (!addressCells.length) return;
-        
-        // Første celle = fra-adresser
-        let fromAddresses = filterOutFrammeAddresses(
-          row, 
-          extractAddressesFromCell(addressCells[0])
-        );
-        paagaaendeFromAddresses.push(...fromAddresses);
-        
-        // Resten av cellene = til-adresser
-        for (let i = 1; i < addressCells.length; i++) {
-          let toAddresses = filterOutFrammeAddresses(
-            row,
-            extractAddressesFromCell(addressCells[i])
-          );
-          paagaaendeToAddresses.push(...toAddresses);
+        if (pFromIdx === -1 || pToIdx === -1) return;
+        const cells = [...row.querySelectorAll("td")];
+
+        // Sjekk om det er en sammensatt tur (div.row-image per sub-oppdrag)
+        const rowImages = pStartIdx !== -1
+          ? cells[pStartIdx]?.querySelectorAll('div.row-image')
+          : null;
+
+        if (rowImages && rowImages.length > 0) {
+          // Sammensatt tur: behandle hvert sub-oppdrag som egen booking
+          rowImages.forEach((_, i) => {
+            const status = pStatusIdx !== -1
+              ? cells[pStatusIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim()
+              : '';
+            if (status === 'Framme') return;
+
+            const fromText = cells[pFromIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim() ?? '';
+            const toText   = cells[pToIdx]  ?.querySelectorAll('div.row-image')[i]?.textContent.trim() ?? '';
+            const fromAddresses = addressRegex.test(fromText) ? [normalizeAddress(fromText.replace(/\s+/g, " "))] : [];
+            const toAddresses   = addressRegex.test(toText)   ? [normalizeAddress(toText.replace(/\s+/g, " "))]   : [];
+            if (!fromAddresses.length && !toAddresses.length) return;
+
+            const startText = cells[pStartIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim() ?? '';
+            const treatText = pTreatIdx !== -1
+              ? (cells[pTreatIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim() ?? '')
+              : '';
+
+            allBookings.push({
+              pickupTime:   parseTime(startText),
+              deliveryTime: parseTime(treatText),
+              fromAddresses,
+              toAddresses
+            });
+          });
+        } else {
+          // Enkelt oppdrag
+          const fromText = cells[pFromIdx]?.textContent.trim() ?? '';
+          const toText   = cells[pToIdx]  ?.textContent.trim() ?? '';
+          const fromAddresses = addressRegex.test(fromText) ? [normalizeAddress(fromText.replace(/\s+/g, " "))] : [];
+          const toAddresses   = addressRegex.test(toText)   ? [normalizeAddress(toText.replace(/\s+/g, " "))]   : [];
+          if (!fromAddresses.length && !toAddresses.length) return;
+
+          const startText = pStartIdx !== -1 ? (cells[pStartIdx]?.textContent.trim() ?? '') : '';
+          const treatText = pTreatIdx !== -1 ? (cells[pTreatIdx]?.textContent.trim() ?? '') : '';
+
+          allBookings.push({
+            pickupTime:   parseTime(startText),
+            deliveryTime: parseTime(treatText),
+            fromAddresses,
+            toAddresses
+          });
         }
       });
 
-      // ============================================================
-      // KOMBINER ALLE ADRESSER I RIKTIG REKKEFØLGE
-      // Rekkefølge: ventende fra → pågående fra → ventende til → pågående til
-      // Dette gir en logisk flyt gjennom alle stopp
-      // ============================================================
-      const allAddresses = [
-        ...ventendeFromAddresses,
-        ...paagaaendeFromAddresses,
-        ...ventendeToAddresses,
-        ...paagaaendeToAddresses
-      ];
+      // Normaliser returturer: levertid før hentetid = dårlig NISSY-datakvalitet
+      // Sett levertid = hentetid slik at segmentlogikken håndterer dem korrekt
+      for (const booking of allBookings) {
+        if (booking.pickupTime !== null && booking.deliveryTime !== null &&
+            booking.deliveryTime < booking.pickupTime) {
+          booking.deliveryTime = booking.pickupTime;
+        }
+      }
+
+      // Sorter kronologisk etter hentetid (bestillinger uten tid legges til slutt)
+      allBookings.sort((a, b) => {
+        if (a.pickupTime === null && b.pickupTime === null) return 0;
+        if (a.pickupTime === null) return 1;
+        if (b.pickupTime === null) return -1;
+        return a.pickupTime - b.pickupTime;
+      });
+
+      // Grupper i segmenter: B tilhører samme segment som A hvis
+      // B.pickupTime <= maks-levertid i segmentet (overlapper i bilen).
+      // 5-minutters margin for returturer der hentetid ≈ levertid.
+      const RETURN_TRIP_MARGIN = 5;
+      const segments = [];
+      if (allBookings.length > 0) {
+        let currentSegment = [allBookings[0]];
+        let segmentMaxDelivery = allBookings[0].deliveryTime;
+
+        for (let i = 1; i < allBookings.length; i++) {
+          const booking = allBookings[i];
+          const overlaps = booking.pickupTime !== null &&
+                           segmentMaxDelivery !== null &&
+                           booking.pickupTime <= segmentMaxDelivery + RETURN_TRIP_MARGIN;
+
+          if (overlaps) {
+            currentSegment.push(booking);
+            if (booking.deliveryTime !== null) {
+              segmentMaxDelivery = Math.max(segmentMaxDelivery, booking.deliveryTime);
+            }
+          } else {
+            segments.push(currentSegment);
+            currentSegment = [booking];
+            segmentMaxDelivery = booking.deliveryTime;
+          }
+        }
+        segments.push(currentSegment);
+      }
+
+      // Bygg adresseliste: per segment → alle hente-adresser, så alle lever-adresser
+      const allAddresses = [];
+      for (const segment of segments) {
+        for (const booking of segment) {
+          allAddresses.push(...booking.fromAddresses);
+        }
+        for (const booking of segment) {
+          allAddresses.push(...booking.toAddresses);
+        }
+      }
       
       // Fjern duplikater som følger etter hverandre
       const finalAddressList = removeConsecutiveDuplicates(allAddresses);

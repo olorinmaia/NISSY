@@ -1116,9 +1116,6 @@
     }
 
     /**
-     * Lagrer ID-ene til alle merkede rader (blå bakgrunn) før modal åpnes
-     */
-    /**
      * Lagrer IDs til merkede ventende-bestillinger (V-) og ressurser (Rxxx)
      * Kalles rett før modal åpnes, mens radene fortsatt er synlige.
      */
@@ -1189,10 +1186,80 @@
     }
 
     /**
+     * Henter reisemåte fra plakat for en gitt bestillings-ID (rid).
+     * Parser XML-response fra showreq med ISO-8859-1 encoding.
+     * @param {string} rid - Bestillings-ID
+     * @returns {Promise<string|null>} - Reisemåte-kode (f.eks. "TAX") eller null ved feil
+     */
+    async function fetchReisemåte(rid) {
+        try {
+            const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${rid}`;
+            const response = await fetch(url, { credentials: 'same-origin' });
+            const buffer = await response.arrayBuffer();
+            const decoder = new TextDecoder('iso-8859-1');
+            const text = decoder.decode(buffer);
+
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(text, 'text/xml');
+
+            const rows = xmlDoc.querySelectorAll('tr');
+            for (const row of rows) {
+                const cells = row.querySelectorAll('td');
+                for (let i = 0; i < cells.length - 1; i++) {
+                    if (cells[i].textContent.trim() === 'Reisemåte:') {
+                        const value = cells[i + 1].textContent.trim();
+                        if (value) return value;
+                    }
+                }
+            }
+            console.warn(`[BM] Reisemåte ikke funnet i plakat for rid=${rid}`);
+            return null;
+        } catch (e) {
+            console.error(`[BM] Feil ved henting av reisemåte for rid=${rid}:`, e);
+            return null;
+        }
+    }
+
+    /**
+     * Sjekker om Reisemåte-feltet i bestillingsmodulen er blankt.
+     * Hvis det er blankt, hentes korrekt verdi fra plakaten og settes automatisk.
+     * Logger til konsoll både ved oppdagelse og ved korrigering.
+     * @param {Document} iframeDoc - iframe-dokumentet
+     * @param {string} rid - Bestillings-ID brukt til plakat-oppslag
+     */
+    async function fixTransportType(iframeDoc, rid) {
+        const select = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
+        if (!select) return;
+        if (select.value !== '') return;
+
+        console.log(`[BM] ⚠️ Reisemåte er blank for rid=${rid} – henter fra plakat...`);
+
+        const reisemåte = await fetchReisemåte(rid);
+        if (!reisemåte) {
+            console.warn(`[BM] Kunne ikke hente reisemåte for rid=${rid} – feltet forblir blankt`);
+            return;
+        }
+
+        const option = iframeDoc.querySelector(`select[name="trip.actualTransportTypeCode"] option[value="${reisemåte}"]`);
+        if (!option) {
+            console.warn(`[BM] Reisemåte "${reisemåte}" finnes ikke som valg i feltet for rid=${rid}`);
+            return;
+        }
+
+        select.value = reisemåte;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log(`[BM] ✅ Reisemåte automatisk satt til "${reisemåte}" for rid=${rid}`);
+    }
+
+    /**
      * Åpner en redit URL i bestillingsmodul-modal
      */
     async function openReditInModal(url) {
         try {
+            // Ekstraher rid fra URL for bruk i transport-type-fix
+            const ridMatch = url.match(/[?&]id=(\d+)/);
+            const rid = ridMatch ? ridMatch[1] : null;
+
             // Lagre merkede rader før modal åpnes
             saveSelectedRows();
 
@@ -1255,6 +1322,9 @@
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
 
                         fixTilbakeLink(iframeDoc);
+
+                        // Sjekk og rett opp blankt Reisemåte-felt
+                        if (rid) fixTransportType(iframeDoc, rid);
                         
                         // Klikk på "Rediger klar fra" knappen hvis den finnes og er synlig
                         setTimeout(() => {

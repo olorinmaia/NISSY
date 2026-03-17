@@ -187,6 +187,63 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJONER: REISEMÅTE-FIX
+  // Henter reisemåte fra plakat og setter den automatisk hvis feltet er blankt
+  // ============================================================
+  async function fetchReisemåte(rid) {
+    try {
+      const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${rid}`;
+      const response = await fetch(url, { credentials: 'same-origin' });
+      const buffer = await response.arrayBuffer();
+      const decoder = new TextDecoder('iso-8859-1');
+      const text = decoder.decode(buffer);
+
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, 'text/xml');
+
+      const rows = xmlDoc.querySelectorAll('tr');
+      for (const row of rows) {
+        const cells = row.querySelectorAll('td');
+        for (let i = 0; i < cells.length - 1; i++) {
+          if (cells[i].textContent.trim() === 'Reisemåte:') {
+            const value = cells[i + 1].textContent.trim();
+            if (value) return value;
+          }
+        }
+      }
+      console.warn(`[REK] Reisemåte ikke funnet i plakat for rid=${rid}`);
+      return null;
+    } catch (e) {
+      console.error(`[REK] Feil ved henting av reisemåte for rid=${rid}:`, e);
+      return null;
+    }
+  }
+
+  async function fixTransportType(doc, rid) {
+    const select = doc.querySelector('select[name="trip.actualTransportTypeCode"]');
+    if (!select) return;
+    if (select.value !== '') return;
+
+    console.log(`[REK] ⚠️ Reisemåte er blank for rid=${rid} – henter fra plakat...`);
+
+    const reisemåte = await fetchReisemåte(rid);
+    if (!reisemåte) {
+      console.warn(`[REK] Kunne ikke hente reisemåte for rid=${rid} – feltet forblir blankt`);
+      return;
+    }
+
+    const option = doc.querySelector(`select[name="trip.actualTransportTypeCode"] option[value="${reisemåte}"]`);
+    if (!option) {
+      console.warn(`[REK] Reisemåte "${reisemåte}" finnes ikke som valg i feltet for rid=${rid}`);
+      return;
+    }
+
+    select.value = reisemåte;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    console.log(`[REK] ✅ Reisemåte automatisk satt til "${reisemåte}" for rid=${rid}`);
+  }
+
+  // ============================================================
   // HOTKEY REGISTRERING: ALT+R
   // ============================================================
   document.addEventListener("keydown", (e) => {
@@ -483,10 +540,13 @@
 
         // Hvis det er rediger-knappen, klikk automatisk på "Rediger klar fra" og fokuser hentetid
         if (isEditButton) {
+          const ridMatch = url ? url.match(/[?&]id=(\d+)/) : null;
+          const rid = ridMatch ? ridMatch[1] : null;
           iframe.onload = function() {
             try {
               const doc = iframe.contentDocument || iframe.contentWindow.document;
               const win = iframe.contentWindow;
+              if (rid) fixTransportType(doc, rid);
               setTimeout(() => {
                 const redigerBtn = doc.getElementById("redigerKlarFra");
                 if (redigerBtn &&

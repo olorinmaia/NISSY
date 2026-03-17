@@ -159,7 +159,7 @@ Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildel
 
 ### 🔠 Rek-knapper (ALT+R)
 
-Viser hurtigknapper på merkede rader.
+Viser hurtigknapper på merkede rader. 
 
 **Slik bruker du:**
 1. Merk én eller flere rader
@@ -178,6 +178,7 @@ Viser hurtigknapper på merkede rader.
 - Klikk ESC for å lukke alle rek-knapper
 - Knappene følger med ved scrolling
 - Automatisk høydetilpasning til rad-bilder
+- Fikser gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
 
 ### 📝 Bestillingsmodul (ALT+N)
 
@@ -186,6 +187,7 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 - Fanger opp "R"-linker i planleggingsvinduet åpner opp hentetid for redigering, merker tidspunktet slik at man kan skrive og scroller ned til bunnen av ensides.
 - Fanger opp trykk på Møteplass og "K"-knappen i planleggingsvinduet og åpner dette i iframe modal (popup) isteden for ny fane.
 - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides.
+- Fikser gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
 
 ### ⚙️ Adminmodul (ALT+A)
 

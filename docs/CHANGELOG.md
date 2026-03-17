@@ -7,6 +7,21 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.3] - 18.03.2026
+
+### NISSY-bugfiks i Bestillingsmodul/Rek-knapper, forbedring til Adminmodul og tidspunktbasert sortering i Rutekalkulering
+
+- 📝 **Bestillingsmodul** og 🔠 **Rek-knapper**
+  - Fikset gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling
+- ⚙️ **Adminmodul**
+  - Husker nå hvilke rader som var markert når en modal (pop-up) åpnes, og re-markerer dem automatisk etter oppdatering når modalen lukkes
+- 🗺️ **Rutekalkulering**
+  - Sorterer nå alle merkede bestillinger (ventende og pågående) kronologisk etter hentetid
+  - Bestillinger som overlapper i tid – dvs. passasjerer som sitter i bilen samtidig – grupperes i samme segment: alle henteadresser vises først, deretter alle leveringsadresser
+  - Returer (lik hentetid og leveringstid) håndteres med en 5-minutters margin for overlappgjenkjenning
+- ✖️ **Avbestilling** 
+  - Lagt til kontorsjekk for enkelte valideringsregler
+
 ## 🚀 [3.9.2] - 16.03.2026
 
 ### Ny tidspunkt-sjekk i Sjekk-bestilling og forbedring til Hentetid
