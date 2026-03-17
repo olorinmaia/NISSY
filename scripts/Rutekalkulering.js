@@ -159,6 +159,7 @@
     "FORS 3. Polikinikk endokrinologi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "KSS 1. Hud pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "AHL 5. Sengetun bryst- og endokrinkirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "AHL 4. Sengetun hjertemedisin (tun 4-5), 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Ålesund Sykehus
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
