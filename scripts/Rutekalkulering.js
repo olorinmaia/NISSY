@@ -112,6 +112,7 @@
     "PD pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "./Med B Hjerte, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SL. Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "./Hovedinngang, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Gastro dagbeh, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "SLS, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Geriatrisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
