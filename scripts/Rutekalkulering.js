@@ -188,6 +188,7 @@
     "Styrk/Fys. Selseth, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     "Lierne fysioterapi/Fys. Hellgren, 7882 Nordli": "Stortangveien 16, 7882 Nordli",
     "Fysio og ergoterapitjenesten, 7804 Namsos": "Prestegårdsstien 4, 7804 Namsos",
+    "Inderøy kom.fys./Fys. Sende, 7670 Inderøy": "Øvergata 20, 7670 Inderøy",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
