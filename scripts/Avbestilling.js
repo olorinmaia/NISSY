@@ -11,6 +11,15 @@
   }
   window.__avbestillingHotkeyInstalled = true;
 
+  // ── Kontor-deteksjon ─────────────────────────────────────────
+  // Kontorer som er unntatt fra visse valideringsregler
+  const AVBESTILLING_EXEMPT_OFFICES = [
+    'Kontoret for pasientreiser, Ålesund',
+  ];
+  const _officeCell  = document.querySelector('.topframe_small');
+  const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+  const _office      = _officeMatch?.[1]?.trim() || null;
+
   console.log("🚀 Starter Avbestilling-script");
 
   // ============================================================
@@ -271,7 +280,8 @@
           let status = row.querySelector("td[id*='Rxxxstatusxxx']")?.textContent.trim() ?? "";
           
           // CASE 2A: Bekreftet status med ugyldig ressursnavn = bil er på vei
-          if (status === "Bekreftet" && !isValidResourceName(avtale)) {
+          // Unntatt for kontorer i AVBESTILLING_EXEMPT_OFFICES
+          if (status === "Bekreftet" && !isValidResourceName(avtale) && !AVBESTILLING_EXEMPT_OFFICES.includes(_office)) {
             showErrorToast("⛔ Det er ikke lov å avbestille en tur etter mottatt løyvenummer! Kontakt sjåfør for å lage bomtur!");
             return;
           }
