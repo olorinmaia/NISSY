@@ -341,6 +341,71 @@
   })();
   
   /* ======================================================
+     DEL 1C: FJERN KONTOR-SPESIFIKKE ELEMENTER
+     Fjerner elementer fra planleggingssiden basert på innlogget kontor
+     ====================================================== */
+
+  (() => {
+    const _officeCell  = document.querySelector('.topframe_small');
+    const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+    const _office1c    = _officeMatch?.[1]?.trim() || null;
+
+    // Elementer som skal fjernes for Pasientreiser Nord-Trøndelag
+    if (_office1c === 'Pasientreiser Nord-Trøndelag') {
+      function removeNordTrondelagElements() {
+        let allFound = true;
+
+        const loyveBtn = document.getElementById('buttonTransporterPermit');
+        if (loyveBtn) {
+          loyveBtn.closest('tr')?.remove();
+        } else {
+          allFound = false;
+        }
+
+        const tfilter = document.getElementById('tfilter');
+        if (tfilter) {
+          tfilter.closest('tr')?.remove();
+        } else {
+          allFound = false;
+        }
+
+        const locusLogo = document.querySelector('img[src="/planlegging/images/locus_logo1.gif"]');
+        if (locusLogo) {
+          locusLogo.closest('table')?.closest('tr')?.remove();
+        } else {
+          allFound = false;
+        }
+
+        document.querySelectorAll('td.vspace').forEach(td => td.closest('tr')?.remove());
+
+        const blankImg = document.querySelector('img[src="blank.gif"][width="1"][height="2"]');
+        if (blankImg) {
+          const next = blankImg.nextSibling;
+          if (next?.nodeName === 'BR') next.remove();
+          blankImg.remove();
+        }
+
+        document.querySelectorAll('img[src="blank.gif"].hspacing').forEach(img => img.remove());
+
+        const bgTable = document.querySelector('footer table.bg-color');
+        if (bgTable) bgTable.style.removeProperty('padding');
+
+        if (!allFound) {
+          setTimeout(removeNordTrondelagElements, 500);
+        } else {
+          console.log("✅ Fjernet Løyveregister og transportør-filter (Nord-Trøndelag)");
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(removeNordTrondelagElements, 300));
+      } else {
+        setTimeout(removeNordTrondelagElements, 300);
+      }
+    }
+  })();
+
+  /* ======================================================
      DEL 2: OVERVÅKING AV NISSY-LOGG FOR SESSION TIMEOUT
      Overvåker NISSY sin interne logg for feilmeldinger
      ====================================================== */
@@ -1136,7 +1201,6 @@
     let retryCount = 0;
     const MAX_RETRIES = 10; // Maks 10 forsøk
     const RETRY_INTERVAL = 5000; // 5 sekund mellom hvert forsøk
-    let stylesApplied = false;
 
     function setupColumnLimits() {
       // Reset retry counter når manuelt kalt
@@ -1287,10 +1351,6 @@
       style.textContent = cssRules;
       document.head.appendChild(style);
       
-      if (allColumnsFound) {
-        stylesApplied = true;
-      }
-
       // Retry hvis ikke alle DYNAMISKE kolonner er funnet og vi har forsøk igjen
       if (!allColumnsFound && retryCount < MAX_RETRIES) {
         retryCount++;
