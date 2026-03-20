@@ -983,30 +983,6 @@
     const showFilter = document.getElementById('showfilter');
     const showWait = document.getElementById('showwait');
     const showCapacity = document.getElementById('showcapacity');
-    const showResourceComment = document.getElementById('showResourceComment');
-    const showResourceDeviation = document.getElementById('showResourceDeviation');
-    
-    // Sjekk MerknadRessurs-popup
-    if (showResourceComment && showResourceComment.style.display !== 'none') {
-      // Sjekk om klikket var utenfor popupen
-      if (!showResourceComment.contains(e.target)) {
-        // Kall eksisterende funksjon for å lukke
-        if (typeof closeResourceComment === 'function') {
-          closeResourceComment();
-        }
-      }
-    }
-
-    // Sjekk AvvikRessurs-popup
-    if (showResourceDeviation && showResourceDeviation.style.display !== 'none') {
-      // Sjekk om klikket var utenfor popupen
-      if (!showResourceDeviation.contains(e.target)) {
-        // Kall eksisterende funksjon for å lukke
-        if (typeof closeResourceDeviation === 'function') {
-          closeResourceDeviation();
-        }
-      }
-    }
     
     // Sjekk rekvisisjon-plakat
     if (reqPoster && reqPoster.style.display !== 'none') {
