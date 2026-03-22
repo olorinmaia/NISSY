@@ -310,11 +310,11 @@
       // HTML for knapper (kun Basic-funksjoner)
       const rowsHTML = `
         <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
+          <td valign="top" align="left" style="padding-top: 5px; padding-bottom: 2px;">
             <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
                    data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende og pågående oppdrag (kun status tildelt)">
           </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
+          <td valign="top" align="right" style="padding-top: 5px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
                    data-hotkey="k" title="Masse-avbestill markerte turer eller bestillinger">
           </td>
@@ -330,11 +330,11 @@
           </td>
         </tr>
         <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
             <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'">
           </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
             <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
                    data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
           </td>
@@ -417,7 +417,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.9.3):</strong><br>
+          <strong>📝 Endringslogg (V3.9.4):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

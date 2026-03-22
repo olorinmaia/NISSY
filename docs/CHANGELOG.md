@@ -7,6 +7,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.4] - 22.03.2026
+
+### NISSY-fiks: Forbedringer til visning og pop-up-håndtering
+
+- ⌛ **NISSY-fiks**
+  - Merknad og Avvik for ressurser lukkes ikke lenger ved klikk utenfor pop-upen
+  - Fjerner nå kontor-spesifikke elementer fra planleggingssiden for Pasientreiser Nord-Trøndelag (løyveregister-knapp, transportør-filter og Locus-logo)
+  - Justering av padding i knapperekken for å unngå uønsket scrolling i midtre container
+
 ## 🚀 [3.9.3] - 18.03.2026
 
 ### NISSY-bugfiks i Bestillingsmodul/Rek-knapper, forbedring til Adminmodul og tidspunktbasert sortering i Rutekalkulering

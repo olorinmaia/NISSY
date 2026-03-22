@@ -322,11 +322,11 @@
       const rowsHTML = `
 
         <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
+          <td valign="top" align="left" style="padding-top: 5px; padding-bottom: 2px;">
             <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
                    data-hotkey="s" title="Smart-tildeling med RB/ERS + passasjerregler uten behov for å velge avtale, kan også tildele til merket ressurs eller avtale">
           </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
+          <td valign="top" align="right" style="padding-top: 5px; padding-bottom: 2px;">
             <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
                    data-hotkey="k" title="Masse-avbestill markerte turer eller bestillinger">
           </td>
@@ -352,11 +352,11 @@
           </td>
         </tr>
         <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 10px;">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
             <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
           </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 10px;">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
             <input type="button" value="🚐 Samkjøring (Alt+X)" class="bigbutton nissy-script-btn" 
                    data-hotkey="x" title="Finn potensielle samkjøringsforslag på pågående oppdrag for merkede bestillinger / ressurs innad i valgte filter. Hvis ingenting merkes søkes det innad på ventende oppdrag for mulig samkjøringer.">
           </td>
@@ -443,7 +443,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.9.3):</strong><br>
+          <strong>📝 Endringslogg (V3.9.4):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">
