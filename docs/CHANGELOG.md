@@ -13,7 +13,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - ⌛ **NISSY-fiks**
   - Merknad og Avvik for ressurser lukkes ikke lenger ved klikk utenfor pop-upen
-  - Fjerner nå kontor-spesifikke elementer fra planleggingssiden for Pasientreiser Nord-Trøndelag (løyveregister-knapp, transportør-filter og Locus-logo)
+  - Fjerner nå flere elementer som ikke er i bruk fra Planlegging for Pasientreiser Nord-Trøndelag (løyveregister-knapp, avtale-filter og nederste rad med Locus-logo)
   - Justering av padding i knapperekken for å unngå uønsket scrolling i midtre container
 
 ## 🚀 [3.9.3] - 18.03.2026
