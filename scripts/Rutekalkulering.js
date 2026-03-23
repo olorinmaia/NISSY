@@ -192,6 +192,8 @@
     "Inderøy kom.fys./Fys. Sende, 7670 Inderøy": "Øvergata 20, 7670 Inderøy",
     "Meråker k.fys./Fys. Berg, 7530 Meråker": "Meråker kommune, Rådhusgata 7, 7530 Meråker",
     "Meråker k.fys., 7530 Meråker": "Meråker kommune, Rådhusgata 7, 7530 Meråker",
+    "Flatanger fys., 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
+    "Fys. Sundrønning, 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
