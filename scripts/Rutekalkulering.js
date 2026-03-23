@@ -147,6 +147,7 @@
     "Gyn/Føde/Barsel sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "SN. Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "./Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Geriatrisk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
