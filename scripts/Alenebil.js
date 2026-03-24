@@ -242,6 +242,9 @@
       overlay.appendChild(box);
       document.body.appendChild(overlay);
 
+      // Sett fokus på Ja-knappen slik at Enter aktiverer den
+      btnYes.focus();
+
       // ESC for å lukke
       const escHandler = (e) => {
         if (e.key === "Escape") {
