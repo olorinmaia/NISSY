@@ -147,6 +147,7 @@
     "Gyn/Føde/Barsel sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "SN. Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "./Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Geriatrisk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
@@ -190,6 +191,10 @@
     "Lierne fysioterapi/Fys. Hellgren, 7882 Nordli": "Stortangveien 16, 7882 Nordli",
     "Fysio og ergoterapitjenesten, 7804 Namsos": "Prestegårdsstien 4, 7804 Namsos",
     "Inderøy kom.fys./Fys. Sende, 7670 Inderøy": "Øvergata 20, 7670 Inderøy",
+    "Meråker k.fys./Fys. Berg, 7530 Meråker": "Meråker kommune, Rådhusgata 7, 7530 Meråker",
+    "Meråker k.fys., 7530 Meråker": "Meråker kommune, Rådhusgata 7, 7530 Meråker",
+    "Flatanger fys., 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
+    "Fys. Sundrønning, 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:

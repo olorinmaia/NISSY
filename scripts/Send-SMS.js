@@ -1074,34 +1074,33 @@
       const stCell  = document.getElementById(`__smsSt_${i}`);
       if (!tlfCell) return;
 
-      if (erGyldigMobil(tlf)) {
-        item.status = "ok";
-        tlfCell.innerHTML = `<span style="color:#27ae60;font-weight:bold;">${tlf}</span>`;
-        if (stCell) stCell.innerHTML = `<span style="color:#27ae60;">✓</span>`;
-      } else {
-        item.status = "mangler";
-        tlfCell.innerHTML = `
-          <input type="text" placeholder="Fyll inn mobil" value=""
-            style="width:90px;padding:4px 6px;border:2px solid #d9534f;
-                   border-radius:4px;font-size:12px;color:#333;box-sizing:border-box;" />
-          <div style="color:#d9534f;font-size:10px;margin-top:2px;">Ingen SMS sendes</div>
-        `;
-        if (stCell) stCell.innerHTML = `<span style="color:#d9534f;">✗</span>`;
+      const initGyldig = erGyldigMobil(tlf);
+      item.status = initGyldig ? "ok" : "mangler";
+      tlfCell.innerHTML = `
+        <input type="text" value="${tlf || ""}" placeholder="Fyll inn mobil"
+          style="width:90px;padding:4px 6px;border:2px solid ${initGyldig ? "#27ae60" : "#d9534f"};
+                 border-radius:4px;font-size:12px;color:#333;box-sizing:border-box;
+                 font-weight:${initGyldig ? "bold" : "normal"};" />
+        <div style="color:#d9534f;font-size:10px;margin-top:2px;display:${initGyldig ? "none" : "block"};">Ingen SMS sendes</div>
+      `;
+      if (stCell) stCell.innerHTML = initGyldig
+        ? `<span style="color:#27ae60;">✓</span>`
+        : `<span style="color:#d9534f;">✗</span>`;
 
-        tlfCell.querySelector("input").addEventListener("input", (e) => {
-          const val = e.target.value.trim();
-          item.telefon = val;
-          const gyldig = erGyldigMobil(val);
-          e.target.style.borderColor = gyldig ? "#27ae60" : "#d9534f";
-          const infoDiv = tlfCell.querySelector("div");
-          if (infoDiv) infoDiv.style.display = gyldig ? "none" : "block";
-          if (stCell) stCell.innerHTML = gyldig
-            ? `<span style="color:#27ae60;">✓</span>`
-            : `<span style="color:#d9534f;">✗</span>`;
-          item.status = gyldig ? "ok" : "mangler";
-          oppdaterSendKnapp(malErValgt);
-        });
-      }
+      tlfCell.querySelector("input").addEventListener("input", (e) => {
+        const val = e.target.value.trim();
+        item.telefon = val;
+        const gyldig = erGyldigMobil(val);
+        e.target.style.borderColor = gyldig ? "#27ae60" : "#d9534f";
+        e.target.style.fontWeight = gyldig ? "bold" : "normal";
+        const infoDiv = tlfCell.querySelector("div");
+        if (infoDiv) infoDiv.style.display = gyldig ? "none" : "block";
+        if (stCell) stCell.innerHTML = gyldig
+          ? `<span style="color:#27ae60;">✓</span>`
+          : `<span style="color:#d9534f;">✗</span>`;
+        item.status = gyldig ? "ok" : "mangler";
+        oppdaterSendKnapp(malErValgt);
+      });
       oppdaterSendKnapp(malErValgt);
     }));
 
