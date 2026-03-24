@@ -163,6 +163,8 @@
     "KSS 1. Hud pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "AHL 5. Sengetun bryst- og endokrinkirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "AHL 4. Sengetun hjertemedisin (tun 4-5), 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "BVS 1. Skade pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "KSS 5. Sengetun hudsykdommer, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Ålesund Sykehus
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
