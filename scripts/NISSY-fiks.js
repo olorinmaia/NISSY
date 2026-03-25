@@ -19,7 +19,25 @@
   /* ======================================================
      DEL 0: TASTATUR-HÅNDTERING
      ====================================================== */
-  
+
+  /* ---------- Blokker Alt alene (hindrer fokus til nettleserkrom) ----------
+     Sporer om en annen tast ble trykket mens Alt holdes inne.
+     Bare "Alt alene" (uten andre taster) blokkeres – Alt+E, Alt+F osv. fungerer normalt. */
+  let _altPressedAlone = false;
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "Alt") {
+      _altPressedAlone = true;
+    } else if (e.altKey) {
+      _altPressedAlone = false;
+    }
+  }, true);
+  window.addEventListener("keyup", function (e) {
+    if (e.key === "Alt" && _altPressedAlone) {
+      e.preventDefault();
+    }
+    _altPressedAlone = false;
+  }, true);
+
   window.addEventListener("keydown", function (e) {
   
     const searchInput  = document.getElementById("searchPhrase");
