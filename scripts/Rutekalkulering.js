@@ -165,9 +165,17 @@
     "AHL 4. Sengetun hjertemedisin (tun 4-5), 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "BVS 1. Skade pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "KSS 5. Sengetun hudsykdommer, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
+    "OSS U1 Hemodialyse, 7300 Orkanger": "St. Olavs hospital - Orkdal sjukehus",
 
-    // Ålesund Sykehus
+    // Helse Møre og Romsdal / Ålesund Sykehus / Kristiansand Sykehus osv..
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
+    "Nyrepoliklinikk, 6017 Ålesund": "Ålesund sykehus",
+    "Hustadvika Logopedhjelp, Molde/Logoped Ingvild Groven, 6415 Molde": "Romsdalsgata 15, 6415 Molde",
+    "Hustadvika Logopedhjelp, Molde, 6415 Molde": "Romsdalsgata 15, 6415 Molde",
+    "med. biokjemi lab, 6450 Hjelset": "Sjukehuset Nordmøre og Romsdal (SNR)",
+    "Dialysen Kristiansund, 6508 Kristiansund N": "Kristiansund Sykehus",
+    "Kreftpoliklinikken DMS, 6508 Kristiansund N": "Kristiansund Sykehus",
+    "Kommunefysioterapi Averøy, 6530 Averøy": "Averøyveien 424, 6530 Averøy",
 
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
