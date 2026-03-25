@@ -7,6 +7,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.5] - 25.03.2026
+
+### Forbedring av Alt-knapphåndtering og mappinger lagt til i Rutekalkulering
+
+- ⌛ **NISSY-fiks**
+  - Blokkerer trykk på Alt-tast alene, for å hindre utilsiktet F5-refresh av siden (tap av script)
+- 🗺️ **Rutekalkulering**
+  - Lagt til mappinger for adressenavn som ikke blir plassert riktig i Google maps for Helse MR.
+
 ## 🚀 [3.9.4] - 22.03.2026
 
 ### NISSY-fiks: Forbedringer til visning og pop-up-håndtering
