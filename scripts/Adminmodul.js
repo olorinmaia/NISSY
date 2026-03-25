@@ -24,6 +24,17 @@
     window.__adminmodulInstalled = true;
     console.log("🚀 Starter Adminmodul-script");
 
+    // Blokker Alt alene (hindrer fokus til nettleserkrom / "..."-knapp)
+    let _altPressedAlone = false;
+    window.addEventListener("keydown", function (e) {
+        if (e.key === "Alt") { _altPressedAlone = true; }
+        else if (e.altKey)   { _altPressedAlone = false; }
+    }, true);
+    window.addEventListener("keyup", function (e) {
+        if (e.key === "Alt" && _altPressedAlone) { e.preventDefault(); }
+        _altPressedAlone = false;
+    }, true);
+
     // Konfigurasjon
     const CONFIG = {
         moduleUrl: '/administrasjon/admin/findPatient',
@@ -238,7 +249,18 @@
                     
                     iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                     iframeWin.addEventListener('keydown', iframeF5Handler, true);
-                    
+
+                    // Blokker Alt alene inne i iframe
+                    let _iframeAltAlone = false;
+                    iframeWin.addEventListener('keydown', function(e) {
+                        if (e.key === 'Alt') { _iframeAltAlone = true; }
+                        else if (e.altKey)   { _iframeAltAlone = false; }
+                    }, true);
+                    iframeWin.addEventListener('keyup', function(e) {
+                        if (e.key === 'Alt' && _iframeAltAlone) { e.preventDefault(); }
+                        _iframeAltAlone = false;
+                    }, true);
+
                     // Fokuser på Phone-feltet
                     setTimeout(() => {
                         const phoneInput = iframeDoc.getElementById('Phone');
@@ -503,7 +525,18 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
-                        
+
+                        // Blokker Alt alene inne i iframe
+                        let _iframeAltAlone = false;
+                        iframeWin.addEventListener('keydown', function(e) {
+                            if (e.key === 'Alt') { _iframeAltAlone = true; }
+                            else if (e.altKey)   { _iframeAltAlone = false; }
+                        }, true);
+                        iframeWin.addEventListener('keyup', function(e) {
+                            if (e.key === 'Alt' && _iframeAltAlone) { e.preventDefault(); }
+                            _iframeAltAlone = false;
+                        }, true);
+
                         // Hvis vi venter på søkeresultater, klikk på første rad og scroll
                         if (waitingForSearchResults) {
                             waitingForSearchResults = false;

@@ -13,6 +13,17 @@
 
   console.log("🚀 Starter Rek-knapper-script");
 
+  // Blokker Alt alene (hindrer fokus til nettleserkrom / "..."-knapp)
+  let _altPressedAlone = false;
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "Alt") { _altPressedAlone = true; }
+    else if (e.altKey)   { _altPressedAlone = false; }
+  }, true);
+  window.addEventListener("keyup", function (e) {
+    if (e.key === "Alt" && _altPressedAlone) { e.preventDefault(); }
+    _altPressedAlone = false;
+  }, true);
+
   // ============================================================
   // INERT-HÅNDTERING: Blokkerer CTRL+F søk i bakgrunnen
   // ============================================================
@@ -1075,15 +1086,26 @@
         height: "100%",
       });
 
-      // Blokkér F5 i iframe
+      // Blokkér F5 og Alt alene i iframe
       iframe.addEventListener("load", () => {
         try {
           const doc = iframe.contentDocument || iframe.contentWindow.document;
+          const win = iframe.contentWindow;
           doc.addEventListener("keydown", (e) => {
             if (e.key === "F5") {
               e.preventDefault();
               e.stopPropagation();
             }
+          }, true);
+          // Blokker Alt alene inne i iframe
+          let _iframeAltAlone = false;
+          win.addEventListener('keydown', function(e) {
+            if (e.key === 'Alt') { _iframeAltAlone = true; }
+            else if (e.altKey)   { _iframeAltAlone = false; }
+          }, true);
+          win.addEventListener('keyup', function(e) {
+            if (e.key === 'Alt' && _iframeAltAlone) { e.preventDefault(); }
+            _iframeAltAlone = false;
           }, true);
         } catch (err) {}
       });
