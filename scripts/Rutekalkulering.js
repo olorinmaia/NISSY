@@ -118,6 +118,7 @@
     "Geriatrisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Kir post 3, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "ARA pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Fysio- og ergoterapi, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
