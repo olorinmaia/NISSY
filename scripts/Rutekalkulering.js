@@ -167,6 +167,7 @@
     "BVS 1. Skade pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "KSS 5. Sengetun hudsykdommer, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "OSS U1 Hemodialyse, 7300 Orkanger": "St. Olavs hospital - Orkdal sjukehus",
+    ".../KVB 6. Gynekologi dagbehandling, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Helse Møre og Romsdal / Ålesund Sykehus / Kristiansand Sykehus osv..
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
