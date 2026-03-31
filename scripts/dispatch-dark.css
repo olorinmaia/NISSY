@@ -111,7 +111,7 @@ div.headerframeleft {
    padding-bottom: 4px;
    text-align    : center;
    background-color: #5a9ab5;
-   color         : #ffffff;
+   color         : #1B2736;
    border-top-right-radius: 7px;
    border-top-left-radius : 7px;
 }
@@ -139,7 +139,7 @@ div.headerframecenter {
    padding-bottom: 4px;
    text-align    : center;
    background-color: #5a9ab5;
-   color         : #ffffff;
+   color         : #1B2736;
    border-top-right-radius: 7px;
    border-top-left-radius : 7px;
 }
@@ -152,7 +152,7 @@ div.headerframeright {
    padding-bottom: 4px;
    text-align    : center;
    background-color: #5a9ab5;
-   color         : #ffffff;
+   color         : #1B2736;
    border-top-right-radius: 7px;
    border-top-left-radius : 7px;
 }
@@ -403,7 +403,7 @@ td.reqvtitle {
    font-family   : Arial, sans-serif;
    font-size     : 16px;
    font-weight   : bold;
-   color         : #ffffff;
+   color         : #1B2736;
    padding       : 1px 5px 5px 5px;
    vertical-align: top;
    background-color: #5a9ab5;
@@ -550,6 +550,7 @@ th.dt {
 }
 
 div.odd {
+   background-color: #c8d8e0;
    width: 100%;
 }
 
@@ -627,10 +628,25 @@ table.bg-color > tbody > tr > td {
    background-color: #b8cedd !important;
 }
 
+/* Bevar inline tekstfarge fra NISSY på alle rader med kjente bakgrunner (LIFO, IA, dialyse, ren tekstfarge) */
+tr[style*="color"] td {
+   color: inherit !important;
+}
+
+/* Utgråede rader (NISSY disableSelection setter inline style) */
+tr[style*="rgb(231, 231, 231)"] {
+   background-color: #a8bece !important;
+   color: #6a8898 !important;
+}
+
+tr[style*="rgb(231, 231, 231)"] td {
+   color: #6a8898 !important;
+}
+
 /* NISSY header-knapper (injisert via loader) */
 .nissy-header-btn {
    background: linear-gradient(135deg, #3a7a9c 0%, #5090b0 100%) !important;
-   color: white !important;
+   color: #0D131B !important;
 }
 
 .nissy-header-btn:hover {
@@ -648,17 +664,11 @@ table.bg-color > tbody > tr > td {
 /* NISSY script-panel-knapper (injisert via loader) */
 .nissy-script-btn,
 .nissy-manual-btn {
-   background: linear-gradient(135deg, #3a7a9c 0%, #5090b0 100%) !important;
-   color: white !important;
+   background: linear-gradient(135deg, #428BB3 0%, #649DB9 100%) !important;
+   color: #0D131B !important;
 }
 
 .nissy-script-btn:hover,
 .nissy-manual-btn:hover {
-   background: linear-gradient(135deg, #2d6080 0%, #3f7a98 100%) !important;
-}
-
-/* Utgråede rader (NISSY disableSelection setter inline style) */
-tr[style*="rgb(231, 231, 231)"] {
-   background-color: #a8bece !important;
-   color: #6a8898 !important;
+   background: linear-gradient(135deg, #357197 0%, #488BAD 100%) !important;
 }
