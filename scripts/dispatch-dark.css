@@ -516,7 +516,7 @@ td.transcostfooter {
    width: 115px;
 }
 
-.bigbutton {
+.bigbutton:not(.nissy-script-btn) {
    font-family   : Arial, sans-serif;
    font-size     : 14px;
    padding-top   : 1px;
@@ -586,21 +586,21 @@ td.vspace2 {
 }
 
 /* Standard NISSY-knapper */
-input[type="button"],
-input[type="submit"],
-input[type="reset"] {
+input[type="button"]:not(.nissy-script-btn),
+input[type="submit"]:not(.nissy-script-btn),
+input[type="reset"]:not(.nissy-script-btn) {
    background-color: #8aa8c0;
    color: #1a2535;
    border: 1px solid #6a8aa0;
 }
 
-input[type="button"]:hover:not(:disabled),
-input[type="submit"]:hover:not(:disabled) {
+input[type="button"]:not(.nissy-script-btn):hover:not(:disabled),
+input[type="submit"]:not(.nissy-script-btn):hover:not(:disabled) {
    background-color: #7898b0;
 }
 
-input[type="button"]:disabled,
-input[type="submit"]:disabled {
+input[type="button"]:not(.nissy-script-btn):disabled,
+input[type="submit"]:not(.nissy-script-btn):disabled {
    background-color: #c5d4e3;
    color: #7a9ab0;
    border-color: #a0b8cc;
