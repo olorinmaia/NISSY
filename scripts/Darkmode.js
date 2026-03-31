@@ -14,6 +14,9 @@
  *   NissyDarkmode.enable()
  *   NissyDarkmode.disable()
  *   NissyDarkmode.toggle()
+ * 
+ * Tving ny versjon av CSS (om nødvendig):
+ *  https://purge.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/dispatch-dark.css
  */
 
 (() => {
