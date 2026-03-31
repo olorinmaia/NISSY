@@ -207,9 +207,11 @@
     "Meråker k.fys., 7530 Meråker": "Meråker kommune, Rådhusgata 7, 7530 Meråker",
     "Flatanger fys., 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
     "Fys. Sundrønning, 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
+    "Fys. Torunn Strøm, 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
     "Vikna fysikalske, 7900 Rørvik": "Rørvik Helsehus, Kirkegata 10, 7900 Rørvik",
     "Inderøy kom.fys./Fys. Carlson, 7670 Inderøy": "Øvergata 20, 7670 Inderøy",
     "Frosta kom.fys./Varmebasseng, 7633 Frosta": "Nertunet 25, 7633 Frosta",
+    "Fys. Tore Øseth, 7970 Kolvereid": "Sentrum campus, 7970 Kolvereid",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
