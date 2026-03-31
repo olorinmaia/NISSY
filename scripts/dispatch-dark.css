@@ -380,7 +380,7 @@ tr.tbh {
 }
 
 div.reqDocView {
-   background-color: #eef4e8;
+   background-color: #C5D4E3;
    color           : #1a2535;
    border          : 1px solid #8aa8c0;
    padding         : 1px 5px 1px 5px;
@@ -459,7 +459,7 @@ td.travel {
 }
 
 div.transCostView {
-   background-color: #eef4e8;
+   background-color: #C5D4E3;
    color           : #1a2535;
    border          : 1px solid #8aa8c0;
    padding         : 1px 4px 1px 5px;
@@ -550,7 +550,6 @@ th.dt {
 }
 
 div.odd {
-   background-color: #c0d0e0;
    width: 100%;
 }
 
@@ -656,4 +655,10 @@ table.bg-color > tbody > tr > td {
 .nissy-script-btn:hover,
 .nissy-manual-btn:hover {
    background: linear-gradient(135deg, #2d6080 0%, #3f7a98 100%) !important;
+}
+
+/* Utgråede rader (NISSY disableSelection setter inline style) */
+tr[style*="rgb(231, 231, 231)"] {
+   background-color: #a8bece !important;
+   color: #6a8898 !important;
 }
