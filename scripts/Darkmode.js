@@ -19,7 +19,7 @@
 (() => {
     const STYLE_ID    = 'nissy-darkmode-css';
     const STORAGE_KEY = 'nissy-darkmode-enabled';
-    const CSS_URL     = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/dispatch-dark.css';
+    const CSS_URL     = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/dispatch-dark.css';
 
     function isActive() {
         return !!document.getElementById(STYLE_ID);
