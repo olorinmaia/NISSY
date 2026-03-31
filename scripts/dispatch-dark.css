@@ -290,6 +290,19 @@ a.dt {
    color         : #1a6080;
 }
 
+/* Generelle lenker – overstyrer nettleserens #0000EE / #551A8B */
+a:not([class]) {
+   color: #1a6080;
+}
+
+a:not([class]):visited {
+   color: #4a4a88;
+}
+
+a:not([class]):hover {
+   color: #2a80a0;
+}
+
 td.datatext {
    font-family   : Arial, sans-serif;
    font-size     : 12px;
@@ -606,9 +619,10 @@ input[type="submit"]:not(.nissy-script-btn):disabled {
    border-color: #a0b8cc;
 }
 
-/* Select-felter og søkeinput (utelater selects med inline style) */
+/* Select-felter, textarea og søkeinput (utelater selects med inline style) */
 select:not([style]),
 select.filter,
+textarea:not([style]),
 #searchType,
 #searchPhrase {
    background-color: #b0c4d8;
