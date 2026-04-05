@@ -738,7 +738,7 @@ tr[style*="rgb(231, 231, 231)"] td {
         const el = document.getElementById(STYLE_ID);
         if (el) el.remove();
 
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(STORAGE_KEY, '0');
         console.log('☀️ NISSY Darkmode deaktivert');
     }
 
@@ -747,12 +747,14 @@ tr[style*="rgb(231, 231, 231)"] td {
     }
 
     // Gjenopprett valg fra forrige sesjon
-    if (localStorage.getItem(STORAGE_KEY) === '1') {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === '1') {
         enable();
-    } else {
-        // Første gang (manuell kjøring): aktiver
-        toggle();
+    } else if (stored === null) {
+        // Første gang (ingen lagret valg): aktiver
+        enable();
     }
+    // stored === '0': eksplisitt deaktivert – gjør ingenting
 
     // Eksporter globalt
     window.NissyDarkmode = { enable, disable, toggle };
