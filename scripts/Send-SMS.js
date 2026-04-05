@@ -887,9 +887,11 @@
 
     const items = infoObjekter.map(info => ({
       info,
-      telefon:    null,
-      inkludert:  true,  // kan settes false via checkbox
+      telefon:   null,
+      tekst:     null,   // per-item redigert melding (null = bruk mal)
+      inkludert: true,
     }));
+    let editingItem = null;
 
     const { overlay, popup } = createPopupBase("660px");
     overlay.id = "__sendSMSOverlay";
@@ -920,12 +922,19 @@
     `;
     popup.appendChild(malRad);
 
-    // Forhåndsvisning av mal-tekst (vises ved mal-valg)
-    const malPreview = document.createElement("div");
+    // Redigerbar melding per bestilling (vises ved mal-valg)
+    const malPreviewLabel = document.createElement("div");
+    Object.assign(malPreviewLabel.style, {
+      display: "none", fontSize: "11px", color: "#888", marginBottom: "3px",
+    });
+    popup.appendChild(malPreviewLabel);
+
+    const malPreview = document.createElement("textarea");
+    malPreview.rows = 6;
     Object.assign(malPreview.style, {
-      display: "none", background: "#f9f9f9", border: "1px solid #ddd",
-      borderRadius: "5px", padding: "8px 12px", marginBottom: "4px",
-      fontSize: "12px", color: "#444", whiteSpace: "pre-wrap", lineHeight: "1.5",
+      display: "none", width: "100%", border: "1px solid #ccc",
+      borderRadius: "4px", padding: "6px 8px", marginBottom: "4px",
+      fontSize: "13px", resize: "vertical", boxSizing: "border-box",
     });
     popup.appendChild(malPreview);
 
@@ -1139,22 +1148,42 @@
     function visPreviewForItem(item) {
       const malIdx = parseInt(massMalSelect.value, 10);
       if (isNaN(malIdx) || !SMS_MALER[malIdx]) return;
-      const tekst = SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN);
-      malPreview.innerHTML = `<span style="font-size:10px;color:#888;display:block;margin-bottom:5px;">📋 ${kortTekst(item.info.pasientNavn, MAX_NAVN_LENGDE)}</span>${tekst.replace(/\n/g, "<br>")}`;
+      editingItem = item;
+      if (item.tekst === null) {
+        item.tekst = SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN);
+      }
+      malPreviewLabel.textContent = `📋 ${kortTekst(item.info.pasientNavn, MAX_NAVN_LENGDE)}`;
+      malPreviewLabel.style.display = "block";
+      malPreview.value = item.tekst;
       malPreview.style.display = "block";
-      const len = tekst.length;
-      malPreviewTegn.textContent = `${len} / ${MAX_TEGN} tegn`;
-      malPreviewTegn.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
+      malPreview.style.height = "auto";
+      malPreview.style.height = malPreview.scrollHeight + "px";
+      oppdaterPreviewTegnteller();
       malPreviewTegn.style.display = "block";
     }
+
+    function oppdaterPreviewTegnteller() {
+      const len = malPreview.value.length;
+      malPreviewTegn.textContent = `${len} / ${MAX_TEGN} tegn`;
+      malPreviewTegn.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
+    }
+
+    malPreview.addEventListener("input", () => {
+      if (malPreview.value.length > MAX_TEGN) malPreview.value = malPreview.value.slice(0, MAX_TEGN);
+      if (editingItem) editingItem.tekst = malPreview.value;
+      oppdaterPreviewTegnteller();
+    });
 
     massMalSelect.addEventListener("change", () => {
       const idx  = parseInt(massMalSelect.value, 10);
       malErValgt = !isNaN(idx) && !!SMS_MALER[idx];
 
+      // Reset per-item tekster ved mal-bytte slik at ny mal genereres
+      items.forEach(it => { it.tekst = null; });
+      editingItem = null;
+
       if (malErValgt) {
         fritekstWrap.style.display = "none";
-        // Auto-forhåndsvis første bestilling
         tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
         const firstItem = items[0];
         if (firstItem) {
@@ -1163,6 +1192,7 @@
           tbody.querySelector("tr")?.style.setProperty("outline-offset", "-2px");
         }
       } else {
+        malPreviewLabel.style.display = "none";
         malPreview.style.display = "none";
         malPreviewTegn.style.display = "none";
         fritekstWrap.style.display = "block";
@@ -1209,7 +1239,7 @@
 
         try {
           const melding = harMal
-            ? SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN)
+            ? (item.tekst ?? SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN))
             : fritekstTekst.slice(0, MAX_TEGN);
           await sendSMS(item.info.id, item.telefon.replace(/\s/g, ""), melding);
           if (stCell) stCell.innerHTML = `<span style="color:#27ae60;">✅</span>`;
