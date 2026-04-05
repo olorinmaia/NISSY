@@ -1752,7 +1752,11 @@
         </div>
       </div>`;
 
-    const lukk = () => overlay.remove();
+    let escHandler;
+    const lukk = () => {
+      document.removeEventListener("keydown", escHandler);
+      overlay.remove();
+    };
     overlay.addEventListener("click", e => { if (e.target === overlay) lukk(); });
 
     overlay.querySelector("#__smsValgSjaafor").addEventListener("click", () => {
@@ -1764,7 +1768,7 @@
       fortsettMedBestilling();
     });
 
-    const escHandler = e => { if (e.key === "Escape") { document.removeEventListener("keydown", escHandler); lukk(); } };
+    escHandler = e => { if (e.key === "Escape") lukk(); };
     document.addEventListener("keydown", escHandler);
 
     document.body.appendChild(overlay);

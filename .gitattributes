@@ -1,10 +1,10 @@
-# Bruk LF for alle tekstfiler
-* text=auto eol=lf
+# Bruk CRLF for alle tekstfiler
+* text=auto eol=crlf
 
 # Eksplisitt for vanlige filtyper
-*.js   text eol=lf
-*.css  text eol=lf
-*.html text eol=lf
-*.md   text eol=lf
-*.json text eol=lf
-*.txt  text eol=lf
+*.js   text eol=crlf
+*.css  text eol=crlf
+*.html text eol=crlf
+*.md   text eol=crlf
+*.json text eol=crlf
+*.txt  text eol=crlf
