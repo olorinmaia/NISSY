@@ -28,7 +28,8 @@
     'Live-ressurskart.js',
     'Hurtigmeny.js',
     'Send-SMS.js',
-    'Logg.js'
+    'Logg.js',
+    'Darkmode.js'
   ];
   
   console.log('📦 Laster NISSY Advanced DEV...');
