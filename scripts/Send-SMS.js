@@ -469,6 +469,22 @@
   }
 
   // ============================================================
+  // HENT MERKET RESSURS-RAD MED LØYVENUMMER (for sjåfør/bestilling-valg)
+  // Returnerer første merkede rad i #resurser som har et løyvenummer
+  // (dvs. ikke et midlertidig ID på formen Navn-L-12345678).
+  // ============================================================
+  function getMerketRessursRadMedLoeyve() {
+    const SELECTED_BG = "rgb(148, 169, 220)";
+    return Array.from(document.querySelectorAll("#resurser tbody tr"))
+      .find(r => {
+        if (!r.id?.startsWith("Rxxx")) return false;
+        if (r.style.backgroundColor !== SELECTED_BG) return false;
+        const navn = r.querySelector("td[id*='loyvexxx']")?.textContent.trim() || "";
+        return navn.length > 0 && !/-\d{7,}$/.test(navn);
+      }) || null;
+  }
+
+  // ============================================================
   // HENT ALLE MERKEDE VENTENDE BESTILLINGER
   // ============================================================
   function getVentendeRader() {
@@ -1679,11 +1695,73 @@
   window.__openSjaaforSMSPopup = openSjaaforPopup;
 
   // ============================================================
+  // Viser en liten valgdialog dersom brukeren har merket en ressurs med
+  // løyvenummer i ressurspanelet og det også finnes ventende/pågående bestillinger.
+  // Brukeren velger om Alt+C skal åpne sjåfør- eller bestillingsmodus.
+  function visModusValgDialog(ressursRad, fortsettMedBestilling) {
+    const loeyve = ressursRad.querySelector("td[id*='loyvexxx']")?.textContent.trim() || "";
+    const overlay = document.createElement("div");
+    overlay.id = "__smsModusValgOverlay";
+    Object.assign(overlay.style, {
+      position: "fixed", inset: "0", background: "rgba(0,0,0,.45)",
+      zIndex: "99998", display: "flex", alignItems: "center", justifyContent: "center",
+    });
+
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:8px;padding:22px 28px;min-width:300px;
+                  box-shadow:0 4px 20px rgba(0,0,0,.35);font-family:sans-serif;text-align:center;">
+        <div style="font-size:14px;font-weight:bold;margin-bottom:6px;">Send SMS – velg modus</div>
+        <div style="font-size:12px;color:#555;margin-bottom:18px;">Ressurs <b>${loeyve}</b> har pågående oppdrag</div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button id="__smsValgSjaafor"
+            style="padding:7px 18px;font-size:13px;border:1px solid #888;border-radius:5px;
+                   cursor:pointer;background:#f5f5f5;">🚕 Sjåfør</button>
+          <button id="__smsValgBestilling" autofocus
+            style="padding:7px 18px;font-size:13px;border:1px solid #4a70c0;border-radius:5px;
+                   cursor:pointer;background:#4a70c0;color:#fff;font-weight:bold;">📋 Bestilling</button>
+        </div>
+      </div>`;
+
+    const lukk = () => overlay.remove();
+    overlay.addEventListener("click", e => { if (e.target === overlay) lukk(); });
+
+    overlay.querySelector("#__smsValgSjaafor").addEventListener("click", () => {
+      lukk();
+      openSjaaforPopup(ressursRad);
+    });
+    overlay.querySelector("#__smsValgBestilling").addEventListener("click", () => {
+      lukk();
+      fortsettMedBestilling();
+    });
+
+    const escHandler = e => { if (e.key === "Escape") { document.removeEventListener("keydown", escHandler); lukk(); } };
+    document.addEventListener("keydown", escHandler);
+
+    document.body.appendChild(overlay);
+    overlay.querySelector("#__smsValgBestilling").focus();
+  }
+
   async function openSendSMSPopup() {
     if (document.getElementById("__sendSMSOverlay")) return;
 
     const ventendeRader   = getVentendeRader();
     const paagaaendeRader = getPaagaaendeRader();
+
+    // ---- Sjekk om ressurs med løyvenummer er merket → sjåfør eller modusvalg ----
+    const ressursRadMedLoeyve = getMerketRessursRadMedLoeyve();
+    if (ressursRadMedLoeyve) {
+      if (ventendeRader.length > 0 || paagaaendeRader.length > 0) {
+        visModusValgDialog(ressursRadMedLoeyve, () => aapneBestillingsModus());
+      } else {
+        openSjaaforPopup(ressursRadMedLoeyve);
+      }
+      return;
+    }
+
+    aapneBestillingsModus();
+
+    async function aapneBestillingsModus() {
+    if (document.getElementById("__sendSMSOverlay")) return;
 
     // ---- Ventende: kolonnevalidering ----
     let ventendeInfo = [];
@@ -1749,7 +1827,8 @@
     } else {
       openMassePopup(alleInfo, paagaaendeRadIds);
     }
-  }
+  } // end aapneBestillingsModus
+  } // end openSendSMSPopup
 
   // ============================================================
   // HURTIGTAST: Alt+C
