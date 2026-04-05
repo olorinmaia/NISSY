@@ -635,6 +635,12 @@ textarea:not([style]),
    background-color: #c5d4e3;
 }
 
+/* Filterbeskrivelse-panel – bgcolor="#D6D3A7" overstyres */
+#showfilter td[bgcolor="#D6D3A7"] {
+   background-color: #5a9ab5;
+   color: #1a2535;
+}
+
 /* Header og ytre wrapper */
 header,
 table.bg-color,
