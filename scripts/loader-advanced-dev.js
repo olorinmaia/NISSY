@@ -376,27 +376,7 @@
       
       // Sett inn FØR første rad (over Merknad/Avvik)
       firstRow.insertAdjacentHTML('beforebegin', rowsHTML);
-
-      // Dynamisk kolonnebredde: mål kontrollpanel-tabellen etter at knappene er i DOM
-      requestAnimationFrame(() => {
-        const col1 = document.getElementById("col1");
-        const col2 = document.getElementById("col2");
-        const col3 = document.getElementById("col3");
-        const container = col1?.parentElement;
-        if (!container || !col1 || !col2 || !col3) return;
-        const total = container.offsetWidth;
-        const col2MinPx = total * 0.145;
-        const innholdPx = targetTable.scrollWidth + 16;
-        const col2Px  = Math.max(col2MinPx, innholdPx);
-        const col2Pct = (col2Px / total) * 100;
-        const restPct = 100 - col2Pct;
-        const col1Pct = restPct * (33 / 85.5);
-        const col3Pct = restPct - col1Pct;
-        col1.style.flexBasis = col1Pct.toFixed(2) + "%";
-        col2.style.flexBasis = col2Pct.toFixed(2) + "%";
-        col3.style.flexBasis = col3Pct.toFixed(2) + "%";
-      });
-
+      
       // Koble knapper til hotkeys
       targetTable.querySelectorAll('.nissy-script-btn').forEach(button => {
         const hotkey = button.getAttribute('data-hotkey');
