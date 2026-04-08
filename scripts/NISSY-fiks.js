@@ -166,6 +166,13 @@
       return;
     }
   
+    /* ---------- F4 / F6 ---------- */
+    if (e.key === "F4" || e.key === "F6") {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
     /* ---------- F5 ---------- */
     if (e.key === "F5") {
       e.preventDefault();
@@ -175,7 +182,7 @@
       }
       return false;
     }
-  
+
     /* ---------- Ctrl+R / Cmd+R ---------- */
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r") {
       e.preventDefault();
