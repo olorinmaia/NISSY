@@ -264,20 +264,6 @@
   }
 
 /* ======================================================
-     DEL 1A: SETT KOLONNE-BREDDER (KUN ÉN GANG)
-     ====================================================== */
-
-  if (!window.__nissyColWidthsApplied) {
-    window.__nissyColWidthsApplied = true;
-
-    const colWidths = { col1: "33%", col2: "14.5%", col3: "52.5%" };
-    for (const [id, width] of Object.entries(colWidths)) {
-      const el = document.getElementById(id);
-      if (el) el.style.flexBasis = width;
-    }
-  }
-
-/* ======================================================
      DEL 1B: ERSTATT OG FORENKLE KONTROLLPANEL-TABELL
      Kjører tidlig og setter opp event handlers ETTER erstatning
      Fjerner unødvendige knapper og forenkler layout
@@ -364,7 +350,7 @@
       targetTable.setAttribute('data-nissy-simplified', 'true');
 
       console.log("✅ Kontrollpanel-tabell forenklet");
-      
+
       // Sett opp event handlers ETTER at tabellen er erstattet
       setupButtonHandlers();
     }
