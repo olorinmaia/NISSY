@@ -118,6 +118,8 @@
     "Geriatrisk pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "Kir post 3, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     "ARA pol, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Fysio- og ergoterapi, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
+    "Allmennpsyk sengepost, 7600 Levanger": "Sykehuset Levanger, 7600 Levanger",
     
     // Sykehuset Namsos - avdelinger/poliklinikker
     "Ort D3, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
@@ -148,6 +150,7 @@
     "SN. Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "./Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Geriatrisk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Preoperativ dag, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
@@ -166,6 +169,7 @@
     "BVS 1. Skade pol, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "KSS 5. Sengetun hudsykdommer, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
     "OSS U1 Hemodialyse, 7300 Orkanger": "St. Olavs hospital - Orkdal sjukehus",
+    ".../KVB 6. Gynekologi dagbehandling, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
 
     // Helse Møre og Romsdal / Ålesund Sykehus / Kristiansand Sykehus osv..
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
@@ -205,9 +209,11 @@
     "Meråker k.fys., 7530 Meråker": "Meråker kommune, Rådhusgata 7, 7530 Meråker",
     "Flatanger fys., 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
     "Fys. Sundrønning, 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
+    "Fys. Torunn Strøm, 7770 Flatanger": "Flatanger kommune, Lauvsneshaugen 25, 7770 Flatanger",
     "Vikna fysikalske, 7900 Rørvik": "Rørvik Helsehus, Kirkegata 10, 7900 Rørvik",
     "Inderøy kom.fys./Fys. Carlson, 7670 Inderøy": "Øvergata 20, 7670 Inderøy",
     "Frosta kom.fys./Varmebasseng, 7633 Frosta": "Nertunet 25, 7633 Frosta",
+    "Fys. Tore Øseth, 7970 Kolvereid": "Sentrum campus, 7970 Kolvereid",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:

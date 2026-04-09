@@ -34,8 +34,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/9c97ce59-4c4e-4dcb-819f-4cc0395d578f" />
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
-  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling.
-    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/38dc474e-7fba-4314-9886-fd94debfdca8" />
+  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling og [M] Møteplass.
+    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/edb3a925-b37e-42b8-a985-790ae780117f" />
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
@@ -107,6 +107,9 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
 
 ### Individuelle script
+- 🌙 **Darkmode** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/0f1a20bd-a732-459e-bdfd-53411187c4e0" />
+ 
 - 🔔 **Overvåk-Ventende**
   - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
   - Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
@@ -160,6 +163,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 📊 Statistikk | ✅ | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
 | 🖱️ Hurtigmeny | ✅ | ✅ | ✅ |
+| 🌙 Darkmode | ✅ | ✅ | ✅ |
 | 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |

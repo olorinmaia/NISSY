@@ -469,6 +469,22 @@
   }
 
   // ============================================================
+  // HENT MERKET RESSURS-RAD MED LØYVENUMMER (for sjåfør/bestilling-valg)
+  // Returnerer første merkede rad i #resurser som har et løyvenummer
+  // (dvs. ikke et midlertidig ID på formen Navn-L-12345678).
+  // ============================================================
+  function getMerketRessursRadMedLoeyve() {
+    const SELECTED_BG = "rgb(148, 169, 220)";
+    return Array.from(document.querySelectorAll("#resurser tbody tr"))
+      .find(r => {
+        if (!r.id?.startsWith("Rxxx")) return false;
+        if (r.style.backgroundColor !== SELECTED_BG) return false;
+        const navn = r.querySelector("td[id*='loyvexxx']")?.textContent.trim() || "";
+        return navn.length > 0 && !/-\d{7,}$/.test(navn);
+      }) || null;
+  }
+
+  // ============================================================
   // HENT ALLE MERKEDE VENTENDE BESTILLINGER
   // ============================================================
   function getVentendeRader() {
@@ -871,9 +887,11 @@
 
     const items = infoObjekter.map(info => ({
       info,
-      telefon:    null,
-      inkludert:  true,  // kan settes false via checkbox
+      telefon:   null,
+      tekst:     null,   // per-item redigert melding (null = bruk mal)
+      inkludert: true,
     }));
+    let editingItem = null;
 
     const { overlay, popup } = createPopupBase("660px");
     overlay.id = "__sendSMSOverlay";
@@ -904,12 +922,19 @@
     `;
     popup.appendChild(malRad);
 
-    // Forhåndsvisning av mal-tekst (vises ved mal-valg)
-    const malPreview = document.createElement("div");
+    // Redigerbar melding per bestilling (vises ved mal-valg)
+    const malPreviewLabel = document.createElement("div");
+    Object.assign(malPreviewLabel.style, {
+      display: "none", fontSize: "11px", color: "#888", marginBottom: "3px",
+    });
+    popup.appendChild(malPreviewLabel);
+
+    const malPreview = document.createElement("textarea");
+    malPreview.rows = 6;
     Object.assign(malPreview.style, {
-      display: "none", background: "#f9f9f9", border: "1px solid #ddd",
-      borderRadius: "5px", padding: "8px 12px", marginBottom: "4px",
-      fontSize: "12px", color: "#444", whiteSpace: "pre-wrap", lineHeight: "1.5",
+      display: "none", width: "100%", border: "1px solid #ccc",
+      borderRadius: "4px", padding: "6px 8px", marginBottom: "4px",
+      fontSize: "13px", resize: "vertical", boxSizing: "border-box",
     });
     popup.appendChild(malPreview);
 
@@ -1123,22 +1148,42 @@
     function visPreviewForItem(item) {
       const malIdx = parseInt(massMalSelect.value, 10);
       if (isNaN(malIdx) || !SMS_MALER[malIdx]) return;
-      const tekst = SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN);
-      malPreview.innerHTML = `<span style="font-size:10px;color:#888;display:block;margin-bottom:5px;">📋 ${kortTekst(item.info.pasientNavn, MAX_NAVN_LENGDE)}</span>${tekst.replace(/\n/g, "<br>")}`;
+      editingItem = item;
+      if (item.tekst === null) {
+        item.tekst = SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN);
+      }
+      malPreviewLabel.textContent = `📋 ${kortTekst(item.info.pasientNavn, MAX_NAVN_LENGDE)}`;
+      malPreviewLabel.style.display = "block";
+      malPreview.value = item.tekst;
       malPreview.style.display = "block";
-      const len = tekst.length;
-      malPreviewTegn.textContent = `${len} / ${MAX_TEGN} tegn`;
-      malPreviewTegn.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
+      malPreview.style.height = "auto";
+      malPreview.style.height = malPreview.scrollHeight + "px";
+      oppdaterPreviewTegnteller();
       malPreviewTegn.style.display = "block";
     }
+
+    function oppdaterPreviewTegnteller() {
+      const len = malPreview.value.length;
+      malPreviewTegn.textContent = `${len} / ${MAX_TEGN} tegn`;
+      malPreviewTegn.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
+    }
+
+    malPreview.addEventListener("input", () => {
+      if (malPreview.value.length > MAX_TEGN) malPreview.value = malPreview.value.slice(0, MAX_TEGN);
+      if (editingItem) editingItem.tekst = malPreview.value;
+      oppdaterPreviewTegnteller();
+    });
 
     massMalSelect.addEventListener("change", () => {
       const idx  = parseInt(massMalSelect.value, 10);
       malErValgt = !isNaN(idx) && !!SMS_MALER[idx];
 
+      // Reset per-item tekster ved mal-bytte slik at ny mal genereres
+      items.forEach(it => { it.tekst = null; });
+      editingItem = null;
+
       if (malErValgt) {
         fritekstWrap.style.display = "none";
-        // Auto-forhåndsvis første bestilling
         tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
         const firstItem = items[0];
         if (firstItem) {
@@ -1147,6 +1192,7 @@
           tbody.querySelector("tr")?.style.setProperty("outline-offset", "-2px");
         }
       } else {
+        malPreviewLabel.style.display = "none";
         malPreview.style.display = "none";
         malPreviewTegn.style.display = "none";
         fritekstWrap.style.display = "block";
@@ -1193,7 +1239,7 @@
 
         try {
           const melding = harMal
-            ? SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN)
+            ? (item.tekst ?? SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN))
             : fritekstTekst.slice(0, MAX_TEGN);
           await sendSMS(item.info.id, item.telefon.replace(/\s/g, ""), melding);
           if (stCell) stCell.innerHTML = `<span style="color:#27ae60;">✅</span>`;
@@ -1679,11 +1725,77 @@
   window.__openSjaaforSMSPopup = openSjaaforPopup;
 
   // ============================================================
+  // Viser en liten valgdialog dersom brukeren har merket en ressurs med
+  // løyvenummer i ressurspanelet og det også finnes ventende/pågående bestillinger.
+  // Brukeren velger om Alt+C skal åpne sjåfør- eller bestillingsmodus.
+  function visModusValgDialog(ressursRad, fortsettMedBestilling) {
+    const loeyve = ressursRad.querySelector("td[id*='loyvexxx']")?.textContent.trim() || "";
+    const overlay = document.createElement("div");
+    overlay.id = "__smsModusValgOverlay";
+    Object.assign(overlay.style, {
+      position: "fixed", inset: "0", background: "rgba(0,0,0,.45)",
+      zIndex: "99998", display: "flex", alignItems: "center", justifyContent: "center",
+    });
+
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:8px;padding:22px 28px;min-width:300px;
+                  box-shadow:0 4px 20px rgba(0,0,0,.35);font-family:sans-serif;text-align:center;">
+        <div style="font-size:14px;font-weight:bold;margin-bottom:6px;">Send SMS – velg modus</div>
+        <div style="font-size:12px;color:#555;margin-bottom:18px;">Ressurs <b>${loeyve}</b> har pågående oppdrag</div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button id="__smsValgSjaafor"
+            style="padding:7px 18px;font-size:13px;border:1px solid #888;border-radius:5px;
+                   cursor:pointer;background:#f5f5f5;">🚕 Sjåfør</button>
+          <button id="__smsValgBestilling" autofocus
+            style="padding:7px 18px;font-size:13px;border:1px solid #4a70c0;border-radius:5px;
+                   cursor:pointer;background:#4a70c0;color:#fff;font-weight:bold;">📋 Bestilling</button>
+        </div>
+      </div>`;
+
+    let escHandler;
+    const lukk = () => {
+      document.removeEventListener("keydown", escHandler);
+      overlay.remove();
+    };
+    overlay.addEventListener("click", e => { if (e.target === overlay) lukk(); });
+
+    overlay.querySelector("#__smsValgSjaafor").addEventListener("click", () => {
+      lukk();
+      openSjaaforPopup(ressursRad);
+    });
+    overlay.querySelector("#__smsValgBestilling").addEventListener("click", () => {
+      lukk();
+      fortsettMedBestilling();
+    });
+
+    escHandler = e => { if (e.key === "Escape") lukk(); };
+    document.addEventListener("keydown", escHandler);
+
+    document.body.appendChild(overlay);
+    overlay.querySelector("#__smsValgBestilling").focus();
+  }
+
   async function openSendSMSPopup() {
     if (document.getElementById("__sendSMSOverlay")) return;
 
     const ventendeRader   = getVentendeRader();
     const paagaaendeRader = getPaagaaendeRader();
+
+    // ---- Sjekk om ressurs med løyvenummer er merket → sjåfør eller modusvalg ----
+    const ressursRadMedLoeyve = getMerketRessursRadMedLoeyve();
+    if (ressursRadMedLoeyve) {
+      if (ventendeRader.length > 0 || paagaaendeRader.length > 0) {
+        visModusValgDialog(ressursRadMedLoeyve, () => aapneBestillingsModus());
+      } else {
+        openSjaaforPopup(ressursRadMedLoeyve);
+      }
+      return;
+    }
+
+    aapneBestillingsModus();
+
+    async function aapneBestillingsModus() {
+    if (document.getElementById("__sendSMSOverlay")) return;
 
     // ---- Ventende: kolonnevalidering ----
     let ventendeInfo = [];
@@ -1749,7 +1861,8 @@
     } else {
       openMassePopup(alleInfo, paagaaendeRadIds);
     }
-  }
+  } // end aapneBestillingsModus
+  } // end openSendSMSPopup
 
   // ============================================================
   // HURTIGTAST: Alt+C

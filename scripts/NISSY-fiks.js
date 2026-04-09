@@ -17,6 +17,19 @@
   console.log("🚀 Starter NISSY-fiks-script");
 
   /* ======================================================
+     CSS-OVERRIDES
+     ====================================================== */
+  (() => {
+    const style = document.createElement('style');
+    style.id = 'nissy-fiks-overrides';
+    style.textContent = `
+      /* Fjern NISSY sin max-height på col1/col3 som klipper innhold på enkelte skjermer */
+      #col1 div.box, #col3 div.box { max-height: none !important; }
+    `;
+    document.head.appendChild(style);
+  })();
+
+  /* ======================================================
      DEL 0: TASTATUR-HÅNDTERING
      ====================================================== */
 
@@ -166,6 +179,13 @@
       return;
     }
   
+    /* ---------- F4 / F6 ---------- */
+    if (e.key === "F4" || e.key === "F6") {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
     /* ---------- F5 ---------- */
     if (e.key === "F5") {
       e.preventDefault();
@@ -175,7 +195,7 @@
       }
       return false;
     }
-  
+
     /* ---------- Ctrl+R / Cmd+R ---------- */
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r") {
       e.preventDefault();
@@ -257,6 +277,20 @@
   }
 
 /* ======================================================
+     DEL 1A: SETT KOLONNE-BREDDER (KUN ÉN GANG)
+     ====================================================== */
+
+  if (!window.__nissyColWidthsApplied) {
+    window.__nissyColWidthsApplied = true;
+
+    const colWidths = { col1: "33%", col2: "14.5%", col3: "52.5%" };
+    for (const [id, width] of Object.entries(colWidths)) {
+      const el = document.getElementById(id);
+      if (el) el.style.flexBasis = width;
+    }
+  }
+
+/* ======================================================
      DEL 1B: ERSTATT OG FORENKLE KONTROLLPANEL-TABELL
      Kjører tidlig og setter opp event handlers ETTER erstatning
      Fjerner unødvendige knapper og forenkler layout
@@ -303,7 +337,7 @@
         <tr>
             <td valign="top" align="left"><input id="buttonAssignVopps" type="button" value="Tildel oppdrag" title="Snarvei: Alt+G" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
             <td valign="top" align="right">
-                <input id="buttonSendSMS" type="button" value="Send SMS" class="bigbutton" onclick="ButtonController.onClick(this)">
+                <input id="buttonSendSMS" type="button" value="Send SMS" title="Snarvei: Alt+C" class="bigbutton" onclick="ButtonController.onClick(this)">
             </td>
         </tr>
         <tr>
@@ -368,7 +402,31 @@
     const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
     const _office1c    = _officeMatch?.[1]?.trim() || null;
 
-    // Elementer som skal fjernes for Pasientreiser Nord-Trøndelag
+    function removeCommonElements() {
+      const locusLogo = document.querySelector('img[src="/planlegging/images/locus_logo1.gif"]');
+      if (locusLogo) {
+        locusLogo.closest('table')?.closest('tr')?.remove();
+      } else {
+        setTimeout(removeCommonElements, 500);
+        return;
+      }
+
+      document.querySelectorAll('td.vspace').forEach(td => td.closest('tr')?.remove());
+
+      const blankImg = document.querySelector('img[src="blank.gif"][width="1"][height="2"]');
+      if (blankImg) {
+        const next = blankImg.nextSibling;
+        if (next?.nodeName === 'BR') next.remove();
+        blankImg.remove();
+      }
+
+      document.querySelectorAll('img[src="blank.gif"].hspacing').forEach(img => img.remove());
+
+      const bgTable = document.querySelector('footer table.bg-color');
+      if (bgTable) bgTable.style.removeProperty('padding');
+    }
+
+    // Elementer som kun skal fjernes for Pasientreiser Nord-Trøndelag
     if (_office1c === 'Pasientreiser Nord-Trøndelag') {
       function removeNordTrondelagElements() {
         let allFound = true;
@@ -387,27 +445,6 @@
           allFound = false;
         }
 
-        const locusLogo = document.querySelector('img[src="/planlegging/images/locus_logo1.gif"]');
-        if (locusLogo) {
-          locusLogo.closest('table')?.closest('tr')?.remove();
-        } else {
-          allFound = false;
-        }
-
-        document.querySelectorAll('td.vspace').forEach(td => td.closest('tr')?.remove());
-
-        const blankImg = document.querySelector('img[src="blank.gif"][width="1"][height="2"]');
-        if (blankImg) {
-          const next = blankImg.nextSibling;
-          if (next?.nodeName === 'BR') next.remove();
-          blankImg.remove();
-        }
-
-        document.querySelectorAll('img[src="blank.gif"].hspacing').forEach(img => img.remove());
-
-        const bgTable = document.querySelector('footer table.bg-color');
-        if (bgTable) bgTable.style.removeProperty('padding');
-
         if (!allFound) {
           setTimeout(removeNordTrondelagElements, 500);
         } else {
@@ -420,6 +457,12 @@
       } else {
         setTimeout(removeNordTrondelagElements, 300);
       }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(removeCommonElements, 300));
+    } else {
+      setTimeout(removeCommonElements, 300);
     }
   })();
 

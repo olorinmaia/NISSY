@@ -159,6 +159,29 @@
         }
       });
 
+      const darkmodeBtn = document.createElement('button');
+      darkmodeBtn.id = 'nissy-darkmode-btn';
+      darkmodeBtn.className = 'nissy-header-btn';
+      darkmodeBtn.type = 'button';
+      darkmodeBtn.title = 'Aktiver/deaktiver NISSY dark mode';
+      darkmodeBtn.textContent = '🌙 Darkmode';
+      darkmodeBtn.addEventListener('click', async () => {
+        if (window.NissyDarkmode) {
+          window.NissyDarkmode.toggle();
+        } else {
+          try {
+            const response = await fetch(BASE + 'Darkmode.js');
+            const code = await response.text();
+            eval(code);
+            if (window.NissyDarkmode && !document.getElementById('nissy-darkmode-css')) {
+              window.NissyDarkmode.toggle();
+            }
+          } catch (err) {
+            console.error('❌ Feil ved lasting av Darkmode.js:', err);
+          }
+        }
+      });
+
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
       helpBtn.className = 'nissy-header-btn';
@@ -205,6 +228,7 @@
       
       // Legg til knappene etter teksten i første <td>
       firstTd.appendChild(monitorBtn);
+      firstTd.appendChild(darkmodeBtn);
       firstTd.appendChild(helpBtn);
       firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);

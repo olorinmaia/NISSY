@@ -1,0 +1,10 @@
+# Bruk CRLF for alle tekstfiler
+* text=auto eol=crlf
+
+# Eksplisitt for vanlige filtyper
+*.js   text eol=crlf
+*.css  text eol=crlf
+*.html text eol=crlf
+*.md   text eol=crlf
+*.json text eol=crlf
+*.txt  text eol=crlf
