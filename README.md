@@ -107,6 +107,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
 
 ### Individuelle script
+- 🌙 **Darkmode** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
 - 🔔 **Overvåk-Ventende**
   - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
   - Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
@@ -160,6 +161,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 📊 Statistikk | ✅ | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
 | 🖱️ Hurtigmeny | ✅ | ✅ | ✅ |
+| 🌙 Darkmode | ✅ | ✅ | ✅ |
 | 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |

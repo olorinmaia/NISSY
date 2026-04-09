@@ -7,6 +7,23 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.6] - 10.04.2026
+
+### Nytt script: Darkmode – pluss forbedringer til Send-SMS, NISSY-fiks og Rek-knapper
+
+- 🌙 **Darkmode** *(nytt script)*
+  - Mørkt fargetema for planleggingsvisningen.
+  - Kan aktiveres ved å trykke på en ny knapp "🌙 Darkmode" øverst i Planlegging.
+- 📱 **Send-SMS**
+  - Redigerbar meldingstekst per bestilling ved masseutsending – hver melding kan tilpasses individuelt før utsending.
+  - Velg modus (sjåfør eller bestilling) når en ressurs med løyvenummer er merket og det finnes pågående oppdrag ved Alt+C.
+- ⌛ **NISSY-fiks**
+  - Blokkerer F4 og F6 for å hindre utilsiktet refresh og tap av script.
+  - Kolonnebredder settes ved oppstart.
+  - Unødvendig spacere og logoer fjernes for å forbedre visningen i Planlegging og Darkmode
+- 🔠 **Rek-knapper**
+  - Ny knapp [M] for Møteplass - splitt bestilling på ventende/pågående
+
 ## 🚀 [3.9.5] - 25.03.2026
 
 ### Forbedring av Alt-knapphåndtering og mappinger lagt til i Rutekalkulering
