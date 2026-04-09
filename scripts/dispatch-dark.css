@@ -3,7 +3,7 @@
  *  Tonet lys modus – mellomvei mellom lys og mørk
  *
  *  Fargepalett (blå-grå pastell):
- *    Bakgrunn (hvit)        : #dde5ee  – lys blå-grå
+ *    Bakgrunn (hvit)        : #E4EBF1  – lys blå-grå
  *    Bakgrunn (lys grå)     : #cdd7e4  – noe mørkere blå-grå
  *    Bakgrunn (paneler)     : #c5d4e3  – blå-grå panel
  *    Bakgrunn (topbar/bunn) : #b8cedd  – litt dypere blå-grå
@@ -24,7 +24,7 @@ div.box {
    border-left   : 1px solid #8aa8c0;
    border-right  : 1px solid #8aa8c0;
    border-bottom : 1px solid #8aa8c0;
-   background-color: #dde5ee;
+   background-color: #E4EBF1;
    color: #1a2535;
 }
 
