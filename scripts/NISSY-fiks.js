@@ -17,6 +17,19 @@
   console.log("🚀 Starter NISSY-fiks-script");
 
   /* ======================================================
+     CSS-OVERRIDES
+     ====================================================== */
+  (() => {
+    const style = document.createElement('style');
+    style.id = 'nissy-fiks-overrides';
+    style.textContent = `
+      /* Fjern NISSY sin max-height på col1/col3 som klipper innhold på enkelte skjermer */
+      #col1 div.box, #col3 div.box { max-height: none !important; }
+    `;
+    document.head.appendChild(style);
+  })();
+
+  /* ======================================================
      DEL 0: TASTATUR-HÅNDTERING
      ====================================================== */
 
@@ -389,7 +402,31 @@
     const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
     const _office1c    = _officeMatch?.[1]?.trim() || null;
 
-    // Elementer som skal fjernes for Pasientreiser Nord-Trøndelag
+    function removeCommonElements() {
+      const locusLogo = document.querySelector('img[src="/planlegging/images/locus_logo1.gif"]');
+      if (locusLogo) {
+        locusLogo.closest('table')?.closest('tr')?.remove();
+      } else {
+        setTimeout(removeCommonElements, 500);
+        return;
+      }
+
+      document.querySelectorAll('td.vspace').forEach(td => td.closest('tr')?.remove());
+
+      const blankImg = document.querySelector('img[src="blank.gif"][width="1"][height="2"]');
+      if (blankImg) {
+        const next = blankImg.nextSibling;
+        if (next?.nodeName === 'BR') next.remove();
+        blankImg.remove();
+      }
+
+      document.querySelectorAll('img[src="blank.gif"].hspacing').forEach(img => img.remove());
+
+      const bgTable = document.querySelector('footer table.bg-color');
+      if (bgTable) bgTable.style.removeProperty('padding');
+    }
+
+    // Elementer som kun skal fjernes for Pasientreiser Nord-Trøndelag
     if (_office1c === 'Pasientreiser Nord-Trøndelag') {
       function removeNordTrondelagElements() {
         let allFound = true;
@@ -408,27 +445,6 @@
           allFound = false;
         }
 
-        const locusLogo = document.querySelector('img[src="/planlegging/images/locus_logo1.gif"]');
-        if (locusLogo) {
-          locusLogo.closest('table')?.closest('tr')?.remove();
-        } else {
-          allFound = false;
-        }
-
-        document.querySelectorAll('td.vspace').forEach(td => td.closest('tr')?.remove());
-
-        const blankImg = document.querySelector('img[src="blank.gif"][width="1"][height="2"]');
-        if (blankImg) {
-          const next = blankImg.nextSibling;
-          if (next?.nodeName === 'BR') next.remove();
-          blankImg.remove();
-        }
-
-        document.querySelectorAll('img[src="blank.gif"].hspacing').forEach(img => img.remove());
-
-        const bgTable = document.querySelector('footer table.bg-color');
-        if (bgTable) bgTable.style.removeProperty('padding');
-
         if (!allFound) {
           setTimeout(removeNordTrondelagElements, 500);
         } else {
@@ -441,6 +457,12 @@
       } else {
         setTimeout(removeNordTrondelagElements, 300);
       }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(removeCommonElements, 300));
+    } else {
+      setTimeout(removeCommonElements, 300);
     }
   })();
 
