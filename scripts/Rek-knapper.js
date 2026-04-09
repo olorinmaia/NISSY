@@ -468,7 +468,7 @@
     const openModal = ({ url = null, requisitionNumber = null, isEditButton = false, isReturnButton = false } = {}) => {
       const modal = document.getElementById("iframeModal");
       const iframe = document.getElementById("iframeModalContent");
-      
+
       if (!iframe) return;
 
       // Reset iframe
@@ -870,6 +870,7 @@
           btn.title = {
             S: "Manuell statusendring",
             H: "Hendelseslogg",
+            M: "Møteplass – splitt bestilling",
             K: "Kopier (Viser også bestilinger)",
             R: "Rediger",
             T: "Lag retur og link sammen",
@@ -901,6 +902,11 @@
                 return;
               }
               resetIframe().then(() => openModal({ requisitionNumber, isReturnButton: true }));
+            } else if (label === "M") {
+              // M-knappen: Møteplass – splitt bestilling
+              resetIframe().then(() => openModal({
+                url: `/rekvisisjon/meetingplace/edit?rid=${reqId}&ns=true`,
+              }));
             } else {
               // Andre knapper: Åpne direkte URL
               const urlMap = {
@@ -924,6 +930,7 @@
         // Lag alle knappene
         const btnH = createButton("H");
         const btnS = createButton("S");
+        const btnM = createButton("M");
         const btnK = createButton("K");
         const btnT = createButton("T");
         const btnR = createButton("R");
@@ -932,6 +939,7 @@
         popup.appendChild(btnContainer);
         btnContainer.appendChild(btnH);
         if (btnS.style.display !== "none") btnContainer.appendChild(btnS);
+        btnContainer.appendChild(btnM);
         btnContainer.appendChild(btnK);
         btnContainer.appendChild(btnT);
         btnContainer.appendChild(btnR);
