@@ -337,7 +337,7 @@
         <tr>
             <td valign="top" align="left"><input id="buttonAssignVopps" type="button" value="Tildel oppdrag" title="Snarvei: Alt+G" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
             <td valign="top" align="right">
-                <input id="buttonSendSMS" type="button" value="Send SMS" class="bigbutton" onclick="ButtonController.onClick(this)">
+                <input id="buttonSendSMS" type="button" value="Send SMS" title="Snarvei: Alt+C" class="bigbutton" onclick="ButtonController.onClick(this)">
             </td>
         </tr>
         <tr>
