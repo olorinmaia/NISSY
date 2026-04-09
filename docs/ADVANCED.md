@@ -183,6 +183,7 @@ Viser hurtigknapper på merkede rader.
 |-------|----------|
 | **H** | Hendelseslogg |
 | **S** | Manuell statusendring (kun pågående) |
+| **M** | Møteplass - splitt bestilling |
 | **K** | Kopier bestilling |
 | **T** | Lag retur og link sammen |
 | **R** | Rediger |
