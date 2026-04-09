@@ -178,6 +178,11 @@
             const response = await fetch(BASE + 'Darkmode.js');
             const code = await response.text();
             eval(code);
+            // Darkmode.js auto-aktiverer hvis stored === '1' eller null.
+            // Kun toggle hvis det FORTSATT ikke er aktivt (stored var '0').
+            if (window.NissyDarkmode && !document.getElementById('nissy-darkmode-css')) {
+              window.NissyDarkmode.toggle();
+            }
           } catch (err) {
             console.error('❌ Feil ved lasting av Darkmode.js:', err);
           }

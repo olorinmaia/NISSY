@@ -152,6 +152,9 @@
             const response = await fetch(BASE + 'Darkmode.js');
             const code = await response.text();
             eval(code);
+            if (window.NissyDarkmode && !document.getElementById('nissy-darkmode-css')) {
+              window.NissyDarkmode.toggle();
+            }
           } catch (err) {
             console.error('❌ Feil ved lasting av Darkmode.js:', err);
           }
