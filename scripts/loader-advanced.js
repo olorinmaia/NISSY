@@ -163,7 +163,27 @@
           console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
         }
       });
-      
+
+      const darkmodeBtn = document.createElement('button');
+      darkmodeBtn.id = 'nissy-darkmode-btn';
+      darkmodeBtn.className = 'nissy-header-btn';
+      darkmodeBtn.type = 'button';
+      darkmodeBtn.title = 'Aktiver/deaktiver NISSY dark mode';
+      darkmodeBtn.textContent = '🌙 Darkmode';
+      darkmodeBtn.addEventListener('click', async () => {
+        if (window.NissyDarkmode) {
+          window.NissyDarkmode.toggle();
+        } else {
+          try {
+            const response = await fetch(BASE + 'Darkmode.js');
+            const code = await response.text();
+            eval(code);
+          } catch (err) {
+            console.error('❌ Feil ved lasting av Darkmode.js:', err);
+          }
+        }
+      });
+
       const helpBtn = document.createElement('a');
       helpBtn.id = 'nissy-help-btn';
       helpBtn.className = 'nissy-header-btn';
@@ -210,6 +230,7 @@
       
       // Legg til knappene etter teksten i første <td>
       firstTd.appendChild(monitorBtn);
+      firstTd.appendChild(darkmodeBtn);
       firstTd.appendChild(helpBtn);
       firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);
@@ -443,7 +464,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.9.5):</strong><br>
+          <strong>📝 Endringslogg (V3.9.6):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">
