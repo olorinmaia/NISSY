@@ -764,12 +764,32 @@
                 `}
               </div>
             ` : ''}
+            <button
+              class="show-log-btn"
+              data-id="${b.id}"
+              style="
+                padding: 0 5px;
+                background: #e9ecef;
+                color: #555;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                height: 20px;
+                line-height: 18px;
+                align-self: flex-end;
+                margin-bottom: 2px;
+                flex-shrink: 0;
+              "
+              title="Hendelseslogg for bestilling"
+            >H</button>
           </div>
         </div>
       </div>
     `;
     }).join('');
-  
+
     // Oppdater container
     container.innerHTML = bestillingRows;
     
@@ -787,12 +807,25 @@
     bestillinger.forEach(b => {
       const displayId = b.uniqueId || b.id;
       const calcButton = popup.querySelector(`.calc-time-btn[data-id="${displayId}"]`);
-      
+
       if (calcButton) {
         calcButton.onclick = async (e) => {
           e.preventDefault();
           const inputElement = popup.querySelector(`#time_${displayId}`);
           await autoCalculatePickupTime(b, inputElement, calcButton, popup);
+        };
+      }
+
+      // Hendelseslogg-knapp: åpne i nytt vindu
+      const logBtn = popup.querySelector(`.show-log-btn[data-id="${b.id}"]`);
+      if (logBtn) {
+        logBtn.onclick = (e) => {
+          e.preventDefault();
+          window.open(
+            `/administrasjon/admin/displayLog?id=${b.id}&type=requisition&db=1`,
+            "_blank",
+            `width=${innerWidth / 2},height=${innerHeight * 0.9},left=0,top=50,resizable=yes,scrollbars=yes`
+          );
         };
       }
     });
@@ -1808,6 +1841,26 @@
                 `}
               </div>
             ` : ''}
+            <button
+              class="show-log-btn"
+              data-id="${b.id}"
+              style="
+                padding: 0 5px;
+                background: #e9ecef;
+                color: #555;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                height: 20px;
+                line-height: 18px;
+                align-self: flex-end;
+                margin-bottom: 2px;
+                flex-shrink: 0;
+              "
+              title="Hendelseslogg for bestilling"
+            >H</button>
           </div>
         </div>
       </div>
