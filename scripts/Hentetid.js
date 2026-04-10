@@ -806,12 +806,17 @@
   // ============================================================
   let activeLogPopover = null;
   let activeLogOutsideClick = null;
+  let activeLogArrow = null;
 
   function closeLogPopover() {
     if (activeLogOutsideClick) {
       document.removeEventListener('click', activeLogOutsideClick);
       activeLogOutsideClick = null;
     }
+    if (activeLogArrow && activeLogArrow.parentNode) {
+      activeLogArrow.parentNode.removeChild(activeLogArrow);
+    }
+    activeLogArrow = null;
     if (activeLogPopover && activeLogPopover.parentNode) {
       activeLogPopover.parentNode.removeChild(activeLogPopover);
     }
@@ -967,6 +972,65 @@
           popover.style.left = `${left}px`;
           popover.style.top = `${top}px`;
           popover.style.visibility = 'visible';
+
+          // Pil som peker mot H-knappen
+          const openAbove = rowTop - ph - 8 > 0;
+          const btnCenterX = rect.left + rect.width / 2;
+          // Klem pilen innenfor popoverens horisontale utstrekning
+          const arrowLeft = Math.round(Math.max(left + 10, Math.min(btnCenterX - 9, left + pw - 28)));
+
+          const arrow = document.createElement('div');
+          activeLogArrow = arrow;
+          Object.assign(arrow.style, {
+            position: 'fixed',
+            zIndex: '1000002',
+            width: '0',
+            height: '0',
+            pointerEvents: 'none',
+            left: `${arrowLeft}px`,
+          });
+
+          const inner = document.createElement('div');
+          Object.assign(inner.style, {
+            position: 'absolute',
+            width: '0',
+            height: '0',
+          });
+
+          if (openAbove) {
+            // Popoveren er over raden → pil peker ned
+            Object.assign(arrow.style, {
+              borderLeft: '9px solid transparent',
+              borderRight: '9px solid transparent',
+              borderTop: '9px solid #ced4da',
+              top: `${top + ph}px`,
+            });
+            Object.assign(inner.style, {
+              borderLeft: '8px solid transparent',
+              borderRight: '8px solid transparent',
+              borderTop: '8px solid #fff',
+              left: '-8px',
+              top: '-10px',
+            });
+          } else {
+            // Popoveren er under raden → pil peker opp
+            Object.assign(arrow.style, {
+              borderLeft: '9px solid transparent',
+              borderRight: '9px solid transparent',
+              borderBottom: '9px solid #ced4da',
+              top: `${top - 9}px`,
+            });
+            Object.assign(inner.style, {
+              borderLeft: '8px solid transparent',
+              borderRight: '8px solid transparent',
+              borderBottom: '8px solid #fff',
+              left: '-8px',
+              top: '1px',
+            });
+          }
+
+          arrow.appendChild(inner);
+          document.body.appendChild(arrow);
         });
       });
 
