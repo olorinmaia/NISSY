@@ -916,6 +916,12 @@
             verticalAlign: 'top', textAlign: 'left',
           });
         });
+        // Fjern tomme rader (alle celler uten tekst)
+        table.querySelectorAll('tr').forEach(tr => {
+          if ([...tr.cells].every(td => td.textContent.trim() === '')) {
+            tr.remove();
+          }
+        });
         // Fremhev hentetid- og oppmøtetid-rader med egne farger
         table.querySelectorAll('tr').forEach(tr => {
           const kolonne = tr.cells[2]?.textContent.toLowerCase() || '';
