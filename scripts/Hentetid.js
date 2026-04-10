@@ -2292,11 +2292,22 @@
       }
     }, 100);
 
+    let changesSaved = false;
+
     const closePopup = () => {
+      closeLogPopover();
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
       isPopupOpen = false;
+      if (!changesSaved) {
+        setTimeout(() => {
+          if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+            ListSelectionGroup.clearAllSelections();
+          }
+          setTimeout(() => reselectAllRows(allSelectedRows), 100);
+        }, 50);
+      }
     };
 
     confirmButton.onclick = async () => {
@@ -2362,6 +2373,7 @@
       });
 
       await processTimeChanges(changes, statusBox);
+      changesSaved = true;
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
