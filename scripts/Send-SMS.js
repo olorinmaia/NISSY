@@ -13,6 +13,7 @@
   const SEND_SMS_OFFICES = [
     'Pasientreiser Nord-Trøndelag',
     'Kontoret for pasientreiser, Ålesund',
+    'Pasientreiser Sør-Trøndelag',
     // Legg til flere kontorer her etter hvert
   ];
   const _officeCell  = document.querySelector('.topframe_small');
@@ -253,6 +254,77 @@
           navn: "Ring oss tilbake",
           tekst: () =>
             `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+        },
+      ],
+
+    },
+
+    // ----------------------------------------------------------
+    // Pasientreiser Sør-Trøndelag (St. Olavs hospital HF)
+    // ----------------------------------------------------------
+    'Pasientreiser Sør-Trøndelag': {
+
+      bestilling: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Endret hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Planlagt reise til behandling",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+      ],
+
+      fritekst: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting kl. TT:MM.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Endret hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til kl. TT:MM.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+      ],
+
+      sjaafor: [
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
         },
       ],
 
