@@ -927,15 +927,65 @@
             tr.remove();
           }
         });
+
+        // Merk hver datared med om den er "relevant" (klar fra / oppmøte)
+        const isRelevant = tr => {
+          const k = tr.cells[2]?.textContent.toLowerCase() || '';
+          return k.includes('klar fra') || k.includes('oppmøtetid') || k.includes('oppmøte');
+        };
+        const dataRows = [...table.querySelectorAll('tr')].filter(tr => tr.closest('tbody') || !tr.querySelector('th'));
+        const hasRelevantRows = dataRows.some(isRelevant);
+
         // Fremhev hentetid- og oppmøtetid-rader med egne farger
         table.querySelectorAll('tr').forEach(tr => {
           const kolonne = tr.cells[2]?.textContent.toLowerCase() || '';
           if (kolonne.includes('klar fra')) {
-            tr.style.background = '#e3f2fd'; // blå – samme farge som hentetid-feltet
+            tr.style.background = '#e3f2fd';
           } else if (kolonne.includes('oppmøtetid') || kolonne.includes('oppmøte')) {
-            tr.style.background = '#fffbf0'; // gul – samme farge som oppmøte-feltet
+            tr.style.background = '#fffbf0';
           }
         });
+
+        // Toggle-rad (vises kun hvis relevante rader finnes)
+        if (hasRelevantRows) {
+          const toggleBar = document.createElement('div');
+          Object.assign(toggleBar.style, {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px 4px',
+            fontSize: '11px',
+            color: '#555',
+            borderBottom: '1px solid #f0f0f0',
+            background: '#fafafa',
+          });
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = true;
+          cb.id = `logToggle_${reqId}`;
+          Object.assign(cb.style, { cursor: 'pointer', margin: '0' });
+
+          const lbl = document.createElement('label');
+          lbl.htmlFor = cb.id;
+          lbl.textContent = 'Vis kun hentetid / oppmøte';
+          Object.assign(lbl.style, { cursor: 'pointer', userSelect: 'none' });
+
+          const applyFilter = () => {
+            dataRows.forEach(tr => {
+              if (tr.querySelector('th')) return; // hopp over header-rader
+              tr.style.display = (!cb.checked || isRelevant(tr)) ? '' : 'none';
+            });
+          };
+
+          cb.addEventListener('change', applyFilter);
+          applyFilter(); // bruk filter ved åpning
+
+          toggleBar.appendChild(cb);
+          toggleBar.appendChild(lbl);
+          popover.appendChild(toggleBar);
+        }
+
         scrollWrapper.appendChild(table);
       } else {
         const empty = document.createElement('div');
