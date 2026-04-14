@@ -1127,10 +1127,13 @@
       // Hendelseslogg-knapp: vis som ankret popover
       const logBtn = popup.querySelector(`.show-log-btn[data-id="${b.id}"]`);
       if (logBtn) {
-        logBtn.onclick = (e) => {
+        logBtn.onclick = async (e) => {
           e.preventDefault();
           e.stopPropagation();
-          showLogPopover(logBtn, b.id);
+          await showLogPopover(logBtn, b.id);
+          const displayId = b.uniqueId || b.id;
+          const timeInput = popup.querySelector(`#time_${displayId}`);
+          if (timeInput) timeInput.focus();
         };
       }
     });
