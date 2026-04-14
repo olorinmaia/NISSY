@@ -976,6 +976,9 @@
               if (tr.querySelector('th')) return; // hopp over header-rader
               tr.style.display = (!cb.checked || isRelevant(tr)) ? '' : 'none';
             });
+            if (activeLogArrow) {
+              activeLogArrow.style.visibility = cb.checked ? 'visible' : 'hidden';
+            }
           };
 
           cb.addEventListener('change', applyFilter);
