@@ -162,7 +162,7 @@ Tildeler hver bestilling til sin egen avtale (individuelt). Ingen begrensning p�
 ### 🕐 Hentetid (ALT+E)
 
 Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildelt) for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
-"Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Rutekalkulering" åpner bestillingene i Google maps.
+"Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Rutekalkulering" åpner bestillingene i Google maps. "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
 
 **Tips:**
 - NISSY har en sporadisk visningsbug av "duplikate" bestillinger når de redigeres på tildelt ressurs. 
