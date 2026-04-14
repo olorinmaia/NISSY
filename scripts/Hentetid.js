@@ -764,12 +764,34 @@
                 `}
               </div>
             ` : ''}
+            <button
+              class="show-log-btn"
+              data-id="${b.id}"
+              style="
+                width: 22px;
+                padding: 0;
+                text-align: center;
+                background: #e9ecef;
+                color: #555;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                height: 20px;
+                line-height: 18px;
+                align-self: flex-end;
+                margin-bottom: 2px;
+                flex-shrink: 0;
+              "
+              title="Hendelseslogg for bestilling"
+            >H</button>
           </div>
         </div>
       </div>
     `;
     }).join('');
-  
+
     // Oppdater container
     container.innerHTML = bestillingRows;
     
@@ -780,6 +802,312 @@
   }
 
   // ============================================================
+  // HENDELSESLOGG-POPOVER: Fetch, parse og vis som ankret overlay
+  // ============================================================
+  let activeLogPopover = null;
+  let activeLogOutsideClick = null;
+  let activeLogArrow = null;
+
+  function closeLogPopover() {
+    if (activeLogOutsideClick) {
+      document.removeEventListener('click', activeLogOutsideClick);
+      activeLogOutsideClick = null;
+    }
+    if (activeLogArrow && activeLogArrow.parentNode) {
+      activeLogArrow.parentNode.removeChild(activeLogArrow);
+    }
+    activeLogArrow = null;
+    if (activeLogPopover && activeLogPopover.parentNode) {
+      activeLogPopover.parentNode.removeChild(activeLogPopover);
+    }
+    activeLogPopover = null;
+  }
+
+  async function showLogPopover(btn, reqId) {
+    // Toggle: lukk hvis samme knapp klikkes igjen
+    if (activeLogPopover && activeLogPopover.dataset.reqId === String(reqId)) {
+      closeLogPopover();
+      return;
+    }
+    closeLogPopover();
+
+    btn.textContent = '…';
+    btn.disabled = true;
+
+    try {
+      const resp = await fetch(
+        `/administrasjon/admin/displayLog?id=${reqId}&type=requisition&db=1`,
+        { credentials: 'same-origin' }
+      );
+      const html = await resp.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const table = doc.querySelector('#searchResultTable');
+
+      const popover = document.createElement('div');
+      popover.dataset.reqId = String(reqId);
+      activeLogPopover = popover;
+
+      Object.assign(popover.style, {
+        position: 'fixed',
+        zIndex: '1000001',
+        background: '#fff',
+        border: '1px solid #ced4da',
+        borderRadius: '6px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        maxWidth: '620px',
+        minWidth: '360px',
+        fontFamily: 'Segoe UI, Arial, sans-serif',
+        fontSize: '12px',
+        overflow: 'hidden',
+        // Plasser utenfor skjerm mens vi måler, så unngås flimring
+        left: '-9999px',
+        top: '-9999px',
+        visibility: 'hidden',
+      });
+
+      // Tittel-rad med lukk-knapp
+      const header = document.createElement('div');
+      Object.assign(header.style, {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontWeight: '700',
+        color: '#333',
+        fontSize: '13px',
+        padding: '10px 12px 6px',
+        borderBottom: '1px solid #dee2e6',
+        background: '#fff',
+        flexShrink: '0',
+      });
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = '×';
+      Object.assign(closeBtn.style, {
+        background: 'none', border: 'none', fontSize: '18px',
+        cursor: 'pointer', color: '#666', padding: '0 0 0 12px', lineHeight: '1',
+      });
+      closeBtn.onclick = closeLogPopover;
+      header.innerHTML = `<span>Hendelseslogg</span>`;
+      header.appendChild(closeBtn);
+      popover.appendChild(header);
+
+      // Indre scroll-wrapper – thead blir sticky innenfor denne
+      const scrollWrapper = document.createElement('div');
+      Object.assign(scrollWrapper.style, {
+        maxHeight: '300px',
+        overflowY: 'auto',
+        padding: '0 12px 10px',
+      });
+
+      if (table) {
+        table.style.borderCollapse = 'collapse';
+        table.style.width = '100%';
+        table.querySelectorAll('th').forEach(th => {
+          Object.assign(th.style, {
+            position: 'sticky',
+            top: '0',
+            background: '#f8f9fa',
+            fontWeight: '600',
+            fontSize: '11px',
+            color: '#555',
+            padding: '4px 8px',
+            borderBottom: '2px solid #dee2e6',
+            textAlign: 'left',
+            whiteSpace: 'nowrap',
+          });
+        });
+        table.querySelectorAll('td').forEach(td => {
+          Object.assign(td.style, {
+            padding: '3px 8px', borderBottom: '1px solid #f0f0f0',
+            verticalAlign: 'top', textAlign: 'left',
+          });
+        });
+        // Fjern tomme rader (alle celler uten tekst)
+        table.querySelectorAll('tr').forEach(tr => {
+          if ([...tr.cells].every(td => td.textContent.trim() === '')) {
+            tr.remove();
+          }
+        });
+
+        // Merk hver datared med om den er "relevant" (klar fra / oppmøte)
+        const isRelevant = tr => {
+          const k = tr.cells[2]?.textContent.toLowerCase() || '';
+          return k.includes('klar fra') || k.includes('oppmøtetid') || k.includes('oppmøte');
+        };
+        const dataRows = [...table.querySelectorAll('tr')].filter(tr => tr.closest('tbody') || !tr.querySelector('th'));
+        const hasRelevantRows = dataRows.some(isRelevant);
+
+        // Fremhev hentetid- og oppmøtetid-rader med egne farger
+        table.querySelectorAll('tr').forEach(tr => {
+          const kolonne = tr.cells[2]?.textContent.toLowerCase() || '';
+          if (kolonne.includes('klar fra')) {
+            tr.style.background = '#e3f2fd';
+          } else if (kolonne.includes('oppmøtetid') || kolonne.includes('oppmøte')) {
+            tr.style.background = '#fffbf0';
+          }
+        });
+
+        // Toggle-rad (vises kun hvis relevante rader finnes)
+        if (hasRelevantRows) {
+          const toggleBar = document.createElement('div');
+          Object.assign(toggleBar.style, {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px 4px',
+            fontSize: '11px',
+            color: '#555',
+            borderBottom: '1px solid #f0f0f0',
+            background: '#fafafa',
+          });
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = true;
+          cb.id = `logToggle_${reqId}`;
+          Object.assign(cb.style, { cursor: 'pointer', margin: '0' });
+
+          const lbl = document.createElement('label');
+          lbl.htmlFor = cb.id;
+          lbl.textContent = 'Vis kun hentetid / oppmøte';
+          Object.assign(lbl.style, { cursor: 'pointer', userSelect: 'none' });
+
+          const applyFilter = () => {
+            dataRows.forEach(tr => {
+              if (tr.querySelector('th')) return; // hopp over header-rader
+              tr.style.display = (!cb.checked || isRelevant(tr)) ? '' : 'none';
+            });
+            if (activeLogArrow) {
+              activeLogArrow.style.visibility = cb.checked ? 'visible' : 'hidden';
+            }
+          };
+
+          cb.addEventListener('change', applyFilter);
+          applyFilter(); // bruk filter ved åpning
+
+          toggleBar.appendChild(cb);
+          toggleBar.appendChild(lbl);
+          popover.appendChild(toggleBar);
+        }
+
+        scrollWrapper.appendChild(table);
+      } else {
+        const empty = document.createElement('div');
+        Object.assign(empty.style, { color: '#888', fontStyle: 'italic', padding: '8px 0' });
+        empty.textContent = '(ingen logg-data funnet)';
+        scrollWrapper.appendChild(empty);
+      }
+
+      popover.appendChild(scrollWrapper);
+      document.body.appendChild(popover);
+
+      // Dobbel-rAF: sikrer at nettleseren har fullført layout og malt én gang
+      // før vi måler og setter endelig posisjon, slik at popoveren ikke "hopper"
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const rect = btn.getBoundingClientRect();
+          const pw = popover.offsetWidth;
+          const ph = popover.offsetHeight;
+
+          let left = rect.right - pw;
+          if (left < 8) left = 8;
+          if (left + pw > innerWidth - 8) left = innerWidth - pw - 8;
+
+          // Når popoveren åpnes over raden, bruk rad-divens toppkant som anker
+          // slik at input-feltene i raden ikke dekkes.
+          // Struktur: btn → flex-div → grid-div → rad-div
+          const rowDiv = btn.parentElement?.parentElement?.parentElement;
+          const rowTop = rowDiv ? rowDiv.getBoundingClientRect().top : rect.top;
+
+          const top = rowTop - ph - 8 > 0
+            ? rowTop - ph - 3
+            : rect.bottom + 11;
+
+          popover.style.left = `${left}px`;
+          popover.style.top = `${top}px`;
+          popover.style.visibility = 'visible';
+
+          // Pil som peker mot H-knappen
+          const openAbove = rowTop - ph - 8 > 0;
+          const btnCenterX = rect.left + rect.width / 2;
+          // Klem pilen innenfor popoverens horisontale utstrekning
+          const arrowLeft = Math.round(Math.max(left + 10, Math.min(btnCenterX - 9, left + pw - 28)));
+
+          const arrow = document.createElement('div');
+          activeLogArrow = arrow;
+          Object.assign(arrow.style, {
+            position: 'fixed',
+            zIndex: '1000002',
+            width: '0',
+            height: '0',
+            pointerEvents: 'none',
+            left: `${arrowLeft}px`,
+          });
+
+          const inner = document.createElement('div');
+          Object.assign(inner.style, {
+            position: 'absolute',
+            width: '0',
+            height: '0',
+          });
+
+          if (openAbove) {
+            // Popoveren er over raden → pil peker ned
+            Object.assign(arrow.style, {
+              borderLeft: '9px solid transparent',
+              borderRight: '9px solid transparent',
+              borderTop: '9px solid #ced4da',
+              top: `${top + ph}px`,
+            });
+            Object.assign(inner.style, {
+              borderLeft: '8px solid transparent',
+              borderRight: '8px solid transparent',
+              borderTop: '8px solid #fff',
+              left: '-8px',
+              top: '-10px',
+            });
+          } else {
+            // Popoveren er under raden → pil peker opp
+            Object.assign(arrow.style, {
+              borderLeft: '9px solid transparent',
+              borderRight: '9px solid transparent',
+              borderBottom: '9px solid #ced4da',
+              top: `${top - 9}px`,
+            });
+            Object.assign(inner.style, {
+              borderLeft: '8px solid transparent',
+              borderRight: '8px solid transparent',
+              borderBottom: '8px solid #fff',
+              left: '-8px',
+              top: '1px',
+            });
+          }
+
+          arrow.appendChild(inner);
+          document.body.appendChild(arrow);
+        });
+      });
+
+      // Lukk ved klikk utenfor – lagre ref slik at closeLogPopover kan fjerne lytteren
+      const outsideClick = (e) => {
+        if (!popover.contains(e.target) && e.target !== btn) {
+          closeLogPopover();
+        }
+      };
+      activeLogOutsideClick = outsideClick;
+      setTimeout(() => {
+        document.addEventListener('click', outsideClick);
+      }, 0);
+
+    } catch (err) {
+      console.error('Feil ved henting av hendelseslogg:', err);
+      showErrorToast('❌ Kunne ikke hente hendelseslogg');
+    } finally {
+      btn.textContent = 'H';
+      btn.disabled = false;
+    }
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Attach event listeners til input-felt
   // ============================================================
   function attachEventListeners(bestillinger, popup, confirmButton) {
@@ -787,12 +1115,22 @@
     bestillinger.forEach(b => {
       const displayId = b.uniqueId || b.id;
       const calcButton = popup.querySelector(`.calc-time-btn[data-id="${displayId}"]`);
-      
+
       if (calcButton) {
         calcButton.onclick = async (e) => {
           e.preventDefault();
           const inputElement = popup.querySelector(`#time_${displayId}`);
           await autoCalculatePickupTime(b, inputElement, calcButton, popup);
+        };
+      }
+
+      // Hendelseslogg-knapp: vis som ankret popover
+      const logBtn = popup.querySelector(`.show-log-btn[data-id="${b.id}"]`);
+      if (logBtn) {
+        logBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showLogPopover(logBtn, b.id);
         };
       }
     });
@@ -1808,6 +2146,28 @@
                 `}
               </div>
             ` : ''}
+            <button
+              class="show-log-btn"
+              data-id="${b.id}"
+              style="
+                width: 22px;
+                padding: 0;
+                text-align: center;
+                background: #e9ecef;
+                color: #555;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                height: 20px;
+                line-height: 18px;
+                align-self: flex-end;
+                margin-bottom: 2px;
+                flex-shrink: 0;
+              "
+              title="Hendelseslogg for bestilling"
+            >H</button>
           </div>
         </div>
       </div>
@@ -2055,11 +2415,22 @@
       }
     }, 100);
 
+    let changesSaved = false;
+
     const closePopup = () => {
+      closeLogPopover();
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
       isPopupOpen = false;
+      if (!changesSaved) {
+        setTimeout(() => {
+          if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+            ListSelectionGroup.clearAllSelections();
+          }
+          setTimeout(() => reselectAllRows(allSelectedRows), 100);
+        }, 50);
+      }
     };
 
     confirmButton.onclick = async () => {
@@ -2125,6 +2496,7 @@
       });
 
       await processTimeChanges(changes, statusBox);
+      changesSaved = true;
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
@@ -2165,7 +2537,13 @@
     overlay.onclick = closePopup;
 
     const escapeHandler = (e) => {
-      if (e.key === "Escape") closePopup();
+      if (e.key === "Escape") {
+        if (activeLogPopover) {
+          closeLogPopover();
+        } else {
+          closePopup();
+        }
+      }
     };
     document.addEventListener("keydown", escapeHandler);
   }

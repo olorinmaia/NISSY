@@ -31,6 +31,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🕐 **Hentetid (Alt+E)** 
   - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
   - Kan beregne hentetid mot en annen oppmøtetid, men ny oppmøtetid lagres ikke om du glemmer å endre tilbake.
+  - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/9c97ce59-4c4e-4dcb-819f-4cc0395d578f" />
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.

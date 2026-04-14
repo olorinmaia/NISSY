@@ -7,6 +7,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.7] - 15.04.2026
+
+### Hentetid: Hendelseslogg som popover – Send-SMS: Lagt til kontorspesifikke maler
+
+- 🕐 **Hentetid**
+  - Ny **"H"-knapp** ved siden av hentetid-feltet for å åpne hendelsesloggen til en bestilling
+  - Viser kun relevante logginnslag (hentetid/oppmøte) når en av typene er tilgjengelig – andre innslag filtreres bort
+  - Bestillinger re-selekteres automatisk hvis popop-up lukkes uten at noe er lagret
+- 📱 **Send-SMS**
+  - Lagt til kontor-spesifikke maler for Pasientreiser St. Olavs hospital
+
 ## 🚀 [3.9.6] - 10.04.2026
 
 ### Nytt script: Darkmode – pluss forbedringer til Send-SMS, NISSY-fiks og Rek-knapper
