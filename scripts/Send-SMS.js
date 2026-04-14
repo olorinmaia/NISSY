@@ -83,12 +83,12 @@
         {
           navn: "Ring oss tilbake",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
         {
           navn: "Forsinkelse",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
       ],
 
@@ -116,17 +116,17 @@
         {
           navn: "Ring oss tilbake",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Nord-Trøndelag.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
         {
           navn: "Forsinkelse",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
         {
           navn: "Tildelt bestilling i ventetiden",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
       ],
 
@@ -134,7 +134,7 @@
         {
           navn: "Tildelt bestilling i ventetiden",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
         {
           navn: "Ring oss tilbake",
@@ -192,12 +192,12 @@
         {
           navn: "Ring oss tilbake",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Møre og Romsdal.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
         },
         {
           navn: "Forsinkelse",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
         },
       ],
 
@@ -230,17 +230,17 @@
         {
           navn: "Ring oss tilbake",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515. \n\nMvh Pasientreiser Møre og Romsdal.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
         },
         {
           navn: "Forsinkelse",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
         },
         {
           navn: "Tildelt bestilling i ventetiden",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
         },
       ],
 
@@ -248,7 +248,7 @@
         {
           navn: "Tildelt bestilling i ventetiden",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Møre og Romsdal.`,
         },
         {
           navn: "Ring oss tilbake",
@@ -283,7 +283,7 @@
         {
           navn: "Forsinkelse",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
         },
       ],
 
@@ -306,12 +306,12 @@
         {
           navn: "Forsinkelse",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører. For spørsmål ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
         },
         {
           navn: "Tildelt bestilling i ventetiden",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
         },
       ],
 
@@ -319,7 +319,7 @@
         {
           navn: "Tildelt bestilling i ventetiden",
           tekst: () =>
-            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden. For spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser St. Olavs hospital.`,
         },
         {
           navn: "Ring oss tilbake",
