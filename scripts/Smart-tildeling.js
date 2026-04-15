@@ -105,6 +105,7 @@
     
     // Opprett ny toast
     currentToast = document.createElement("div");
+    currentToast.className = "smart-tildeling-toast smart-tildeling-toast-info";
     currentToast.innerHTML = message;
     
     Object.assign(currentToast.style, {
@@ -177,7 +178,7 @@
     
     const toast = document.createElement("div");
     toast.textContent = msg;
-    
+
     // Styling (basert på Trøndertaxi-løyve.js)
     Object.assign(toast.style, {
       position: "fixed",
