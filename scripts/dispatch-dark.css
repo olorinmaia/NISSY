@@ -692,3 +692,10 @@ tr[style*="rgb(231, 231, 231)"] td {
 .nissy-manual-btn:hover {
    background: linear-gradient(135deg, #357197 0%, #488BAD 100%) !important;
 }
+
+/* Smart-tildeling-toaster – overstyrer inline-farger fra Smart-tildeling.js */
+.smart-tildeling-toast-info {
+   background: #a0c4e0 !important;
+   color: #1a2535 !important;
+   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
