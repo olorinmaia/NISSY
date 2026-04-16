@@ -174,12 +174,17 @@
     // Helse Møre og Romsdal / Ålesund Sykehus / Kristiansand Sykehus osv..
     "Dialyseseksjonen Ålesund, 6017 Ålesund": "Ålesund sykehus",
     "Nyrepoliklinikk, 6017 Ålesund": "Ålesund sykehus",
+    "CT, 6017 Ålesund": "Ålesund sykehus",
     "Hustadvika Logopedhjelp, Molde/Logoped Ingvild Groven, 6415 Molde": "Romsdalsgata 15, 6415 Molde",
     "Hustadvika Logopedhjelp, Molde, 6415 Molde": "Romsdalsgata 15, 6415 Molde",
     "med. biokjemi lab, 6450 Hjelset": "Sjukehuset Nordmøre og Romsdal (SNR)",
+    "Gyn/Føde poliklinikk, 6450 Hjelset": "Sjukehuset Nordmøre og Romsdal (SNR)",
     "Dialysen Kristiansund, 6508 Kristiansund N": "Kristiansund Sykehus",
     "Kreftpoliklinikken DMS, 6508 Kristiansund N": "Kristiansund Sykehus",
+    "Dialyseavd Volda, 6103 Volda": "Volda sykehus",
     "Kommunefysioterapi Averøy, 6530 Averøy": "Averøyveien 424, 6530 Averøy",
+    "Kommunefysioterapi Vanylven, 6143 Fiskå": "Vanylven helse- og omsorgssenter, helse- og omsorgssenter, Fiskå",
+    "Kommunefysioterapi Vanylven/Fysioterapeut Erik Botnmark, 6143 Fiskå": "Vanylven helse- og omsorgssenter, helse- og omsorgssenter, Fiskå",
 
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
