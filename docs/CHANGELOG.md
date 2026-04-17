@@ -17,6 +17,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Bestillinger re-selekteres automatisk hvis popop-up lukkes uten at noe er lagret
 - 📱 **Send-SMS**
   - Lagt til kontor-spesifikke maler for Pasientreiser St. Olavs hospital
+  - Justert kontor-spesifikke maler for Pasientreiser Nord-Trøndelag
+- 🗺️ **Rutekalkulering**
+  - Lagt til flere mappinger for adressenavn som ikke blir plassert riktig i Google maps.
 
 ## 🚀 [3.9.6] - 10.04.2026
 
