@@ -127,6 +127,7 @@
     "Med H5, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Allmennpsyk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Kreft pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "./Kreft pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Dialyse, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Øye pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Med pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
