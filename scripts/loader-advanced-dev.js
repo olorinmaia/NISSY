@@ -344,7 +344,7 @@
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn" 
+            <input id="buttonTilordning20" type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn"
                    data-hotkey="t" title="Tilordner bestillinger til hver sin avtale, ingen begrensning på antall">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
@@ -377,6 +377,30 @@
       // Sett inn FØR første rad (over Merknad/Avvik)
       firstRow.insertAdjacentHTML('beforebegin', rowsHTML);
       
+      // Styr disabled-tilstand for Tilordning 2.0: aktiv kun når bare ventende oppdrag er merket
+      if (typeof ListSelectionGroup !== 'undefined' && typeof ButtonController !== 'undefined') {
+        function updateTilordning20State() {
+          const btn = document.getElementById('buttonTilordning20');
+          if (!btn) return;
+          const hasSource = ListSelectionGroup.getSourceSelection().length > 0;
+          const hasTarget = ListSelectionGroup.getTargetSelection().length > 0;
+          const hasResource = ListSelectionGroup.getResourceSelection().length > 0;
+          btn.disabled = !(hasSource && !hasTarget && !hasResource);
+        }
+
+        ListSelectionGroup.addPostProcess(updateTilordning20State);
+
+        // ButtonController.clearAllSelections kjører utenom postProcess – wrap for å fange den også
+        const _origClear = ButtonController.clearAllSelections;
+        ButtonController.clearAllSelections = function() {
+          _origClear.call(ButtonController);
+          updateTilordning20State(ListSelectionGroup);
+        };
+
+        // Sett initial tilstand
+        updateTilordning20State(ListSelectionGroup);
+      }
+
       // Koble knapper til hotkeys
       targetTable.querySelectorAll('.nissy-script-btn').forEach(button => {
         const hotkey = button.getAttribute('data-hotkey');
