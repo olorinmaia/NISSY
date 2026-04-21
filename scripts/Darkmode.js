@@ -709,6 +709,7 @@ tr[style*="rgb(231, 231, 231)"] td {
    background: #7a9ab0 !important;
    color: #4a6a80 !important;
    cursor: not-allowed;
+   transition: none;
 }
 
 .nissy-header-btn:disabled:hover {
@@ -734,6 +735,7 @@ tr[style*="rgb(231, 231, 231)"] td {
    background: #7a9ab0 !important;
    color: #4a6a80 !important;
    cursor: not-allowed;
+   transition: none;
 }
 
 .nissy-script-btn:disabled:hover,

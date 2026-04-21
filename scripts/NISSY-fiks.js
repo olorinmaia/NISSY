@@ -913,6 +913,7 @@
             background: #999;
             cursor: not-allowed;
             transform: none;
+            transition: none;
           }
           #nissy-manual-scripts {
             display: flex;

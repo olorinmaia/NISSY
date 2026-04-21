@@ -142,6 +142,7 @@
             background: #999;
             cursor: not-allowed;
             transform: none;
+            transition: none;
           }
           .nissy-header-btn:disabled:hover {
             background: #999;
@@ -342,6 +343,7 @@
             background: #999;
             cursor: not-allowed;
             transform: none;
+            transition: none;
           }
         `;
         document.head.appendChild(style);
