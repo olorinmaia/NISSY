@@ -7,6 +7,27 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.8] - 23.04.2026
+
+### Knapp-tilstand: Kontekstsensitiv utgråing på tvers av alle loadere
+
+- ⌛ **NISSY-fiks**
+  - **Vis i kart** grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall, i tråd med Alt+W-snarveien
+  - **Alenebil** grås nå ut med mindre bestillinger på ventende oppdrag er merket
+- 🧩 **Loadere (Advanced, Basic, AMK)**
+  - Tildel-raden og Tilordningsstøtte-raden er fjernet fra kontrollpanelet i Advanced-loaderne – Send SMS flyttes til siden av Vis i kart
+  - Alle injiserte script-knapper har nå kontekstsensitiv utgråing basert på hva som er merket:
+    - 🪄 **Smart tildel** – aktiv kun ved ventende oppdrag merket, viser antall merkede bestillinger (×N)
+    - 📆 **Tilordning 2.0** – aktiv kun ved ventende oppdrag uten ressurs eller avtale
+    - ✖️ **Avbestilling** – aktiv ved ventende oppdrag eller ressurs merket
+    - 🗺️ **Rutekalkulering** – aktiv ved ventende eller pågående oppdrag merket
+    - 🕐 **Hentetid** – aktiv ved ventende eller pågående oppdrag merket
+    - 🚕 **Ressursinfo** – aktiv kun ved ressurs merket
+    - 🔠 **Rek-knapper** – aktiv ved ventende eller pågående oppdrag merket
+    - 🚐 **Samkjøring** – aktiv med mindre både ventende og pågående er merket samtidig
+  - Knapp-tilstand oppdateres også ved Alt+B, Alt+V og Alt+P (merke/blanke via snarvei)
+
+---
 ## 🚀 [3.9.7.1] - 21.04.2026
 
 ### Tilordning 2.0: Disable-logikk

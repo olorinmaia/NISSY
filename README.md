@@ -21,6 +21,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
   - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
+  - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
 - 🪄 **Smart-tildeling (Alt+S)**
   - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING, TA KONTAKT FOR HJELP**
   - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
