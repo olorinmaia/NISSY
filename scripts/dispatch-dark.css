@@ -693,6 +693,20 @@ tr[style*="rgb(231, 231, 231)"] td {
    background: linear-gradient(135deg, #357197 0%, #488BAD 100%) !important;
 }
 
+.nissy-script-btn:disabled,
+.nissy-manual-btn:disabled {
+   background: #7a9ab0 !important;
+   color: #4a6a80 !important;
+   cursor: not-allowed;
+}
+
+.nissy-script-btn:disabled:hover,
+.nissy-manual-btn:disabled:hover {
+   background: #7a9ab0 !important;
+   transform: none;
+   box-shadow: none;
+}
+
 /* Smart-tildeling-toaster – overstyrer inline-farger fra Smart-tildeling.js */
 .smart-tildeling-toast-info {
    background: #a0c4e0 !important;
