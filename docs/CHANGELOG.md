@@ -7,6 +7,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+## 🚀 [3.9.7.1] - 21.04.2026
+
+### Tilordning 2.0: Disable-logikk
+
+- 📆 **Tilordning 2.0**
+  - Knappen grås nå ut når ingenting er merket, eller når avtale/ressurs/pågående oppdrag er merket i tillegg til bestillinger – aktiv kun når bare ventende oppdrag er merket
+
 ## 🚀 [3.9.7] - 15.04.2026
 
 ### Hentetid: Hendelseslogg som popover – Send-SMS: Lagt til kontorspesifikke maler
