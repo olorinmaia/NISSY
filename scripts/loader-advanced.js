@@ -531,7 +531,6 @@
           • CTRL+1 → Fokus filter ventende oppdrag<br>
           • CTRL+2 → Fokus filter ressurser<br>
           • ALT+W → Vis i kart<br>
-          • ALT+G → Tildel oppdrag<br>
           • ALT+B → Blank<br>
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
@@ -539,7 +538,7 @@
           • ALT+M → Møteplass<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
-          • ALT+S → Smart-tildeling (RB/ERS + passasjerregler)<br>
+          • ALT+S → Smart-tildeling<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+X → Samkjøring<br>
           • ALT+E → Hentetid<br>
@@ -563,7 +562,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.9.7.1):</strong><br>
+          <strong>📝 Endringslogg (V3.9.8):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

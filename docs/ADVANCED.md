@@ -44,7 +44,6 @@
 | Snarvei | Funksjon |
 |---------|----------|
 | `ALT+W` | Vis i kart |
-| `ALT+G` | Tildel oppdrag |
 | `ALT+B` | Blank (fjern alle markeringer) |
 | `ALT+P` | Merk alle ressurser i pågående oppdrag |
 | `ALT+V` | Merk alle bestillinger i ventende oppdrag |
@@ -53,8 +52,8 @@
 
 | Snarvei | Funksjon |
 |---------|----------|
-| `ALT+S` | Smart tildeling (RB/ERS + passasjerregler) |
-| `ALT+T` | Tilordningsstøtte 2.0 (individuell tildeling) |
+| `ALT+S` | Smart-tildel (RB/ERS + passasjerregler) |
+| `ALT+T` | Tilordning 2.0 (individuell tildeling) |
 | `ALT+E` | Endre hentetid |
 | `ALT+R` | Rek-knapper (H, S, K, T, R) Trykk ESC for å lukke manuelt |
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
@@ -135,7 +134,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Pasientnavn (pågående oppdrag)
   
 
-### 🪄 Smart Tildeling (ALT+S)
+### 🪄 Smart-tildel (ALT+S)
 
 Intelligent tildeling som automatisk:
 - Detekterer RB/ERS i bestillinger
@@ -156,9 +155,9 @@ Intelligent tildeling som automatisk:
 - Merk også en ressurs eller avtale → tildeles direkte til ressursen/avtalen
 
 
-### 📆 Tilordningsstøtte 2.0 (ALT+T)
+### 📆 Tilordning 2.0 (ALT+T)
 
-Tildeler hver bestilling til sin egen avtale (individuelt). Ingen begrensning på antall bestillinger som kan merkes.
+Tilordner hver bestilling til sin egen avtale (individuelt). Ingen begrensning på antall bestillinger som kan merkes.
 
 ### 🕐 Hentetid (ALT+E)
 

@@ -17,7 +17,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🧩 **Loadere (Advanced, Basic, AMK)**
   - Tildel-raden og Tilordningsstøtte-raden er fjernet fra kontrollpanelet i Advanced-loaderne – Send SMS flyttes til siden av Vis i kart
   - Alle injiserte script-knapper har nå kontekstsensitiv utgråing basert på hva som er merket:
-    - 🪄 **Smart tildel** – aktiv kun ved ventende oppdrag merket, viser antall merkede bestillinger (×N)
+    - 🪄 **Smart-tildel** – aktiv kun ved ventende oppdrag merket, viser antall merkede bestillinger (×N)
     - 📆 **Tilordning 2.0** – aktiv kun ved ventende oppdrag uten ressurs eller avtale
     - ✖️ **Avbestilling** – aktiv ved ventende oppdrag eller ressurs merket
     - 🗺️ **Rutekalkulering** – aktiv ved ventende eller pågående oppdrag merket
@@ -27,7 +27,6 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - 🚐 **Samkjøring** – aktiv med mindre både ventende og pågående er merket samtidig
   - Knapp-tilstand oppdateres også ved Alt+B, Alt+V og Alt+P (merke/blanke via snarvei)
 
----
 ## 🚀 [3.9.7.1] - 21.04.2026
 
 ### Tilordning 2.0: Disable-logikk

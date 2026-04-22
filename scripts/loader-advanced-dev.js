@@ -519,7 +519,6 @@
           • CTRL+1 → Fokus filter ventende oppdrag<br>
           • CTRL+2 → Fokus filter ressurser<br>
           • ALT+W → Vis i kart<br>
-          • ALT+G → Tildel oppdrag<br>
           • ALT+B → Blank<br>
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
@@ -527,7 +526,7 @@
           • ALT+M → Møteplass<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
-          • ALT+S → Smart-tildeling (RB/ERS + passasjerregler)<br>
+          • ALT+S → Smart-tildeling<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+X → Samkjøring<br>
           • ALT+E → Hentetid<br>
