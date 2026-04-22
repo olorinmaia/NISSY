@@ -208,6 +208,8 @@
     "Namdalseid fys., 7750 Namdalseid": "Gløttvegen 2, 7750 Namdalseid",
     "Styrk/Fys. Brandt, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     "Styrk/Fys. Selseth, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
+    "Fys. Brandt, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
+    "Fys. Selseth, 7600 Levanger": "Styrk Fysioterapi, 7600 Levanger",
     "Lierne fysioterapi/Fys. Hellgren, 7882 Nordli": "Stortangveien 16, 7882 Nordli",
     "Fysio og ergoterapitjenesten, 7804 Namsos": "Prestegårdsstien 4, 7804 Namsos",
     "Inderøy kom.fys./Fys. Sende, 7670 Inderøy": "Øvergata 20, 7670 Inderøy",
@@ -221,6 +223,7 @@
     "Frosta kom.fys./Varmebasseng, 7633 Frosta": "Nertunet 25, 7633 Frosta",
     "Fys. Tore Øseth, 7970 Kolvereid": "Sentrum campus, 7970 Kolvereid",
     "Psykolog Veimo, 7514 Stjørdal": "Bangvegen 104, 7514 Stjørdal",
+    "Grong fys. ins./Fys. Storli, 7870 Grong": "Grong fysikalske institutt",
     
     // ============================================================
     // LEGG TIL FLERE MAPPINGS HER ETTER BEHOV:
