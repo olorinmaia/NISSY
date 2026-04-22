@@ -705,6 +705,19 @@ tr[style*="rgb(231, 231, 231)"] td {
    background: linear-gradient(135deg, #2e7034 0%, #3a8040 100%) !important;
 }
 
+.nissy-header-btn:disabled {
+   background: #7a9ab0 !important;
+   color: #4a6a80 !important;
+   cursor: not-allowed;
+   transition: none;
+}
+
+.nissy-header-btn:disabled:hover {
+   background: #7a9ab0 !important;
+   transform: none;
+   box-shadow: none;
+}
+
 /* NISSY script-panel-knapper (injisert via loader) */
 .nissy-script-btn,
 .nissy-manual-btn {
@@ -722,6 +735,7 @@ tr[style*="rgb(231, 231, 231)"] td {
    background: #7a9ab0 !important;
    color: #4a6a80 !important;
    cursor: not-allowed;
+   transition: none;
 }
 
 .nissy-script-btn:disabled:hover,

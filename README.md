@@ -21,12 +21,13 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
   - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
-- 🪄 **Smart-tildeling (Alt+S)**
+  - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
+- 🪄 **Smart-tildel (Alt+S)**
   - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING, TA KONTAKT FOR HJELP**
   - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
   - Støtter også direkte tildeling til valgt avtale eller ressurs.
-- 📆 **Tilordningsstøtte 2.0 (Alt+T)**
+- 📆 **Tilordning 2.0 (Alt+T)**
   - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
 - 🕐 **Hentetid (Alt+E)** 
   - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
@@ -174,8 +175,8 @@ Under er en oversikt over de features som følger med i hver pakke.
 | ✖️ Avbestill (ALT+K) | ❌ | ✅ | ✅ |
 | 🕐 Hentetid (ALT+E) | ❌ | ✅ | ✅ |
 | 🔠 Rek-knapper (ALT+R) | ❌ | ✅ | ✅ |
-| 🪄 Smart-tildeling (ALT+S) | ❌ | ❌ | ✅ |
-| 📆 Tilordningstøtte 2.0 (ALT+T) | ❌ | ❌ | ✅ |
+| 🪄 Smart-tildel (ALT+S) | ❌ | ❌ | ✅ |
+| 📆 Tilordning 2.0 (ALT+T) | ❌ | ❌ | ✅ |
 | 🚐 Samkjøring (ALT+X) | ❌ | ❌ | ✅ |
 
 ## 🚀 Installasjon

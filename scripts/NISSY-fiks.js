@@ -158,7 +158,7 @@
         const c = document.getElementById("pagaendeoppdrag");
         if (!c) return;
         c.querySelectorAll(`tr[id^='P-']`).forEach(r => {
-          try { selectRow(r.id, g_voppLS); } catch {}
+          try { selectRow(r.id, g_poppLS); } catch {}
         });
       }, 150);
       return;
@@ -913,6 +913,7 @@
             background: #999;
             cursor: not-allowed;
             transform: none;
+            transition: none;
           }
           #nissy-manual-scripts {
             display: flex;
@@ -930,7 +931,7 @@
       newCell.setAttribute('valign', 'top');
       newCell.innerHTML = `
         <div id="nissy-manual-scripts">
-          <button class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
+          <button id="nissy-btn-alenebil" class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
             🚗 Alenebil
           </button>
           <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
@@ -958,7 +959,20 @@
       
       // Legg til cellen etter "Dynamiske plakater"
       bottomTable.appendChild(newCell);
-      
+
+      // Styr disabled-tilstand for Alenebil
+      if (typeof ListSelectionGroup !== 'undefined') {
+        function updateNissyManualButtonStates() {
+          const source = ListSelectionGroup.getSourceSelection();
+          const hasSource = source.some(id => id.startsWith('V-'));
+          const btn = document.getElementById('nissy-btn-alenebil');
+          if (btn) btn.disabled = !hasSource;
+        }
+        ListSelectionGroup.addPostProcess(updateNissyManualButtonStates);
+        window.__updateNissyManualButtonStates = updateNissyManualButtonStates;
+        updateNissyManualButtonStates();
+      }
+
       // Koble knapper til scripts
       document.querySelectorAll('.nissy-manual-btn').forEach(button => {
         const scriptName = button.getAttribute('data-script');

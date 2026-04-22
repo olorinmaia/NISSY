@@ -138,6 +138,17 @@
           .nissy-header-btn.monitor-active:hover {
             background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
           }
+          .nissy-header-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+            transition: none;
+          }
+          .nissy-header-btn:disabled:hover {
+            background: #999;
+            transform: none;
+            box-shadow: none;
+          }
         `;
         document.head.appendChild(style);
       }
@@ -332,6 +343,7 @@
             background: #999;
             cursor: not-allowed;
             transform: none;
+            transition: none;
           }
         `;
         document.head.appendChild(style);
@@ -341,11 +353,11 @@
       const rowsHTML = `
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 5px; padding-bottom: 5px;">
-            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-rutekalkulering" type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn"
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
           <td valign="top" align="right" style="padding-top: 5px; padding-bottom: 5px;">
-            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-ressursinfo" type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn"
                    data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
           </td>
         </tr>
@@ -353,7 +365,48 @@
       
       // Sett inn FØR første rad (over Merknad/Avvik)
       firstRow.insertAdjacentHTML('beforebegin', rowsHTML);
-      
+
+      // Styr disabled-tilstand for NISSY-injiserte knapper
+      if (typeof ListSelectionGroup !== 'undefined' && typeof ButtonController !== 'undefined') {
+        function updateNissyButtonStates() {
+          const source   = ListSelectionGroup.getSourceSelection();
+          const target   = ListSelectionGroup.getTargetSelection();
+          const resource = ListSelectionGroup.getResourceSelection();
+
+          const hasSource     = source.some(id => id.startsWith('V-'));
+          const hasRessurs    = resource.length > 0;
+          const hasPaagaaende = target.some(id => id.startsWith('P-'));
+
+          const rules = [
+            { id: 'nissy-btn-rutekalkulering', enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-ressursinfo',     enabled: hasRessurs },
+            { id: 'buttonShowMap',             enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-alenebil',        enabled: hasSource },
+          ];
+
+          rules.forEach(({ id, enabled }) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.disabled = !enabled;
+          });
+        }
+
+        ListSelectionGroup.addPostProcess(updateNissyButtonStates);
+
+        const _origLsgClear = ListSelectionGroup.clearAllSelections;
+        ListSelectionGroup.clearAllSelections = function() {
+          _origLsgClear.call(ListSelectionGroup);
+          updateNissyButtonStates();
+        };
+
+        const _origClear = ButtonController.clearAllSelections;
+        ButtonController.clearAllSelections = function() {
+          _origClear.call(ButtonController);
+          updateNissyButtonStates();
+        };
+
+        updateNissyButtonStates();
+      }
+
       // Koble knapper til hotkeys
       targetTable.querySelectorAll('.nissy-script-btn').forEach(button => {
         const hotkey = button.getAttribute('data-hotkey');

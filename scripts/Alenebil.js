@@ -99,25 +99,19 @@
   // ============================================================
   function showConfirm(message) {
     return new Promise(resolve => {
-      // Finn ventende oppdrag container for horisontal sentrering
-      const col2 = document.getElementById("bodyVentendeOppdrag");
-      const col2Rect = col2 ? col2.getBoundingClientRect() : null;
-
       // Opprett overlay (mørk bakgrunn)
       const overlay = document.createElement("div");
       Object.assign(overlay.style, {
         position: "fixed",
         inset: "0",
         background: "rgba(0, 0, 0, 0.4)",
-        zIndex: "1000000",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
+        zIndex: "1000000"
       });
 
       // Opprett dialog-boks
       const box = document.createElement("div");
       Object.assign(box.style, {
+        position: "fixed",
         background: "#fff",
         padding: "20px",
         borderRadius: "8px",
@@ -127,11 +121,17 @@
         border: "1px solid rgba(0, 0, 0, 0.1)"
       });
 
-      // Horisontal sentrering over col2 hvis mulig
-      if (col2Rect) {
-        box.style.position = "absolute";
-        box.style.left = `${col2Rect.left + (col2Rect.width / 2)}px`;
-        box.style.transform = "translateX(-50%)";
+      // Sentrér over midtre container (col2), lik Hentetid-popup
+      const col2 = document.getElementById("col2");
+      if (col2) {
+        const rect = col2.getBoundingClientRect();
+        box.style.left = `${rect.left + rect.width / 2}px`;
+        box.style.top = `${rect.top + rect.height / 2}px`;
+        box.style.transform = "translate(-50%, -50%)";
+      } else {
+        box.style.left = "50%";
+        box.style.top = "50%";
+        box.style.transform = "translate(-50%, -50%)";
       }
 
       // Header med ikon

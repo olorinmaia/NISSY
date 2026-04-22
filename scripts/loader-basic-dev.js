@@ -119,6 +119,17 @@
           .nissy-header-btn.monitor-active:hover {
             background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
           }
+          .nissy-header-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+            transition: none;
+          }
+          .nissy-header-btn:disabled:hover {
+            background: #999;
+            transform: none;
+            box-shadow: none;
+          }
         `;
         document.head.appendChild(style);
       }
@@ -304,6 +315,7 @@
             background: #999;
             cursor: not-allowed;
             transform: none;
+            transition: none;
           }
         `;
         document.head.appendChild(style);
@@ -313,31 +325,31 @@
       const rowsHTML = `
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 5px; padding-bottom: 2px;">
-            <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-hentetid" type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn"
                    data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende og pågående oppdrag (kun status tildelt)">
           </td>
           <td valign="top" align="right" style="padding-top: 5px; padding-bottom: 2px;">
-            <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-avbestilling" type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn"
                    data-hotkey="k" title="Masse-avbestill markerte turer eller bestillinger">
           </td>
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-rek-knapper" type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn"
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-rutekalkulering" type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn"
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
-            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn" 
+            <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn"
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
-            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-ressursinfo" type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn"
                    data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
           </td>
         </tr>
@@ -345,7 +357,51 @@
       
       // Sett inn FØR første rad (over Merknad/Avvik)
       firstRow.insertAdjacentHTML('beforebegin', rowsHTML);
-      
+
+      // Styr disabled-tilstand for NISSY-injiserte knapper
+      if (typeof ListSelectionGroup !== 'undefined' && typeof ButtonController !== 'undefined') {
+        function updateNissyButtonStates() {
+          const source   = ListSelectionGroup.getSourceSelection();
+          const target   = ListSelectionGroup.getTargetSelection();
+          const resource = ListSelectionGroup.getResourceSelection();
+
+          const hasSource     = source.some(id => id.startsWith('V-'));
+          const hasRessurs    = resource.length > 0;
+          const hasPaagaaende = target.some(id => id.startsWith('P-'));
+
+          const rules = [
+            { id: 'nissy-btn-hentetid',        enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-avbestilling',    enabled: hasSource || hasRessurs },
+            { id: 'nissy-btn-rek-knapper',     enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-rutekalkulering', enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-ressursinfo',     enabled: hasRessurs },
+            { id: 'buttonShowMap',             enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-alenebil',        enabled: hasSource },
+          ];
+
+          rules.forEach(({ id, enabled }) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.disabled = !enabled;
+          });
+        }
+
+        ListSelectionGroup.addPostProcess(updateNissyButtonStates);
+
+        const _origLsgClear = ListSelectionGroup.clearAllSelections;
+        ListSelectionGroup.clearAllSelections = function() {
+          _origLsgClear.call(ListSelectionGroup);
+          updateNissyButtonStates();
+        };
+
+        const _origClear = ButtonController.clearAllSelections;
+        ButtonController.clearAllSelections = function() {
+          _origClear.call(ButtonController);
+          updateNissyButtonStates();
+        };
+
+        updateNissyButtonStates();
+      }
+
       // Koble knapper til hotkeys
       targetTable.querySelectorAll('.nissy-script-btn').forEach(button => {
         const hotkey = button.getAttribute('data-hotkey');
@@ -422,7 +478,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.9.7.1):</strong><br>
+          <strong>📝 Endringslogg (V3.9.8):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

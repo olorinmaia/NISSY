@@ -143,6 +143,17 @@
           .nissy-header-btn.monitor-active:hover {
             background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
           }
+          .nissy-header-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+            transition: none;
+          }
+          .nissy-header-btn:disabled:hover {
+            background: #999;
+            transform: none;
+            box-shadow: none;
+          }
         `;
         document.head.appendChild(style);
       }
@@ -339,6 +350,7 @@
             background: #999;
             cursor: not-allowed;
             transform: none;
+            transition: none;
           }
         `;
         document.head.appendChild(style);
@@ -349,41 +361,41 @@
 
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 5px; padding-bottom: 2px;">
-            <input type="button" value="🪄 Smart-tildeling (Alt+S)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-smart-tildeling" type="button" value="🪄 Smart-tildel (Alt+S)" class="bigbutton nissy-script-btn"
                    data-hotkey="s" title="Smart-tildeling med RB/ERS + passasjerregler uten behov for å velge avtale, kan også tildele til merket ressurs eller avtale">
           </td>
           <td valign="top" align="right" style="padding-top: 5px; padding-bottom: 2px;">
-            <input type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-avbestilling" type="button" value="✖️ Avbestilling (Alt+K)" class="bigbutton nissy-script-btn"
                    data-hotkey="k" title="Masse-avbestill markerte turer eller bestillinger">
           </td>
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input id="buttonTilordning20" type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn"
+            <input id="nissy-btn-tilordning20" type="button" value="📆 Tilordning 2.0 (Alt+T)" class="bigbutton nissy-script-btn"
                    data-hotkey="t" title="Tilordner bestillinger til hver sin avtale, ingen begrensning på antall">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-rutekalkulering" type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn"
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-hentetid" type="button" value="🕐 Hentetid (Alt+E)" class="bigbutton nissy-script-btn"
                    data-hotkey="e" title="Endre hentetid for merkede bestillinger på ventende og pågående oppdrag (kun status tildelt)">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
-            <input type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-ressursinfo" type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn"
                    data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
           </td>
         </tr>
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
-            <input type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-rek-knapper" type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn"
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
-            <input type="button" value="🚐 Samkjøring (Alt+X)" class="bigbutton nissy-script-btn" 
+            <input id="nissy-btn-samkjoring" type="button" value="🚐 Samkjøring (Alt+X)" class="bigbutton nissy-script-btn"
                    data-hotkey="x" title="Finn potensielle samkjøringsforslag på pågående oppdrag for merkede bestillinger / ressurs innad i valgte filter. Hvis ingenting merkes søkes det innad på ventende oppdrag for mulig samkjøringer.">
           </td>
         </tr>
@@ -392,28 +404,62 @@
       // Sett inn FØR første rad (over Merknad/Avvik)
       firstRow.insertAdjacentHTML('beforebegin', rowsHTML);
 
-      // Styr disabled-tilstand for Tilordning 2.0: aktiv kun når bare ventende oppdrag er merket
+      // Styr disabled-tilstand for alle NISSY-injiserte knapper
       if (typeof ListSelectionGroup !== 'undefined' && typeof ButtonController !== 'undefined') {
-        function updateTilordning20State() {
-          const btn = document.getElementById('buttonTilordning20');
-          if (!btn) return;
-          const hasSource = ListSelectionGroup.getSourceSelection().length > 0;
-          const hasTarget = ListSelectionGroup.getTargetSelection().length > 0;
-          const hasResource = ListSelectionGroup.getResourceSelection().length > 0;
-          btn.disabled = !(hasSource && !hasTarget && !hasResource);
+        function updateNissyButtonStates() {
+          const source   = ListSelectionGroup.getSourceSelection();
+          const target   = ListSelectionGroup.getTargetSelection();
+          const resource = ListSelectionGroup.getResourceSelection();
+
+          const hasSource     = source.some(id => id.startsWith('V-'));
+          const hasAvtale     = target.some(id => id.startsWith('T-'));
+          const hasRessurs    = resource.length > 0;
+          const hasPaagaaende = target.some(id => id.startsWith('P-'));
+
+          const sourceCount = source.filter(id => id.startsWith('V-')).length;
+          const smartBtn = document.getElementById('nissy-btn-smart-tildeling');
+          if (smartBtn) {
+            smartBtn.value = sourceCount > 0
+              ? `🪄 Smart-tildel ×${sourceCount} (Alt+S)`
+              : '🪄 Smart-tildel (Alt+S)';
+          }
+
+          const rules = [
+            { id: 'nissy-btn-smart-tildeling', enabled: hasSource },
+            { id: 'nissy-btn-avbestilling',    enabled: hasSource || hasRessurs },
+            { id: 'nissy-btn-tilordning20',    enabled: hasSource && !hasRessurs && !hasAvtale },
+            { id: 'nissy-btn-rutekalkulering', enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-hentetid',        enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-ressursinfo',     enabled: hasRessurs },
+            { id: 'nissy-btn-rek-knapper',     enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-samkjoring',      enabled: !(hasSource && hasPaagaaende) },
+            { id: 'buttonShowMap',             enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-alenebil',        enabled: hasSource },
+          ];
+
+          rules.forEach(({ id, enabled }) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.disabled = !enabled;
+          });
         }
 
-        ListSelectionGroup.addPostProcess(updateTilordning20State);
+        ListSelectionGroup.addPostProcess(updateNissyButtonStates);
 
-        // ButtonController.clearAllSelections kjører utenom postProcess – wrap for å fange den også
+        // Wrap begge clear-funksjonene – NISSY-fiks (Alt+B/V/P) kaller ListSelectionGroup direkte
+        const _origLsgClear = ListSelectionGroup.clearAllSelections;
+        ListSelectionGroup.clearAllSelections = function() {
+          _origLsgClear.call(ListSelectionGroup);
+          updateNissyButtonStates();
+        };
+
         const _origClear = ButtonController.clearAllSelections;
         ButtonController.clearAllSelections = function() {
           _origClear.call(ButtonController);
-          updateTilordning20State(ListSelectionGroup);
+          updateNissyButtonStates();
         };
 
-        // Sett initial tilstand
-        updateTilordning20State(ListSelectionGroup);
+        // Sett initial tilstand (alle disabled)
+        updateNissyButtonStates();
       }
 
       // Koble knapper til hotkeys
@@ -443,6 +489,30 @@
   })();
 
   // ============================================================
+  // FJERN TILDEL/TILORDNING OG REORGANISER KONTROLLPANEL
+  // Kjøres etter NISSY-fiks (300ms) – bruk 500ms for å garantere rekkefølge
+  // ============================================================
+  setTimeout(() => {
+    const tildelRow  = document.getElementById('buttonAssignVopps')?.closest('tr');
+    const assistTd   = document.getElementById('buttonAssignVoppsAssist')?.closest('td');
+    const sendSmsBtn = document.getElementById('buttonSendSMS');
+
+    if (!tildelRow || !assistTd || !sendSmsBtn) {
+      console.warn('⚠️ Reorganisering: fant ikke alle knapper');
+      return;
+    }
+
+    // Flytt Send SMS til venstre for Vis i kart (erstatter Tilordningsstøtte-plassen)
+    assistTd.innerHTML = '';
+    assistTd.appendChild(sendSmsBtn);
+
+    // Fjern Tildel-raden (Send SMS er allerede flyttet)
+    tildelRow.remove();
+
+    console.log('✅ Kontrollpanel reorganisert for Advanced');
+  }, 500);
+
+  // ============================================================
   // VIS SNARVEI-POPUP
   // ============================================================
   setTimeout(() => {
@@ -461,7 +531,6 @@
           • CTRL+1 → Fokus filter ventende oppdrag<br>
           • CTRL+2 → Fokus filter ressurser<br>
           • ALT+W → Vis i kart<br>
-          • ALT+G → Tildel oppdrag<br>
           • ALT+B → Blank<br>
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
@@ -469,7 +538,7 @@
           • ALT+M → Møteplass<br>
           <br>
           <strong>Avanserte funksjoner:</strong><br>
-          • ALT+S → Smart-tildeling (RB/ERS + passasjerregler)<br>
+          • ALT+S → Smart-tildeling<br>
           • ALT+T → Tilordningsstøtte 2.0<br>
           • ALT+X → Samkjøring<br>
           • ALT+E → Hentetid<br>
@@ -493,7 +562,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V3.9.7.1):</strong><br>
+          <strong>📝 Endringslogg (V3.9.8):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">
