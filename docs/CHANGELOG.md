@@ -51,6 +51,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - 🗺️ **Rutekalkulering** – aktiv ved ventende eller pågående oppdrag merket
     - 🕐 **Hentetid** – aktiv ved ventende eller pågående oppdrag merket
     - 🚕 **Ressursinfo** – aktiv kun ved ressurs merket
+    - 📡 **Live ressurskart** - aktiv kun ved ressurs merket
     - 🔠 **Rek-knapper** – aktiv ved ventende eller pågående oppdrag merket
     - 🚐 **Samkjøring** – aktiv med mindre både ventende og pågående er merket samtidig
   - Knapp-tilstand oppdateres også ved Alt+B, Alt+V og Alt+P (merke/blanke via snarvei)
