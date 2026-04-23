@@ -183,6 +183,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🌙 Darkmode | ✅ | ✅ | ✅ |
 | 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
+| 📡 Live ressurskart (ALT+Z) | ✅ | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
 | ⚙️ Adminmodul (ALT+A) | ✅ | ✅ | ✅ |
 | 📋 Handlingslogg (ALT+L) | ✅ | ✅ | ✅ |
@@ -254,6 +255,7 @@ Snarveiene hører til de ulike script-pakkene.
 |---------|----------|
 | `ALT+Q` | Google Maps Rutekalkulering |
 | `ALT+D` | Ressursinfo |
+| `ALT+Z` | Live ressurskart |
 | `ALT+R` | Rek-knapper |
 | `ALT+N` | Bestillingsmodul |
 | `ALT+A` | Adminmodul |
