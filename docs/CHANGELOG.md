@@ -7,11 +7,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🎉 [4.0.0] - 23.04.2026
+## 🎉 [4.0.0] - 24.04.2026
 
-### 📡 Live ressurskart – Viser siste kjente posisjon til merkede ressurser
+### 📡 Live ressurskart – Viser siste kjente posisjon til merkede ressurser med løpende oppdatering
 
-> **Milepæl:** NISSY med script-pakkene er, så vidt jeg kjenner til, det første systemet i Norge som viser live GPS-koordinater fra en bil under oppdrag – direkte i nettleseren, ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester.
+> **Milepæl:** NISSY med script-pakkene er, så vidt jeg kjenner til, det første systemet i Norge som viser live GPS-koordinater fra en bil under oppdrag – direkte i nettleseren, ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester. ITF sender for alle biler under oppdrag for Helse Midt-Norge løpende oppdateringer hvert 10. minutt på posisjonen til bilen. Det vil justeres ned til hvert 5. minutt ved neste oppdatering hos Trøndertaxi.
 
 - 📡 **Live ressurskart (Alt+Z)** *(nytt script)*
   - Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
@@ -35,7 +35,6 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🧩 **Loadere (Advanced, Basic, AMK)**
   - Ny knapp `📡Live Ressurskart (Alt+Z)` i header på tvers av alle pakker
 
----
 ## 🚀 [3.9.8] - 23.04.2026
 
 ### Knapp-tilstand: Kontekstsensitiv utgråing på tvers av alle loadere
