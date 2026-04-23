@@ -425,6 +425,7 @@ function getIconAndTitle(eventType) {
     case "1703": return { icon: "❌", title: "Bomtur" };
     case "1709": return { icon: "📍", title: "Bil ved node" };
     case "3003": return { icon: "🏴", title: "Oppdrag bekreftet (3003)" };
+    case "5021": return { icon: "📡", title: "Auto-posisjon (5021)" };
     default: return { icon: "❓", title: "Ukjent hendelse" };
   }
 }
@@ -513,13 +514,12 @@ window.addVehicleMarkers = function(vehicles) {
     );
     
     // Popup ved klikk (full info)
-    // Adresse fra siste hendelse (fallback til koordinater)
-    const adresseVal = v.address || (lat.toFixed(4) + ', ' + lon.toFixed(4));
-    const adresseRow =
-      '<div class="popup-row">' +
-        '<span class="popup-label">Adresse:</span>' +
-        '<span class="popup-value" title="' + adresseVal + '" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">' + adresseVal + '</span>' +
-      '</div>';
+    const adresseRow = (v.eventType !== '5021' && v.address)
+      ? '<div class="popup-row">' +
+          '<span class="popup-label">Adresse:</span>' +
+          '<span class="popup-value" title="' + v.address + '" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;">' + v.address + '</span>' +
+        '</div>'
+      : '';
     
     // Telefon med clipboard-kopiering og tooltip
     const phoneRow = v.phoneNumber
@@ -863,11 +863,12 @@ window.addEventListener('beforeunload', () => {
       const resp = await fetch(detailUrl);
       const detailHtml = await resp.text();
       
-      // Finn alle 4010-URLer (nyeste sist), samt 3003 og 2000
+      // Finn alle 4010-URLer (nyeste sist), samt 3003, 2000 og 5021
       const rows = detailHtml.split('<tr');
       const all4010Urls = [];
       let latest3003Url = null;
       let latest2000Url = null;
+      let latest5021Url = null;
       let time3003 = null;
       
       for (const row of rows) {
@@ -904,15 +905,21 @@ window.addEventListener('beforeunload', () => {
           if (xmlLinkMatch) {
             latest2000Url = xmlLinkMatch[1]; // Siste/nyeste 2000
           }
+        } else if (sutiCode === '5021') {
+          const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
+          if (xmlLinkMatch) {
+            latest5021Url = xmlLinkMatch[1]; // Alltid overskriv – siste/nyeste 5021
+          }
         }
       }
-      
-      if (all4010Urls.length === 0 && !latest3003Url) return null;
+
+      if (all4010Urls.length === 0 && !latest3003Url && !latest5021Url) return null;
       
       // Hent 3003 og 2000 parallelt (uavhengig av hvilken 4010 vi ender opp med)
-      const [resp3003, resp2000] = await Promise.all([
+      const [resp3003, resp2000, resp5021] = await Promise.all([
         latest3003Url ? fetch(latest3003Url) : Promise.resolve(null),
-        latest2000Url ? fetch(latest2000Url) : Promise.resolve(null)
+        latest2000Url ? fetch(latest2000Url) : Promise.resolve(null),
+        latest5021Url ? fetch(latest5021Url) : Promise.resolve(null)
       ]);
       
       const unescape = raw => {
@@ -1013,7 +1020,30 @@ window.addEventListener('beforeunload', () => {
         }
       }
       
-      // ── Velg nyeste hendelse mellom 4010 og 3003 ──
+      // ── Parse 5021 XML (intervallposisjon) ──
+      let lat5021 = null, lon5021 = null, timestamp5021 = null;
+      if (resp5021) {
+        try {
+          const xmlText5021 = await resp5021.text();
+          const pre5021 = xmlText5021.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+          if (pre5021) {
+            const xmlDoc5021 = parser.parseFromString(unescape(pre5021[1]), "text/xml");
+            if (!xmlDoc5021.querySelector('parsererror')) {
+              const geo5021 = xmlDoc5021.querySelector('order > route > node > addressNode > geographicLocation');
+              if (geo5021) {
+                lat5021 = geo5021.getAttribute('lat');
+                lon5021 = geo5021.getAttribute('long');
+              }
+              const time5021Node = xmlDoc5021.querySelector('order > route > node > timesNode > time');
+              if (time5021Node) timestamp5021 = time5021Node.getAttribute('time');
+            }
+          }
+        } catch (e) {
+          console.warn("Feil ved parsing av 5021:", e);
+        }
+      }
+
+      // ── Velg nyeste hendelse mellom 4010, 3003 og 5021 ──
       // Konverter time3003 "DD/MM/YYYY HH:MM:SS" til ISO for sammenligning
       let time3003Iso = null;
       if (time3003) {
@@ -1026,22 +1056,34 @@ window.addEventListener('beforeunload', () => {
 
       const has4010 = !!(lat && lon);
       const has3003 = !!(dispatchCoord);
+      const has5021 = !!(lat5021 && lon5021);
 
-      if (!has4010 && !has3003) return null; // Ingen koordinater i det hele tatt
+      if (!has4010 && !has3003 && !has5021) return null;
 
-      // Bruk 3003 som aktiv hendelse hvis:
-      // a) det ikke finnes 4010-koordinater, ELLER
-      // b) 3003 er nyere enn siste 4010 (det skjer rett etter oppdragsbekreftelse)
-      const use3003 = has3003 && (
-        !has4010 ||
-        (time3003Iso && timestamp && time3003Iso > timestamp)
-      );
+      // Finn nyeste kilde via ISO-sammenligning
+      let activeTime = has4010 ? (timestamp || '') : '';
+      let activeSource = has4010 ? '4010' : null;
 
-      if (use3003) {
+      if (has3003 && time3003Iso && (!activeTime || time3003Iso > activeTime)) {
+        activeSource = '3003';
+        activeTime = time3003Iso;
+      }
+      if (has5021 && timestamp5021 && (!activeTime || timestamp5021 > activeTime)) {
+        activeSource = '5021';
+        activeTime = timestamp5021;
+      }
+
+      if (activeSource === '3003') {
         lat = String(dispatchCoord.lat);
         lon = String(dispatchCoord.lon);
         timestamp = time3003Iso;
         eventType = '3003';
+      } else if (activeSource === '5021') {
+        lat = lat5021;
+        lon = lon5021;
+        timestamp = timestamp5021;
+        eventType = '5021';
+        address = null; // Vis koordinater i popup, ikke adresse fra 2000
       }
 
       // ── Parse 2000 XML (planlagte turer + avtalenavn) ──
@@ -1120,7 +1162,7 @@ window.addEventListener('beforeunload', () => {
               }
               
               // Slå opp adressen for siste hendelse via bookingId + nodeType fra 4010
-              if (bookingId4010 && bookingMap.has(bookingId4010)) {
+              if (activeSource !== '5021' && bookingId4010 && bookingMap.has(bookingId4010)) {
                 const entry4010 = bookingMap.get(bookingId4010);
                 if (nodeType4010 === '1803') {
                   address = entry4010.hent?.address || null;

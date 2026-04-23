@@ -4,9 +4,37 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## Planlagt
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig.
-- Live ressurskart som viser merkede ressurser sin siste posisjon og hendelse samt annen nyttig info.
 
 ---
+
+## 🎉 [4.0.0] - 24.04.2026
+
+### 📡 Live ressurskart – Viser siste kjente posisjon til merkede ressurser med løpende oppdatering
+
+> **Milepæl:** NISSY med script-pakkene er, så vidt jeg kjenner til, det første systemet i Norge som viser live GPS-koordinater fra en bil under oppdrag – direkte i nettleseren, ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester. ITF sender for alle biler under oppdrag for Helse Midt-Norge løpende oppdateringer hvert 10. minutt på posisjonen til bilen. Det vil justeres ned til hvert 5. minutt ved neste oppdatering hos Trøndertaxi.
+
+- 📡 **Live ressurskart (Alt+Z)** *(nytt script)*
+  - Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
+  - Henter data fra SUTI-meldinger som allerede er lastet i NISSY
+  - Støtter alle kjente meldingstyper fra ITF/Cencom/Norgestaxi:
+    - **5021** – Auto-posisjon (periodiske GPS-posisjoner fra bilen underveis)
+    - **4010** – Bekreftelse på hentet/levert/bomtur/bil ved node
+    - **3003** – Oppdrag bekreftet av sjåfør (med sjåførmobil)
+    - **2000** – Planlagte turer og avtaleinformasjon
+  - Viser alltid den **nyeste hendelsen** per ressurs
+  - Pop-up per markør inneholder: løyvenummer, avtalenavn, turnummer (med lenke til Admin), hendelsestype med ikon, tidspunkt, adresse, sjåførmobil (klikk for å kopiere), og planlagte turer
+  - Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
+  - Manuell oppdateringsknapp tilgjengelig
+  - Clustering av markører ved utzoomet visning, spiderfying ved klikk
+  - All databehandling skjer lokalt i nettleseren – ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester
+- 🚕 **Ressursinfo**
+  - Lagt til støtte for **5021 (Auto-posisjon)** i kjørerute-visningen
+  - Siste 5021-melding vises som en egen hendelse (📡 Auto-posisjon) med lilla markør i kartet
+  - Koordinater og tidspunkt hentes direkte fra 5021 XML og vises på lik linje med 4010/3003-hendelser
+  - Bilens auto-posisjon vises også i vognløpshendelser med 📡-ikon
+- 🧩 **Loadere (Advanced, Basic, AMK)**
+  - Ny knapp `📡Live Ressurskart (Alt+Z)` i header på tvers av alle pakker
+
 ## 🚀 [3.9.8] - 23.04.2026
 
 ### Knapp-tilstand: Kontekstsensitiv utgråing på tvers av alle loadere

@@ -33,7 +33,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
   - Kan beregne hentetid mot en annen oppmøtetid, men ny oppmøtetid lagres ikke om du glemmer å endre tilbake.
   - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/9c97ce59-4c4e-4dcb-819f-4cc0395d578f" />
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/5201ecf7-cb29-41f4-ac07-4b672ed02bf0" />
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
   - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling og [M] Møteplass.
@@ -49,9 +49,24 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
   - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
   - Faktisk kjørerute plottes med rutekalkulering i Leaflet / OpenStreetMap med ikoner/farger for hver enkelt hendelse.
-  - WIP: Når NISSY kan ta imot 5021 XML (bilens nåværende posisjon) kan dette vises i samme bilde.
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8011143e-8647-4530-9783-31bb27960fbe" />
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/7849f1f5-3b44-4b22-951f-ab04f8afbf12" />
+  - Viser 5021 XML (bilens nåværende posisjon) i vognløpshendelser og bilens faktiske kjørerute.
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/eb88afa0-37d7-44da-8b2f-7769da4384ca" />
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/6a8525b0-8a46-4b7b-a0e9-e8afe2906249" />
+- 📡 **Live ressurskart (Alt+Z)**
+  - Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
+  - Henter data fra SUTI-meldinger som allerede er lastet i NISSY
+  - Støtter alle kjente meldingstyper fra ITF/Cencom/Norgestaxi:
+    - **5021** – Auto-posisjon (periodiske GPS-posisjoner fra bilen underveis)
+    - **4010** – Bekreftelse på hentet/levert/bomtur/bil ved node
+    - **3003** – Oppdrag bekreftet av sjåfør (med sjåførmobil)
+    - **2000** – Planlagte turer og avtaleinformasjon
+  - Viser alltid den **nyeste hendelsen** per ressurs
+  - Pop-up per markør inneholder: løyvenummer, avtalenavn, turnummer (med lenke til Admin), hendelsestype med ikon, tidspunkt, adresse, sjåførmobil (klikk for å kopiere), og planlagte turer
+  - Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
+  - Manuell oppdateringsknapp tilgjengelig
+  - Clustering av markører ved utzoomet visning, spiderfying ved klikk
+  - All databehandling skjer lokalt i nettleseren – ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3bd5ef2e-6fa5-418a-b4f7-808999c62939" />
 
 - 📝 **Bestillingsmodul (Alt+N)**
   - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.

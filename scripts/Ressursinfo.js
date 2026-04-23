@@ -264,6 +264,7 @@ async function runResourceInfo() {
     const xml2000Links = [];
     const xml3003Links = [];
     const xml4010Links = [];
+    let latest5021Url = null;
     let time3003 = null;
     
     // Split HTML i rader
@@ -310,6 +311,8 @@ async function runResourceInfo() {
           }
         } else if (sutiCode === '4010') {
           xml4010Links.push(url);
+        } else if (sutiCode === '5021') {
+          latest5021Url = url; // Alltid overskriv – siste/nyeste 5021
         }
       }
     }
@@ -340,6 +343,39 @@ async function runResourceInfo() {
         estimatedTime: "-"
       });
     }
+
+    // Legg til 5021-hendelse (siste auto-posisjon)
+    if (latest5021Url) {
+      try {
+        const xmlDoc5021 = await fetchAndParseXML(latest5021Url);
+        const geo5021 = xmlDoc5021.querySelector('order > route > node > addressNode > geographicLocation');
+        const time5021Node = xmlDoc5021.querySelector('order > route > node > timesNode > time');
+        const lat5021 = geo5021?.getAttribute('lat');
+        const lon5021 = geo5021?.getAttribute('long');
+        const timestamp5021 = time5021Node?.getAttribute('time') || null;
+        if (lat5021 && lon5021) {
+          eventData.events.push({
+            bookingId: null,
+            eventType: "5021",
+            timestamp: timestamp5021,
+            lat: lat5021,
+            lon: lon5021,
+            name: "Auto-posisjon",
+            address: "–",
+            estimatedTime: "–"
+          });
+        }
+      } catch (e) {
+        console.warn("Feil ved parsing av 5021 XML:", e);
+      }
+    }
+
+    // Sorter alle hendelser kronologisk
+    eventData.events.sort((a, b) => {
+      if (!a.timestamp || a.timestamp === 'Ukjent') return -1;
+      if (!b.timestamp || b.timestamp === 'Ukjent') return 1;
+      return a.timestamp.localeCompare(b.timestamp);
+    });
 
     // Vis popup
     showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003);
@@ -792,6 +828,7 @@ async function runResourceInfo() {
       case "1703": return { icon: "❌", title: "Bomtur" };
       case "1709": return { icon: "📍", title: "Bil ved node" };
       case "3003": return { icon: "🏴", title: "Oppdrag bekreftet" };
+      case "5021": return { icon: "📡", title: "Auto-posisjon" };
       default: return { icon: "", title: "Ukjent type" };
     }
   }
@@ -903,7 +940,8 @@ async function runResourceInfo() {
           .event-1702 { border-color: #2196F3; }
           .event-1703 { border-color: #F44336; }
           .event-1709 { border-color: #FF9800; }
-          
+          .event-5021 { border-color: #9c27b0; }
+
           /* Skjul routing control panel */
           .leaflet-routing-container {
             display: none;
@@ -958,6 +996,7 @@ function getIconAndTitle(eventType) {
     case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
     case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
     case "3003": return { icon: "🏴", title: "Oppdrag bekreftet", color: "event-unknown" };
+    case "5021": return { icon: "📡", title: "Auto-posisjon", color: "event-5021" };
     default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
   }
 }
@@ -1371,6 +1410,7 @@ window.reloadRouteData = function() {
           .event-1702 { border-color: #2196F3; }
           .event-1703 { border-color: #F44336; }
           .event-1709 { border-color: #FF9800; }
+          .event-5021 { border-color: #9c27b0; }
         </style>
       </head>
       <body>
@@ -1432,6 +1472,7 @@ function getIconAndTitle(eventType) {
     case "1702": return { icon: "➖", title: "Avstigning", color: "event-1702" };
     case "1703": return { icon: "❌", title: "Bomtur", color: "event-1703" };
     case "1709": return { icon: "📍", title: "Bil ved node", color: "event-1709" };
+    case "5021": return { icon: "📡", title: "Auto-posisjon", color: "event-5021" };
     default: return { icon: "❓", title: "Ukjent", color: "event-unknown" };
   }
 }
@@ -1682,12 +1723,14 @@ window.updateEventData = function(newEvent) {
           <tr class="${rowClass}" style="border-bottom: 1px solid #e9ecef; background: white; transition: background-color 0.2s;">
             <td style="padding: 10px 8px;">
               ${r.bookingId
-                ? `<a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}" 
+                ? `<a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}"
                  style="color: #1976d2; text-decoration: none; font-weight: 500;"
                  title="Åpne bestilling ${r.bookingId} i NISSY admin">
                 🧾${formatBookingId(r.bookingId)}
               </a>`
-                : `<span style="color: #ff9800; font-size: 13px;" title="Oppdragsbekreftelse fra taxi">🚕 3003</span>`
+                : r.eventType === "5021"
+                  ? `<span style="color: #7b1fa2; font-size: 13px;" title="Automatisk lokasjon">📡 5021</span>`
+                  : `<span style="color: #ff9800; font-size: 13px;" title="Oppdragsbekreftelse fra taxi">🚕 3003</span>`
               }
             </td>
             <td style="
