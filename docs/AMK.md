@@ -122,6 +122,24 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
    - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
    - Link til løyveregister til Trøndertaxi hvis bilen tilhører de
 
+### 📡 Live ressurskart (ALT+Z)
+
+1. Merk én eller flere ressurs(er)
+2. Trykk `ALT+Z`
+3. Popup viser:
+  - Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
+  - Henter data fra SUTI-meldinger som allerede er lastet i NISSY
+  - Støtter alle kjente meldingstyper fra ITF/Cencom/Norgestaxi:
+    - **5021** – Auto-posisjon (periodiske GPS-posisjoner fra bilen underveis)
+    - **4010** – Bekreftelse på hentet/levert/bomtur/bil ved node
+    - **3003** – Oppdrag bekreftet av sjåfør (med sjåførmobil)
+    - **2000** – Planlagte turer og avtaleinformasjon
+  - Viser alltid den **nyeste hendelsen** per ressurs
+  - Pop-up per markør inneholder: løyvenummer, avtalenavn, turnummer (med lenke til Admin), hendelsestype med ikon, tidspunkt, adresse, sjåførmobil (klikk for å kopiere), og planlagte turer
+  - Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
+  - Manuell oppdateringsknapp tilgjengelig
+  - Clustering av markører ved utzoomet visning, spiderfying ved klikk
+  - All databehandling skjer lokalt i nettleseren – ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester
 
 ### ⌛ NISSY-fiks
 
