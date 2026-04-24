@@ -740,6 +740,10 @@ window.addVehicleMarkers = function(vehicles) {
         planStopsBtn.addEventListener('click', function() {
           togglePlannedStops(v.plannedStops, v.turId, planStopsBtn);
         });
+        // Vis automatisk hvis en annen bils stopp allerede vises
+        if (activePlanStopLayer && activePlanStopTurId !== v.turId) {
+          togglePlannedStops(v.plannedStops, v.turId, planStopsBtn);
+        }
       }
     });
     markerCluster.addLayer(marker);
