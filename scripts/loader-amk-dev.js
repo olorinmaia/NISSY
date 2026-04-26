@@ -209,6 +209,7 @@
       liveKartBtn.id = 'nissy-livekart-btn';
       liveKartBtn.className = 'nissy-header-btn';
       liveKartBtn.type = 'button';
+      liveKartBtn.disabled = true;
       liveKartBtn.title = 'Viser siste hendelse og plassering i kart med tilhørende info for merkede ressurser. Oppdateres automatisk om vindu ikke lukkes';
       liveKartBtn.textContent = '📡Live Ressurskart (Alt+Z)';
       liveKartBtn.addEventListener('click', () => triggerHotkey('z'));
@@ -371,6 +372,7 @@
             { id: 'nissy-btn-ressursinfo',     enabled: hasRessurs },
             { id: 'buttonShowMap',             enabled: hasSource || hasPaagaaende },
             { id: 'nissy-btn-alenebil',        enabled: hasSource },
+            { id: 'nissy-livekart-btn',         enabled: hasRessurs },
           ];
 
           rules.forEach(({ id, enabled }) => {
