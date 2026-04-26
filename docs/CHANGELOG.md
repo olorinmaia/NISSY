@@ -21,6 +21,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🚕 **Ressursinfo**
   - Siste kjente posisjon vises nå som eget bil-ikon (🚕) utenfor cluster, med oransje markering
   - Tooltip vises automatisk ved kartåpning
+  - Fjernet knapp for å skjule "1709 - bil ved node" og begrenser heller antall hendelser til 10 og ny knapp for å vise alle
 
 ## 🎉 [4.0.0] - 24.04.2026
 
