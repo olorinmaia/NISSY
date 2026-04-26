@@ -476,20 +476,53 @@ function togglePlannedStops(stops, turId) {
     activePlanStopLayer = null;
   }
   const layer = L.layerGroup();
+  const now = Date.now();
+
+  // Grupper stopp per koordinat
+  const groups = {};
   stops.forEach(stop => {
-    const isPickup = stop.type === '1803';
+    const key = stop.lat + ',' + stop.lon;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(stop);
+  });
+
+  Object.values(groups).forEach(group => {
+    // Velg stopp nærmest i tid: foretrekk fremtidige (minst positiv diff), fallback til seneste fortid
+    let representative = group[0];
+    let bestDiff = null;
+    group.forEach(stop => {
+      if (!stop.time) return;
+      const diff = new Date(stop.time).getTime() - now;
+      if (bestDiff === null) { bestDiff = diff; representative = stop; return; }
+      // Foretrekk fremtid over fortid
+      if (bestDiff < 0 && diff >= 0) { bestDiff = diff; representative = stop; return; }
+      if (bestDiff >= 0 && diff < 0) return;
+      // Begge samme fortegn: velg den med minst absoluttverdi
+      if (Math.abs(diff) < Math.abs(bestDiff)) { bestDiff = diff; representative = stop; }
+    });
+
+    const isPickup = representative.type === '1803';
     const symbol = isPickup ? '➕' : '➖';
     const color = isPickup ? '#2e7d32' : '#1565c0';
     const bgColor = isPickup ? '#e8f5e9' : '#e3f2fd';
-    const timeLabel = stop.time ? stop.time.split('T')[1]?.substring(0, 5) : '–';
     const icon = L.divIcon({
       className: 'custom-marker-wrapper',
       html: '<div style="background:' + bgColor + ';border:2px solid ' + color + ';border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.3);color:' + color + ';font-weight:bold;">' + symbol + '</div>',
       iconSize: [26, 26],
       iconAnchor: [13, 13]
     });
-    const marker = L.marker([stop.lat, stop.lon], { icon });
-    marker.bindTooltip((isPickup ? '➕ Henting' : '➖ Levering') + ' ' + timeLabel + '<br>' + stop.address, { direction: 'top' });
+
+    // Tooltip viser alle stopp på koordinaten, sortert på tid
+    const sorted = group.slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    const tooltipLines = sorted.map(s => {
+      const t = s.time ? s.time.split('T')[1]?.substring(0, 5) : '–';
+      return (s.type === '1803' ? '➕ Henting' : '➖ Levering') + ' ' + t;
+    });
+    const address = sorted[0].address || '';
+    const tooltipHtml = tooltipLines.join('<br>') + (address ? '<br>' + address : '');
+
+    const marker = L.marker([representative.lat, representative.lon], { icon });
+    marker.bindTooltip(tooltipHtml, { direction: 'top' });
     layer.addLayer(marker);
   });
   layer.addTo(map);
