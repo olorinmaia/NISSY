@@ -341,17 +341,17 @@
             margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
           }
-          
+
           .popup-row:last-child {
             margin-bottom: 0;
           }
-          
+
           .popup-label {
             font-weight: 600;
             color: #666;
-            min-width: 80px;
+            min-width: 70px;
           }
           
           .popup-value {
@@ -515,8 +515,8 @@ function getIconAndTitle(eventType) {
     case "1702": return { icon: "➖", title: "Avstigning" };
     case "1703": return { icon: "❌", title: "Bomtur" };
     case "1709": return { icon: "📍", title: "Bil ved node" };
-    case "3003": return { icon: "🏴", title: "Oppdrag bekreftet (3003)" };
-    case "5021": return { icon: "📡", title: "Auto-posisjon (5021)" };
+    case "3003": return { icon: "🏴", title: "Oppdrag bekreftet" };
+    case "5021": return { icon: "📡", title: "Auto-posisjon" };
     default: return { icon: "❓", title: "Ukjent hendelse" };
   }
 }
@@ -678,28 +678,24 @@ window.addVehicleMarkers = function(vehicles) {
       : '';
 
     const popupContent =
-      '<div class="popup-header">🚕 ' + v.licensePlate + '</div>' +
+      '<div class="popup-header">' +
+        '<a href="' + v.nissyUrl + '" target="_blank" ' +
+           'title="Tur ' + v.turId + ' – Åpne i NISSY Admin" ' +
+           'style="color:white;text-decoration:none;cursor:pointer;">🚕 ' + v.licensePlate + '</a>' +
+      '</div>' +
       '<div class="popup-body">' +
         avtaleRow +
         '<div class="popup-row">' +
-          '<span class="popup-label">Turnr:</span>' +
-          '<span class="popup-value">' +
-            '<a href="' + v.nissyUrl + '" target="_blank" ' +
-               'title="Åpne i NISSY Admin" ' +
-               'style="color:#333;text-decoration:underline;cursor:pointer;">' +
-              v.turId +
-            '</a>' +
-          '</span>' +
-        '</div>' +
-        '<div class="popup-row">' +
           '<span class="popup-label">Hendelse:</span>' +
-          '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title + '</span>' +
+          '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title +
+            (v.timestamp ? ' <span style="color:#888;font-size:12px;">(' + formatTimestamp(v.timestamp) + ')</span>' : '') +
+          '</span>' +
         '</div>' +
         (v.dispatchCoord ? (
           '<div class="popup-row">' +
             '<span class="popup-label">Hendelse:</span>' +
             '<span class="popup-value">🏴 Oppdrag bekreftet (3003)' +
-              (v.time3003 ? (' <span style="color:#856404;font-weight:bold;">' + (v.time3003.split(' ')[1]?.substring(0,5) || v.time3003) + '</span>') : '') +
+              (v.time3003 ? (' <span style="color:#888;font-size:12px;">(' + (v.time3003.split(' ')[1]?.substring(0,5) || v.time3003) + ')</span>') : '') +
             '</span>' +
           '</div>' +
           '<div class="popup-row">' +
@@ -707,10 +703,6 @@ window.addVehicleMarkers = function(vehicles) {
             '<span class="popup-value" style="font-family:monospace;font-size:12px;">' + v.dispatchCoord.lat.toFixed(6) + ', ' + v.dispatchCoord.lon.toFixed(6) + '</span>' +
           '</div>'
         ) : '') +
-        '<div class="popup-row">' +
-          '<span class="popup-label">Tidspunkt:</span>' +
-          '<span class="popup-value">' + formatTimestamp(v.timestamp) + '</span>' +
-        '</div>' +
         adresseRow +
         phoneRow +
         turdataHtml +
