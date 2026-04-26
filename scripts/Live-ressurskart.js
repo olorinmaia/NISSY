@@ -380,8 +380,9 @@
         <div id="header">
           <h1>📡 Live Ressurskart</h1>
           <div id="controls">
+            <button id="planStopsBtn" style="padding:8px 16px;background:#CFECF5;color:#047CA1;border:none;border-radius:4px;font-weight:600;cursor:default;opacity:0.5;transition:all 0.2s;" disabled>📍 Planlagte stopp</button>
             <div id="status">
-              <span id="vehicleCount">0</span> biler | 
+              <span id="vehicleCount">0</span> biler |
               Sist oppdatert: <span id="lastUpdate">-</span>
             </div>
             <label style="font-size: 13px;">
@@ -431,15 +432,43 @@ let markers = [];
 let updateTimer = null;
 let activePlanStopLayer = null;
 let activePlanStopTurId = null;
+let activeVehicleData = null;
+let userToggledOff = false;
 
-function togglePlannedStops(stops, turId, btn) {
+function updatePlanStopsBtn() {
+  const btn = document.getElementById('planStopsBtn');
+  if (!btn) return;
+  const hasStops = activeVehicleData && activeVehicleData.plannedStops && activeVehicleData.plannedStops.length > 0;
+  if (!hasStops) {
+    btn.textContent = '📍 Planlagte stopp';
+    btn.disabled = true;
+    btn.style.cursor = 'default';
+    btn.style.opacity = '0.5';
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+    return;
+  }
+  btn.disabled = false;
+  btn.style.cursor = 'pointer';
+  btn.style.opacity = '1';
+  if (activePlanStopLayer && activePlanStopTurId === activeVehicleData.turId) {
+    btn.textContent = '📍 Skjul planlagte stopp';
+    btn.style.background = '#81C5DA';
+    btn.style.color = '#025671';
+  } else {
+    btn.textContent = '📍 Vis planlagte stopp (' + activeVehicleData.plannedStops.length + ')';
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+  }
+}
+
+function togglePlannedStops(stops, turId) {
   if (activePlanStopTurId === turId && activePlanStopLayer) {
     map.removeLayer(activePlanStopLayer);
     activePlanStopLayer = null;
     activePlanStopTurId = null;
-    btn.textContent = '📍 Vis planlagte stopp (' + stops.length + ')';
-    btn.style.background = '#CFECF5';
-    btn.style.color = '#047CA1';
+    userToggledOff = true;
+    updatePlanStopsBtn();
     return;
   }
   if (activePlanStopLayer) {
@@ -466,9 +495,8 @@ function togglePlannedStops(stops, turId, btn) {
   layer.addTo(map);
   activePlanStopLayer = layer;
   activePlanStopTurId = turId;
-  btn.textContent = '📍 Skjul planlagte stopp';
-  btn.style.background = '#81C5DA';
-  btn.style.color = '#025671';
+  userToggledOff = false;
+  updatePlanStopsBtn();
 }
 
 // Funksjon for å formatere tidspunkt
@@ -649,14 +677,6 @@ window.addVehicleMarkers = function(vehicles) {
         '</div>'
       : '';
 
-    const planStopsBtnRow = (v.plannedStops && v.plannedStops.length > 0)
-      ? '<div class="popup-row" style="margin-top:8px;">' +
-          '<button class="plan-stops-btn" style="padding:6px 12px;background:#CFECF5;color:#047CA1;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;width:100%;">' +
-            '📍 Vis planlagte stopp (' + v.plannedStops.length + ')' +
-          '</button>' +
-        '</div>'
-      : '';
-
     const popupContent =
       '<div class="popup-header">🚕 ' + v.licensePlate + '</div>' +
       '<div class="popup-body">' +
@@ -694,7 +714,6 @@ window.addVehicleMarkers = function(vehicles) {
         adresseRow +
         phoneRow +
         turdataHtml +
-        planStopsBtnRow +
       '</div>';
     
     marker.bindPopup(popupContent, { offset: [0, -10] });
@@ -735,21 +754,17 @@ window.addVehicleMarkers = function(vehicles) {
         });
       }
 
-      // Planlagte stopp-knapp
-      const planStopsBtn = popupEl.querySelector('.plan-stops-btn');
-      if (planStopsBtn) {
-        planStopsBtn.addEventListener('click', function() {
-          togglePlannedStops(v.plannedStops, v.turId, planStopsBtn);
-        });
-        // Auto-vis: bytt til ny bil hvis en annen vises, eller alltid ved enkeltressurs
-        const shouldAutoShow = (activePlanStopLayer && activePlanStopTurId !== v.turId) || markers.length === 1;
-        if (shouldAutoShow) {
-          togglePlannedStops(v.plannedStops, v.turId, planStopsBtn);
-          // Ved enkeltressurs: tilpass kartvisning til alle koordinater
-          if (markers.length === 1 && v.plannedStops && v.plannedStops.length > 0) {
-            const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
-            map.fitBounds(allCoords, { padding: [60, 60], animate: true });
-          }
+      // Sett aktiv kjøretøy for header-knapp
+      if (activePlanStopTurId !== v.turId) userToggledOff = false; // Nullstill ved bilbytte
+      activeVehicleData = v;
+      updatePlanStopsBtn();
+      // Auto-vis: vis alltid med mindre stopp allerede vises for denne bilen eller brukeren skjulte dem
+      const alreadyShowingThisVehicle = activePlanStopLayer && activePlanStopTurId === v.turId;
+      if (!alreadyShowingThisVehicle && !userToggledOff && v.plannedStops && v.plannedStops.length > 0) {
+        togglePlannedStops(v.plannedStops, v.turId);
+        if (markers.length === 1) {
+          const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
+          map.fitBounds(allCoords, { padding: [60, 60], animate: true });
         }
       }
     });
@@ -779,6 +794,13 @@ window.addVehicleMarkers = function(vehicles) {
 // Manuel refresh-knapp
 document.getElementById('refreshBtn').addEventListener('click', () => {
   window.opener.updateMapData(false);
+});
+
+// Planlagte stopp-knapp (header)
+document.getElementById('planStopsBtn').addEventListener('click', () => {
+  if (activeVehicleData && activeVehicleData.plannedStops && activeVehicleData.plannedStops.length > 0) {
+    togglePlannedStops(activeVehicleData.plannedStops, activeVehicleData.turId);
+  }
 });
 
 // Auto-refresh
