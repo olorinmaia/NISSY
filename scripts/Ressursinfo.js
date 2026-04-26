@@ -941,6 +941,7 @@ async function runResourceInfo() {
           .event-1703 { border-color: #F44336; }
           .event-1709 { border-color: #FF9800; }
           .event-5021 { border-color: #9c27b0; }
+          .event-last { border-color: #FF6F00; background: #FFF8E1; }
 
           /* Skjul routing control panel */
           .leaflet-routing-container {
@@ -1069,21 +1070,25 @@ function createMarkerWithPopup(event, index) {
   // Popup
   marker.bindPopup(
     '<div style="min-width: 200px;">' +
-    '<strong>' + eventInfo.icon + ' ' + eventInfo.title + '</strong><br>' +
+    '<strong>' + eventInfo.icon + ' ' + eventInfo.title + ' (' + timeLabel + ')</strong><br>' +
     '<strong>Navn:</strong> ' + event.name + '<br>' +
-    '<strong>Tidspunkt:</strong> ' + timeLabel + '<br>' +
     '<strong>Adresse:</strong> ' + event.address +
     '</div>',
-    { offset: [0, -15] }  // Popup offset
+    { offset: [0, -15] }
   );
   
   return { marker: marker, coords: [lat, lon] };
 }
 
-// Legg til markører for hver hendelse
+// Siste hendelse med koordinater vises som bil-ikon (ikke i cluster)
+const eventsWithCoords = events.filter(e => e.lat && e.lon);
+const lastEvent = eventsWithCoords.length > 0 ? eventsWithCoords[eventsWithCoords.length - 1] : null;
+
+// Legg til markører for alle hendelser unntatt siste
 events.forEach((event, index) => {
   if (!event.lat || !event.lon) return;
-  
+  if (event === lastEvent) return;
+
   const result = createMarkerWithPopup(event, index);
   markerCluster.addLayer(result.marker);
   markers.push(result.marker);
@@ -1093,7 +1098,41 @@ events.forEach((event, index) => {
 // Legg cluster til kart
 map.addLayer(markerCluster);
 
-
+// Bil-ikon for siste kjente posisjon
+let lastCarMarker = null;
+if (lastEvent) {
+  const eventInfo = getIconAndTitle(lastEvent.eventType);
+  const timeLabel = formatTimestamp(lastEvent.timestamp);
+  routeCoords.push([parseFloat(lastEvent.lat), parseFloat(lastEvent.lon)]);
+  const carIcon = L.divIcon({
+    className: 'custom-marker-wrapper',
+    html: '<div style="text-align:center;">' +
+          '<div class="event-marker event-last" style="width:42px;height:42px;font-size:22px;">🚕</div>' +
+          '<div style="font-size:10px;font-weight:700;color:#e65100;background:rgba(255,255,255,0.95);padding:2px 5px;border-radius:3px;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,0.25);white-space:nowrap;">' + timeLabel + '</div>' +
+          '</div>',
+    iconSize: [60, 68],
+    iconAnchor: [30, 34]
+  });
+  lastCarMarker = L.marker([parseFloat(lastEvent.lat), parseFloat(lastEvent.lon)], {
+    icon: carIcon,
+    zIndexOffset: 1000
+  });
+  const lastEventIs5021 = lastEvent.eventType === '5021';
+  lastCarMarker.bindPopup(
+    '<div style="min-width:200px;">' +
+    '<strong>' + eventInfo.icon + ' ' + eventInfo.title + ' (' + timeLabel + ')</strong>' +
+    (lastEventIs5021 ? '' : '<br><strong>Navn:</strong> ' + lastEvent.name + '<br><strong>Adresse:</strong> ' + lastEvent.address) +
+    '</div>',
+    { offset: [0, -20] }
+  );
+  lastCarMarker.bindTooltip(
+    eventInfo.icon + ' ' + eventInfo.title,
+    { direction: 'top', offset: [0, -25] }
+  );
+  lastCarMarker.on('popupopen', () => lastCarMarker.closeTooltip());
+  lastCarMarker.on('mouseover', () => { if (lastCarMarker.isPopupOpen()) lastCarMarker.closeTooltip(); });
+  lastCarMarker.addTo(map);
+}
 
 // Hent routing-modus fra parent window
 const routingMode = window.opener.currentRoutingMode || 'road';
@@ -1172,6 +1211,11 @@ if (routeCoords.length > 0) {
   map.fitBounds(routeCoords, { padding: [50, 50] });
 }
 
+// Vis tooltip (enkel info) automatisk når kartet åpnes
+if (lastCarMarker) {
+  setTimeout(() => lastCarMarker.openTooltip(), 400);
+}
+
 // Funksjon for å reloade data og resette zoom
 window.reloadRouteData = function() {
   console.log('🔄 Reloader kjørerute-data og resetter zoom');
@@ -1220,17 +1264,56 @@ window.reloadRouteData = function() {
     }
   });
   
-  // Bruk samme funksjon som ved første initialisering
+  // Siste hendelse vises som bil-ikon
+  const newEventsWithCoords = newEvents.filter(e => e.lat && e.lon);
+  const newLastEvent = newEventsWithCoords.length > 0 ? newEventsWithCoords[newEventsWithCoords.length - 1] : null;
+
   newEvents.forEach((event, index) => {
     if (!event.lat || !event.lon) return;
-    
+    if (event === newLastEvent) return;
+
     const result = createMarkerWithPopup(event, index);
     newMarkerCluster.addLayer(result.marker);
     newMarkers.push(result.marker);
     newRouteCoords.push(result.coords);
   });
-  
+
   map.addLayer(newMarkerCluster);
+
+  let newLastCarMarker = null;
+  if (newLastEvent) {
+    const eventInfo = getIconAndTitle(newLastEvent.eventType);
+    const timeLabel = formatTimestamp(newLastEvent.timestamp);
+    newRouteCoords.push([parseFloat(newLastEvent.lat), parseFloat(newLastEvent.lon)]);
+    const carIcon = L.divIcon({
+      className: 'custom-marker-wrapper',
+      html: '<div style="text-align:center;">' +
+            '<div class="event-marker event-last" style="width:42px;height:42px;font-size:22px;">🚕</div>' +
+            '<div style="font-size:10px;font-weight:700;color:#e65100;background:rgba(255,255,255,0.95);padding:2px 5px;border-radius:3px;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,0.25);white-space:nowrap;">' + timeLabel + '</div>' +
+            '</div>',
+      iconSize: [60, 68],
+      iconAnchor: [30, 34]
+    });
+    newLastCarMarker = L.marker([parseFloat(newLastEvent.lat), parseFloat(newLastEvent.lon)], {
+      icon: carIcon,
+      zIndexOffset: 1000
+    });
+    const newLastEventIs5021 = newLastEvent.eventType === '5021';
+    newLastCarMarker.bindPopup(
+      '<div style="min-width:200px;">' +
+      '<strong>' + eventInfo.icon + ' ' + eventInfo.title + ' (' + timeLabel + ')</strong>' +
+      (newLastEventIs5021 ? '' : '<br><strong>Navn:</strong> ' + newLastEvent.name + '<br><strong>Adresse:</strong> ' + newLastEvent.address) +
+      '</div>',
+      { offset: [0, -20] }
+    );
+    newLastCarMarker.bindTooltip(
+      eventInfo.icon + ' ' + eventInfo.title,
+      { direction: 'top', offset: [0, -25] }
+    );
+    newLastCarMarker.on('popupopen', () => newLastCarMarker.closeTooltip());
+    newLastCarMarker.on('mouseover', () => { if (newLastCarMarker.isPopupOpen()) newLastCarMarker.closeTooltip(); });
+    newLastCarMarker.addTo(map);
+  }
   
   // Tegn rute
   if (newRouteCoords.length > 1) {
@@ -1291,6 +1374,10 @@ window.reloadRouteData = function() {
   // Reset zoom til alle markører
   if (newRouteCoords.length > 0) {
     map.fitBounds(newRouteCoords, { padding: [50, 50] });
+  }
+
+  if (newLastCarMarker) {
+    setTimeout(() => newLastCarMarker.openTooltip(), 400);
   }
 };
 
