@@ -152,6 +152,7 @@
     "./Hovedinngang, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Geriatrisk pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Preoperativ dag, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Hjertesvikt pol, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     
     // St. Olavs hospital 
     "KVB 4. Barn 2 Kirurgi, 7030 Trondheim": "St. Olavs hospital, 7030 Trondheim",
