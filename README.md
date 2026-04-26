@@ -61,6 +61,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - **3003** – Oppdrag bekreftet av sjåfør (med sjåførmobil)
     - **2000** – Planlagte turer og avtaleinformasjon
   - Viser alltid den **nyeste hendelsen** per ressurs
+  - Viser planlagte stopp til valgt ressurs og beregnet kjørerute, kan toggles med knapper i header
   - Pop-up per markør inneholder: løyvenummer, avtalenavn, turnummer (med lenke til Admin), hendelsestype med ikon, tidspunkt, adresse, sjåførmobil (klikk for å kopiere), og planlagte turer
   - Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
   - Manuell oppdateringsknapp tilgjengelig

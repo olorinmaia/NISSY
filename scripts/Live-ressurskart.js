@@ -93,6 +93,28 @@
     setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
   }
   
+  // Konverter UTM sone N til WGS-84 (brukes for koordinater fra 2000 XML)
+  function utmToLatLon(easting, northing, zone) {
+    const k0 = 0.9996, a = 6378137, e2 = 0.00669437999014;
+    const x = easting - 500000, y = northing;
+    const e12 = e2 / (1 - e2);
+    const M = y / k0;
+    const mu = M / (a * (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256));
+    const e1 = (1 - Math.sqrt(1-e2)) / (1 + Math.sqrt(1-e2));
+    const p1 = mu + e1*(3/2 - 27*e1*e1/32)*Math.sin(2*mu)
+              + e1*e1*(21/16 - 55*e1*e1/32)*Math.sin(4*mu)
+              + e1*e1*e1*(151/96)*Math.sin(6*mu);
+    const sp1 = Math.sin(p1), cp1 = Math.cos(p1), tp1 = Math.tan(p1);
+    const N1 = a / Math.sqrt(1 - e2*sp1*sp1);
+    const R1 = a*(1-e2) / Math.pow(1-e2*sp1*sp1, 1.5);
+    const T1 = tp1*tp1, C1 = e12*cp1*cp1;
+    const D = x / (N1*k0);
+    const lat = p1 - N1*tp1/R1*(D*D/2 - D*D*D*D*(5+3*T1+10*C1-4*C1*C1-9*e12)/24);
+    const lon0 = (zone*6 - 183) * Math.PI/180;
+    const lon = lon0 + (D - D*D*D*(1+2*T1+C1)/6) / cp1;
+    return { lat: lat*180/Math.PI, lon: lon*180/Math.PI };
+  }
+
   // Zoom-nivå for enkelt markør (19 = helt inn, 1 = helt ut)
   // 13 = ca 2 zoom ut fra maksimum, passer for by-nivå
   const SINGLE_MARKER_ZOOM = 14;
@@ -191,6 +213,7 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
         <style>
           * {
             margin: 0;
@@ -319,17 +342,17 @@
             margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
           }
-          
+
           .popup-row:last-child {
             margin-bottom: 0;
           }
-          
+
           .popup-label {
             font-weight: 600;
             color: #666;
-            min-width: 80px;
+            min-width: 70px;
           }
           
           .popup-value {
@@ -352,14 +375,20 @@
           .popup-link:hover {
             background: #035f7d !important;
           }
+
+          .leaflet-routing-container {
+            display: none;
+          }
         </style>
       </head>
       <body>
         <div id="header">
           <h1>📡 Live Ressurskart</h1>
           <div id="controls">
+            <button id="planStopsBtn" style="padding:8px 16px;background:#CFECF5;color:#047CA1;border:none;border-radius:4px;font-weight:600;cursor:default;opacity:0.5;transition:all 0.2s;" disabled>📍 Planlagte stopp</button>
+            <button id="routeToggleBtn" style="padding:8px 16px;background:#81C5DA;color:#025671;border:none;border-radius:4px;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Beregnet kjørerute basert på veikart – ikke faktisk kjørt rute">📐 Beregnet rute</button>
             <div id="status">
-              <span id="vehicleCount">0</span> biler | 
+              <span id="vehicleCount">0</span> biler |
               Sist oppdatert: <span id="lastUpdate">-</span>
             </div>
             <label style="font-size: 13px;">
@@ -387,7 +416,9 @@
       }
       // Last Leaflet, deretter MarkerCluster (rekkefølge er viktig)
       loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', () => {
-        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', resolve);
+        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', () => {
+          loadScript('https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', resolve);
+        });
       });
     });
     
@@ -407,6 +438,194 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let markerCluster = null;
 let markers = [];
 let updateTimer = null;
+let activePlanStopLayer = null;
+let activePlanStopTurId = null;
+let activePlanStopGroupList = null;
+let activeVehicleData = null;
+let userToggledOff = false;
+let activeRouteControl = null;
+let routeEnabled = localStorage.getItem('liveMapShowRoute') === 'true';
+
+function removeActiveRoute() {
+  if (!activeRouteControl) return;
+  activeRouteControl.remove();
+  activeRouteControl = null;
+}
+
+function updateRouteToggleBtn() {
+  const btn = document.getElementById('routeToggleBtn');
+  if (!btn) return;
+  const hasStops = !!activePlanStopLayer;
+  btn.disabled = !hasStops;
+  btn.style.cursor = hasStops ? 'pointer' : 'default';
+  if (!hasStops) {
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+    btn.style.opacity = '0.5';
+  } else if (routeEnabled) {
+    btn.style.background = '#81C5DA';
+    btn.style.color = '#025671';
+    btn.style.opacity = '1';
+  } else {
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+    btn.style.opacity = '0.7';
+  }
+}
+
+function drawRoute() {
+  removeActiveRoute();
+  if (!routeEnabled || !activeVehicleData || !activePlanStopGroupList || !activePlanStopLayer) return;
+  const vLat = parseFloat(activeVehicleData.lat);
+  const vLon = parseFloat(activeVehicleData.lon);
+  if (!vLat || !vLon) return;
+  const sortedGroups = activePlanStopGroupList.slice().sort((a, b) => {
+    const timeCmp = (a.representative.time || '').localeCompare(b.representative.time || '');
+    if (timeCmp !== 0) return timeCmp;
+    return (a.representative.type || '').localeCompare(b.representative.type || '');
+  });
+  const nowMs = Date.now();
+  const pastPickups = sortedGroups.filter(({ representative: r }) =>
+    r.type === '1803' && r.time && new Date(r.time).getTime() <= nowMs
+  );
+  const remainingStops = sortedGroups.filter(({ representative: r }) =>
+    !(r.type === '1803' && r.time && new Date(r.time).getTime() <= nowMs)
+  );
+  if (pastPickups.length === 0 && remainingStops.length === 0) return;
+  const waypoints = [
+    ...pastPickups.map(({ representative: r }) => L.latLng(r.lat, r.lon)),
+    L.latLng(vLat, vLon),
+    ...remainingStops.map(({ representative: r }) => L.latLng(r.lat, r.lon))
+  ];
+  const fallback = () => {
+    const poly = L.polyline(waypoints.map(w => [w.lat, w.lng]), {
+      color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8, 6'
+    }).addTo(map);
+    activeRouteControl = { remove: () => map.removeLayer(poly) };
+  };
+  try {
+    const ctrl = L.Routing.control({
+      waypoints,
+      router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'driving', timeout: 10000 }),
+      lineOptions: { styles: [{ color: '#047CA1', weight: 4, opacity: 0.7 }] },
+      createMarker: () => null, addWaypoints: false, routeWhileDragging: false,
+      showAlternatives: false, fitSelectedRoutes: false, show: false
+    }).addTo(map);
+    ctrl.on('routingerror', () => { map.removeControl(ctrl); fallback(); });
+    activeRouteControl = { remove: () => map.removeControl(ctrl) };
+  } catch (e) { fallback(); }
+}
+
+updateRouteToggleBtn();
+
+function updatePlanStopsBtn() {
+  const btn = document.getElementById('planStopsBtn');
+  if (!btn) return;
+  const hasStops = activeVehicleData && activeVehicleData.plannedStops && activeVehicleData.plannedStops.length > 0;
+  if (!hasStops) {
+    btn.textContent = '📍 Planlagte stopp';
+    btn.disabled = true;
+    btn.style.cursor = 'default';
+    btn.style.opacity = '0.5';
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+    return;
+  }
+  btn.disabled = false;
+  btn.style.cursor = 'pointer';
+  btn.style.opacity = '1';
+  if (activePlanStopLayer && activePlanStopTurId === activeVehicleData.turId) {
+    btn.textContent = '📍 Skjul planlagte stopp';
+    btn.style.background = '#81C5DA';
+    btn.style.color = '#025671';
+  } else {
+    btn.textContent = '📍 Vis planlagte stopp (' + activeVehicleData.plannedStops.length + ')';
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+  }
+}
+
+function pickRepresentative(group, now) {
+  let representative = group[0];
+  let bestDiff = null;
+  group.forEach(stop => {
+    if (!stop.time) return;
+    const diff = new Date(stop.time).getTime() - now;
+    if (bestDiff === null) { bestDiff = diff; representative = stop; return; }
+    if (bestDiff < 0 && diff >= 0) { bestDiff = diff; representative = stop; return; }
+    if (bestDiff >= 0 && diff < 0) return;
+    if (Math.abs(diff) < Math.abs(bestDiff)) { bestDiff = diff; representative = stop; }
+  });
+  return representative;
+}
+
+function togglePlannedStops(stops, turId) {
+  if (activePlanStopTurId === turId && activePlanStopLayer) {
+    map.removeLayer(activePlanStopLayer);
+    activePlanStopLayer = null;
+    activePlanStopTurId = null;
+    activePlanStopGroupList = null;
+    removeActiveRoute();
+    userToggledOff = true;
+    updatePlanStopsBtn();
+    updateRouteToggleBtn();
+    return;
+  }
+  if (activePlanStopLayer) {
+    map.removeLayer(activePlanStopLayer);
+    activePlanStopLayer = null;
+    removeActiveRoute();
+  }
+  const layer = L.layerGroup();
+  const now = Date.now();
+
+  // Grupper stopp per koordinat, velg representant nærmest i tid
+  const groups = {};
+  stops.forEach(stop => {
+    const key = stop.lat + ',' + stop.lon;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(stop);
+  });
+
+  const groupList = Object.values(groups).map(group => ({
+    group,
+    representative: pickRepresentative(group, now)
+  }));
+
+  groupList.forEach(({ group, representative }) => {
+    const isPickup = representative.type === '1803';
+    const symbol = isPickup ? '➕' : '➖';
+    const color = isPickup ? '#2e7d32' : '#1565c0';
+    const bgColor = isPickup ? '#e8f5e9' : '#e3f2fd';
+    const icon = L.divIcon({
+      className: 'custom-marker-wrapper',
+      html: '<div style="background:' + bgColor + ';border:2px solid ' + color + ';border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.3);color:' + color + ';font-weight:bold;">' + symbol + '</div>',
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+
+    const sorted = group.slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    const tooltipLines = sorted.map(s => {
+      const t = s.time ? s.time.split('T')[1]?.substring(0, 5) : '–';
+      return (s.type === '1803' ? '➕ Henting' : '➖ Levering') + ' ' + t;
+    });
+    const address = sorted[0].address || '';
+    const tooltipHtml = tooltipLines.join('<br>') + (address ? '<br>' + address : '');
+
+    const marker = L.marker([representative.lat, representative.lon], { icon });
+    marker.bindTooltip(tooltipHtml, { direction: 'top', offset: [0, -8] });
+    layer.addLayer(marker);
+  });
+
+  layer.addTo(map);
+  activePlanStopLayer = layer;
+  activePlanStopTurId = turId;
+  activePlanStopGroupList = groupList;
+  userToggledOff = false;
+  updatePlanStopsBtn();
+  updateRouteToggleBtn();
+  drawRoute();
+}
 
 // Funksjon for å formatere tidspunkt
 function formatTimestamp(isoString) {
@@ -424,8 +643,8 @@ function getIconAndTitle(eventType) {
     case "1702": return { icon: "➖", title: "Avstigning" };
     case "1703": return { icon: "❌", title: "Bomtur" };
     case "1709": return { icon: "📍", title: "Bil ved node" };
-    case "3003": return { icon: "🏴", title: "Oppdrag bekreftet (3003)" };
-    case "5021": return { icon: "📡", title: "Auto-posisjon (5021)" };
+    case "3003": return { icon: "🏴", title: "Oppdrag bekreftet" };
+    case "5021": return { icon: "📡", title: "Auto-posisjon" };
     default: return { icon: "❓", title: "Ukjent hendelse" };
   }
 }
@@ -435,10 +654,18 @@ window.addVehicleMarkers = function(vehicles) {
   // Hent zoom-nivå fra parent window
   const singleMarkerZoom = window.opener.SINGLE_MARKER_ZOOM || 13;
   
-  // Fjern gammel cluster-gruppe fra kart
+  // Fjern gammel cluster-gruppe og planlagte stopp fra kart
   if (markerCluster) {
     map.removeLayer(markerCluster);
     markerCluster = null;
+  }
+  if (activePlanStopLayer) {
+    map.removeLayer(activePlanStopLayer);
+    activePlanStopLayer = null;
+    activePlanStopTurId = null;
+    activePlanStopGroupList = null;
+    removeActiveRoute();
+    updateRouteToggleBtn();
   }
   markers = [];
   
@@ -582,28 +809,24 @@ window.addVehicleMarkers = function(vehicles) {
       : '';
 
     const popupContent =
-      '<div class="popup-header">🚕 ' + v.licensePlate + '</div>' +
+      '<div class="popup-header">' +
+        '<a href="' + v.nissyUrl + '" target="_blank" ' +
+           'title="Tur ' + v.turId + ' – Åpne i NISSY Admin" ' +
+           'style="color:white;text-decoration:none;cursor:pointer;">🚕 ' + v.licensePlate + '</a>' +
+      '</div>' +
       '<div class="popup-body">' +
         avtaleRow +
         '<div class="popup-row">' +
-          '<span class="popup-label">Turnr:</span>' +
-          '<span class="popup-value">' +
-            '<a href="' + v.nissyUrl + '" target="_blank" ' +
-               'title="Åpne i NISSY Admin" ' +
-               'style="color:#333;text-decoration:underline;cursor:pointer;">' +
-              v.turId +
-            '</a>' +
-          '</span>' +
-        '</div>' +
-        '<div class="popup-row">' +
           '<span class="popup-label">Hendelse:</span>' +
-          '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title + '</span>' +
+          '<span class="popup-value">' + eventInfo.icon + ' ' + eventInfo.title +
+            (v.timestamp ? ' <span style="color:#888;font-size:12px;">(' + formatTimestamp(v.timestamp) + ')</span>' : '') +
+          '</span>' +
         '</div>' +
         (v.dispatchCoord ? (
           '<div class="popup-row">' +
             '<span class="popup-label">Hendelse:</span>' +
             '<span class="popup-value">🏴 Oppdrag bekreftet (3003)' +
-              (v.time3003 ? (' <span style="color:#856404;font-weight:bold;">' + (v.time3003.split(' ')[1]?.substring(0,5) || v.time3003) + '</span>') : '') +
+              (v.time3003 ? (' <span style="color:#888;font-size:12px;">(' + (v.time3003.split(' ')[1]?.substring(0,5) || v.time3003) + ')</span>') : '') +
             '</span>' +
           '</div>' +
           '<div class="popup-row">' +
@@ -611,10 +834,6 @@ window.addVehicleMarkers = function(vehicles) {
             '<span class="popup-value" style="font-family:monospace;font-size:12px;">' + v.dispatchCoord.lat.toFixed(6) + ', ' + v.dispatchCoord.lon.toFixed(6) + '</span>' +
           '</div>'
         ) : '') +
-        '<div class="popup-row">' +
-          '<span class="popup-label">Tidspunkt:</span>' +
-          '<span class="popup-value">' + formatTimestamp(v.timestamp) + '</span>' +
-        '</div>' +
         adresseRow +
         phoneRow +
         turdataHtml +
@@ -657,6 +876,20 @@ window.addVehicleMarkers = function(vehicles) {
           });
         });
       }
+
+      // Sett aktiv kjøretøy for header-knapp
+      if (activePlanStopTurId !== v.turId) userToggledOff = false; // Nullstill ved bilbytte
+      activeVehicleData = v;
+      updatePlanStopsBtn();
+      // Auto-vis: vis alltid med mindre stopp allerede vises for denne bilen eller brukeren skjulte dem
+      const alreadyShowingThisVehicle = activePlanStopLayer && activePlanStopTurId === v.turId;
+      if (!alreadyShowingThisVehicle && !userToggledOff && v.plannedStops && v.plannedStops.length > 0) {
+        togglePlannedStops(v.plannedStops, v.turId);
+        if (markers.length === 1) {
+          const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
+          map.fitBounds(allCoords, { padding: [60, 60], animate: true });
+        }
+      }
     });
     markerCluster.addLayer(marker);
     markers.push(marker);
@@ -675,15 +908,47 @@ window.addVehicleMarkers = function(vehicles) {
   // Legg cluster til kart (kartet er allerede på riktig posisjon)
   map.addLayer(markerCluster);
   
-  // Åpne popup automatisk ved én ressurs
+  // Ved én ressurs: sett aktiv bil, vis planlagte stopp og rute (uten å åpne popup)
+  // Tooltip vises automatisk og lukkes ved klikk på kart eller bil (popup åpnes)
   if (bounds.length === 1) {
-    markers[0].openPopup();
+    const v = vehicles.find(veh => veh.lat && veh.lon);
+    if (v) {
+      activeVehicleData = v;
+      updatePlanStopsBtn();
+      if (!userToggledOff && v.plannedStops && v.plannedStops.length > 0) {
+        togglePlannedStops(v.plannedStops, v.turId);
+        const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
+        map.fitBounds(allCoords, { padding: [60, 60], animate: false });
+      }
+    }
+    setTimeout(() => markers[0].openTooltip(), 200);
+    map.once('popupopen', () => markers[0].closeTooltip());
+    map.once('click', () => markers[0].closeTooltip());
   }
 };
 
 // Manuel refresh-knapp
 document.getElementById('refreshBtn').addEventListener('click', () => {
   window.opener.updateMapData(false);
+});
+
+// Planlagte stopp-knapp (header)
+document.getElementById('planStopsBtn').addEventListener('click', () => {
+  if (activeVehicleData && activeVehicleData.plannedStops && activeVehicleData.plannedStops.length > 0) {
+    togglePlannedStops(activeVehicleData.plannedStops, activeVehicleData.turId);
+  }
+});
+
+// Beregnet rute-knapp (header)
+document.getElementById('routeToggleBtn').addEventListener('click', () => {
+  routeEnabled = !routeEnabled;
+  localStorage.setItem('liveMapShowRoute', routeEnabled ? 'true' : 'false');
+  updateRouteToggleBtn();
+  if (routeEnabled) {
+    drawRoute();
+  } else {
+    removeActiveRoute();
+  }
 });
 
 // Auto-refresh
@@ -769,6 +1034,7 @@ window.addEventListener('beforeunload', () => {
             address: positionData.address || null,
             phoneNumber: positionData.phoneNumber || null,
             tripData: positionData.tripData || [],
+            plannedStops: positionData.plannedStops || [],
             avtaleNavn: positionData.avtaleNavn || null,
             nissyUrl: "/administrasjon/admin/searchStatus?id=" + turId
           });
@@ -914,7 +1180,7 @@ window.addEventListener('beforeunload', () => {
       }
 
       if (all4010Urls.length === 0 && !latest3003Url && !latest5021Url) return null;
-      
+
       // Hent 3003 og 2000 parallelt (uavhengig av hvilken 4010 vi ender opp med)
       const [resp3003, resp2000, resp5021] = await Promise.all([
         latest3003Url ? fetch(latest3003Url) : Promise.resolve(null),
@@ -1089,6 +1355,7 @@ window.addEventListener('beforeunload', () => {
       // ── Parse 2000 XML (planlagte turer + avtalenavn) ──
       let tripData = [];
       let avtaleNavn = null;
+      let plannedStops = [];
       if (resp2000) {
         try {
           const buf2000 = await resp2000.arrayBuffer();
@@ -1098,7 +1365,7 @@ window.addEventListener('beforeunload', () => {
             const xmlStr2000 = unescape(pre2000[1])
               .replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
             let xmlDoc2000 = parser.parseFromString(xmlStr2000, "text/xml");
-            
+
             if (xmlDoc2000.querySelector('parsererror')) {
               console.warn("2000 XML-parserfeil – prøver HTML-parser");
               const htmlDoc2000 = parser.parseFromString(xmlStr2000, "text/html");
@@ -1106,14 +1373,14 @@ window.addEventListener('beforeunload', () => {
                 xmlDoc2000 = htmlDoc2000;
               }
             }
-            
+
             if (!xmlDoc2000.querySelector('parsererror')) {
               // Hent avtalenavn fra orgReceiver
               const orgReceiver = xmlDoc2000.querySelector('orgReceiver');
               if (orgReceiver) avtaleNavn = orgReceiver.getAttribute('name') || null;
-              
+
               const bookingMap = new Map();
-              
+
               const formatAddr = addrNode => {
                 if (!addrNode) return 'Ukjent';
                 const an = addrNode.getAttribute('addressName') || '';
@@ -1139,7 +1406,19 @@ window.addEventListener('beforeunload', () => {
                 
                 const timeStr = n.querySelector('timesNode > time')?.getAttribute('time') || null;
                 const address2000 = formatAddr(n.querySelector('addressNode'));
-                
+
+                // Samle planlagte stopp med koordinater (dedupliisert per node)
+                const geo2000 = n.querySelector('addressNode > geographicLocation');
+                if (geo2000?.getAttribute('typeOfCoordinate') === 'UTM') {
+                  const utmE = parseFloat(geo2000.getAttribute('long'));
+                  const utmN = parseFloat(geo2000.getAttribute('lat'));
+                  const utmZone = parseInt(geo2000.getAttribute('zone')) || 33;
+                  if (!isNaN(utmE) && !isNaN(utmN) && !plannedStops.some(s => s.utmE === utmE && s.utmN === utmN)) {
+                    const wgs = utmToLatLon(utmE, utmN, utmZone);
+                    plannedStops.push({ type: nodeType, lat: wgs.lat, lon: wgs.lon, address: address2000, time: timeStr });
+                  }
+                }
+
                 if (!bookingMap.has(bookingId)) bookingMap.set(bookingId, { hent: null, lever: null });
                 const entry = bookingMap.get(bookingId);
                 
@@ -1189,6 +1468,7 @@ window.addEventListener('beforeunload', () => {
         timestamp,
         eventType,
         address,
+        plannedStops,
         phoneNumber,
         tripData,
         avtaleNavn,
