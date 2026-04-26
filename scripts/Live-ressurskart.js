@@ -451,10 +451,11 @@ function togglePlannedStops(stops, turId, btn) {
     const isPickup = stop.type === '1803';
     const symbol = isPickup ? '➕' : '➖';
     const color = isPickup ? '#2e7d32' : '#1565c0';
+    const bgColor = isPickup ? '#e8f5e9' : '#e3f2fd';
     const timeLabel = stop.time ? stop.time.split('T')[1]?.substring(0, 5) : '–';
     const icon = L.divIcon({
       className: 'custom-marker-wrapper',
-      html: '<div style="background:' + color + ';border:2px solid white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.4);color:white;font-weight:bold;">' + symbol + '</div>',
+      html: '<div style="background:' + bgColor + ';border:2px solid ' + color + ';border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.3);color:' + color + ';font-weight:bold;">' + symbol + '</div>',
       iconSize: [26, 26],
       iconAnchor: [13, 13]
     });
@@ -740,9 +741,15 @@ window.addVehicleMarkers = function(vehicles) {
         planStopsBtn.addEventListener('click', function() {
           togglePlannedStops(v.plannedStops, v.turId, planStopsBtn);
         });
-        // Vis automatisk hvis en annen bils stopp allerede vises
-        if (activePlanStopLayer && activePlanStopTurId !== v.turId) {
+        // Auto-vis: bytt til ny bil hvis en annen vises, eller alltid ved enkeltressurs
+        const shouldAutoShow = (activePlanStopLayer && activePlanStopTurId !== v.turId) || markers.length === 1;
+        if (shouldAutoShow) {
           togglePlannedStops(v.plannedStops, v.turId, planStopsBtn);
+          // Ved enkeltressurs: tilpass kartvisning til alle koordinater
+          if (markers.length === 1 && v.plannedStops && v.plannedStops.length > 0) {
+            const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
+            map.fitBounds(allCoords, { padding: [60, 60], animate: true });
+          }
         }
       }
     });
