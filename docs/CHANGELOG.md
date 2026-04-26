@@ -7,6 +7,21 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🚀 [4.1.0] - 27.04.2026
+
+### Live ressurskart: Planlagte stopp og beregnet kjørerute og forbedring av Ressursinfo
+
+- 📡 **Live ressurskart**
+  - **Planlagte stopp** vises nå i kartet per bil, kan toggles av/på via ny header-knapp (📍)
+    - Hentinger vises med ➕ (grønn), leveringer med ➖ (blå)
+    - Stopp på samme koordinat grupperes – ikon og tid velges fra hendelsen nærmest i tid
+    - Vises automatisk ved popup-åpning og ved singel ressurs; kartet zoomes til å inkludere alle punkt
+  - **Beregnet kjørerute** mellom planlagte stopp og bilens posisjon (toggle-knapp 📐, standard AV)
+  - Singel ressurs viser nå tooltip ved åpning i stedet for full pop-up – pop-up åpnes ved klikk
+- 🚕 **Ressursinfo**
+  - Siste kjente posisjon vises nå som eget bil-ikon (🚕) utenfor cluster, med oransje markering
+  - Tooltip vises automatisk ved kartåpning
+
 ## 🎉 [4.0.0] - 24.04.2026
 
 ### 📡 Live ressurskart – Viser siste kjente posisjon til merkede ressurser med løpende oppdatering
