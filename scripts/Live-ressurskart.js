@@ -213,6 +213,7 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
         <style>
           * {
             margin: 0;
@@ -374,6 +375,10 @@
           .popup-link:hover {
             background: #035f7d !important;
           }
+
+          .leaflet-routing-container {
+            display: none;
+          }
         </style>
       </head>
       <body>
@@ -410,7 +415,9 @@
       }
       // Last Leaflet, deretter MarkerCluster (rekkefølge er viktig)
       loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', () => {
-        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', resolve);
+        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', () => {
+          loadScript('https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', resolve);
+        });
       });
     });
     
@@ -434,6 +441,7 @@ let activePlanStopLayer = null;
 let activePlanStopTurId = null;
 let activeVehicleData = null;
 let userToggledOff = false;
+let activeRouteControl = null;
 
 function updatePlanStopsBtn() {
   const btn = document.getElementById('planStopsBtn');
@@ -462,11 +470,32 @@ function updatePlanStopsBtn() {
   }
 }
 
+function removeActiveRoute() {
+  if (!activeRouteControl) return;
+  activeRouteControl.remove();
+  activeRouteControl = null;
+}
+
+function pickRepresentative(group, now) {
+  let representative = group[0];
+  let bestDiff = null;
+  group.forEach(stop => {
+    if (!stop.time) return;
+    const diff = new Date(stop.time).getTime() - now;
+    if (bestDiff === null) { bestDiff = diff; representative = stop; return; }
+    if (bestDiff < 0 && diff >= 0) { bestDiff = diff; representative = stop; return; }
+    if (bestDiff >= 0 && diff < 0) return;
+    if (Math.abs(diff) < Math.abs(bestDiff)) { bestDiff = diff; representative = stop; }
+  });
+  return representative;
+}
+
 function togglePlannedStops(stops, turId) {
   if (activePlanStopTurId === turId && activePlanStopLayer) {
     map.removeLayer(activePlanStopLayer);
     activePlanStopLayer = null;
     activePlanStopTurId = null;
+    removeActiveRoute();
     userToggledOff = true;
     updatePlanStopsBtn();
     return;
@@ -474,11 +503,12 @@ function togglePlannedStops(stops, turId) {
   if (activePlanStopLayer) {
     map.removeLayer(activePlanStopLayer);
     activePlanStopLayer = null;
+    removeActiveRoute();
   }
   const layer = L.layerGroup();
   const now = Date.now();
 
-  // Grupper stopp per koordinat
+  // Grupper stopp per koordinat, velg representant nærmest i tid
   const groups = {};
   stops.forEach(stop => {
     const key = stop.lat + ',' + stop.lon;
@@ -486,21 +516,12 @@ function togglePlannedStops(stops, turId) {
     groups[key].push(stop);
   });
 
-  Object.values(groups).forEach(group => {
-    // Velg stopp nærmest i tid: foretrekk fremtidige (minst positiv diff), fallback til seneste fortid
-    let representative = group[0];
-    let bestDiff = null;
-    group.forEach(stop => {
-      if (!stop.time) return;
-      const diff = new Date(stop.time).getTime() - now;
-      if (bestDiff === null) { bestDiff = diff; representative = stop; return; }
-      // Foretrekk fremtid over fortid
-      if (bestDiff < 0 && diff >= 0) { bestDiff = diff; representative = stop; return; }
-      if (bestDiff >= 0 && diff < 0) return;
-      // Begge samme fortegn: velg den med minst absoluttverdi
-      if (Math.abs(diff) < Math.abs(bestDiff)) { bestDiff = diff; representative = stop; }
-    });
+  const groupList = Object.values(groups).map(group => ({
+    group,
+    representative: pickRepresentative(group, now)
+  }));
 
+  groupList.forEach(({ group, representative }) => {
     const isPickup = representative.type === '1803';
     const symbol = isPickup ? '➕' : '➖';
     const color = isPickup ? '#2e7d32' : '#1565c0';
@@ -512,7 +533,6 @@ function togglePlannedStops(stops, turId) {
       iconAnchor: [13, 13]
     });
 
-    // Tooltip viser alle stopp på koordinaten, sortert på tid
     const sorted = group.slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''));
     const tooltipLines = sorted.map(s => {
       const t = s.time ? s.time.split('T')[1]?.substring(0, 5) : '–';
@@ -522,14 +542,66 @@ function togglePlannedStops(stops, turId) {
     const tooltipHtml = tooltipLines.join('<br>') + (address ? '<br>' + address : '');
 
     const marker = L.marker([representative.lat, representative.lon], { icon });
-    marker.bindTooltip(tooltipHtml, { direction: 'top' });
+    marker.bindTooltip(tooltipHtml, { direction: 'top', offset: [0, -10] });
     layer.addLayer(marker);
   });
+
   layer.addTo(map);
   activePlanStopLayer = layer;
   activePlanStopTurId = turId;
   userToggledOff = false;
   updatePlanStopsBtn();
+
+  // Tegn rute fra bilens posisjon → planlagte stopp i kronologisk rekkefølge
+  if (activeVehicleData && activeVehicleData.lat && activeVehicleData.lon && groupList.length > 0) {
+    const vLat = parseFloat(activeVehicleData.lat);
+    const vLon = parseFloat(activeVehicleData.lon);
+
+    // Sorter grupper etter representantens tid, stigende
+    const sortedGroups = groupList.slice().sort((a, b) =>
+      (a.representative.time || '').localeCompare(b.representative.time || '')
+    );
+
+    const waypoints = [
+      L.latLng(vLat, vLon),
+      ...sortedGroups.map(({ representative: r }) => L.latLng(r.lat, r.lon))
+    ];
+
+    const fallbackPolyline = (dashed) => {
+      const poly = L.polyline(waypoints.map(w => [w.lat, w.lng]), {
+        color: '#047CA1', weight: 3, opacity: 0.65,
+        dashArray: dashed ? '8, 6' : null
+      }).addTo(map);
+      activeRouteControl = { remove: () => map.removeLayer(poly) };
+    };
+
+    try {
+      const ctrl = L.Routing.control({
+        waypoints,
+        router: L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1',
+          profile: 'driving',
+          timeout: 10000
+        }),
+        lineOptions: { styles: [{ color: '#047CA1', weight: 4, opacity: 0.7 }] },
+        createMarker: () => null,
+        addWaypoints: false,
+        routeWhileDragging: false,
+        showAlternatives: false,
+        fitSelectedRoutes: false,
+        show: false
+      }).addTo(map);
+
+      ctrl.on('routingerror', () => {
+        map.removeControl(ctrl);
+        fallbackPolyline(true);
+      });
+
+      activeRouteControl = { remove: () => map.removeControl(ctrl) };
+    } catch (e) {
+      fallbackPolyline(true);
+    }
+  }
 }
 
 // Funksjon for å formatere tidspunkt
