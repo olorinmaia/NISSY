@@ -26,6 +26,7 @@
   // 'road' = Rute langs vei (OSRM routing)
   // 'straight' = Rett luftlinje mellom punkter
   const ROUTING_MODE = 'road'; // Endre til 'straight' for luftlinje
+  const EVENTS_PREVIEW_COUNT = 10;  // Antall nyeste hendelser vist i tabellen som standard
 
   console.log("🚀 Starter Ressursinfo-script");
 
@@ -264,7 +265,7 @@ async function runResourceInfo() {
     const xml2000Links = [];
     const xml3003Links = [];
     const xml4010Links = [];
-    let latest5021Url = null;
+    const xml5021Links = [];
     let time3003 = null;
     
     // Split HTML i rader
@@ -312,7 +313,7 @@ async function runResourceInfo() {
         } else if (sutiCode === '4010') {
           xml4010Links.push(url);
         } else if (sutiCode === '5021') {
-          latest5021Url = url; // Alltid overskriv – siste/nyeste 5021
+          xml5021Links.push(url);
         }
       }
     }
@@ -344,7 +345,8 @@ async function runResourceInfo() {
       });
     }
 
-    // Legg til 5021-hendelse (siste auto-posisjon)
+    // Legg til 5021-hendelse (siste auto-posisjon for popup)
+    const latest5021Url = xml5021Links.length > 0 ? xml5021Links[xml5021Links.length - 1] : null;
     if (latest5021Url) {
       try {
         const xmlDoc5021 = await fetchAndParseXML(latest5021Url);
@@ -1085,9 +1087,15 @@ const eventsWithCoords = events.filter(e => e.lat && e.lon);
 const lastEvent = eventsWithCoords.length > 0 ? eventsWithCoords[eventsWithCoords.length - 1] : null;
 
 // Legg til markører for alle hendelser unntatt siste
+// 5021-hendelser brukes kun som rutepunkter, ikke som synlige markører
 events.forEach((event, index) => {
   if (!event.lat || !event.lon) return;
   if (event === lastEvent) return;
+
+  if (event.eventType === '5021') {
+    routeCoords.push([parseFloat(event.lat), parseFloat(event.lon)]);
+    return;
+  }
 
   const result = createMarkerWithPopup(event, index);
   markerCluster.addLayer(result.marker);
@@ -1271,6 +1279,11 @@ window.reloadRouteData = function() {
   newEvents.forEach((event, index) => {
     if (!event.lat || !event.lon) return;
     if (event === newLastEvent) return;
+
+    if (event.eventType === '5021') {
+      newRouteCoords.push([parseFloat(event.lat), parseFloat(event.lon)]);
+      return;
+    }
 
     const result = createMarkerWithPopup(event, index);
     newMarkerCluster.addLayer(result.marker);
@@ -1772,14 +1785,10 @@ window.updateEventData = function(newEvent) {
     if (eventData.events.length > 0) {
       html += `
         <div style="margin-bottom: 15px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="margin-bottom: 10px;">
             <h3 style="margin: 0; font-size: 16px; color: #333;" title="Hendelser basert informasjon i 2000 og 4010 XML">
               Vognløpshendelser
             </h3>
-            <label style="font-size: 13px; cursor: pointer;" title="Vis/skjul 4010-1709 XML i Vognløpshendelser">
-              <input type="checkbox" id="toggle1709" ${eventData.events.length <= 13 ? "checked" : ""}>
-              Vis📍(Bil ved node)
-            </label>
           </div>
           
           <table style="width: 100%; border-collapse: collapse; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -1797,17 +1806,33 @@ window.updateEventData = function(newEvent) {
             <tbody>
       `;
 
-      for (const r of eventData.events) {
+      const hiddenCount = Math.max(0, eventData.events.length - EVENTS_PREVIEW_COUNT);
+      if (hiddenCount > 0) {
+        html += `
+          <tr id="showOlderRow">
+            <td colspan="7" style="text-align:center;padding:8px;border-bottom:1px solid #e9ecef;background:#f8f9fa;">
+              <button id="showOlderBtn" style="background:none;border:none;color:#1976d2;cursor:pointer;font-size:13px;text-decoration:underline;padding:0;">
+                ▲ Vis ${hiddenCount} eldre hendelser
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+
+      for (let i = 0; i < eventData.events.length; i++) {
+        const r = eventData.events[i];
         const { icon, title } = getIconAndTitle(r.eventType);
         const coordText = `Vis i kart`;
         const formattedTime = formatTimestamp(r.timestamp);
-        const rowClass = r.eventType === "1709" ? "row1709" : "";
-        
+        const isOlder = i < hiddenCount;
+        const rowClass = isOlder ? "event-older-hidden" : "";
+        const olderStyle = isOlder ? "display:none;" : "";
+
         // Escape JSON for data-attributt
         const eventJson = JSON.stringify(r).replace(/"/g, '&quot;');
 
         html += `
-          <tr class="${rowClass}" style="border-bottom: 1px solid #e9ecef; background: white; transition: background-color 0.2s;">
+          <tr class="${rowClass}" style="${olderStyle}border-bottom: 1px solid #e9ecef; background: white; transition: background-color 0.2s;">
             <td style="padding: 10px 8px;">
               ${r.bookingId
                 ? `<a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}"
@@ -1821,8 +1846,8 @@ window.updateEventData = function(newEvent) {
               }
             </td>
             <td style="
-              padding: 10px 8px; 
-              color: #495057; 
+              padding: 10px 8px;
+              color: #495057;
               font-size: 12px;
               max-width: 150px;
               white-space: nowrap;
@@ -1832,15 +1857,15 @@ window.updateEventData = function(newEvent) {
               ${r.name}
             </td>
             <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">${r.estimatedTime}</td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>            
+            <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>
             <td style="padding: 10px 8px; text-align: right;" title="${title} (${r.eventType})">
               <span style="display: inline-block; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
               ${icon}
               </span>
             </td>
             <td style="
-              padding: 10px 8px; 
-              color: #495057; 
+              padding: 10px 8px;
+              color: #495057;
               font-size: 12px;
               max-width: 250px;
               white-space: nowrap;
@@ -1850,7 +1875,7 @@ window.updateEventData = function(newEvent) {
               ${r.address}
             </td>
             <td style="padding: 10px 8px;">
-              <a href="#" 
+              <a href="#"
                  class="coord-link"
                  data-event="${eventJson}"
                  style="color: #1976d2; text-decoration: none;"
@@ -1980,19 +2005,16 @@ window.updateEventData = function(newEvent) {
       });
     }
 
-    // Toggle 1709
-    const toggle1709 = popup.querySelector("#toggle1709");
-    if (toggle1709) {
-      toggle1709.addEventListener("change", () => {
-        const rows1709 = popup.querySelectorAll(".row1709");
-        rows1709.forEach(row => {
-          row.style.display = toggle1709.checked ? "" : "none";
-        });
+    // Vis eldre hendelser
+    const showOlderBtn = popup.querySelector('#showOlderBtn');
+    if (showOlderBtn) {
+      showOlderBtn.addEventListener('click', () => {
+        popup.querySelectorAll('.event-older-hidden').forEach(r => { r.style.display = ''; });
+        const showOlderRow = popup.querySelector('#showOlderRow');
+        if (showOlderRow) showOlderRow.style.display = 'none';
       });
-      toggle1709.dispatchEvent(new Event("change"));
     }
 
-    
     const coordLinks = popup.querySelectorAll(".coord-link");
     coordLinks.forEach(link => {
       link.addEventListener("click", e => {
