@@ -386,6 +386,7 @@
           <h1>📡 Live Ressurskart</h1>
           <div id="controls">
             <button id="planStopsBtn" style="padding:8px 16px;background:#CFECF5;color:#047CA1;border:none;border-radius:4px;font-weight:600;cursor:default;opacity:0.5;transition:all 0.2s;" disabled>📍 Planlagte stopp</button>
+            <button id="routeToggleBtn" style="padding:8px 16px;background:#81C5DA;color:#025671;border:none;border-radius:4px;font-weight:600;cursor:pointer;transition:all 0.2s;" title="Beregnet kjørerute basert på veikart – ikke faktisk kjørt rute">📐 Beregnet rute</button>
             <div id="status">
               <span id="vehicleCount">0</span> biler |
               Sist oppdatert: <span id="lastUpdate">-</span>
@@ -439,9 +440,83 @@ let markers = [];
 let updateTimer = null;
 let activePlanStopLayer = null;
 let activePlanStopTurId = null;
+let activePlanStopGroupList = null;
 let activeVehicleData = null;
 let userToggledOff = false;
 let activeRouteControl = null;
+let routeEnabled = localStorage.getItem('liveMapShowRoute') === 'true';
+
+function removeActiveRoute() {
+  if (!activeRouteControl) return;
+  activeRouteControl.remove();
+  activeRouteControl = null;
+}
+
+function updateRouteToggleBtn() {
+  const btn = document.getElementById('routeToggleBtn');
+  if (!btn) return;
+  const hasStops = !!activePlanStopLayer;
+  btn.disabled = !hasStops;
+  btn.style.cursor = hasStops ? 'pointer' : 'default';
+  if (!hasStops) {
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+    btn.style.opacity = '0.5';
+  } else if (routeEnabled) {
+    btn.style.background = '#81C5DA';
+    btn.style.color = '#025671';
+    btn.style.opacity = '1';
+  } else {
+    btn.style.background = '#CFECF5';
+    btn.style.color = '#047CA1';
+    btn.style.opacity = '0.7';
+  }
+}
+
+function drawRoute() {
+  removeActiveRoute();
+  if (!routeEnabled || !activeVehicleData || !activePlanStopGroupList || !activePlanStopLayer) return;
+  const vLat = parseFloat(activeVehicleData.lat);
+  const vLon = parseFloat(activeVehicleData.lon);
+  if (!vLat || !vLon) return;
+  const sortedGroups = activePlanStopGroupList.slice().sort((a, b) => {
+    const timeCmp = (a.representative.time || '').localeCompare(b.representative.time || '');
+    if (timeCmp !== 0) return timeCmp;
+    return (a.representative.type || '').localeCompare(b.representative.type || '');
+  });
+  const nowMs = Date.now();
+  const pastPickups = sortedGroups.filter(({ representative: r }) =>
+    r.type === '1803' && r.time && new Date(r.time).getTime() <= nowMs
+  );
+  const remainingStops = sortedGroups.filter(({ representative: r }) =>
+    !(r.type === '1803' && r.time && new Date(r.time).getTime() <= nowMs)
+  );
+  if (pastPickups.length === 0 && remainingStops.length === 0) return;
+  const waypoints = [
+    ...pastPickups.map(({ representative: r }) => L.latLng(r.lat, r.lon)),
+    L.latLng(vLat, vLon),
+    ...remainingStops.map(({ representative: r }) => L.latLng(r.lat, r.lon))
+  ];
+  const fallback = () => {
+    const poly = L.polyline(waypoints.map(w => [w.lat, w.lng]), {
+      color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8, 6'
+    }).addTo(map);
+    activeRouteControl = { remove: () => map.removeLayer(poly) };
+  };
+  try {
+    const ctrl = L.Routing.control({
+      waypoints,
+      router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'driving', timeout: 10000 }),
+      lineOptions: { styles: [{ color: '#047CA1', weight: 4, opacity: 0.7 }] },
+      createMarker: () => null, addWaypoints: false, routeWhileDragging: false,
+      showAlternatives: false, fitSelectedRoutes: false, show: false
+    }).addTo(map);
+    ctrl.on('routingerror', () => { map.removeControl(ctrl); fallback(); });
+    activeRouteControl = { remove: () => map.removeControl(ctrl) };
+  } catch (e) { fallback(); }
+}
+
+updateRouteToggleBtn();
 
 function updatePlanStopsBtn() {
   const btn = document.getElementById('planStopsBtn');
@@ -470,12 +545,6 @@ function updatePlanStopsBtn() {
   }
 }
 
-function removeActiveRoute() {
-  if (!activeRouteControl) return;
-  activeRouteControl.remove();
-  activeRouteControl = null;
-}
-
 function pickRepresentative(group, now) {
   let representative = group[0];
   let bestDiff = null;
@@ -495,9 +564,11 @@ function togglePlannedStops(stops, turId) {
     map.removeLayer(activePlanStopLayer);
     activePlanStopLayer = null;
     activePlanStopTurId = null;
+    activePlanStopGroupList = null;
     removeActiveRoute();
     userToggledOff = true;
     updatePlanStopsBtn();
+    updateRouteToggleBtn();
     return;
   }
   if (activePlanStopLayer) {
@@ -549,59 +620,11 @@ function togglePlannedStops(stops, turId) {
   layer.addTo(map);
   activePlanStopLayer = layer;
   activePlanStopTurId = turId;
+  activePlanStopGroupList = groupList;
   userToggledOff = false;
   updatePlanStopsBtn();
-
-  // Tegn rute fra bilens posisjon → planlagte stopp i kronologisk rekkefølge
-  if (activeVehicleData && activeVehicleData.lat && activeVehicleData.lon && groupList.length > 0) {
-    const vLat = parseFloat(activeVehicleData.lat);
-    const vLon = parseFloat(activeVehicleData.lon);
-
-    // Sorter grupper etter representantens tid, stigende
-    const sortedGroups = groupList.slice().sort((a, b) =>
-      (a.representative.time || '').localeCompare(b.representative.time || '')
-    );
-
-    const waypoints = [
-      L.latLng(vLat, vLon),
-      ...sortedGroups.map(({ representative: r }) => L.latLng(r.lat, r.lon))
-    ];
-
-    const fallbackPolyline = (dashed) => {
-      const poly = L.polyline(waypoints.map(w => [w.lat, w.lng]), {
-        color: '#047CA1', weight: 3, opacity: 0.65,
-        dashArray: dashed ? '8, 6' : null
-      }).addTo(map);
-      activeRouteControl = { remove: () => map.removeLayer(poly) };
-    };
-
-    try {
-      const ctrl = L.Routing.control({
-        waypoints,
-        router: L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1',
-          profile: 'driving',
-          timeout: 10000
-        }),
-        lineOptions: { styles: [{ color: '#047CA1', weight: 4, opacity: 0.7 }] },
-        createMarker: () => null,
-        addWaypoints: false,
-        routeWhileDragging: false,
-        showAlternatives: false,
-        fitSelectedRoutes: false,
-        show: false
-      }).addTo(map);
-
-      ctrl.on('routingerror', () => {
-        map.removeControl(ctrl);
-        fallbackPolyline(true);
-      });
-
-      activeRouteControl = { remove: () => map.removeControl(ctrl) };
-    } catch (e) {
-      fallbackPolyline(true);
-    }
-  }
+  updateRouteToggleBtn();
+  drawRoute();
 }
 
 // Funksjon for å formatere tidspunkt
@@ -640,6 +663,9 @@ window.addVehicleMarkers = function(vehicles) {
     map.removeLayer(activePlanStopLayer);
     activePlanStopLayer = null;
     activePlanStopTurId = null;
+    activePlanStopGroupList = null;
+    removeActiveRoute();
+    updateRouteToggleBtn();
   }
   markers = [];
   
@@ -913,6 +939,18 @@ document.getElementById('planStopsBtn').addEventListener('click', () => {
   }
 });
 
+// Beregnet rute-knapp (header)
+document.getElementById('routeToggleBtn').addEventListener('click', () => {
+  routeEnabled = !routeEnabled;
+  localStorage.setItem('liveMapShowRoute', routeEnabled ? 'true' : 'false');
+  updateRouteToggleBtn();
+  if (routeEnabled) {
+    drawRoute();
+  } else {
+    removeActiveRoute();
+  }
+});
+
 // Auto-refresh
 function startAutoUpdate() {
   if (updateTimer) {
@@ -1142,7 +1180,7 @@ window.addEventListener('beforeunload', () => {
       }
 
       if (all4010Urls.length === 0 && !latest3003Url && !latest5021Url) return null;
-      
+
       // Hent 3003 og 2000 parallelt (uavhengig av hvilken 4010 vi ender opp med)
       const [resp3003, resp2000, resp5021] = await Promise.all([
         latest3003Url ? fetch(latest3003Url) : Promise.resolve(null),
