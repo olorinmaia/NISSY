@@ -542,7 +542,7 @@ function togglePlannedStops(stops, turId) {
     const tooltipHtml = tooltipLines.join('<br>') + (address ? '<br>' + address : '');
 
     const marker = L.marker([representative.lat, representative.lon], { icon });
-    marker.bindTooltip(tooltipHtml, { direction: 'top', offset: [0, -10] });
+    marker.bindTooltip(tooltipHtml, { direction: 'top', offset: [0, -8] });
     layer.addLayer(marker);
   });
 
@@ -882,9 +882,22 @@ window.addVehicleMarkers = function(vehicles) {
   // Legg cluster til kart (kartet er allerede på riktig posisjon)
   map.addLayer(markerCluster);
   
-  // Åpne popup automatisk ved én ressurs
+  // Ved én ressurs: sett aktiv bil, vis planlagte stopp og rute (uten å åpne popup)
+  // Tooltip vises automatisk og lukkes ved klikk på kart eller bil (popup åpnes)
   if (bounds.length === 1) {
-    markers[0].openPopup();
+    const v = vehicles.find(veh => veh.lat && veh.lon);
+    if (v) {
+      activeVehicleData = v;
+      updatePlanStopsBtn();
+      if (!userToggledOff && v.plannedStops && v.plannedStops.length > 0) {
+        togglePlannedStops(v.plannedStops, v.turId);
+        const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
+        map.fitBounds(allCoords, { padding: [60, 60], animate: false });
+      }
+    }
+    setTimeout(() => markers[0].openTooltip(), 200);
+    map.once('popupopen', () => markers[0].closeTooltip());
+    map.once('click', () => markers[0].closeTooltip());
   }
 };
 
