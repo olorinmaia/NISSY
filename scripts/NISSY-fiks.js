@@ -915,6 +915,11 @@
             transform: none;
             transition: none;
           }
+          .nissy-manual-btn:disabled:hover {
+            background: #999;
+            transform: none;
+            box-shadow: none;
+          }
           #nissy-manual-scripts {
             display: flex;
             gap: 4px;
