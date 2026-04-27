@@ -335,6 +335,11 @@
             transform: none;
             transition: none;
           }
+          .nissy-script-btn:disabled:hover {
+            background: #999;
+            transform: none;
+            box-shadow: none;
+          }
         `;
         document.head.appendChild(style);
       }
