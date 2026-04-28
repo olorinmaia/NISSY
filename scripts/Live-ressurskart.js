@@ -808,11 +808,18 @@ window.addVehicleMarkers = function(vehicles) {
         '</div>'
       : '';
 
+    const loyveLink = (v.senderIdOrg && v.senderIdOrg.includes('itf0010.967332550'))
+      ? '<a href="https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=' + encodeURIComponent(v.licensePlate) + '" ' +
+           'target="_blank" ' +
+           'style="font-size:12px;padding:3px 9px;margin-right:10px;background:rgba(255,255,255,0.2);color:white;border-radius:4px;text-decoration:none;font-weight:normal;white-space:nowrap;border:1px solid rgba(255,255,255,0.4);">📋 Løyveregister</a>'
+      : '';
+
     const popupContent =
-      '<div class="popup-header">' +
+      '<div class="popup-header" style="display:flex;justify-content:space-between;align-items:center;">' +
         '<a href="' + v.nissyUrl + '" target="_blank" ' +
            'title="Tur ' + v.turId + ' – Åpne i NISSY Admin" ' +
            'style="color:white;text-decoration:none;cursor:pointer;">🚕 ' + v.licensePlate + '</a>' +
+        loyveLink +
       '</div>' +
       '<div class="popup-body">' +
         avtaleRow +
@@ -1036,6 +1043,7 @@ window.addEventListener('beforeunload', () => {
             tripData: positionData.tripData || [],
             plannedStops: positionData.plannedStops || [],
             avtaleNavn: positionData.avtaleNavn || null,
+            senderIdOrg: positionData.senderIdOrg || null,
             nissyUrl: "/administrasjon/admin/searchStatus?id=" + turId
           });
         }
@@ -1248,6 +1256,7 @@ window.addEventListener('beforeunload', () => {
       // ── Parse 3003 XML (mobilnummer + posisjon ved oppdragsbekreftelse) ──
       let phoneNumber = null;
       let dispatchCoord = null;
+      let senderIdOrg = null;
       if (resp3003) {
         try {
           const buf3003 = await resp3003.arrayBuffer();
@@ -1280,6 +1289,9 @@ window.addEventListener('beforeunload', () => {
               const slon = startLoc.getAttribute('long');
               if (slat && slon) dispatchCoord = { lat: parseFloat(slat), lon: parseFloat(slon) };
             }
+            // Hent avsender-org for Løyveregister-lenke
+            const orgSenderIdOrg = xmlDoc3003.querySelector('orgSender > idOrg');
+            if (orgSenderIdOrg) senderIdOrg = orgSenderIdOrg.getAttribute('id') || null;
           }
         } catch (e) {
           console.warn("Feil ved parsing av 3003:", e);
@@ -1473,7 +1485,8 @@ window.addEventListener('beforeunload', () => {
         tripData,
         avtaleNavn,
         dispatchCoord,
-        time3003
+        time3003,
+        senderIdOrg
       };
       
     } catch (e) {
