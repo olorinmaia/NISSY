@@ -7,6 +7,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.1.1] - 30.04.2026
+
+### Live ressurskart: Løyveregister-lenke, animasjonsfiks og datakvalitet
+
+- 📡 **Live ressurskart**
+  - **Løyveregister-lenke** (📋) vises nå i popup-header til høyre for løyvenummeret for ressurser tilknyttet Trøndertaxi – åpner direkte løyveoversikt for bilen
+  - **Innflyvningsanimasjon ved kartlasting fjernet** – markører plasseres nå stille og direkte på endelig posisjon uten å animere inn fra siden, på samme vis som Ressursinfo
+  - **Planlagte stopp utenfor Norge forkastes** – koordinater fra 2000 XML som havner utenfor Norges grenser etter UTM-konvertering vises ikke i kart, og hindrer at dårlig datakvalitet i NISSY gir villedende markørplassering
+
 ## 🚀 [4.1.0] - 27.04.2026
 
 ### Live ressurskart: Planlagte stopp og beregnet kjørerute og forbedring av Ressursinfo
