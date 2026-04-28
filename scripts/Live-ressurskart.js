@@ -1427,7 +1427,8 @@ window.addEventListener('beforeunload', () => {
                   const utmZone = parseInt(geo2000.getAttribute('zone')) || 33;
                   if (!isNaN(utmE) && !isNaN(utmN) && !plannedStops.some(s => s.utmE === utmE && s.utmN === utmN)) {
                     const wgs = utmToLatLon(utmE, utmN, utmZone);
-                    plannedStops.push({ type: nodeType, lat: wgs.lat, lon: wgs.lon, address: address2000, time: timeStr });
+                    const inNorway = wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5;
+                    if (inNorway) plannedStops.push({ type: nodeType, lat: wgs.lat, lon: wgs.lon, address: address2000, time: timeStr });
                   }
                 }
 
