@@ -25,6 +25,86 @@
   }, true);
 
   // ============================================================
+  // MØTEPLASS ÅPNINGSMÅTE (deler session-nøkkel med Bestillingsmodul.js)
+  // ============================================================
+  const MEETINGPLACE_MODE_KEY = 'bestillingsmodul_meetingplace_mode';
+  const getMeetingplaceMode = () => sessionStorage.getItem(MEETINGPLACE_MODE_KEY);
+  const saveMeetingplaceMode = (mode) => sessionStorage.setItem(MEETINGPLACE_MODE_KEY, mode);
+
+  function showMeetingplaceModeChoice(onChoose) {
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+      background: 'rgba(0,0,0,0.5)', zIndex: '10000000',
+    });
+    document.body.appendChild(overlay);
+
+    const modal = document.createElement('div');
+    Object.assign(modal.style, {
+      position: 'fixed', top: '0', left: '50%', transform: 'translateX(-50%)',
+      background: '#ffffff', borderRadius: '12px',
+      boxShadow: '0 20px 60px rgba(0,0,0,0.3)', width: '500px', maxWidth: '90%',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      overflow: 'hidden', zIndex: '10000001',
+    });
+    document.body.appendChild(modal);
+
+    const dismiss = () => { overlay.remove(); modal.remove(); };
+    overlay.addEventListener('click', dismiss);
+
+    // X-knapp
+    const closeBtn = document.createElement('button');
+    Object.assign(closeBtn.style, {
+      position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px',
+      border: 'none', background: 'rgba(255,255,255,0.95)', cursor: 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', zIndex: '1',
+    });
+    closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;stroke:#374151;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+    closeBtn.setAttribute('aria-label', 'Lukk');
+    closeBtn.addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+    closeBtn.onmouseover = () => { closeBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)'; };
+    closeBtn.onmouseout  = () => { closeBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; };
+    modal.appendChild(closeBtn);
+
+    const header = document.createElement('div');
+    header.style.cssText = 'padding:24px 24px;border-bottom:1px solid #e5e7eb;';
+    header.innerHTML = '<h2 style="margin:0;font-size:20px;font-weight:600;color:#111827;">Åpne Møteplass</h2><p style="margin:6px 0 0;font-size:14px;color:#6b7280;">Valget lagres i sesjonen. Lukk nettleser helt for å nullstille.</p>';
+    modal.appendChild(header);
+
+    const content = document.createElement('div');
+    content.style.cssText = 'padding:20px 24px;';
+    modal.appendChild(content);
+
+    const makeOption = (mode, label, desc, selected) => {
+      const opt = document.createElement('div');
+      opt.tabIndex = 0;
+      opt.style.cssText = `display:flex;align-items:center;padding:16px;margin-bottom:${mode === 'popup' ? '12px' : '0'};border:2px solid ${selected ? '#3b82f6' : '#e5e7eb'};border-radius:8px;cursor:pointer;background:${selected ? '#dbeafe' : '#ffffff'};transition:all 0.2s ease;`;
+
+      const radio = document.createElement('div');
+      radio.style.cssText = `width:20px;height:20px;border:2px solid ${selected ? '#3b82f6' : '#d1d5db'};border-radius:50%;margin-right:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;`;
+      if (selected) {
+        const dot = document.createElement('div');
+        dot.style.cssText = 'width:10px;height:10px;background:#3b82f6;border-radius:50%;';
+        radio.appendChild(dot);
+      }
+      opt.appendChild(radio);
+
+      const textDiv = document.createElement('div');
+      textDiv.innerHTML = `<p style="margin:0 0 4px;font-size:16px;font-weight:500;color:#111827;">${label}</p><p style="margin:0;font-size:13px;color:#6b7280;font-family:'Courier New',monospace;">${desc}</p>`;
+      opt.appendChild(textDiv);
+
+      opt.addEventListener('click', () => { dismiss(); onChoose(mode); });
+      opt.addEventListener('mouseenter', () => { opt.style.borderColor = '#3b82f6'; opt.style.background = '#eff6ff'; });
+      opt.addEventListener('mouseleave', () => { opt.style.borderColor = selected ? '#3b82f6' : '#e5e7eb'; opt.style.background = selected ? '#dbeafe' : '#ffffff'; });
+      return opt;
+    };
+
+    content.appendChild(makeOption('popup', 'Pop-up modal', 'Åpnes i et overlay-vindu', true));
+    content.appendChild(makeOption('newtab', 'Ny fane', 'Åpnes i en ny nettleserfane', false));
+  }
+
+  // ============================================================
   // INERT-HÅNDTERING: Blokkerer CTRL+F søk i bakgrunnen
   // ============================================================
   function enableModalMode() {
@@ -903,10 +983,22 @@
               }
               resetIframe().then(() => openModal({ requisitionNumber, isReturnButton: true }));
             } else if (label === "M") {
-              // M-knappen: Møteplass – splitt bestilling
-              resetIframe().then(() => openModal({
-                url: `/rekvisisjon/meetingplace/edit?rid=${reqId}&ns=true`,
-              }));
+              const meetingplaceUrl = `/rekvisisjon/meetingplace/edit?rid=${reqId}&ns=true`;
+              const mpMode = getMeetingplaceMode();
+              if (!mpMode) {
+                showMeetingplaceModeChoice((chosenMode) => {
+                  saveMeetingplaceMode(chosenMode);
+                  if (chosenMode === 'newtab') {
+                    window.open(meetingplaceUrl, '_blank');
+                  } else {
+                    resetIframe().then(() => openModal({ url: meetingplaceUrl }));
+                  }
+                });
+              } else if (mpMode === 'newtab') {
+                window.open(meetingplaceUrl, '_blank');
+              } else {
+                resetIframe().then(() => openModal({ url: meetingplaceUrl }));
+              }
             } else {
               // Andre knapper: Åpne direkte URL
               const urlMap = {
