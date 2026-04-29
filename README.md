@@ -22,18 +22,22 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
   - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
   - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
+
 - 🪄 **Smart-tildel (Alt+S)**
   - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING, TA KONTAKT FOR HJELP**
   - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
   - Støtter også direkte tildeling til valgt avtale eller ressurs.
+
 - 📆 **Tilordning 2.0 (Alt+T)**
   - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
+
 - 🕐 **Hentetid (Alt+E)** 
   - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
   - Kan beregne hentetid mot en annen oppmøtetid, men ny oppmøtetid lagres ikke om du glemmer å endre tilbake.
   - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/5201ecf7-cb29-41f4-ac07-4b672ed02bf0" />
+
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
   - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling og [M] Møteplass.
@@ -42,9 +46,11 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+
 - 🗺️ **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
   - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse.
+
 - 🚕 **Ressursinfo (Alt+D)**
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
   - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
@@ -70,18 +76,20 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3bd5ef2e-6fa5-418a-b4f7-808999c62939" />
 
 - 📝 **Bestillingsmodul (Alt+N)**
-  - Lar deg velge foretrukken modul mellom 4-stegs og ensides og husker valget for sesjonen.
+  - Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
     - <img width="500" alt="image" src="https://github.com/user-attachments/assets/be203274-df7b-4799-8caa-76d3af2bbd3c" />
 
-  - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet.
+  - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet eller i ny fane basert på valg.
   - Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
-  - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides.
+  - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides. (gjelder ikke når modul åpnes i ny fane)
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
-  - Åpner møteplass-funksjon i pop-up isteden for ny fane.
+  - Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
+
 - ⚙️ **Adminmodul (Alt+A)**
-  - Åpner admin-modulen i en ny pop-up iframe over planleggingsvinduet i person-fanen.
+  - Lar deg velge om du ønsker å åpne admin-modul i pop-up iframe eller ny fane. For pop-up husker den siste besøkte side.
   - Åpner admin-linker i planleggingsvinduet i pop-up isteden for ny fane, søker opp tur/bestilling automatisk og scroller ned til innholdet automatisk.
+
 - ✖️ **Avbestilling (Alt+K)**
   - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
   - Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
