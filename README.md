@@ -57,7 +57,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Faktisk kjørerute plottes med rutekalkulering i Leaflet / OpenStreetMap med ikoner/farger for hver enkelt hendelse.
   - Viser 5021 XML (bilens nåværende posisjon) i vognløpshendelser og bilens faktiske kjørerute.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/eb88afa0-37d7-44da-8b2f-7769da4384ca" />
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/6a8525b0-8a46-4b7b-a0e9-e8afe2906249" />
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/1b4c8609-fb2f-4329-905d-459de836d08f" />
 - 📡 **Live ressurskart (Alt+Z)**
   - Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
   - Henter data fra SUTI-meldinger som allerede er lastet i NISSY
@@ -73,12 +73,11 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Manuell oppdateringsknapp tilgjengelig
   - Clustering av markører ved utzoomet visning, spiderfying ved klikk
   - All databehandling skjer lokalt i nettleseren – ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3bd5ef2e-6fa5-418a-b4f7-808999c62939" />
+  - <img width="1000" alt="image" src="https://github.com/user-attachments/assets/8791cebc-a07e-41b8-9388-638b16771b53" />
 
 - 📝 **Bestillingsmodul (Alt+N)**
   - Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
-    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/be203274-df7b-4799-8caa-76d3af2bbd3c" />
-
+    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/261651db-87e7-4f0b-b759-e9fa45b1d563" />
   - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet eller i ny fane basert på valg.
   - Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides. (gjelder ikke når modul åpnes i ny fane)
