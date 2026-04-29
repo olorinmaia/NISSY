@@ -425,8 +425,7 @@
     // Injiser kartlogikk etter at L er tilgjengelig
     const initScript = mapWindow.document.createElement('script');
     initScript.textContent = `
-// Initialiser kart (senter på Norge/Trøndelag)
-const map = L.map('map').setView([63.4305, 10.3951], 10);
+const map = L.map('map');
 
 // Legg til OpenStreetMap tile layer
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -689,7 +688,7 @@ window.addVehicleMarkers = function(vehicles) {
     spiderfyOnEveryZoom: true,
     animate: true
   });
-  
+
   // Toggle spiderfy ved klikk på cluster
   markerCluster.on('clusterclick', function(e) {
     const cluster = e.layer;
@@ -703,10 +702,11 @@ window.addVehicleMarkers = function(vehicles) {
       }
     }
   });
-  
-  // Legg til nye markører
-  const bounds = [];
-  
+
+  const bounds = vehicles
+    .filter(v => v.lat && v.lon)
+    .map(v => [parseFloat(v.lat), parseFloat(v.lon)]);
+
   vehicles.forEach(v => {
     if (!v.lat || !v.lon) return;
     
@@ -808,11 +808,18 @@ window.addVehicleMarkers = function(vehicles) {
         '</div>'
       : '';
 
+    const loyveLink = (v.senderIdOrg && v.senderIdOrg.includes('itf0010.967332550'))
+      ? '<a href="https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=' + encodeURIComponent(v.licensePlate) + '" ' +
+           'target="_blank" ' +
+           'style="font-size:12px;padding:3px 9px;margin-right:10px;background:rgba(255,255,255,0.2);color:white;border-radius:4px;text-decoration:none;font-weight:normal;white-space:nowrap;border:1px solid rgba(255,255,255,0.4);">📋 Løyveregister</a>'
+      : '';
+
     const popupContent =
-      '<div class="popup-header">' +
+      '<div class="popup-header" style="display:flex;justify-content:space-between;align-items:center;">' +
         '<a href="' + v.nissyUrl + '" target="_blank" ' +
            'title="Tur ' + v.turId + ' – Åpne i NISSY Admin" ' +
            'style="color:white;text-decoration:none;cursor:pointer;">🚕 ' + v.licensePlate + '</a>' +
+        loyveLink +
       '</div>' +
       '<div class="popup-body">' +
         avtaleRow +
@@ -893,21 +900,23 @@ window.addVehicleMarkers = function(vehicles) {
     });
     markerCluster.addLayer(marker);
     markers.push(marker);
-    bounds.push([lat, lon]);
   });
-  
-  // Sett kartvisning FØR markørene legges til – unngår innflyvningsanimasjon
-  if (bounds.length > 0) {
-    if (bounds.length === 1) {
-      map.setView(bounds[0], singleMarkerZoom, { animate: false });
-    } else {
-      map.fitBounds(bounds, { padding: [50, 50], animate: false });
-    }
-  }
-  
-  // Legg cluster til kart (kartet er allerede på riktig posisjon)
+
   map.addLayer(markerCluster);
-  
+
+  if (bounds.length === 1) {
+    const v = vehicles.find(veh => veh.lat && veh.lon);
+    const hasStops = v && !userToggledOff && v.plannedStops && v.plannedStops.length > 0;
+    if (hasStops) {
+      const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
+      map.fitBounds(allCoords, { padding: [60, 60], animate: false });
+    } else {
+      map.fitBounds([bounds[0], bounds[0]], { padding: [100, 100], maxZoom: singleMarkerZoom, animate: false });
+    }
+  } else if (bounds.length > 1) {
+    map.fitBounds(bounds, { padding: [50, 50], animate: false });
+  }
+
   // Ved én ressurs: sett aktiv bil, vis planlagte stopp og rute (uten å åpne popup)
   // Tooltip vises automatisk og lukkes ved klikk på kart eller bil (popup åpnes)
   if (bounds.length === 1) {
@@ -917,8 +926,6 @@ window.addVehicleMarkers = function(vehicles) {
       updatePlanStopsBtn();
       if (!userToggledOff && v.plannedStops && v.plannedStops.length > 0) {
         togglePlannedStops(v.plannedStops, v.turId);
-        const allCoords = [[parseFloat(v.lat), parseFloat(v.lon)], ...v.plannedStops.map(s => [s.lat, s.lon])];
-        map.fitBounds(allCoords, { padding: [60, 60], animate: false });
       }
     }
     setTimeout(() => markers[0].openTooltip(), 200);
@@ -1036,6 +1043,7 @@ window.addEventListener('beforeunload', () => {
             tripData: positionData.tripData || [],
             plannedStops: positionData.plannedStops || [],
             avtaleNavn: positionData.avtaleNavn || null,
+            senderIdOrg: positionData.senderIdOrg || null,
             nissyUrl: "/administrasjon/admin/searchStatus?id=" + turId
           });
         }
@@ -1248,6 +1256,7 @@ window.addEventListener('beforeunload', () => {
       // ── Parse 3003 XML (mobilnummer + posisjon ved oppdragsbekreftelse) ──
       let phoneNumber = null;
       let dispatchCoord = null;
+      let senderIdOrg = null;
       if (resp3003) {
         try {
           const buf3003 = await resp3003.arrayBuffer();
@@ -1280,6 +1289,9 @@ window.addEventListener('beforeunload', () => {
               const slon = startLoc.getAttribute('long');
               if (slat && slon) dispatchCoord = { lat: parseFloat(slat), lon: parseFloat(slon) };
             }
+            // Hent avsender-org for Løyveregister-lenke
+            const orgSenderIdOrg = xmlDoc3003.querySelector('orgSender > idOrg');
+            if (orgSenderIdOrg) senderIdOrg = orgSenderIdOrg.getAttribute('id') || null;
           }
         } catch (e) {
           console.warn("Feil ved parsing av 3003:", e);
@@ -1415,7 +1427,8 @@ window.addEventListener('beforeunload', () => {
                   const utmZone = parseInt(geo2000.getAttribute('zone')) || 33;
                   if (!isNaN(utmE) && !isNaN(utmN) && !plannedStops.some(s => s.utmE === utmE && s.utmN === utmN)) {
                     const wgs = utmToLatLon(utmE, utmN, utmZone);
-                    plannedStops.push({ type: nodeType, lat: wgs.lat, lon: wgs.lon, address: address2000, time: timeStr });
+                    const inNorway = wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5;
+                    if (inNorway) plannedStops.push({ type: nodeType, lat: wgs.lat, lon: wgs.lon, address: address2000, time: timeStr, utmE, utmN });
                   }
                 }
 
@@ -1473,7 +1486,8 @@ window.addEventListener('beforeunload', () => {
         tripData,
         avtaleNavn,
         dispatchCoord,
-        time3003
+        time3003,
+        senderIdOrg
       };
       
     } catch (e) {

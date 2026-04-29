@@ -52,6 +52,8 @@
     const CONFIG = {
         resetUrl: '/rekvisisjon/requisition/exit',
         sessionKey: 'bestillingsmodul_preferred',
+        openModeKey: 'bestillingsmodul_open_mode',
+        meetingplaceModeKey: 'bestillingsmodul_meetingplace_mode',
         hentRekUrl: '/rekvisisjon/requisition/confirmGetRequisition',
         meetingplaceUrl: '/rekvisisjon/meetingplace/',
         modules: {
@@ -341,6 +343,54 @@
                 color: #6b7280;
                 font-family: 'Courier New', monospace;
             }
+
+            .bestillingsmodul-mode-section {
+                padding: 14px 24px 20px;
+                border-top: 1px solid #e5e7eb;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .bestillingsmodul-mode-label {
+                font-size: 14px;
+                color: #374151;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                margin: 0;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+
+            .bestillingsmodul-mode-toggle {
+                display: flex;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .bestillingsmodul-mode-btn {
+                padding: 6px 16px;
+                font-size: 13px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                border: none;
+                background: #ffffff;
+                color: #374151;
+                cursor: pointer;
+                transition: all 0.15s ease;
+            }
+
+            .bestillingsmodul-mode-btn + .bestillingsmodul-mode-btn {
+                border-left: 1px solid #d1d5db;
+            }
+
+            .bestillingsmodul-mode-btn.selected {
+                background: #3b82f6;
+                color: #ffffff;
+            }
+
+            .bestillingsmodul-mode-btn:hover:not(.selected) {
+                background: #f3f4f6;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -406,6 +456,12 @@
         // Opprett valgmodal
         const selectionModal = document.createElement('div');
         selectionModal.className = 'bestillingsmodul-modal bestillingsmodul-selection-modal';
+        const _prefMod  = getPreferredModule();
+        const _onePageSel  = (!_prefMod || _prefMod === 'onePage') ? ' selected' : '';
+        const _fourStepSel = _prefMod === 'fourStep' ? ' selected' : '';
+        const _savedMode   = getOpenMode() || 'popup';
+        const _popupSel    = _savedMode === 'popup'   ? ' selected' : '';
+        const _newtabSel   = _savedMode === 'newtab'  ? ' selected' : '';
         selectionModal.innerHTML = `
             <button class="bestillingsmodul-close" aria-label="Lukk">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -418,19 +474,26 @@
                 <p class="bestillingsmodul-subtitle">Valget lagres i sesjonen. Lukk nettleser helt for å nullstille.</p>
             </div>
             <div class="bestillingsmodul-content">
-                <div class="bestillingsmodul-option selected" data-module="onePage" tabindex="0">
+                <div class="bestillingsmodul-option${_onePageSel}" data-module="onePage" tabindex="0">
                     <div class="bestillingsmodul-option-radio"></div>
                     <div class="bestillingsmodul-option-content">
                         <p class="bestillingsmodul-option-label">🐌 ${CONFIG.modules.onePage.label}</p>
                         <p class="bestillingsmodul-option-shortcut">Alt på én side. Scroll din vei til suksess</p>
                     </div>
                 </div>
-                <div class="bestillingsmodul-option" data-module="fourStep" tabindex="0">
+                <div class="bestillingsmodul-option${_fourStepSel}" data-module="fourStep" tabindex="0">
                     <div class="bestillingsmodul-option-radio"></div>
                     <div class="bestillingsmodul-option-content">
                         <p class="bestillingsmodul-option-label">⚡ ${CONFIG.modules.fourStep.label}</p>
                         <p class="bestillingsmodul-option-shortcut">Raske snarveier for effektive tastaturbrukere</p>
                     </div>
+                </div>
+            </div>
+            <div class="bestillingsmodul-mode-section">
+                <p class="bestillingsmodul-mode-label">Åpne i:</p>
+                <div class="bestillingsmodul-mode-toggle">
+                    <button class="bestillingsmodul-mode-btn${_popupSel}" data-mode="popup">Pop-up modal</button>
+                    <button class="bestillingsmodul-mode-btn${_newtabSel}" data-mode="newtab">Ny fane</button>
                 </div>
             </div>
         `;
@@ -638,14 +701,60 @@
         sessionStorage.setItem(CONFIG.sessionKey, moduleKey);
     }
 
+    function getOpenMode() {
+        return sessionStorage.getItem(CONFIG.openModeKey);
+    }
+
+    function saveOpenMode(mode) {
+        sessionStorage.setItem(CONFIG.openModeKey, mode);
+    }
+
+    function getMeetingplaceMode() {
+        return sessionStorage.getItem(CONFIG.meetingplaceModeKey);
+    }
+
+    function saveMeetingplaceMode(mode) {
+        sessionStorage.setItem(CONFIG.meetingplaceModeKey, mode);
+    }
+
+    /**
+     * Rydder DOM for alle modaler uten å kjøre exit eller openPopp
+     */
+    function cleanupDom() {
+        if (activeKeyboardListener) {
+            document.removeEventListener('keydown', activeKeyboardListener);
+            activeKeyboardListener = null;
+        }
+        if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+        activeModals.forEach(m => m && m.parentNode && m.remove());
+        activeModals = [];
+        document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
+        document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
+        disableModalMode();
+        disableF5Handler();
+    }
+
     /**
      * Setter opp alle event handlers
      */
     function setupHandlers(modals) {
         const { overlay, selectionModal, fourStepModal, onePageModal } = modals;
         const options = selectionModal.querySelectorAll('.bestillingsmodul-option');
-        let selectedIndex = 0;
+        const modeButtons = selectionModal.querySelectorAll('.bestillingsmodul-mode-btn');
+        let selectedIndex = Array.from(options).findIndex(o => o.classList.contains('selected'));
+        if (selectedIndex < 0) selectedIndex = 0;
+        let selectedMode = getOpenMode() || 'popup';
         let keyboardListenerActive = true;
+
+        // Mode-knapp-håndtering
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modeButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedMode = btn.dataset.mode;
+            });
+        });
 
         // Funksjon for å velge og åpne modul
         function selectModule(moduleKey) {
@@ -655,7 +764,13 @@
                 keyboardListenerActive = false;
             }
             savePreferredModule(moduleKey);
-            showIframeModal(moduleKey, modals);
+            saveOpenMode(selectedMode);
+            if (selectedMode === 'newtab') {
+                cleanupDom();
+                window.open(CONFIG.modules[moduleKey].url, '_blank');
+            } else {
+                showIframeModal(moduleKey, modals);
+            }
         }
 
         // Valgmodal - Klikk-handlers
@@ -699,6 +814,12 @@
                 const moduleKey = selectedOption.dataset.module;
                 selectModule(moduleKey);
             }
+
+            // Escape - lukk modal
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeAll();
+            }
         };
         
         // Lagre referanse og legg til listener
@@ -734,37 +855,33 @@
             saveSelectedRows();
 
             // Rydd eksisterende modaler uten å kjøre exit eller openPopp
-            if (activeKeyboardListener) {
-                document.removeEventListener('keydown', activeKeyboardListener);
-                activeKeyboardListener = null;
-            }
-            if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
-            activeModals.forEach(m => m && m.parentNode && m.remove());
-            activeModals = [];
-            document.querySelectorAll('.bestillingsmodul-overlay').forEach(el => el.remove());
-            document.querySelectorAll('.bestillingsmodul-modal').forEach(el => el.remove());
-            disableModalMode();
-            disableF5Handler();
+            cleanupDom();
 
-            // Steg 1: Nullstill modul (exit) – kun én gang
+            // Steg 1: Nullstill modul (exit) – kjøres alltid, uavhengig av åpningsmåte
             await resetModule();
-            
-            // Steg 2: Injiser stiler
-            injectStyles();
-            
-            // Steg 3: Opprett modaler
-            const modals = createModals();
-            
-            // Steg 4: Sjekk for foretrukket modul
+
+            // Steg 2: Sjekk om begge preferanser er lagret og modus er ny fane
             const preferred = getPreferredModule();
+            const openMode  = getOpenMode();
+            if (preferred && CONFIG.modules[preferred] && openMode === 'newtab') {
+                window.open(CONFIG.modules[preferred].url, '_blank');
+                return;
+            }
+
+            // Steg 3: Injiser stiler
+            injectStyles();
+
+            // Steg 4: Opprett modaler
+            const modals = createModals();
+
+            // Steg 5: Sjekk for foretrukket modul (popup-modus)
             if (preferred && CONFIG.modules[preferred]) {
-                // Vis iframe-modal direkte (F5-håndtering aktiveres i showIframeModal)
                 showIframeModal(preferred, modals);
             }
-            
-            // Steg 5: Sett opp handlers
+
+            // Steg 6: Sett opp handlers
             setupHandlers(modals);
-            
+
         } catch (error) {
             console.error('Error initializing Bestillingsmodul:', error);
             alert('Kunne ikke initialisere bestillingsmodulen. Vennligst prøv igjen.');
@@ -896,6 +1013,27 @@
         return null;
     }
 
+    let _errorToast = null;
+    function showErrorToast(msg) {
+        if (_errorToast && _errorToast.parentNode) _errorToast.remove();
+        const toast = document.createElement('div');
+        toast.textContent = msg;
+        Object.assign(toast.style, {
+            position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+            background: '#d9534f', color: '#fff', padding: '10px 20px', borderRadius: '5px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)', fontFamily: 'Arial, sans-serif',
+            zIndex: '10000000', opacity: '0', transition: 'opacity 0.3s ease',
+            whiteSpace: 'nowrap',
+        });
+        document.body.appendChild(toast);
+        _errorToast = toast;
+        setTimeout(() => { toast.style.opacity = '1'; }, 10);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+        }, 4000);
+    }
+
     /**
      * Bygger URL for Møteplass med valgt bestilling
      */
@@ -905,21 +1043,138 @@
     }
 
     /**
+     * Viser mini-valg-modal for Møteplass-åpningsmåte (kun første gang, uten lagret preferanse)
+     */
+    function showMeetingplaceModeModal(reqId, url) {
+        injectStyles();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'bestillingsmodul-overlay';
+        activeOverlay = overlay;
+
+        const modal = document.createElement('div');
+        modal.className = 'bestillingsmodul-modal bestillingsmodul-selection-modal';
+        modal.innerHTML = `
+            <button class="bestillingsmodul-close" aria-label="Lukk">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="bestillingsmodul-header">
+                <h2 class="bestillingsmodul-title">Åpne Møteplass</h2>
+                <p class="bestillingsmodul-subtitle">Valget lagres i sesjonen. Lukk nettleser helt for å nullstille.</p>
+            </div>
+            <div class="bestillingsmodul-content">
+                <div class="bestillingsmodul-option selected" data-mode="popup" tabindex="0">
+                    <div class="bestillingsmodul-option-radio"></div>
+                    <div class="bestillingsmodul-option-content">
+                        <p class="bestillingsmodul-option-label">Pop-up modal</p>
+                        <p class="bestillingsmodul-option-shortcut">Åpnes i et overlay-vindu</p>
+                    </div>
+                </div>
+                <div class="bestillingsmodul-option" data-mode="newtab" tabindex="0">
+                    <div class="bestillingsmodul-option-radio"></div>
+                    <div class="bestillingsmodul-option-content">
+                        <p class="bestillingsmodul-option-label">Ny fane</p>
+                        <p class="bestillingsmodul-option-shortcut">Åpnes i en ny nettleserfane</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(modal);
+        activeModals = [modal];
+        enableModalMode();
+
+        const options = modal.querySelectorAll('.bestillingsmodul-option');
+        let selectedIndex = 0;
+
+        const dismiss = () => {
+            if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+            modal.remove();
+            activeModals = [];
+            disableModalMode();
+            document.removeEventListener('keydown', keyHandler);
+        };
+
+        const chooseMode = (mode) => {
+            saveMeetingplaceMode(mode);
+            dismiss();
+            if (mode === 'newtab') {
+                window.open(url, '_blank');
+            } else {
+                openMeetingplace(reqId);
+            }
+        };
+
+        options.forEach((option, index) => {
+            option.addEventListener('click', () => chooseMode(option.dataset.mode));
+            option.addEventListener('mouseenter', () => {
+                options.forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedIndex = index;
+            });
+        });
+
+        const closeBtn = modal.querySelector('.bestillingsmodul-close');
+        closeBtn.addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+        overlay.addEventListener('click', dismiss);
+        modal.addEventListener('click', (e) => e.stopPropagation());
+
+        const keyHandler = (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'Tab') {
+                e.preventDefault();
+                options[selectedIndex].classList.remove('selected');
+                selectedIndex = (selectedIndex + 1) % options.length;
+                options[selectedIndex].classList.add('selected');
+                options[selectedIndex].focus();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                options[selectedIndex].classList.remove('selected');
+                selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+                options[selectedIndex].classList.add('selected');
+                options[selectedIndex].focus();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                chooseMode(options[selectedIndex].dataset.mode);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                dismiss();
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
+        options[0].focus();
+    }
+
+    /**
      * Åpner Møteplass i modal
      */
     async function openMeetingplace(reqId = null) {
         try {
             // Hent valgt bestilling (kun ventende oppdrag), eller bruk oppgitt rid
             if (!reqId) reqId = getSelectedRequisition();
-            
+
             if (!reqId) {
-                alert('Du må velge én bestilling fra ventende oppdrag først.');
+                showErrorToast('Du må velge én bestilling fra ventende oppdrag først.');
                 return;
             }
-            
+
             // Bygg URL med valgt bestilling
             const url = buildMeetingplaceUrl(reqId);
-            
+
+            // Sjekk åpningsmåte-preferanse for Møteplass
+            const meetingplaceMode = getMeetingplaceMode();
+            if (!meetingplaceMode) {
+                showMeetingplaceModeModal(reqId, url);
+                return;
+            }
+            if (meetingplaceMode === 'newtab') {
+                window.open(url, '_blank');
+                return;
+            }
+
             // Lagre merkede rader før modal åpnes
             saveSelectedRows();
 
@@ -1434,9 +1689,13 @@
     }
 
     // Eksporter funksjoner globalt
-    window.Bestillingsmodul = { 
+    window.Bestillingsmodul = {
         init,
-        clearPreferred: () => sessionStorage.removeItem(CONFIG.sessionKey),
+        clearPreferred: () => {
+            sessionStorage.removeItem(CONFIG.sessionKey);
+            sessionStorage.removeItem(CONFIG.openModeKey);
+            sessionStorage.removeItem(CONFIG.meetingplaceModeKey);
+        },
         openReditInModal,
         openDirectUrl,
         openMeetingplace

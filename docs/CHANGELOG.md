@@ -7,6 +7,24 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.1.5] - 30.04.2026
+
+### Live ressurskart: Løyveregister-lenke, animasjonsfiks og datakvalitet – pluss åpningsmåte-valg i Bestillingsmodul/Adminmodul/Rek-knapper
+
+- 📡 **Live ressurskart**
+  - **Løyveregister-lenke** (📋) vises nå i popup-header til høyre for løyvenummeret for ressurser tilknyttet Trøndertaxi – åpner direkte løyveoversikt for bilen
+  - Innflyvningsanimasjon ved kartlasting fjernet
+  - **Planlagte stopp utenfor Norge forkastes** – koordinater fra 2000 XML som havner utenfor Norges grenser vises ikke i kart
+- 📝 **Bestillingsmodul**
+  - **Valg av åpningsmåte** – Ved første gangs bruk per sesjon spørres bruker om bestillingsmodul skal åpnes i pop-up modal eller ny fane.
+  - **Møteplass-åpningsmåte** – Tilsvarende valg for Møteplass (delt session-nøkkel med Rek-knapper, slik at valget gjelder begge steder)
+  - Redigering og kopiering åpnes alltid i modal uavhengig av valgt åpningsmåte
+- ⚙️ **Adminmodul**
+  - **Valg av åpningsmåte** – Tilsvarende valg som i Bestillingsmodul, med eget session-nøkkel. Linker åpnes alltid i modal
+- 🔠 **Rek-knapper**
+  - **M-knapp Møteplass** – Deler åpningsmåte-preferanse med Bestillingsmodul via felles session-nøkkel
+  - **Avbryt-knappen** i Møteplass-modal lukker nå modalen korrekt (samme som Bestillingsmodul)
+
 ## 🚀 [4.1.0] - 27.04.2026
 
 ### Live ressurskart: Planlagte stopp og beregnet kjørerute og forbedring av Ressursinfo

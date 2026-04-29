@@ -8,7 +8,7 @@
  * - Åpner direkte til søkeside for tur/bestilling, søker og scroller ned
  * - F5 refresher kun iframe modal, ikke bakgrunnen
  * - Lukk modal med X-knapp eller klikk utenfor
- *
+ * - window.Adminmodul.clearPreferred() i konsoll for å nullstille åpningspreferanse
  */
 
 (function() {
@@ -38,7 +38,8 @@
     // Konfigurasjon
     const CONFIG = {
         moduleUrl: '/administrasjon/admin/findPatient',
-        sessionKey: 'adminmodul_last_url'
+        sessionKey: 'adminmodul_last_url',
+        openModeKey: 'adminmodul_open_mode'
     };
 
     let activeOverlay = null;
@@ -139,6 +140,107 @@
                 width: 20px;
                 height: 20px;
                 stroke: #374151;
+            }
+
+            .adminmodul-selection-modal {
+                width: 500px;
+                max-width: 90%;
+                height: auto;
+            }
+
+            .adminmodul-header {
+                padding: 24px;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+            .adminmodul-title {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 600;
+                color: #111827;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
+
+            .adminmodul-subtitle {
+                margin: 6px 0 0 0;
+                font-size: 14px;
+                color: #6b7280;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
+
+            .adminmodul-content {
+                padding: 20px 24px;
+            }
+
+            .adminmodul-option {
+                display: flex;
+                align-items: center;
+                padding: 16px;
+                margin-bottom: 12px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: #ffffff;
+            }
+
+            .adminmodul-option:last-child {
+                margin-bottom: 0;
+            }
+
+            .adminmodul-option:hover {
+                border-color: #3b82f6;
+                background: #eff6ff;
+            }
+
+            .adminmodul-option.selected {
+                border-color: #3b82f6;
+                background: #dbeafe;
+            }
+
+            .adminmodul-option-radio {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #d1d5db;
+                border-radius: 50%;
+                margin-right: 12px;
+                position: relative;
+                flex-shrink: 0;
+                transition: all 0.2s ease;
+            }
+
+            .adminmodul-option.selected .adminmodul-option-radio {
+                border-color: #3b82f6;
+            }
+
+            .adminmodul-option.selected .adminmodul-option-radio::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 10px;
+                height: 10px;
+                background: #3b82f6;
+                border-radius: 50%;
+            }
+
+            .adminmodul-option-content {
+                flex: 1;
+            }
+
+            .adminmodul-option-label {
+                font-size: 16px;
+                font-weight: 500;
+                color: #111827;
+                margin: 0 0 4px 0;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
+
+            .adminmodul-option-shortcut {
+                font-size: 13px;
+                color: #6b7280;
+                font-family: 'Courier New', monospace;
             }
         `;
         document.head.appendChild(style);
@@ -397,6 +499,124 @@
         overlay.addEventListener('click', closeAll);
     }
 
+    function getOpenMode() {
+        return sessionStorage.getItem(CONFIG.openModeKey);
+    }
+
+    function saveOpenMode(mode) {
+        sessionStorage.setItem(CONFIG.openModeKey, mode);
+    }
+
+    /**
+     * Viser valg-modal for åpningsmåte (kun første gang, uten lagret preferanse)
+     */
+    function showAdminOpenModeModal() {
+        const overlay = document.createElement('div');
+        overlay.className = 'adminmodul-overlay';
+        activeOverlay = overlay;
+
+        const modal = document.createElement('div');
+        modal.className = 'adminmodul-modal adminmodul-selection-modal';
+        const savedMode = getOpenMode() || 'popup';
+        const popupSel = savedMode === 'popup' ? ' selected' : '';
+        const newtabSel = savedMode === 'newtab' ? ' selected' : '';
+        modal.innerHTML = `
+            <button class="adminmodul-close" aria-label="Lukk">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="adminmodul-header">
+                <h2 class="adminmodul-title">Åpne Adminmodul</h2>
+                <p class="adminmodul-subtitle">Valget lagres i sesjonen. Lukk nettleser helt for å nullstille.</p>
+            </div>
+            <div class="adminmodul-content">
+                <div class="adminmodul-option${popupSel}" data-mode="popup" tabindex="0">
+                    <div class="adminmodul-option-radio"></div>
+                    <div class="adminmodul-option-content">
+                        <p class="adminmodul-option-label">Pop-up modal</p>
+                        <p class="adminmodul-option-shortcut">Åpnes i et overlay-vindu</p>
+                    </div>
+                </div>
+                <div class="adminmodul-option${newtabSel}" data-mode="newtab" tabindex="0">
+                    <div class="adminmodul-option-radio"></div>
+                    <div class="adminmodul-option-content">
+                        <p class="adminmodul-option-label">Ny fane</p>
+                        <p class="adminmodul-option-shortcut">Åpnes i en ny nettleserfane</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(modal);
+        activeModal = modal;
+        enableModalMode();
+
+        const options = modal.querySelectorAll('.adminmodul-option');
+        let selectedIndex = Array.from(options).findIndex(o => o.classList.contains('selected'));
+        if (selectedIndex < 0) selectedIndex = 0;
+
+        const dismiss = () => {
+            overlay.remove();
+            modal.remove();
+            activeOverlay = null;
+            activeModal = null;
+            disableModalMode();
+            document.removeEventListener('keydown', keyHandler);
+        };
+
+        const chooseMode = (chosenMode) => {
+            saveOpenMode(chosenMode);
+            dismiss();
+            if (chosenMode === 'newtab') {
+                window.open(CONFIG.moduleUrl, '_blank');
+            } else {
+                const { overlay: newOverlay, modal: newModal } = createModal();
+                setupHandlers(newModal, newOverlay);
+            }
+        };
+
+        options.forEach((option, index) => {
+            option.addEventListener('click', () => chooseMode(option.dataset.mode));
+            option.addEventListener('mouseenter', () => {
+                options.forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedIndex = index;
+            });
+        });
+
+        const closeBtn = modal.querySelector('.adminmodul-close');
+        closeBtn.addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+        overlay.addEventListener('click', dismiss);
+        modal.addEventListener('click', (e) => e.stopPropagation());
+
+        const keyHandler = (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'Tab') {
+                e.preventDefault();
+                options[selectedIndex].classList.remove('selected');
+                selectedIndex = (selectedIndex + 1) % options.length;
+                options[selectedIndex].classList.add('selected');
+                options[selectedIndex].focus();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                options[selectedIndex].classList.remove('selected');
+                selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+                options[selectedIndex].classList.add('selected');
+                options[selectedIndex].focus();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                chooseMode(options[selectedIndex].dataset.mode);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                dismiss();
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
+        options[selectedIndex].focus();
+    }
+
     /**
      * Initialiserer modulen
      */
@@ -411,15 +631,26 @@
             // Lagre merkede rader før modal åpnes
             saveSelectedRows();
 
-            // Steg 1: Injiser stiler
+            // Injiser stiler
             injectStyles();
-            
-            // Steg 2: Opprett modal
+
+            // Sjekk åpningsmåte-preferanse
+            const mode = getOpenMode();
+
+            if (!mode) {
+                showAdminOpenModeModal();
+                return;
+            }
+
+            if (mode === 'newtab') {
+                window.open(CONFIG.moduleUrl, '_blank');
+                return;
+            }
+
+            // popup (eksisterende oppførsel)
             const { overlay, modal } = createModal();
-            
-            // Steg 3: Sett opp handlers
             setupHandlers(modal, overlay);
-            
+
         } catch (error) {
             console.error('Error initializing Adminmodul:', error);
             alert('Kunne ikke åpne adminmodulen. Vennligst prøv igjen.');
@@ -625,10 +856,11 @@
     }
 
     // Eksporter funksjoner globalt
-    window.Adminmodul = { 
+    window.Adminmodul = {
         init,
         close: closeAll,
-        openInModal
+        openInModal,
+        clearPreferred: () => sessionStorage.removeItem(CONFIG.openModeKey)
     };
 
     console.log("✅ Adminmodul-script lastet");
