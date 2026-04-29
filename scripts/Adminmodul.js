@@ -8,7 +8,7 @@
  * - Åpner direkte til søkeside for tur/bestilling, søker og scroller ned
  * - F5 refresher kun iframe modal, ikke bakgrunnen
  * - Lukk modal med X-knapp eller klikk utenfor
- *
+ * - window.Adminmodul.clearPreferred() i konsoll for å nullstille åpningspreferanse
  */
 
 (function() {
@@ -571,7 +571,7 @@
             saveOpenMode(chosenMode);
             dismiss();
             if (chosenMode === 'newtab') {
-                window.open(sessionStorage.getItem(CONFIG.sessionKey) || CONFIG.moduleUrl, '_blank');
+                window.open(CONFIG.moduleUrl, '_blank');
             } else {
                 const { overlay: newOverlay, modal: newModal } = createModal();
                 setupHandlers(newModal, newOverlay);
@@ -643,7 +643,7 @@
             }
 
             if (mode === 'newtab') {
-                window.open(sessionStorage.getItem(CONFIG.sessionKey) || CONFIG.moduleUrl, '_blank');
+                window.open(CONFIG.moduleUrl, '_blank');
                 return;
             }
 
