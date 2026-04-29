@@ -675,7 +675,17 @@
         // Sett fokus på iframe etter lasting slik at snarveier virker uten klikk
         if (!isEditButton) {
           iframe.onload = function() {
-            try { iframe.contentWindow.focus(); } catch (e) {}
+            try {
+              iframe.contentWindow.focus();
+              if (url && url.includes('meetingplace')) {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const cancelBtn = iframeDoc.getElementById('cancel');
+                if (cancelBtn) {
+                  cancelBtn.removeAttribute('onclick');
+                  cancelBtn.addEventListener('click', () => closeModal());
+                }
+              }
+            } catch (e) {}
           };
         }
 
