@@ -49,7 +49,23 @@
     });
     document.body.appendChild(modal);
 
-    const dismiss = () => { overlay.remove(); modal.remove(); };
+    let selectedIndex = 0;
+    let escHandler, keyHandler;
+
+    const dismiss = () => {
+      overlay.remove();
+      modal.remove();
+      document.removeEventListener('keydown', escHandler, true);
+      document.removeEventListener('keydown', keyHandler);
+    };
+
+    escHandler = (e) => {
+      if (e.key === 'Escape') {
+        e.stopImmediatePropagation();
+        dismiss();
+      }
+    };
+    document.addEventListener('keydown', escHandler, true);
     overlay.addEventListener('click', dismiss);
 
     // X-knapp
@@ -76,18 +92,13 @@
     content.style.cssText = 'padding:20px 24px;';
     modal.appendChild(content);
 
-    const makeOption = (mode, label, desc, selected) => {
+    const makeOption = (mode, label, desc) => {
       const opt = document.createElement('div');
       opt.tabIndex = 0;
-      opt.style.cssText = `display:flex;align-items:center;padding:16px;margin-bottom:${mode === 'popup' ? '12px' : '0'};border:2px solid ${selected ? '#3b82f6' : '#e5e7eb'};border-radius:8px;cursor:pointer;background:${selected ? '#dbeafe' : '#ffffff'};transition:all 0.2s ease;`;
+      opt.style.cssText = `display:flex;align-items:center;padding:16px;margin-bottom:${mode === 'popup' ? '12px' : '0'};border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;background:#ffffff;transition:all 0.2s ease;`;
 
       const radio = document.createElement('div');
-      radio.style.cssText = `width:20px;height:20px;border:2px solid ${selected ? '#3b82f6' : '#d1d5db'};border-radius:50%;margin-right:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;`;
-      if (selected) {
-        const dot = document.createElement('div');
-        dot.style.cssText = 'width:10px;height:10px;background:#3b82f6;border-radius:50%;';
-        radio.appendChild(dot);
-      }
+      radio.style.cssText = 'width:20px;height:20px;border:2px solid #d1d5db;border-radius:50%;margin-right:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;';
       opt.appendChild(radio);
 
       const textDiv = document.createElement('div');
@@ -95,13 +106,52 @@
       opt.appendChild(textDiv);
 
       opt.addEventListener('click', () => { dismiss(); onChoose(mode); });
-      opt.addEventListener('mouseenter', () => { opt.style.borderColor = '#3b82f6'; opt.style.background = '#eff6ff'; });
-      opt.addEventListener('mouseleave', () => { opt.style.borderColor = selected ? '#3b82f6' : '#e5e7eb'; opt.style.background = selected ? '#dbeafe' : '#ffffff'; });
       return opt;
     };
 
-    content.appendChild(makeOption('popup', 'Pop-up modal', 'Åpnes i et overlay-vindu', true));
-    content.appendChild(makeOption('newtab', 'Ny fane', 'Åpnes i en ny nettleserfane', false));
+    const opts = [
+      makeOption('popup', 'Pop-up modal', 'Åpnes i et overlay-vindu'),
+      makeOption('newtab', 'Ny fane', 'Åpnes i en ny nettleserfane'),
+    ];
+
+    const setVisual = (i) => {
+      opts.forEach((opt, j) => {
+        const sel = j === i;
+        opt.style.borderColor = sel ? '#3b82f6' : '#e5e7eb';
+        opt.style.background  = sel ? '#dbeafe' : '#ffffff';
+        const radio = opt.querySelector('div');
+        if (radio) {
+          radio.style.borderColor = sel ? '#3b82f6' : '#d1d5db';
+          radio.innerHTML = sel ? '<div style="width:10px;height:10px;background:#3b82f6;border-radius:50%;"></div>' : '';
+        }
+      });
+    };
+
+    opts.forEach((opt, i) => {
+      opt.addEventListener('mouseenter', () => { setVisual(i); selectedIndex = i; });
+      content.appendChild(opt);
+    });
+
+    keyHandler = (e) => {
+      if (e.key === 'Tab' || e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % opts.length;
+        setVisual(selectedIndex);
+        opts[selectedIndex].focus();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        selectedIndex = (selectedIndex - 1 + opts.length) % opts.length;
+        setVisual(selectedIndex);
+        opts[selectedIndex].focus();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        opts[selectedIndex].click();
+      }
+    };
+    document.addEventListener('keydown', keyHandler);
+
+    setVisual(0);
+    setTimeout(() => opts[0].focus(), 50);
   }
 
   // ============================================================
