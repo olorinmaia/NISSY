@@ -167,6 +167,21 @@
     return office && SJEKK_PLAKAT_OFFICES.includes(office);
   }
 
+  // ── Hent fødselsnummer fra plakat ───────────────────────────
+  async function fetchSSN(rid) {
+    try {
+      const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${rid}`;
+      const resp = await fetch(url, { credentials: 'same-origin' });
+      const buf  = await resp.arrayBuffer();
+      const text = new TextDecoder('iso-8859-1').decode(buf);
+      const m = text.match(/F.dselsnummer:<\/td>\s*<td[^>]*class="reqv_value"[^>]*>(\d+)<\/td>/);
+      return m?.[1] || null;
+    } catch (e) {
+      console.error('[Hurtigmeny] fetchSSN feil:', e);
+      return null;
+    }
+  }
+
   // ── Pasientnavn / ressursnavn fra rad ────────────────────────
   function getDisplayName(row, type) {
     if (type === 'ventende') {
@@ -299,6 +314,12 @@
       sep(),
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
+      }, true),
+      item('👤', 'Rediger person', null, async () => {
+        const rid = row.id.replace(/^[A-Z]-/i, '');
+        const ssn = await fetchSSN(rid);
+        if (!ssn) { alert('Kunne ikke hente fødselsnummer for denne bestillingen.'); return; }
+        window.open(`/administrasjon/admin/editPatient?ssn=${ssn}`, '_blank');
       }, true),
       ...(scriptLoaded.avbestilling() ? [sep()] : []),
       ...(scriptLoaded.avbestilling() ? [item('✖️', 'Avbestilling', 'Alt+K', () => triggerAlt('k'))] : []),

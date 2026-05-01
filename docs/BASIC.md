@@ -193,6 +193,7 @@ Viser hurtigknapper på merkede rader.
 | Knapp | Funksjon |
 |-------|----------|
 | **H** | Hendelseslogg |
+| **P** | Rediger person |
 | **S** | Manuell statusendring (kun pågående) |
 | **M** | Møteplass - splitt bestilling |
 | **K** | Kopier bestilling |

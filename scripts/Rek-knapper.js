@@ -360,6 +360,35 @@
     }
   }
 
+  async function fetchSSN(rid) {
+    try {
+      const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${rid}`;
+      const response = await fetch(url, { credentials: 'same-origin' });
+      const buffer = await response.arrayBuffer();
+      const decoder = new TextDecoder('iso-8859-1');
+      const text = decoder.decode(buffer);
+
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, 'text/xml');
+
+      const rows = xmlDoc.querySelectorAll('tr');
+      for (const row of rows) {
+        const cells = row.querySelectorAll('td');
+        for (let i = 0; i < cells.length - 1; i++) {
+          if (cells[i].textContent.trim() === 'Fødselsnummer:') {
+            const value = cells[i + 1].textContent.trim();
+            if (value) return value;
+          }
+        }
+      }
+      console.warn(`[REK] Fødselsnummer ikke funnet i plakat for rid=${rid}`);
+      return null;
+    } catch (e) {
+      console.error(`[REK] Feil ved henting av fødselsnummer for rid=${rid}:`, e);
+      return null;
+    }
+  }
+
   async function fixTransportType(doc, rid) {
     const select = doc.querySelector('select[name="trip.actualTransportTypeCode"]');
     if (!select) return;
@@ -822,8 +851,8 @@
 
       window.popupObserver?.disconnect();
 
-      // Avslutt aktiv rekvisisjonssesjon (ikke nødvendig for H og S)
-      if (window.lastModalButton !== "H" && window.lastModalButton !== "S") {
+      // Avslutt aktiv rekvisisjonssesjon (ikke nødvendig for H, S og P)
+      if (window.lastModalButton !== "H" && window.lastModalButton !== "S" && window.lastModalButton !== "P") {
         resetIframe();
       }
 
@@ -1023,6 +1052,7 @@
           btn.title = {
             S: "Manuell statusendring",
             H: "Hendelseslogg",
+            P: "Rediger person",
             M: "Møteplass – splitt bestilling",
             K: "Kopier (Viser også bestilinger)",
             R: "Rediger",
@@ -1075,6 +1105,14 @@
               } else {
                 resetIframe().then(() => openModal({ url: meetingplaceUrl }));
               }
+            } else if (label === "P") {
+              fetchSSN(reqId).then(ssn => {
+                if (!ssn) {
+                  showErrorToast("Kunne ikke hente fødselsnummer for denne bestillingen.");
+                  return;
+                }
+                openModal({ url: `/administrasjon/admin/editPatient?ssn=${ssn}` });
+              });
             } else {
               // Andre knapper: Åpne direkte URL
               const urlMap = {
@@ -1097,6 +1135,7 @@
 
         // Lag alle knappene
         const btnH = createButton("H");
+        const btnP = createButton("P");
         const btnS = createButton("S");
         const btnM = createButton("M");
         const btnK = createButton("K");
@@ -1106,6 +1145,7 @@
         // Legg til i containeren
         popup.appendChild(btnContainer);
         btnContainer.appendChild(btnH);
+        btnContainer.appendChild(btnP);
         if (btnS.style.display !== "none") btnContainer.appendChild(btnS);
         btnContainer.appendChild(btnM);
         btnContainer.appendChild(btnK);
