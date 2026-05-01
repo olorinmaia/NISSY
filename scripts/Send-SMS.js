@@ -601,7 +601,7 @@
         oppTid:      getText(idxMap.oppTid),
         fraAdresse:  normaliserAdresse(cleanAddressSuffixes(getText(idxMap.fra))),
         tilAdresse:  normaliserAdresse(cleanAddressSuffixes(getText(idxMap.til))),
-        valgbar:     false,
+        valgbar:     true,
       }];
     } else {
       const getDivTexts = (idx) =>
@@ -831,8 +831,7 @@
           style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
                  font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
        <div style="text-align:right;font-size:11px;margin-top:3px;">
-         <span id="__smsTegn" style="color:#888;">0</span>
-         <span style="color:#888;"> / ${MAX_TEGN} tegn</span>
+         <span id="__smsTegn" style="color:#888;">0 / ${MAX_TEGN} tegn</span>
        </div>`);
 
     const btnRow = document.createElement("div");
@@ -882,7 +881,8 @@
 
     function oppdaterTegnteller() {
       const len = msgArea.value.length;
-      tegnSpan.textContent = len;
+      const sms = Math.max(1, Math.ceil(len / 160));
+      tegnSpan.textContent = len > 0 ? `${len} / ${MAX_TEGN} tegn · ${sms} SMS` : `0 / ${MAX_TEGN} tegn`;
       tegnSpan.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
       oppdaterEnkeltSendKnapp();
     }
@@ -964,7 +964,11 @@
       info,
       telefon:   null,
       tekst:     null,   // per-item redigert melding (null = bruk mal)
+      malNavn:   null,
       inkludert: true,
+      sendt:     false,
+      _cb:       null,
+      _tr:       null,
     }));
     let editingItem = null;
 
@@ -1028,8 +1032,7 @@
         style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
                font-size:12px;resize:vertical;box-sizing:border-box;"></textarea>
       <div style="text-align:right;font-size:11px;margin-top:2px;">
-        <span id="__smsMassTegn" style="color:#888;">0</span>
-        <span style="color:#888;"> / ${MAX_TEGN} tegn</span>
+        <span id="__smsMassTegn" style="color:#888;">0 / ${MAX_TEGN} tegn</span>
       </div>
     `;
     popup.appendChild(fritekstWrap);
@@ -1067,11 +1070,10 @@
       const tr = document.createElement("tr");
       tr.style.background = i % 2 === 0 ? "#fff" : "#f8f8f8";
 
-      const cbDisabled = !info.valgbar ? "disabled title=\"Kan ikke velges bort\"" : "";
       tr.innerHTML = `
         <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;vertical-align:middle;">
-          <input type="checkbox" data-idx="${i}" ${cbDisabled} checked
-            style="cursor:${info.valgbar ? "pointer" : "default"};width:14px;height:14px;" />
+          <input type="checkbox" data-idx="${i}" checked
+            style="cursor:pointer;width:14px;height:14px;" />
         </td>
         <td style="padding:6px 8px;border-bottom:1px solid #eee;vertical-align:top;">
           <strong>${kortTekst(info.pasientNavn, MAX_NAVN_LENGDE) || "(ukjent)"}</strong>
@@ -1093,24 +1095,50 @@
 
       // Checkbox-logikk
       const cb = tr.querySelector(`input[data-idx="${i}"]`);
-      if (info.valgbar) {
-        cb.addEventListener("change", () => {
-          item.inkludert = cb.checked;
-          tr.style.opacity = cb.checked ? "1" : "0.4";
-          oppdaterSendKnapp(malErValgt);
-          if (!cb.checked && editingItem === item && malErValgt) {
-            byttPreviewTilFørsteInkludert();
-          } else if (cb.checked && editingItem === null && malErValgt) {
-            byttPreviewTilFørsteInkludert();
-          }
-        });
-      }
+      item._cb = cb;
+      item._tr = tr;
+      cb.addEventListener("change", () => {
+        item.inkludert = cb.checked;
+        tr.style.opacity = cb.checked ? "1" : "0.4";
+        oppdaterSendKnapp(malErValgt);
+        if (!cb.checked && malErValgt && (editingItem === item || (editingItem && !editingItem.inkludert))) {
+          byttPreviewTilFørsteInkludert();
+        } else if (cb.checked && editingItem === null && malErValgt) {
+          byttPreviewTilFørsteInkludert();
+        } else if (cb.checked && !item.sendt && !malErValgt) {
+          editingItem = null;
+          malRad.style.display = "flex";
+          massMalSelect.value = "";
+          malPreviewLabel.style.display = "none";
+          malPreview.style.display = "none";
+          malPreviewTegn.style.display = "none";
+          fritekstWrap.style.display = "block";
+          tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
+        }
+      });
 
       tr.style.cursor = "pointer";
       tr.title = "Klikk for å se SMS-forhåndsvisning";
       tr.addEventListener("click", (e) => {
         if (e.target.tagName === "INPUT") return;
-        if (!malErValgt) return;
+        if (item.sendt) {
+          visSendtPreviewForItem(item);
+          tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
+          tr.style.outline = "2px solid #27ae60";
+          tr.style.outlineOffset = "-2px";
+          return;
+        }
+        if (!malErValgt) {
+          editingItem = null;
+          malRad.style.display = "flex";
+          massMalSelect.value = "";
+          malPreviewLabel.style.display = "none";
+          malPreview.style.display = "none";
+          malPreviewTegn.style.display = "none";
+          fritekstWrap.style.display = "block";
+          tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
+          return;
+        }
         visPreviewForItem(item);
         tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
         tr.style.outline = "2px solid #025671";
@@ -1226,6 +1254,7 @@
     }
 
     function visPreviewForItem(item) {
+      malRad.style.display = "flex";
       const malIdx = parseInt(massMalSelect.value, 10);
       if (isNaN(malIdx) || !SMS_MALER[malIdx]) return;
       editingItem = item;
@@ -1233,10 +1262,34 @@
         item.tekst = SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN);
       }
       malPreviewLabel.textContent = `📋 ${kortTekst(item.info.pasientNavn, MAX_NAVN_LENGDE)}`;
+      malPreviewLabel.style.color = "#888";
       malPreviewLabel.style.display = "block";
       malPreview.value = item.tekst;
+      malPreview.readOnly = false;
+      malPreview.style.background = "";
+      malPreview.style.borderColor = "#ccc";
       malPreview.style.display = "block";
       malPreview.style.height = "auto";
+      void malPreview.offsetHeight;
+      malPreview.style.height = malPreview.scrollHeight + "px";
+      oppdaterPreviewTegnteller();
+      malPreviewTegn.style.display = "block";
+    }
+
+    function visSendtPreviewForItem(item) {
+      malRad.style.display = "none";
+      fritekstWrap.style.display = "none";
+      const sentMalNavn = item.malNavn || "";
+      malPreviewLabel.textContent = `📤 Sendt – ${kortTekst(item.info.pasientNavn, MAX_NAVN_LENGDE)}${sentMalNavn ? ` (${sentMalNavn})` : ""}`;
+      malPreviewLabel.style.color = "#27ae60";
+      malPreviewLabel.style.display = "block";
+      malPreview.value = item.tekst || "";
+      malPreview.readOnly = true;
+      malPreview.style.background = "#f4fcf4";
+      malPreview.style.borderColor = "#27ae60";
+      malPreview.style.display = "block";
+      malPreview.style.height = "auto";
+      void malPreview.offsetHeight;
       malPreview.style.height = malPreview.scrollHeight + "px";
       oppdaterPreviewTegnteller();
       malPreviewTegn.style.display = "block";
@@ -1255,6 +1308,7 @@
         visPreviewForItem(nestItem);
       } else {
         editingItem = null;
+        malRad.style.display = "flex";
         malPreviewLabel.style.display = "none";
         malPreview.style.display = "none";
         malPreviewTegn.style.display = "none";
@@ -1263,7 +1317,8 @@
 
     function oppdaterPreviewTegnteller() {
       const len = malPreview.value.length;
-      malPreviewTegn.textContent = `${len} / ${MAX_TEGN} tegn`;
+      const sms = Math.max(1, Math.ceil(len / 160));
+      malPreviewTegn.textContent = len > 0 ? `${len} / ${MAX_TEGN} tegn · ${sms} SMS` : `0 / ${MAX_TEGN} tegn`;
       malPreviewTegn.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
     }
 
@@ -1278,7 +1333,7 @@
       malErValgt = !isNaN(idx) && !!SMS_MALER[idx];
 
       // Reset per-item tekster ved mal-bytte slik at ny mal genereres
-      items.forEach(it => { it.tekst = null; });
+      items.forEach(it => { if (!it.sendt) it.tekst = null; });
       editingItem = null;
 
       if (malErValgt) {
@@ -1302,7 +1357,8 @@
       const len = ta.value.length;
       const tegnSpan = document.getElementById("__smsMassTegn");
       if (tegnSpan) {
-        tegnSpan.textContent = len;
+        const sms = Math.max(1, Math.ceil(len / 160));
+        tegnSpan.textContent = len > 0 ? `${len} / ${MAX_TEGN} tegn · ${sms} SMS` : `0 / ${MAX_TEGN} tegn`;
         tegnSpan.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
       }
       oppdaterSendKnapp(malErValgt);
@@ -1322,6 +1378,7 @@
       document.getElementById("__smsBtnLukk").style.pointerEvents = "none";
 
       const gyldige = items.filter(it => it.inkludert && erGyldigMobil(it.telefon || ""));
+      const foerSendtItem = editingItem;
       let antallSendt = 0;
       let antallFeil  = 0;
 
@@ -1335,8 +1392,18 @@
           const melding = harMal
             ? (item.tekst ?? SMS_MALER[malIdx].tekst(item.info).slice(0, MAX_TEGN))
             : fritekstTekst.slice(0, MAX_TEGN);
+          if (item.tekst === null) item.tekst = melding;
           await sendSMS(item.info.id, item.telefon.replace(/\s/g, ""), melding);
           if (stCell) stCell.innerHTML = `<span style="color:#27ae60;">✅</span>`;
+          // Lås denne raden permanent
+          item.sendt     = true;
+          item.malNavn   = harMal ? SMS_MALER[malIdx].navn : "Fritekst";
+          item.inkludert = false;
+          item._cb.checked  = false;
+          item._cb.disabled = true;
+          item._tr.style.opacity = "0.35";
+          const tlfInput = document.getElementById(`__smsTlf_${i}`)?.querySelector("input");
+          if (tlfInput) tlfInput.disabled = true;
           antallSendt++;
         } catch (e) {
           console.error("[SendSMS] Feil for", item.info.id, e);
@@ -1349,16 +1416,62 @@
         }
       }
 
-      sendBtn.textContent = `✅ Sendt ${antallSendt}${antallFeil ? ` (${antallFeil} feil)` : ""}`;
-      sendBtn.style.background = antallFeil ? "#b09f2b" : "#27ae60";
-      // Lås skjema
-      massMalSelect.disabled = true;
-      const fritekstEl = document.getElementById("__smsMassFritekst");
-      if (fritekstEl) fritekstEl.disabled = true;
-      tbl.querySelectorAll("input[type='checkbox']").forEach(cb => { cb.disabled = true; });
+      document.getElementById("__smsBtnLukk").style.pointerEvents = "";
       avbrytBtn.textContent = "Lukk";
       avbrytBtn.disabled = false;
-      document.getElementById("__smsBtnLukk").style.pointerEvents = "";
+
+      const gjenværende = items.filter(it => !it.sendt);
+      if (gjenværende.length > 0) {
+        // Nullstill tekster for ikke-sendte slik at ny mal genereres
+        gjenværende.forEach(it => { it.tekst = null; });
+        editingItem = null;
+        massMalSelect.disabled = false;
+        malErValgt = false;
+        sendBtn.textContent      = "Send SMS";
+        sendBtn.style.background = "#aaa";
+        sendBtn.disabled         = true;
+        const preferertDelvis = (foerSendtItem && gyldige.includes(foerSendtItem))
+          ? foerSendtItem
+          : gyldige[gyldige.length - 1];
+        if (preferertDelvis) {
+          visSendtPreviewForItem(preferertDelvis);
+          tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
+          const sisteIdx = items.indexOf(preferertDelvis);
+          const sisteTr = tbody.querySelectorAll("tr")[sisteIdx];
+          if (sisteTr) {
+            sisteTr.style.outline = "2px solid #27ae60";
+            sisteTr.style.outlineOffset = "-2px";
+          }
+        } else {
+          malPreviewLabel.style.display = "none";
+          malPreview.style.display = "none";
+          malPreviewTegn.style.display = "none";
+          fritekstWrap.style.display = "block";
+          tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
+          massMalSelect.value = "";
+        }
+      } else {
+        sendBtn.textContent      = `✅ Sendt ${antallSendt}${antallFeil ? ` (${antallFeil} feil)` : ""}`;
+        sendBtn.style.background = antallFeil ? "#b09f2b" : "#27ae60";
+        massMalSelect.disabled   = true;
+        const fritekstEl = document.getElementById("__smsMassFritekst");
+        if (fritekstEl) fritekstEl.disabled = true;
+        fritekstWrap.style.display = "none";
+        editingItem = null;
+        tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
+        const preferert = (foerSendtItem && gyldige.includes(foerSendtItem))
+          ? foerSendtItem
+          : gyldige[gyldige.length - 1];
+        if (preferert) {
+          visSendtPreviewForItem(preferert);
+          const sisteIdx = items.indexOf(preferert);
+          const sisteTr = tbody.querySelectorAll("tr")[sisteIdx];
+          if (sisteTr) {
+            sisteTr.style.outline = "2px solid #27ae60";
+            sisteTr.style.outlineOffset = "-2px";
+          }
+        }
+      }
       showToast(
         antallFeil ? `Sendt ${antallSendt}, feil på ${antallFeil}` : `✅ Alle ${antallSendt} SMS sendt`,
         antallFeil ? "warning" : "success"
@@ -1432,8 +1545,7 @@
           style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
                  font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
        <div style="text-align:right;font-size:11px;margin-top:3px;">
-         <span id="__smsTegn" style="color:#888;">0</span>
-         <span style="color:#888;"> / ${MAX_TEGN} tegn</span>
+         <span id="__smsTegn" style="color:#888;">0 / ${MAX_TEGN} tegn</span>
        </div>`);
 
     const btnRow = document.createElement("div");
@@ -1482,7 +1594,8 @@
 
     function oppdaterTegnteller() {
       const len = msgArea.value.length;
-      tegnSpan.textContent = len;
+      const sms = Math.max(1, Math.ceil(len / 160));
+      tegnSpan.textContent = len > 0 ? `${len} / ${MAX_TEGN} tegn · ${sms} SMS` : `0 / ${MAX_TEGN} tegn`;
       tegnSpan.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
       oppdaterSendKnapp();
     }
@@ -1686,8 +1799,7 @@
           style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
                  font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
        <div style="text-align:right;font-size:11px;margin-top:3px;">
-         <span id="__smsTegn" style="color:#888;">0</span>
-         <span style="color:#888;"> / ${MAX_TEGN} tegn</span>
+         <span id="__smsTegn" style="color:#888;">0 / ${MAX_TEGN} tegn</span>
        </div>`);
 
     const btnRow = document.createElement("div");
@@ -1754,7 +1866,8 @@
 
     function oppdaterTegnteller() {
       const len = msgArea.value.length;
-      tegnSpan.textContent = len;
+      const sms = Math.max(1, Math.ceil(len / 160));
+      tegnSpan.textContent = len > 0 ? `${len} / ${MAX_TEGN} tegn · ${sms} SMS` : `0 / ${MAX_TEGN} tegn`;
       tegnSpan.style.color = len >= MAX_TEGN ? "#d9534f" : len >= MAX_TEGN * 0.9 ? "#b09f2b" : "#888";
       oppdaterSendKnapp();
     }
@@ -1913,7 +2026,7 @@
       }
       ventendeInfo = ventendeRader.map(row => ({
         ...extractRowInfo(row.id, row, idx),
-        valgbar: false,
+        valgbar: true,
       }));
     }
 

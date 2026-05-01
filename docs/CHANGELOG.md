@@ -14,8 +14,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - ⚙️ **⌛ NISSY-fiks / 🔠 Rek-knapper / 🕐 Hentetid**
   - Fiks for gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario
 - 📱 **Send-SMS**
-  - **Forhåndsvisning ved masseutsending** på pågående oppdrag viser nå korrekt innhold også når bestillinger velges bort underveis
-  - Duplikate bestillinger filtreres nå bort ved visningsbug i NISSY der samme bestilling vises flere ganger
+  - Ved masseutsending så vises nå neste valgte bestilling når bestillinger velges bort underveis
+  - Forbedret visning av sendt sms til merket bestilling
+  - Ved masseutsending så kan nå flere maltyper/fritekst kombineres. F.eks.: Send først til 2 av 3 bestillinger, så velg den siste og bruk annen mal/fritekst
+  - Tekstboksen viser antall SMS som vil sendes i tillegg til antall tegn
+  - Duplikate bestillinger filtreres nå bort ved visningsbug i NISSY der samme bestilling vises flere ganger på pågående ressurs
 - 🌙 **Darkmode**
   - Aktiveres nå automatisk ved innlasting av loader hvis darkmode var skrudd på fra forrige sesjon
 
