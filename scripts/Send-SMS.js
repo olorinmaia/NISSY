@@ -614,9 +614,12 @@
       const fraer   = getDivTexts(idxMap.fra);
       const tiler   = getDivTexts(idxMap.til);
 
-      return rids.map((rid, i) => {
+      const seenRids = new Set();
+      return rids.flatMap((rid, i) => {
+        if (seenRids.has(rid)) return [];
+        seenRids.add(rid);
         const navn = titleCase(navns[i] || "");
-        return {
+        return [{
           id:          `V-${rid}`,
           pasientNavn: navn,
           fornavn:     navn.match(/,\s*(.+)/)?.[1]?.trim() || "",
@@ -625,7 +628,7 @@
           fraAdresse:  normaliserAdresse(cleanAddressSuffixes(fraer[i] || "")),
           tilAdresse:  normaliserAdresse(cleanAddressSuffixes(tiler[i] || "")),
           valgbar:     true,
-        };
+        }];
       });
     }
   }
