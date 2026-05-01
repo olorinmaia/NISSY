@@ -1428,5 +1428,33 @@
       setTimeout(setupColumnLimits, 500);
     }
   })();
+  // ============================================================
+  // FIKS DUPLISERTE BESTILLINGER PÅ PÅGÅENDE OPPDRAG
+  // Toggler hver rid (inkludert duplikater) 5 ganger slik at NISSY
+  // rydder opp visningsbuggen og fargestatus tilbakestilles.
+  // ============================================================
+  window.fixDuplicateRows = async function(vognloepId) {
+    const row = document.getElementById(`P-${vognloepId}`) ||
+                document.querySelector(`tr[name="${vognloepId}"]`);
+    if (!row) return false;
+
+    const rids = Array.from(row.querySelectorAll('img[id^="popp_"]'))
+      .map(img => img.id.replace('popp_', ''));
+
+    const uniqueRids = [...new Set(rids)];
+    if (uniqueRids.length === rids.length) return false;
+
+    for (const rid of rids) {
+      for (let i = 0; i < 5; i++) {
+        try {
+          await fetch(`/planlegging/ajax-dispatch?update=false&action=toggleManualStatusRequisition&rid=${rid}`, {
+            credentials: 'same-origin'
+          });
+        } catch (e) {}
+      }
+    }
+    return true;
+  };
+
   console.log("✅ NISSY-fiks-script lastet");
 })();

@@ -828,10 +828,23 @@
       }
 
       // Refresh data og gjenopprett popups når openPopp(-1) sitt XHR-kall er ferdig
-      onceAfterOpenPopp(() => setTimeout(() => refreshAllPopups(), 50));
-      if (typeof openPopp === "function") {
-        openPopp("-1");
+      if (window.lastModalButton === 'R' && window.lastEditedVognloepId) {
+        const vognloepId = window.lastEditedVognloepId;
+        onceAfterOpenPopp(async () => {
+          const hadDuplicates = typeof window.fixDuplicateRows === 'function'
+            ? await window.fixDuplicateRows(vognloepId)
+            : false;
+          if (hadDuplicates) {
+            onceAfterOpenPopp(() => setTimeout(() => refreshAllPopups(), 50));
+            if (typeof openPopp === "function") openPopp("-1");
+          } else {
+            setTimeout(() => refreshAllPopups(), 50);
+          }
+        });
+      } else {
+        onceAfterOpenPopp(() => setTimeout(() => refreshAllPopups(), 50));
       }
+      if (typeof openPopp === "function") openPopp("-1");
     };
 
     // ============================================================
@@ -1021,6 +1034,9 @@
             window.isVentendeOppdrag = isVentende;
             window.lastEditedReqId = reqId;
             window.lastModalButton = label;
+            window.lastEditedVognloepId = (label === 'R' && !isVentende)
+              ? (row.getAttribute('name') || row.id.replace(/^[PV]-/, ''))
+              : null;
 
             // Sjekk for advarsel ved redigering av pågående oppdrag
             if (label === "R") {
