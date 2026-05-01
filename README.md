@@ -42,10 +42,10 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
   - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling, [M] Møteplass og [P] Rediger person.
-    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/edb3a925-b37e-42b8-a985-790ae780117f" />
+    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/0ca8396a-2f5e-4073-8b9d-4a438bb8960f" />
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
-  - Dette er svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
+  - Svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
 
 - 🗺️ **Rutekalkulering (Alt+Q)**
