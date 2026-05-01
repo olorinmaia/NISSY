@@ -1095,6 +1095,11 @@
           item.inkludert = cb.checked;
           tr.style.opacity = cb.checked ? "1" : "0.4";
           oppdaterSendKnapp(malErValgt);
+          if (!cb.checked && editingItem === item && malErValgt) {
+            byttPreviewTilFørsteInkludert();
+          } else if (cb.checked && editingItem === null && malErValgt) {
+            byttPreviewTilFørsteInkludert();
+          }
         });
       }
 
@@ -1234,6 +1239,25 @@
       malPreviewTegn.style.display = "block";
     }
 
+    function byttPreviewTilFørsteInkludert() {
+      const nestItem = items.find(it => it.inkludert);
+      tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
+      if (nestItem) {
+        const nestIdx = items.indexOf(nestItem);
+        const nestTr = tbody.querySelectorAll("tr")[nestIdx];
+        if (nestTr) {
+          nestTr.style.outline = "2px solid #025671";
+          nestTr.style.outlineOffset = "-2px";
+        }
+        visPreviewForItem(nestItem);
+      } else {
+        editingItem = null;
+        malPreviewLabel.style.display = "none";
+        malPreview.style.display = "none";
+        malPreviewTegn.style.display = "none";
+      }
+    }
+
     function oppdaterPreviewTegnteller() {
       const len = malPreview.value.length;
       malPreviewTegn.textContent = `${len} / ${MAX_TEGN} tegn`;
@@ -1257,12 +1281,7 @@
       if (malErValgt) {
         fritekstWrap.style.display = "none";
         tbody.querySelectorAll("tr").forEach(r => r.style.outline = "");
-        const firstItem = items[0];
-        if (firstItem) {
-          visPreviewForItem(firstItem);
-          tbody.querySelector("tr")?.style.setProperty("outline", "2px solid #025671");
-          tbody.querySelector("tr")?.style.setProperty("outline-offset", "-2px");
-        }
+        byttPreviewTilFørsteInkludert();
       } else {
         malPreviewLabel.style.display = "none";
         malPreview.style.display = "none";
