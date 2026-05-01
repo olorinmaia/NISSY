@@ -7,6 +7,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.2.0] - 04.05.2026
+
+### NISSY-Duplikatvisningsfiks, forbedret Send-SMS-forhåndsvisning og Darkmode-innlasting
+
+- ⚙️ **⌛ NISSY-fiks / 🔠 Rek-knapper / 🕐 Hentetid**
+  - Fiks for gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario
+- 📱 **Send-SMS**
+  - **Forhåndsvisning ved masseutsending** på pågående oppdrag viser nå korrekt innhold også når bestillinger velges bort underveis
+  - Duplikate bestillinger filtreres nå bort ved visningsbug i NISSY der samme bestilling vises flere ganger
+- 🌙 **Darkmode**
+  - Aktiveres nå automatisk ved innlasting av loader hvis darkmode var skrudd på fra forrige sesjon
+
 ## 🔧 [4.1.5] - 30.04.2026
 
 ### Live ressurskart: Løyveregister-lenke, animasjonsfiks og datakvalitet – pluss åpningsmåte-valg i Bestillingsmodul/Adminmodul/Rek-knapper
