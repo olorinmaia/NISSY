@@ -2427,12 +2427,42 @@
       document.removeEventListener('keydown', escapeHandler);
       isPopupOpen = false;
       if (!changesSaved) {
-        setTimeout(() => {
-          if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
-            ListSelectionGroup.clearAllSelections();
-          }
-          setTimeout(() => reselectAllRows(allSelectedRows), 100);
-        }, 50);
+        const pagaendeIds = [...new Set(
+          allSelectedRows
+            .filter(r => (r.id || '').startsWith('P-'))
+            .map(r => r.id.replace(/^P-/, ''))
+        )];
+
+        if (pagaendeIds.length > 0 && typeof window.fixDuplicateRows === 'function' && typeof openPopp === 'function') {
+          onceAfterOpenPopp(async () => {
+            let hadDuplicates = false;
+            for (const id of pagaendeIds) {
+              if (await window.fixDuplicateRows(id)) hadDuplicates = true;
+            }
+            if (hadDuplicates) {
+              onceAfterOpenPopp(() => {
+                if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+                  ListSelectionGroup.clearAllSelections();
+                }
+                setTimeout(() => reselectAllRows(allSelectedRows), 100);
+              });
+              setTimeout(() => openPopp('-1'), 200);
+            } else {
+              if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+                ListSelectionGroup.clearAllSelections();
+              }
+              setTimeout(() => reselectAllRows(allSelectedRows), 100);
+            }
+          });
+          setTimeout(() => openPopp('-1'), 200);
+        } else {
+          setTimeout(() => {
+            if (typeof ListSelectionGroup !== 'undefined' && ListSelectionGroup.clearAllSelections) {
+              ListSelectionGroup.clearAllSelections();
+            }
+            setTimeout(() => reselectAllRows(allSelectedRows), 100);
+          }, 50);
+        }
       }
     };
 
@@ -2507,7 +2537,31 @@
       
       // Oppdater pågående oppdrag (dette oppdaterer alt)
       if (typeof openPopp === "function") {
-        onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 100));
+        const paagaaendeIds = typeof window.fixDuplicateRows === 'function'
+          ? [...new Set(
+              changes
+                .filter(c => c.source === 'pågående' && c.row)
+                .map(c => c.row.getAttribute('name') || c.row.id.replace(/^P-/, ''))
+            )]
+          : [];
+
+        if (paagaaendeIds.length > 0) {
+          // Første openPopp(-1): refresh DOM, sjekk for duplikater, refresh igjen kun hvis nødvendig
+          onceAfterOpenPopp(async () => {
+            let hadDuplicates = false;
+            for (const id of paagaaendeIds) {
+              if (await window.fixDuplicateRows(id)) hadDuplicates = true;
+            }
+            if (hadDuplicates) {
+              onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 100));
+              setTimeout(() => openPopp('-1'), 200);
+            } else {
+              setTimeout(() => reselectAllRows(allSelectedRows), 100);
+            }
+          });
+        } else {
+          onceAfterOpenPopp(() => setTimeout(() => reselectAllRows(allSelectedRows), 100));
+        }
         setTimeout(() => openPopp('-1'), 200);
       }
       

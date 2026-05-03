@@ -785,11 +785,11 @@ tr[style*="rgb(231, 231, 231)"] td {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === '1') {
         enable();
-    } else if (stored === null) {
-        // Første gang (ingen lagret valg): aktiver
+    } else if (stored === null && window.__nissyDarkmodeDefaultOn) {
         enable();
     }
     // stored === '0': eksplisitt deaktivert – gjør ingenting
+    // stored === null uten __nissyDarkmodeDefaultOn: ikke aktivert
 
     // Eksporter globalt
     window.NissyDarkmode = { enable, disable, toggle };

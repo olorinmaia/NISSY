@@ -7,6 +7,23 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.2.0] - 04.05.2026
+
+### Ny knapp i Rek-knapper, NISSY-Duplikatvisningsfiks, forbedringer til Send-SMS og Darkmode
+
+- 🔠 **Rek-knapper** / 🖱️ **Hurtigmeny**
+  - Lagt til ny knapp [P] - "Rediger person" samt lagt til i høyreklikksmeny på ventende oppdrag
+- **⌛ NISSY-fiks / 🔠 Rek-knapper / 🕐 Hentetid**
+  - Fiks for gammel NISSY-bug der bestillinger på pågående ressurs vises som duplikater etter redigering i enkelte scenario (dette gjøres ved å "toggle" alle bestillingene 5 ganger, kun synlig i loggene)
+- 📱 **Send-SMS**
+  - Ved masseutsending så vises nå neste valgte bestilling når bestillinger velges bort underveis
+  - Forbedret visning av sendt sms til merket bestilling
+  - Ved masseutsending så kan nå flere maltyper/fritekst kombineres. F.eks.: Send først til 2 av 3 bestillinger, så velg den siste og bruk annen mal/fritekst
+  - Tekstboksen viser antall SMS som vil sendes i tillegg til antall tegn
+  - Duplikate bestillinger filtreres nå bort ved visningsbug i NISSY der samme bestilling vises flere ganger på pågående ressurs
+- 🌙 **Darkmode**
+  - Aktiveres nå automatisk ved innlasting av loader hvis darkmode var skrudd på fra forrige sesjon
+
 ## 🔧 [4.1.5] - 30.04.2026
 
 ### Live ressurskart: Løyveregister-lenke, animasjonsfiks og datakvalitet – pluss åpningsmåte-valg i Bestillingsmodul/Adminmodul/Rek-knapper

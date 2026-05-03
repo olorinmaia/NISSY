@@ -670,8 +670,11 @@
      */
     const originalWindowOpen = window.open;
     window.open = function(url, target, features) {
-        // Sjekk om det er en admin searchStatus URL
-        if (url && typeof url === 'string' && url.includes('/administrasjon/admin/searchStatus')) {
+        // Sjekk om det er en admin-URL som skal åpnes i modal
+        if (url && typeof url === 'string' && (
+            url.includes('/administrasjon/admin/searchStatus') ||
+            url.includes('/administrasjon/admin/editPatient')
+        )) {
             
             // Åpne i modal istedenfor ny fane
             openInModal(url);

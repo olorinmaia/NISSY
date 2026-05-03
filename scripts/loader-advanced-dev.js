@@ -32,6 +32,7 @@
     'Darkmode.js'
   ];
   
+  window.__nissyDarkmodeDefaultOn = true;
   console.log('📦 Laster NISSY Advanced DEV...');
   
   for (const script of scripts) {
