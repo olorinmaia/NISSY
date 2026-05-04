@@ -29,7 +29,8 @@
     'Hurtigmeny.js',
     'Send-SMS.js',
     'Logg.js',
-    'Darkmode.js'
+    'Darkmode.js',
+    'Kartvisning.js'
   ];
   
   window.__nissyDarkmodeDefaultOn = true;
