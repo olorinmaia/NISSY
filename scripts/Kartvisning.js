@@ -294,23 +294,39 @@
       });
 
       // ── Ikon ────────────────────────────────────────────────
-      function makeIcon(hasPick, hasDel) {
+      const labelStyle = 'white-space:nowrap;font-size:10px;font-weight:700;' +
+        'text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;margin-top:1px;line-height:1.2;';
+
+      function makeIcon(hasPick, hasDel, pickTime, delTime) {
         if (hasPick && hasDel) {
+          const timeLine = (pickTime || delTime)
+            ? '<div style="display:flex;justify-content:center;gap:3px;' + labelStyle + '">' +
+              (pickTime ? '<span style="color:#2e7d32">' + pickTime + '</span>' : '') +
+              (pickTime && delTime ? '<span style="color:#999">·</span>' : '') +
+              (delTime  ? '<span style="color:#1565c0">' + delTime  + '</span>' : '') +
+              '</div>'
+            : '';
           return L.divIcon({
             className: 'custom-marker-wrapper',
-            html: '<div class="icon-split"><div class="icon-split-l">+</div><div class="icon-split-r">−</div></div>',
-            iconSize: [28, 28], iconAnchor: [14, 14]
+            html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                  '<div class="icon-split"><div class="icon-split-l">+</div><div class="icon-split-r">−</div></div>' +
+                  timeLine + '</div>',
+            iconSize: [28, 42], iconAnchor: [14, 14]
           });
         }
+        const time    = hasPick ? pickTime : delTime;
         const symbol  = hasPick ? '➕' : '➖';
         const color   = hasPick ? '#2e7d32' : '#1565c0';
         const bgColor = hasPick ? '#e8f5e9' : '#e3f2fd';
         return L.divIcon({
           className: 'custom-marker-wrapper',
-          html: '<div style="background:' + bgColor + ';border:2px solid ' + color +
+          html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                '<div style="background:' + bgColor + ';border:2px solid ' + color +
                 ';border-radius:50%;width:28px;height:28px;display:flex;align-items:center;' +
-                'justify-content:center;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.3);">' + symbol + '</div>',
-          iconSize: [28, 28], iconAnchor: [14, 14]
+                'justify-content:center;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.3);">' + symbol + '</div>' +
+                (time ? '<div style="color:' + color + ';' + labelStyle + '">' + time + '</div>' : '') +
+                '</div>',
+          iconSize: [28, time ? 42 : 28], iconAnchor: [14, 14]
         });
       }
 
@@ -388,11 +404,18 @@
       const willRoute = routeOn && waypoints.length >= 2;
 
       // ── Bygg markører ────────────────────────────────────────
+      function earliestTime(entries, field) {
+        return entries.map(function (e) { return (e.req[field] || '').split(' ')[1] || ''; })
+          .filter(Boolean).sort()[0] || '';
+      }
+
       const allLL = [];
       Object.values(groups).forEach(function (g) {
         const ll = [g.lat, g.lon];
         allLL.push(ll);
-        L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0) })
+        const pickTime = earliestTime(g.pickups, 'pasientKlar');
+        const delTime  = earliestTime(g.deliveries, 'oppmote');
+        L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime) })
           .addTo(map)
           .bindPopup(groupPopup(g))
           .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
