@@ -279,8 +279,8 @@
       const legend = document.createElement('div');
       legend.className = 'legend';
       legend.innerHTML =
-        '<div><span style="font-size:14px">➕</span> Hentested</div>' +
-        '<div><span style="font-size:14px">➖</span> Leveringssted</div>' +
+        '<div><span style="font-size:14px">➕</span> Henting</div>' +
+        '<div><span style="font-size:14px">➖</span> Levering</div>' +
         '<div><span class="icon-split" style="display:inline-flex;vertical-align:middle;width:18px;height:18px;font-size:9px;border-width:1.5px;">' +
         '<span class="icon-split-l">+</span><span class="icon-split-r">−</span></span> Begge</div>';
       document.getElementById('map').appendChild(legend);
@@ -344,35 +344,10 @@
         });
       }
 
-      // ── Popup for gruppert markør ────────────────────────────
-      function stopRows(entries, isPickup) {
-        if (!entries.length) return '';
-        const label = isPickup ? '➕ Hentested' : '➖ Leveringssted';
-        const rows = entries.map(function (e) {
-          const time = isPickup ? e.req.pasientKlar : e.req.oppmote;
-          const tid  = time ? (time.split(' ')[1] || time) : '';
-          const navn = e.req.pasientNavn || '–';
-          return '<div class="popup-stop">' +
-            '<div class="popup-stop-name">' + navn + '</div>' +
-            (tid ? '<div class="popup-stop-tid">kl. ' + tid + '</div>' : '') +
-            '</div>';
-        }).join('');
-        return '<div class="popup-section"><div class="popup-section-title">' + label +
-               ' (' + entries.length + ')</div>' + rows + '</div>';
-      }
-
-      function groupPopup(g) {
-        const adresse = (g.pickups[0] || g.deliveries[0]).stop;
-        const headerTxt = (adresse.navn || adresse.adresse.split(',')[0]);
-        return '<div class="popup-header">📍 ' + headerTxt + '</div>' +
-               '<div class="popup-body">' +
-               stopRows(g.pickups, true) +
-               stopRows(g.deliveries, false) +
-               '</div>';
-      }
-
       function groupTooltip(g) {
-        const lines = [];
+        const sted = (g.pickups[0] || g.deliveries[0]).stop;
+        const lines = ['<b>📍 ' + (sted.navn || sted.adresse) + '</b>'];
+        if (sted.navn && sted.adresse) lines.push(sted.adresse);
         g.pickups.forEach(function (e) {
           const t = e.req.pasientKlar ? ' kl.' + (e.req.pasientKlar.split(' ')[1] || '') : '';
           lines.push('➕ ' + (e.req.pasientNavn || '?') + t);
@@ -381,8 +356,7 @@
           const t = e.req.oppmote ? ' kl.' + (e.req.oppmote.split(' ')[1] || '') : '';
           lines.push('➖ ' + (e.req.pasientNavn || '?') + t);
         });
-        const sted = (g.pickups[0] || g.deliveries[0]).stop;
-        return (sted.navn || sted.adresse.split(',')[0]) + '<br>' + lines.join('<br>');
+        return lines.join('<br>');
       }
 
       // ── Rute-waypoints (beregnes før initial zoom) ───────────
@@ -433,7 +407,6 @@
         const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
         L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName) })
           .addTo(map)
-          .bindPopup(groupPopup(g))
           .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
       });
 
