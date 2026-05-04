@@ -11,6 +11,32 @@
     }
     window.__sjekkTelefonActive = true;
 
+    // Hent fødselsnummer fra plakat for gitt rekvisisjons-ID
+    async function fetchSSN(rid) {
+        try {
+            const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${rid}`;
+            const resp = await fetch(url, { credentials: 'same-origin' });
+            const buf  = await resp.arrayBuffer();
+            const text = new TextDecoder('iso-8859-1').decode(buf);
+            const m = text.match(/F.dselsnummer:<\/td>\s*<td[^>]*class="reqv_value"[^>]*>(\d+)<\/td>/);
+            return m?.[1] || null;
+        } catch (e) {
+            console.error('[SjekkTelefon] fetchSSN feil:', e);
+            return null;
+        }
+    }
+
+    // Finn rekvisisjons-ID fra rad-ID (V- og P-rader)
+    function getRidFromRowId(rowId) {
+        if (rowId.startsWith('V-')) return rowId.replace(/^V-/, '');
+        if (rowId.startsWith('P-')) {
+            const row = document.getElementById(rowId);
+            const poppImg = row?.querySelector('img[id^="popp_"]');
+            return poppImg?.id.replace('popp_', '') || null;
+        }
+        return null;
+    }
+
     // Regulært uttrykk for gyldig telefonnummer
     // Aksepterer: 
     // - 12345678 (8 siffer)
@@ -246,13 +272,14 @@
         const uniqueNames = {};
         results.forEach(result => {
             if (!uniqueNames[result.name]) {
-                uniqueNames[result.name] = result.phone;
+                uniqueNames[result.name] = { phone: result.phone, rowId: result.rowId };
             }
         });
 
         const uniqueResults = Object.keys(uniqueNames).map(name => ({
             name: name,
-            phone: uniqueNames[name]
+            phone: uniqueNames[name].phone,
+            rowId: uniqueNames[name].rowId,
         }));
 
         // Opprett modal overlay
@@ -389,8 +416,55 @@
                   }
                 };
 
+                // Rediger person-knapp
+                const editButton = document.createElement('button');
+                editButton.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span style="vertical-align: middle;">Rediger person</span>
+                `;
+                editButton.style.cssText = `
+                    background: linear-gradient(135deg, #047CA1 0%, #0599c8 100%);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    box-shadow: 0 2px 4px rgba(4, 124, 161, 0.2);
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                `;
+                editButton.onmouseover = function() {
+                    this.style.background = 'linear-gradient(135deg, #035f7c 0%, #047CA1 100%)';
+                    this.style.boxShadow = '0 4px 8px rgba(4, 124, 161, 0.3)';
+                    this.style.transform = 'translateY(-1px)';
+                };
+                editButton.onmouseout = function() {
+                    this.style.background = 'linear-gradient(135deg, #047CA1 0%, #0599c8 100%)';
+                    this.style.boxShadow = '0 2px 4px rgba(4, 124, 161, 0.2)';
+                    this.style.transform = 'translateY(0)';
+                };
+                editButton.onclick = async function() {
+                    const rid = getRidFromRowId(result.rowId);
+                    if (!rid) { alert('Kunne ikke finne rekvisisjons-ID for denne bestillingen.'); return; }
+                    const ssn = await fetchSSN(rid);
+                    if (!ssn) { alert('Kunne ikke hente fødselsnummer for denne bestillingen.'); return; }
+                    window.open(`/administrasjon/admin/editPatient?ssn=${ssn}`, '_blank');
+                };
+
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = 'display: flex; gap: 8px; flex-shrink: 0;';
+                buttonContainer.appendChild(searchButton);
+                buttonContainer.appendChild(editButton);
+
                 item.appendChild(textContainer);
-                item.appendChild(searchButton);
+                item.appendChild(buttonContainer);
                 list.appendChild(item);
             });
 
