@@ -185,12 +185,18 @@
     }
     #header h1 { font-size:17px; font-weight:600; }
     #controls { display:flex; gap:10px; align-items:center; }
-    #routeToggleBtn {
+    #routeToggleBtn, #labelToggleBtn {
       padding:6px 14px; background:#CFECF5; color:#025671;
       border:none; border-radius:4px; font-weight:600; cursor:pointer;
       transition:all 0.2s; font-size:13px;
     }
-    #routeToggleBtn.av { background:rgba(255,255,255,0.2); color:#fff; opacity:0.7; }
+    #routeToggleBtn.av, #labelToggleBtn.av { background:rgba(255,255,255,0.2); color:#fff; opacity:0.7; }
+    .icon-label { display:flex; flex-direction:column; align-items:center; margin-top:1px;
+      text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }
+    .icon-label-time { display:flex; gap:3px; font-size:10px; font-weight:700; white-space:nowrap; line-height:1.2; }
+    .icon-label-addr { font-size:10px; font-weight:600; color:#333; max-width:180px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+    .labels-hidden .icon-label { display:none !important; }
     #status { font-size:13px; padding:5px 12px; background:rgba(255,255,255,0.2); border-radius:4px; }
     #map { width:100%; height:calc(100vh - 48px); }
     .custom-marker-wrapper { background:transparent; border:none; }
@@ -234,6 +240,7 @@
   <div id="header">
     <h1>🗺️ Kartvisning – bestillinger</h1>
     <div id="controls">
+      <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">🏷 Info på ikon</button>
       <button id="routeToggleBtn" title="Beregnet kjørerute via OSRM">📐 Beregnet rute</button>
       <div id="routeInfo" style="display:none;font-size:13px;padding:5px 12px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
       <div id="status">Laster kart…</div>
@@ -294,27 +301,35 @@
       });
 
       // ── Ikon ────────────────────────────────────────────────
-      const labelStyle = 'white-space:nowrap;font-size:10px;font-weight:700;' +
-        'text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;margin-top:1px;line-height:1.2;';
+      function trunc(str, n) { return str && str.length > n ? str.slice(0, n - 1) + '…' : str || ''; }
 
-      function makeIcon(hasPick, hasDel, pickTime, delTime) {
+      function makeIcon(hasPick, hasDel, pickTime, delTime, locName) {
+        const timePart = (pickTime || delTime)
+          ? '<div class="icon-label-time">' +
+            (hasPick && hasDel
+              ? (pickTime ? '<span style="color:#2e7d32">' + pickTime + '</span>' : '') +
+                (pickTime && delTime ? '<span style="color:#999">·</span>' : '') +
+                (delTime  ? '<span style="color:#1565c0">' + delTime  + '</span>' : '')
+              : '<span style="color:' + (hasPick ? '#2e7d32' : '#1565c0') + '">' +
+                (hasPick ? pickTime : delTime) + '</span>') +
+            '</div>'
+          : '';
+        const addrPart = locName
+          ? '<div class="icon-label-addr">' + trunc(locName, 25) + '</div>'
+          : '';
+        const label = (timePart || addrPart)
+          ? '<div class="icon-label">' + timePart + addrPart + '</div>'
+          : '';
+
         if (hasPick && hasDel) {
-          const timeLine = (pickTime || delTime)
-            ? '<div style="display:flex;justify-content:center;gap:3px;' + labelStyle + '">' +
-              (pickTime ? '<span style="color:#2e7d32">' + pickTime + '</span>' : '') +
-              (pickTime && delTime ? '<span style="color:#999">·</span>' : '') +
-              (delTime  ? '<span style="color:#1565c0">' + delTime  + '</span>' : '') +
-              '</div>'
-            : '';
           return L.divIcon({
             className: 'custom-marker-wrapper',
             html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
                   '<div class="icon-split"><div class="icon-split-l">+</div><div class="icon-split-r">−</div></div>' +
-                  timeLine + '</div>',
-            iconSize: [28, 42], iconAnchor: [14, 14]
+                  label + '</div>',
+            iconSize: [28, 55], iconAnchor: [14, 14]
           });
         }
-        const time    = hasPick ? pickTime : delTime;
         const symbol  = hasPick ? '➕' : '➖';
         const color   = hasPick ? '#2e7d32' : '#1565c0';
         const bgColor = hasPick ? '#e8f5e9' : '#e3f2fd';
@@ -324,9 +339,8 @@
                 '<div style="background:' + bgColor + ';border:2px solid ' + color +
                 ';border-radius:50%;width:28px;height:28px;display:flex;align-items:center;' +
                 'justify-content:center;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.3);">' + symbol + '</div>' +
-                (time ? '<div style="color:' + color + ';' + labelStyle + '">' + time + '</div>' : '') +
-                '</div>',
-          iconSize: [28, time ? 42 : 28], iconAnchor: [14, 14]
+                label + '</div>',
+          iconSize: [28, 55], iconAnchor: [14, 14]
         });
       }
 
@@ -415,7 +429,9 @@
         allLL.push(ll);
         const pickTime = earliestTime(g.pickups, 'pasientKlar');
         const delTime  = earliestTime(g.deliveries, 'oppmote');
-        L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime) })
+        const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
+        const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
+        L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName) })
           .addTo(map)
           .bindPopup(groupPopup(g))
           .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
@@ -461,12 +477,21 @@
 
       drawRoute();
 
-      // Knapp
+      // Knapp – rute
       const btn = document.getElementById('routeToggleBtn');
       btn.addEventListener('click', function () {
         routeOn = !routeOn;
         if (routeOn) { drawRoute(); btn.classList.remove('av'); }
         else { removeRoute(); btn.classList.add('av'); }
+      });
+
+      // Knapp – labels (tid + adresse på ikoner)
+      let showLabels = true;
+      const labelBtn = document.getElementById('labelToggleBtn');
+      labelBtn.addEventListener('click', function () {
+        showLabels = !showLabels;
+        document.body.classList.toggle('labels-hidden', !showLabels);
+        labelBtn.classList.toggle('av', !showLabels);
       });
 
       const antall = reqDetails.length;
