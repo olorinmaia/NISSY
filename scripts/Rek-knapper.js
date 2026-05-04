@@ -1053,10 +1053,10 @@
             S: "Manuell statusendring",
             H: "Hendelseslogg",
             P: "Rediger person",
-            M: "Møteplass – splitt bestilling",
-            K: "Kopier (Viser også bestilinger)",
-            R: "Rediger",
-            T: "Lag retur og link sammen",
+            M: "Møteplass",
+            K: "Kopier bestilling",
+            R: "Rediger bestilling",
+            T: "Lag returbestilling",
           }[label] || "";
 
           // Klikk-handler

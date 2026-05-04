@@ -291,7 +291,7 @@
       ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',      'Alt+X', () => triggerAlt('x'))] : []),
       ...(scriptLoaded.smartTildeling() || scriptLoaded.samkjoring() ? [sep()] : []),
       ...(scriptLoaded.hentetid()    ? [item('🕐', 'Hentetid',    'Alt+E', () => triggerAlt('e'))] : []),
-      item('✏️', 'Rediger', null, () => {
+      item('✏️', 'Rediger bestilling', null, () => {
         const link = row.querySelector('a[href*="redit"]');
         if (link) window.open(link.href, '_blank');
       }, true /* kun denne rad */),
