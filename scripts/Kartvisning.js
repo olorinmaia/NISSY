@@ -151,7 +151,7 @@
       });
 
       if (title === 'Hentested' || title === 'Leveringssted') {
-        const m = (rows['Geo-koordinater'] || '').match(/(\d{6,7})\s*\/\s*(\d{6,7})/);
+        const m = (rows['Geo-koordinater'] || '').match(/(\d{6,7})\s*\/\s*(\d{4,7})/);
         if (m) {
           const northing = parseInt(m[1]), easting = parseInt(m[2]);
           const ll = utmToLatLon(easting, northing);
