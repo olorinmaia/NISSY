@@ -378,11 +378,14 @@
           const t = e.req.pasientKlar ? ' kl.' + (e.req.pasientKlar.split(' ')[1] || '') : '';
           lines.push('➕ ' + (e.req.pasientNavn || '?') + t);
         });
+        let hasEst = false;
         g.deliveries.forEach(function (e) {
           const est = estimertLev[e.req.reqId];
           const t = est ? ' kl.' + est.display : (e.req.oppmote ? ' kl.' + (e.req.oppmote.split(' ')[1] || '') : '');
+          if (est) hasEst = true;
           lines.push('➖ ' + (e.req.pasientNavn || '?') + t);
         });
+        if (hasEst) lines.push('<span style="color:#888;font-size:11px">ℹ️ ~ = estimat + 10 min av/påstigning</span>');
         return lines.join('<br>');
       }
 
@@ -585,7 +588,7 @@
       `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
     );
     if (!mapWindow) {
-      showError('Popup blokkert – tillat popup og prøv igjen');
+      showError('🗺️ Popup blokkert – tillat popup og prøv igjen');
       return;
     }
     mapWindow.document.write(buildMapHtml());
@@ -599,7 +602,7 @@
     const alleIds = [...new Set([...voppIds, ...poppIds])];
 
     if (alleIds.length === 0) {
-      showError('Ingen bestillinger er merket');
+      showError('🗺️ Ingen bestillinger er merket');
       return;
     }
 
@@ -621,7 +624,7 @@
       console.warn('[Kartvisning] Ingen koordinater for:', uten.map(d => d.reqId));
     }
     if (med.length === 0) {
-      showError('Fant ingen koordinater for de merkede bestillingene');
+      showError('🗺️ Fant ingen koordinater for de merkede bestillingene');
       return;
     }
 
