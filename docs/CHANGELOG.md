@@ -9,7 +9,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🚀 [4.3.0] - 05.05.2026
 
-### Ny: Kartvisning for bestillinger og ny knapp i Sjekk-telefon
+### Ny: Kartvisning for bestillinger, Smart-søk og ny knapp i Sjekk-telefon
 
 - 🗺️ **Kartvisning** *(nytt script)*
   - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
@@ -21,6 +21,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
   - Adresser normaliseres og navn forkortes for kompakt visning
+- ⌛ **NISSY-fiks** / 📋 **Handlingslogg** / 🔍 **Sjekk-bestilling** / 📞 **Sjekk-telefon**
+  - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
+    - 12 siffer → Rekvisisjonsnummer
+    - 11 siffer → Personnummer
+    - 8 siffer → Turnummer
+    - 6 siffer → Personnummer (fødselsdato)
+    - Bokstaver/komma → Navn (Etternavn, Fornavn)
+  - Handlingslogg, Sjekk-bestilling og Sjekk-telefon bruker nå Smart-søk når de starter et søk fra sine modaler – dropdown forblir på «Smart-søk» etter søket
 - 📞 **Sjekk-telefon**
   - Ny knapp for å redigere person direkte fra treffvisningen
 

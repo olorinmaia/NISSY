@@ -16,6 +16,7 @@ NISSY Basic er perfekt for deg som:
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 📡 **Live ressurskart** - (Alt+Z) Åpner et interaktivt kart som viser siste kjente posisjon, hendelse samt annen nyttig info for alle merkede ressurser.
 - 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
+- 🗺️ **Kartvisning** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
 - 🕐 **Hentetid** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
@@ -170,6 +171,12 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass. 
 - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering).
 - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
+- Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
+  - 12 siffer → Rekvisisjonsnummer
+  - 11 siffer → Personnummer
+  - 8 siffer → Turnummer
+  - 6 siffer → Personnummer (fødselsdato)
+  - Bokstaver/komma → Navn (Etternavn, Fornavn)
 
 **Skjuler:**
 - Ledig kapasitet (pågående oppdrag)

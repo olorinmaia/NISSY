@@ -1542,10 +1542,9 @@
    * Søk i planlegging etter rekvisisjonsnummer
    */
   window.searchInPlanningByReqNr = function(reqNr) {
-    // Sett søketype til "Rekvisisjonsnummer"
     const searchTypeSelect = document.getElementById('searchType');
     if (searchTypeSelect) {
-      searchTypeSelect.value = 'requisitionNr';
+      searchTypeSelect.value = 'smart';
     }
     
     // Utfør søk

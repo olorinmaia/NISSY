@@ -399,10 +399,9 @@
                   window.__sjekkTelefonActive = false;
                   await togglePhoneColumns(false);
                   
-                  // Sett søketype til "NAVN"
                   const searchTypeSelect = document.getElementById('searchType');
                   if (searchTypeSelect) {
-                    searchTypeSelect.value = 'name';
+                    searchTypeSelect.value = 'smart';
                   }
                   
                   // Utfør søk
