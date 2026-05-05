@@ -383,13 +383,23 @@
           </td>
         </tr>
         <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input id="nissy-btn-rek-knapper" type="button" value="🔠 Rek-knapper (Alt+R)" class="bigbutton nissy-script-btn"
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
           </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input id="nissy-btn-samkjoring" type="button" value="🚐 Samkjøring (Alt+X)" class="bigbutton nissy-script-btn"
                    data-hotkey="x" title="Finn potensielle samkjøringsforslag på pågående oppdrag for merkede bestillinger / ressurs innad i valgte filter. Hvis ingenting merkes søkes det innad på ventende oppdrag for mulig samkjøringer.">
+          </td>
+        </tr>
+        <tr class="nissy-script-row">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
+            <input id="nissy-btn-send-sms" type="button" value="📱 Send SMS (Alt+C)" class="bigbutton nissy-script-btn"
+                   data-hotkey="c" title="Send SMS til merkede bestillinger på ventende/pågående oppdrag eller til sjåfør for merket ressurs">
+          </td>
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
+            <input id="nissy-btn-kartvisning" type="button" value="🗺️ Kartvisning (Alt+W)" class="bigbutton nissy-script-btn"
+                   data-hotkey="w" title="Vis hente- og leveringskoordinater i kart med beregnet rute og kjøretid for merkede bestillinger">
           </td>
         </tr>
       `;
@@ -426,7 +436,8 @@
             { id: 'nissy-btn-ressursinfo',     enabled: hasRessurs },
             { id: 'nissy-btn-rek-knapper',     enabled: hasSource || hasPaagaaende },
             { id: 'nissy-btn-samkjoring',      enabled: !(hasSource && hasPaagaaende) },
-            { id: 'buttonShowMap',             enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-send-sms',        enabled: true },
+            { id: 'nissy-btn-kartvisning',     enabled: hasSource || hasPaagaaende },
             { id: 'nissy-btn-alenebil',        enabled: hasSource },
             { id: 'nissy-livekart-btn',        enabled: hasRessurs },
           ];
@@ -487,21 +498,14 @@
   // Kjøres etter NISSY-fiks (300ms) – bruk 500ms for å garantere rekkefølge
   // ============================================================
   setTimeout(() => {
-    const tildelRow  = document.getElementById('buttonAssignVopps')?.closest('tr');
-    const assistTd   = document.getElementById('buttonAssignVoppsAssist')?.closest('td');
-    const sendSmsBtn = document.getElementById('buttonSendSMS');
+    // Fjern Tildel-oppdrag-rad
+    document.getElementById('buttonAssignVopps')?.closest('tr')?.remove();
 
-    if (!tildelRow || !assistTd || !sendSmsBtn) {
-      console.warn('⚠️ Reorganisering: fant ikke alle knapper');
-      return;
-    }
-
-    // Flytt Send SMS til venstre for Vis i kart (erstatter Tilordningsstøtte-plassen)
-    assistTd.innerHTML = '';
-    assistTd.appendChild(sendSmsBtn);
-
-    // Fjern Tildel-raden (Send SMS er allerede flyttet)
-    tildelRow.remove();
+    // Skjul originale NISSY-knapper som er erstattet av custom knapper
+    ['buttonSendSMS', 'buttonShowMap', 'buttonAssignVoppsAssist'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
 
     console.log('✅ Kontrollpanel reorganisert for Advanced');
   }, 500);
