@@ -397,19 +397,58 @@
         else { el.style.display = 'none'; el.textContent = ''; }
       }
 
-      const timedStops = [];
-      reqDetails.forEach(function (req) {
-        if (req.hentested)    timedStops.push({ lat: req.hentested.lat,    lon: req.hentested.lon,    t: req.pasientKlar || '' });
-        if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: req.oppmote || '' });
-      });
-      timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
+      function haversine(a, b) {
+        const R = 6371000, rad = Math.PI / 180;
+        const dLat = (b.lat - a.lat) * rad, dLon = (b.lon - a.lon) * rad;
+        const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+      }
 
-      const seen = new Set();
-      const waypoints = timedStops.filter(function (s) {
-        const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
-        if (seen.has(k)) return false;
-        seen.add(k); return true;
-      }).map(function (s) { return L.latLng(s.lat, s.lon); });
+      function validLL(s) { return s && isFinite(s.lat) && isFinite(s.lon); }
+      const hStops = reqDetails.filter(function (r) { return validLL(r.hentested); }).map(function (r) { return r.hentested; });
+      const lStops = reqDetails.filter(function (r) { return validLL(r.leveringssted); }).map(function (r) { return r.leveringssted; });
+
+      // Retur-deteksjon: alle hentesteder er i nærheten av hverandre (≤2km = samme sykehus/anlegg)
+      let maxHDist = 0;
+      for (let i = 0; i < hStops.length; i++) {
+        for (let j = i + 1; j < hStops.length; j++) {
+          maxHDist = Math.max(maxHDist, haversine(hStops[i], hStops[j]));
+        }
+      }
+      const isRetur = hStops.length >= 2 && lStops.length >= 2 && maxHDist <= 2000;
+
+      let waypoints;
+      if (isRetur) {
+        // Retur: alle hentesteder først, deretter leveringssteder sortert nærmest sentroid
+        var _rLat = 0, _rLon = 0;
+        for (var _ri = 0; _ri < hStops.length; _ri++) { _rLat += Number(hStops[_ri].lat); _rLon += Number(hStops[_ri].lon); }
+        const center = { lat: _rLat / hStops.length, lon: _rLon / hStops.length };
+        if (isFinite(center.lat) && isFinite(center.lon)) {
+          const sortedL = lStops.slice().sort(function (a, b) { return haversine(center, a) - haversine(center, b); });
+          const wSeen = new Set();
+          waypoints = hStops.concat(sortedL)
+            .filter(function (s) {
+              if (!validLL(s)) return false;
+              const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
+              if (wSeen.has(k)) return false; wSeen.add(k); return true;
+            })
+            .map(function (s) { return L.latLng(s.lat, s.lon); });
+        }
+      }
+      if (!waypoints) {
+        // Original: tidsbasert sortering
+        const timedStops = [];
+        reqDetails.forEach(function (req) {
+          if (req.hentested)    timedStops.push({ lat: req.hentested.lat,    lon: req.hentested.lon,    t: req.pasientKlar || '' });
+          if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: req.oppmote    || '' });
+        });
+        timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
+        const seen = new Set();
+        waypoints = timedStops.filter(function (s) {
+          const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
+          if (seen.has(k)) return false; seen.add(k); return true;
+        }).map(function (s) { return L.latLng(s.lat, s.lon); });
+      }
 
       let routeControl = null;
       let routeOn = true;
