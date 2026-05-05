@@ -240,7 +240,7 @@
   <div id="header">
     <h1>🗺️ Kartvisning – bestillinger</h1>
     <div id="controls">
-      <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">🏷 Info på ikon</button>
+      <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">ℹ️ Info på ikon</button>
       <button id="routeToggleBtn" title="Beregnet kjørerute via OSRM">📐 Beregnet rute</button>
       <div id="routeInfo" style="display:none;font-size:13px;padding:5px 12px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
       <div id="status">Laster kart…</div>
