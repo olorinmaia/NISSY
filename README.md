@@ -23,6 +23,12 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
   - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
   - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
+  - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
+  - 12 siffer → Rekvisisjonsnummer
+  - 11 siffer → Personnummer
+  - 8 siffer → Turnummer
+  - 6 siffer → Personnummer (fødselsdato)
+  - Bokstaver/komma → Navn (Etternavn, Fornavn)
 
 - 🪄 **Smart-tildel (Alt+S)**
   - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING, TA KONTAKT FOR HJELP**
@@ -51,6 +57,18 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🗺️ **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
   - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse.
+
+- 🗺️ **Kartvisning**
+  - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+  - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
+  - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
+  - Tooltip med pasientnavn og tidspunkt ved mouse-over
+  - **Beregnet kjørerute** via OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+  - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
+    - Leveringstid vises med `~`-prefiks på markør og i tooltip
+    - Automatisk fallback til luftlinje-estimat ved timeout eller feil
+  - Adresser normaliseres og navn forkortes for kompakt visning
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
 
 - 🚕 **Ressursinfo (Alt+D)**
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
@@ -191,6 +209,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🖱️ Hurtigmeny | ✅ | ✅ | ✅ |
 | 🌙 Darkmode | ✅ | ✅ | ✅ |
 | 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
+| 🗺️ Kartvisning (ALT+W) | ✅ | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
 | 📡 Live ressurskart (ALT+Z) | ✅ | ✅ | ✅ |
 | 📝 Bestillingsmodul (ALT+N) | ✅ | ✅ | ✅ |
@@ -247,7 +266,6 @@ Snarveiene hører til de ulike script-pakkene.
 ### Del 1: Oppdragshåndtering
 | Snarvei | Funksjon |
 |---------|----------|
-| `ALT+W` | Vis i kart |
 | `ALT+G` | Tildel oppdrag |
 | `ALT+B` | Blank (nullstill) |
 | `ALT+P` | Merk alle ressurser pågående oppdrag |
@@ -263,6 +281,7 @@ Snarveiene hører til de ulike script-pakkene.
 | Snarvei | Funksjon |
 |---------|----------|
 | `ALT+Q` | Google Maps Rutekalkulering |
+| `ALT+W` | Kartvisning |
 | `ALT+D` | Ressursinfo |
 | `ALT+Z` | Live ressurskart |
 | `ALT+R` | Rek-knapper |

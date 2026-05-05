@@ -792,10 +792,9 @@
   function searchInPlanning(navn) {
     closeModal();
     
-    // Sett søketype til "NAVN"
     const searchTypeSelect = document.getElementById('searchType');
     if (searchTypeSelect) {
-      searchTypeSelect.value = 'name';
+      searchTypeSelect.value = 'smart';
     }
     
     // Utfør søk
@@ -816,10 +815,9 @@
   function searchInPlanningByReqNr(reqNr) {
     closeModal();
     
-    // Sett søketype til "Rekvisisjonsnummer"
     const searchTypeSelect = document.getElementById('searchType');
     if (searchTypeSelect) {
-      searchTypeSelect.value = 'requisitionNr';
+      searchTypeSelect.value = 'smart';
     }
     
     // Utfør søk

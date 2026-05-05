@@ -347,7 +347,8 @@
         <tr>
             <td valign="top" align="left"><input id="buttonMeetingplace" type="button" value="Møteplass" title="Snarvei: Alt+M" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
             <td align="right">
-                <select id="searchType" style="width:150px">
+                <select id="searchType" style="width:150px" title="Smart-søk: Detekterer søketype automatisk&#10;• 12 siffer → Rekvisisjonsnummer&#10;• 11 siffer → Personnummer&#10;• 8 siffer → Turnummer&#10;• 6 siffer → Personnummer (fødselsdato)&#10;• Bokstaver → Navn (Etternavn, Fornavn)">
+                    <option value="smart" selected>Smart-søk</option>
                     <option value="name">Navn</option>
                     <option value="bookingNr">Bookingnummer</option>
                     <option value="ssn">Personnummer</option>
@@ -683,17 +684,47 @@
      Settes opp AV DEL 1B etter at tabellen er erstattet
      ====================================================== */
 
+  let _lastResolvedSearchType = null;
+
+  function resolveSmartSearchType(phrase) {
+    const trimmed = phrase.trim();
+    if (/^\d{12}$/.test(trimmed)) return "requisitionNr";
+    if (/^\d{11}$/.test(trimmed)) return "ssn";
+    if (/^\d{8}$/.test(trimmed))  return "tripNr";
+    if (/^\d{6}$/.test(trimmed))  return "ssn";
+    return "name";
+  }
+
   function setupButtonHandlers() {
     console.log("🔧 Setter opp knapp-handlers...");
 
     const btnSearch = document.getElementById("buttonSearch");
     if (btnSearch) {
       btnSearch.addEventListener("click", () => {
+        const searchTypeEl  = document.getElementById("searchType");
+        const searchPhraseEl = document.getElementById("searchPhrase");
+
+        // Smart-søk: detekter type automatisk og sett midlertidig verdi
+        let didOverride = false;
+        if (searchTypeEl && searchTypeEl.value === "smart" && searchPhraseEl) {
+          const resolved = resolveSmartSearchType(searchPhraseEl.value);
+          _lastResolvedSearchType = resolved;
+          searchTypeEl.value = resolved;
+          didOverride = true;
+        } else if (searchTypeEl) {
+          _lastResolvedSearchType = searchTypeEl.value;
+        }
+
         // Kall original NISSY-funksjon
         if (typeof performSearch === 'function') {
           performSearch();
         }
-        
+
+        // Gjenopprett Smart-søk som valgt type
+        if (didOverride && searchTypeEl) {
+          searchTypeEl.value = "smart";
+        }
+
         // Deretter vår logikk
         waitForAjaxThen('search', () => {
           openPopp("-1");
@@ -725,6 +756,15 @@
       console.warn("⚠️ Fant ikke buttonCancelSearch");
     }
 
+    // Oppdater tooltip på søketype-select basert på valgt verdi
+    const searchTypeEl2 = document.getElementById("searchType");
+    if (searchTypeEl2) {
+      const SMART_TITLE = "Smart-søk: Detekterer søketype automatisk\n• 12 siffer → Rekvisisjonsnummer\n• 11 siffer → Personnummer\n• 8 siffer → Turnummer\n• 6 siffer → Personnummer (fødselsdato)\n• Bokstaver → Navn (Etternavn, Fornavn)";
+      searchTypeEl2.addEventListener("change", () => {
+        searchTypeEl2.title = searchTypeEl2.value === "smart" ? SMART_TITLE : "";
+      });
+    }
+
     // Tildel oppdrag handler
     const btnAssign = document.getElementById("buttonAssignVopps");
     if (btnAssign) {
@@ -751,7 +791,8 @@
     const searchPhrase = document.getElementById("searchPhrase");
     
     if (!searchType || !searchPhrase) return;
-    if (searchType.value !== "requisitionNr") return;
+    const effectiveType = (searchType.value === "smart") ? _lastResolvedSearchType : searchType.value;
+    if (effectiveType !== "requisitionNr") return;
     
     const searchedReqNr = searchPhrase.value.trim();
     if (!searchedReqNr) return;
