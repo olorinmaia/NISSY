@@ -68,6 +68,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
   - Adresser normaliseres og navn forkortes for kompakt visning
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
 
 - 🚕 **Ressursinfo (Alt+D)**
   - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
