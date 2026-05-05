@@ -447,6 +447,8 @@
           const poly = L.polyline(waypoints.map(function (w) { return [w.lat, w.lng]; }),
             { color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8,6' }).addTo(map);
           routeControl = { remove: function () { map.removeLayer(poly); } };
+          if (allLL.length === 1) map.setView(allLL[0], 14);
+          else if (allLL.length > 1) map.fitBounds(allLL, { padding: [50, 50] });
         };
         try {
           const ctrl = L.Routing.control({
