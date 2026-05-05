@@ -101,6 +101,31 @@
     return { lat: lat * 180 / Math.PI, lon: lon * 180 / Math.PI };
   }
 
+  // ── Adresse- og navneformatering ─────────────────────────
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  function normaliserAdresse(address) {
+    if (!address) return address;
+    const erVegadresse = /\d+[A-ZÆØÅa-zæøå]?\s*,/.test(address);
+    if (!erVegadresse) return address;
+    const ALLTID_LITEN = /^(veg|vei|gate)$/i;
+    const BOKSTAV_OG_TALL = /^[a-zA-ZæøåÆØÅ]*\d+[a-zA-ZæøåÆØÅ]+$|^[a-zA-ZæøåÆØÅ]+\d+[a-zA-ZæøåÆØÅ]*$/;
+    return address.replace(/[^\s,]+/g, token => {
+      if (ALLTID_LITEN.test(token)) return token.toLowerCase();
+      if (BOKSTAV_OG_TALL.test(token)) return token.toUpperCase();
+      return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+    });
+  }
+
+  function kortNavn(navn) {
+    if (!navn) return navn;
+    const deler = navn.trim().split(/\s+/);
+    return deler.length <= 2 ? navn : deler[0] + ' ' + deler[deler.length - 1];
+  }
+
   // ── Parser for ajax_reqdetails HTML ──────────────────────
   function parseReqDetails(html, reqId) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -130,9 +155,10 @@
         if (m) {
           const northing = parseInt(m[1]), easting = parseInt(m[2]);
           const ll = utmToLatLon(easting, northing);
+          const rawAdresse = [rows['Adresse'], rows['Postnr / Sted']].filter(Boolean).join(', ');
           const loc = {
             lat: ll.lat, lon: ll.lon,
-            adresse: [rows['Adresse'], rows['Postnr / Sted']].filter(Boolean).join(', '),
+            adresse: normaliserAdresse(cleanAddressSuffixes(rawAdresse)),
             navn: rows['Navn'] || '',
           };
           if (title === 'Hentested') result.hentested = loc;
@@ -142,7 +168,7 @@
         result.reqNr  = rows['Rekvisisjon'] || '';
         result.status = rows['Rekvisisjonsstatus'] || '';
       } else if (title === 'Pasient') {
-        result.pasientNavn = rows['Navn'] || '';
+        result.pasientNavn = kortNavn(rows['Navn']) || '';
       } else if (title === 'Reise') {
         result.oppmote    = rows['Oppmøtetidspunkt'] || '';
         result.pasientKlar = rows['Pasient klar fra'] || '';
