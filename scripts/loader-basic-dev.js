@@ -27,7 +27,8 @@
     'Hurtigmeny.js',
     'Send-SMS.js',
     'Logg.js',
-    'Darkmode.js'
+    'Darkmode.js',
+    'Kartvisning.js'
   ];
 
   console.log('📦 Laster NISSY Basic DEV...');
@@ -466,7 +467,6 @@
           • F5 → Refresher alle bestillinger/turer og åpner alle turer<br>
           • CTRL+1 → Fokus filter ventende oppdrag<br>
           • CTRL+2 → Fokus filter ressurser<br>
-          • ALT+W → Vis i kart<br>
           • ALT+G → Tildel oppdrag<br>
           • ALT+B → Blank<br>
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
@@ -478,6 +478,7 @@
           • ALT+E → Hentetid<br>
           • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
+          • ALT+W → Kartvisning<br>
           • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>
@@ -497,7 +498,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V4.2.0):</strong><br>
+          <strong>📝 Endringslogg (V4.3.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

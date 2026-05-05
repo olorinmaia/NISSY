@@ -530,7 +530,6 @@
           • F5 → Refresher alle bestillinger/turer og åpner alle turer<br>
           • CTRL+1 → Fokus filter ventende oppdrag<br>
           • CTRL+2 → Fokus filter ressurser<br>
-          • ALT+W → Vis i kart<br>
           • ALT+B → Blank<br>
           • ALT+P → Merk alle ressurser pågående oppdrag<br>
           • ALT+V → Merk alle bestillinger ventende oppdrag<br>
@@ -544,6 +543,7 @@
           • ALT+E → Hentetid<br>
           • ALT+R → Rek-knapper (ESC lukker)<br>
           • ALT+Q → Rutekalkulering (Google Maps)<br>
+          • ALT+W → Kartvisning<br>
           • ALT+K → Avbestilling<br>
           • ALT+D → Ressursinfo pop-up<br>
           • ALT+N → Bestillingsmodul<br>

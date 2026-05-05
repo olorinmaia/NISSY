@@ -7,6 +7,25 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🚀 [4.3.0] - 05.05.2026
+
+### Ny: Kartvisning for bestillinger og ny knapp i Sjekk-telefon
+
+- 🗺️ **Kartvisning** *(nytt script)*
+  - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+  - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
+  - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
+  - Tooltip med pasientnavn og tidspunkt ved mouse-over
+  - **Beregnet kjørerute** via OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+  - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
+    - Leveringstid vises med `~`-prefiks på markør og i tooltip
+    - Automatisk fallback til luftlinje-estimat ved timeout eller feil
+  - Adresser normaliseres og navn forkortes for kompakt visning
+- 📞 **Sjekk-telefon**
+  - Ny knapp for å redigere person direkte fra treffvisningen
+
+---
+
 ## 🔧 [4.2.0] - 04.05.2026
 
 ### Ny knapp i Rek-knapper, NISSY-Duplikatvisningsfiks, forbedringer til Send-SMS og Darkmode
@@ -23,6 +42,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Duplikate bestillinger filtreres nå bort ved visningsbug i NISSY der samme bestilling vises flere ganger på pågående ressurs
 - 🌙 **Darkmode**
   - Aktiveres nå automatisk ved innlasting av loader hvis darkmode var skrudd på fra forrige sesjon
+
+---
 
 ## 🔧 [4.1.5] - 30.04.2026
 
@@ -42,6 +63,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - **M-knapp Møteplass** – Deler åpningsmåte-preferanse med Bestillingsmodul via felles session-nøkkel
   - **Avbryt-knappen** i Møteplass-modal lukker nå modalen korrekt (samme som Bestillingsmodul)
 
+---
+
 ## 🚀 [4.1.0] - 27.04.2026
 
 ### Live ressurskart: Planlagte stopp og beregnet kjørerute og forbedring av Ressursinfo
@@ -59,6 +82,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Fjernet knapp for å skjule "1709 - bil ved node" og begrenser heller antall hendelser til 10 og ny knapp for å vise alle
 - 🧩 **Loadere (Advanced, Basic, AMK)**
   - Fjernet hover-effekt når en knapp er disabled
+
+---
 
 ## 🎉 [4.0.0] - 24.04.2026
 
@@ -88,6 +113,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🧩 **Loadere (Advanced, Basic, AMK)**
   - Ny knapp `📡Live Ressurskart (Alt+Z)` i header på tvers av alle pakker
 
+---
+
 ## 🚀 [3.9.8] - 23.04.2026
 
 ### Knapp-tilstand: Kontekstsensitiv utgråing på tvers av alle loadere
@@ -109,12 +136,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - 🚐 **Samkjøring** – aktiv med mindre både ventende og pågående er merket samtidig
   - Knapp-tilstand oppdateres også ved Alt+B, Alt+V og Alt+P (merke/blanke via snarvei)
 
+---
+
 ## 🚀 [3.9.7.1] - 21.04.2026
 
 ### Tilordning 2.0: Disable-logikk
 
 - 📆 **Tilordning 2.0**
   - Knappen grås nå ut når ingenting er merket, eller når avtale/ressurs/pågående oppdrag er merket i tillegg til bestillinger – aktiv kun når bare ventende oppdrag er merket
+
+---
 
 ## 🚀 [3.9.7] - 15.04.2026
 
@@ -129,6 +160,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Justert kontor-spesifikke maler for Pasientreiser Nord-Trøndelag
 - 🗺️ **Rutekalkulering**
   - Lagt til flere mappinger for adressenavn som ikke blir plassert riktig i Google maps.
+
+---
 
 ## 🚀 [3.9.6] - 10.04.2026
 

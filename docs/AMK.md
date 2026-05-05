@@ -70,7 +70,6 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 | Snarvei | Funksjon |
 |---------|----------|
-| `ALT+W` | Vis i kart |
 | `ALT+G` | Tildel oppdrag |
 | `ALT+B` | Blank (fjern alle markeringer) |
 | `ALT+P` | Merk alle ressurser i pågående oppdrag |
@@ -81,6 +80,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | Snarvei | Funksjon |
 |---------|----------|
 | `ALT+Q` | Åpne rutekalkulering i Google Maps |
+| `ALT+W` | Kartvisning |
 | `ALT+D` | Vis ressursinfo popup |
 | `ALT+Z` | Live ressurskart |
 | `ALT+M` | Møteplass |
@@ -110,6 +110,16 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 - Fungerer både for ventende og pågående oppdrag
 - Filtrerer automatisk ut bestillinger som er markert som "Framme"
 
+### 🗺️ Kartvisning (ALT+W)
+1. Merk én eller flere bestillinger (klikk på radene)
+2. Trykk `ALT+W`
+
+- Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+- Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
+- Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
+- **Beregnet kjørerute** via OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+- **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
+  - Leveringstid vises med `~`-prefiks på markør og i tooltip
 
 ### 🚕 Ressursinfo (ALT+D)
 
