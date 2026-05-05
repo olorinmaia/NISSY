@@ -294,7 +294,7 @@
       });
     });
 
-    function initMap(reqDetails) {
+    async function initMap(reqDetails) {
       const map = L.map('map');
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
@@ -379,7 +379,8 @@
           lines.push('➕ ' + (e.req.pasientNavn || '?') + t);
         });
         g.deliveries.forEach(function (e) {
-          const t = e.req.oppmote ? ' kl.' + (e.req.oppmote.split(' ')[1] || '') : '';
+          const est = estimertLev[e.req.reqId];
+          const t = est ? ' kl.' + est.display : (e.req.oppmote ? ' kl.' + (e.req.oppmote.split(' ')[1] || '') : '');
           lines.push('➖ ' + (e.req.pasientNavn || '?') + t);
         });
         return lines.join('<br>');
@@ -405,50 +406,65 @@
       }
 
       function validLL(s) { return s && isFinite(s.lat) && isFinite(s.lon); }
-      const hStops = reqDetails.filter(function (r) { return validLL(r.hentested); }).map(function (r) { return r.hentested; });
-      const lStops = reqDetails.filter(function (r) { return validLL(r.leveringssted); }).map(function (r) { return r.leveringssted; });
 
-      // Retur-deteksjon: alle hentesteder er i nærheten av hverandre (≤2km = samme sykehus/anlegg)
-      let maxHDist = 0;
-      for (let i = 0; i < hStops.length; i++) {
-        for (let j = i + 1; j < hStops.length; j++) {
-          maxHDist = Math.max(maxHDist, haversine(hStops[i], hStops[j]));
-        }
+      function parseMin(s) {
+        const t = s && s.split(' ')[1];
+        if (!t) return null;
+        const p = t.split(':');
+        return p.length < 2 ? null : parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
       }
-      const isRetur = hStops.length >= 2 && lStops.length >= 2 && maxHDist <= 2000;
+      function minToStr(m) {
+        const h = Math.floor(m / 60) % 24, mn = m % 60;
+        return (h < 10 ? '0' : '') + h + ':' + (mn < 10 ? '0' : '') + mn;
+      }
 
-      let waypoints;
-      if (isRetur) {
-        // Retur: alle hentesteder først, deretter leveringssteder sortert nærmest sentroid
-        var _rLat = 0, _rLon = 0;
-        for (var _ri = 0; _ri < hStops.length; _ri++) { _rLat += Number(hStops[_ri].lat); _rLon += Number(hStops[_ri].lon); }
-        const center = { lat: _rLat / hStops.length, lon: _rLon / hStops.length };
-        if (isFinite(center.lat) && isFinite(center.lon)) {
-          const sortedL = lStops.slice().sort(function (a, b) { return haversine(center, a) - haversine(center, b); });
-          const wSeen = new Set();
-          waypoints = hStops.concat(sortedL)
-            .filter(function (s) {
-              if (!validLL(s)) return false;
-              const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
-              if (wSeen.has(k)) return false; wSeen.add(k); return true;
-            })
-            .map(function (s) { return L.latLng(s.lat, s.lon); });
-        }
-      }
-      if (!waypoints) {
-        // Original: tidsbasert sortering
-        const timedStops = [];
-        reqDetails.forEach(function (req) {
-          if (req.hentested)    timedStops.push({ lat: req.hentested.lat,    lon: req.hentested.lon,    t: req.pasientKlar || '' });
-          if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: req.oppmote    || '' });
+      // Returer med dårlig datakvalitet: oppmote <= pasientKlar → hent faktisk kjøretid fra OSRM
+      const estimertLev = {};
+      const returReqs = reqDetails.filter(function (req) {
+        if (!validLL(req.hentested) || !validLL(req.leveringssted)) return false;
+        const hMin = parseMin(req.pasientKlar), lMin = parseMin(req.oppmote);
+        return hMin !== null && lMin !== null && lMin <= hMin;
+      });
+      let luftlinjeFallback = false;
+      if (returReqs.length > 0) {
+        const osrmRes = await Promise.all(returReqs.map(function (req) {
+          const h = req.hentested, l = req.leveringssted;
+          const url = 'https://router.project-osrm.org/route/v1/driving/' +
+            h.lon + ',' + h.lat + ';' + l.lon + ',' + l.lat + '?overview=false';
+          return fetch(url, { signal: AbortSignal.timeout(1000) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { return { req: req, sec: d.routes && d.routes[0] ? d.routes[0].duration : null }; })
+            .catch(function () { return { req: req, sec: null }; });
+        }));
+        osrmRes.forEach(function (result) {
+          const req = result.req;
+          const hMin = parseMin(req.pasientKlar);
+          const dateStr = (req.pasientKlar || '').split(' ')[0];
+          let travelMin;
+          if (result.sec !== null) {
+            travelMin = Math.round(result.sec / 60) + 10;
+          } else {
+            travelMin = Math.round(haversine(req.hentested, req.leveringssted) / 70000 * 60) + 10;
+            luftlinjeFallback = true;
+          }
+          estimertLev[req.reqId] = { sortKey: dateStr + ' ' + minToStr(hMin + travelMin), display: '~' + minToStr(hMin + travelMin) };
         });
-        timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
-        const seen = new Set();
-        waypoints = timedStops.filter(function (s) {
-          const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
-          if (seen.has(k)) return false; seen.add(k); return true;
-        }).map(function (s) { return L.latLng(s.lat, s.lon); });
       }
+
+      // Waypoints: kronologisk sortering — returer bruker estimert leveringstid
+      const timedStops = [];
+      reqDetails.forEach(function (req) {
+        const est = estimertLev[req.reqId];
+        if (req.hentested)     timedStops.push({ lat: req.hentested.lat,     lon: req.hentested.lon,     t: req.pasientKlar  || '' });
+        if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: est ? est.sortKey : (req.oppmote || '') });
+      });
+      timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
+      const seen = new Set();
+      const waypoints = timedStops.filter(function (s) {
+        if (!validLL(s)) return false;
+        const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
+        if (seen.has(k)) return false; seen.add(k); return true;
+      }).map(function (s) { return L.latLng(s.lat, s.lon); });
 
       let routeControl = null;
       let routeOn = true;
@@ -461,13 +477,25 @@
         return entries.map(function (e) { return (e.req[field] || '').split(' ')[1] || ''; })
           .filter(Boolean).sort()[0] || '';
       }
+      function deliveryTime(entries) {
+        const times = [];
+        entries.forEach(function (e) {
+          const est = estimertLev[e.req.reqId];
+          if (est) { times.push({ sort: est.sortKey, display: est.display }); return; }
+          const t = (e.req.oppmote || '').split(' ')[1] || '';
+          if (t) times.push({ sort: t, display: t });
+        });
+        if (!times.length) return '';
+        times.sort(function (a, b) { return a.sort.localeCompare(b.sort); });
+        return times[0].display;
+      }
 
       const allLL = [];
       Object.values(groups).forEach(function (g) {
         const ll = [g.lat, g.lon];
         allLL.push(ll);
         const pickTime = earliestTime(g.pickups, 'pasientKlar');
-        const delTime  = earliestTime(g.deliveries, 'oppmote');
+        const delTime  = deliveryTime(g.deliveries);
         const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
         const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
         L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName) })
@@ -536,7 +564,8 @@
 
       const antall = reqDetails.length;
       document.getElementById('status').textContent =
-        antall + ' bestilling' + (antall !== 1 ? 'er' : '');
+        antall + ' bestilling' + (antall !== 1 ? 'er' : '') +
+        (luftlinjeFallback ? ' · ⚠️ Lev.tid: luftlinje (OSRM svarte ikke)' : '');
     }
   </script>
 </body>
