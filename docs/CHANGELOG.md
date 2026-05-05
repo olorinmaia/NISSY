@@ -7,9 +7,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🚀 [4.3.0] - 05.05.2026
+## 🚀 [4.3.0] - 06.05.2026
 
-### Ny: Kartvisning for bestillinger, Smart-søk og ny knapp i Sjekk-telefon
+### Ny kartvisning for bestillinger, Smart-søk og ny knapp i Sjekk-telefon
 
 - 🗺️ **Kartvisning** *(nytt script)*
   - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
