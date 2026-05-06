@@ -190,6 +190,8 @@
     }
   }
 
+  const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=';
+
   // ── Kart-vindu HTML (data sendes via window.opener) ───────
   function buildMapHtml() {
     return `<!DOCTYPE html>
@@ -198,7 +200,6 @@
   <meta charset="UTF-8">
   <title>Kartvisning</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { height:100%; }
@@ -281,16 +282,14 @@
         return;
       }
 
-      // Last Leaflet, deretter Routing Machine
+      // Last Leaflet
       function loadScript(src, cb) {
         const s = document.createElement('script');
         s.src = src; s.crossOrigin = ''; s.onload = cb;
         document.head.appendChild(s);
       }
       loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', function () {
-        loadScript('https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', function () {
-          initMap(reqDetails);
-        });
+        initMap(reqDetails);
       });
     });
 
@@ -513,6 +512,7 @@
 
       function drawRoute() {
         if (!routeOn || waypoints.length < 2) return;
+
         const fallback = function () {
           const poly = L.polyline(waypoints.map(function (w) { return [w.lat, w.lng]; }),
             { color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8,6' }).addTo(map);
@@ -520,25 +520,45 @@
           if (allLL.length === 1) map.setView(allLL[0], 14);
           else if (allLL.length > 1) map.fitBounds(allLL, { padding: [50, 50] });
         };
-        try {
-          const ctrl = L.Routing.control({
-            waypoints,
-            router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'driving', timeout: 10000 }),
-            lineOptions: { styles: [{ color: '#047CA1', weight: 4, opacity: 0.7 }] },
-            createMarker: function () { return null; },
-            addWaypoints: false, routeWhileDragging: false,
-            showAlternatives: false, fitSelectedRoutes: false, show: false
-          }).addTo(map);
-          ctrl.on('routesfound', function (e) {
-            const route = e.routes[0];
-            setRouteInfo('🛣 ' + formatDist(route.summary.totalDistance) + ' · ⏱ ca. ' + formatTime(route.summary.totalTime));
-            if (route.coordinates && route.coordinates.length > 1) {
-              map.fitBounds(L.latLngBounds(route.coordinates), { padding: [50, 50] });
-            }
-          });
-          ctrl.on('routingerror', function () { map.removeControl(ctrl); setRouteInfo(null); fallback(); });
-          routeControl = { remove: function () { map.removeControl(ctrl); } };
-        } catch (e) { fallback(); }
+
+        function applyRoute(latlngs, distM, durSec) {
+          const poly = L.polyline(latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
+          routeControl = { remove: function () { map.removeLayer(poly); } };
+          setRouteInfo('🛣 ' + formatDist(distM) + ' · ⏱ ca. ' + formatTime(durSec));
+          map.fitBounds(poly.getBounds(), { padding: [50, 50] });
+        }
+
+        function routeViaOsrm() {
+          const coords = waypoints.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
+          fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson', {
+            signal: AbortSignal.timeout(10000)
+          })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            const route = data.routes && data.routes[0];
+            if (!route) { fallback(); return; }
+            const latlngs = route.geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
+            applyRoute(latlngs, route.distance, route.duration);
+          })
+          .catch(function () { fallback(); });
+        }
+
+        const coords = waypoints.map(function (w) { return [w.lng, w.lat]; });
+        fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': '${ORS_API_KEY}' },
+            body: JSON.stringify({ coordinates: coords }),
+            signal: AbortSignal.timeout(10000)
+          })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            const feature = data.features && data.features[0];
+            if (!feature) { routeViaOsrm(); return; }
+            const summary = feature.properties.summary;
+            const latlngs = feature.geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
+            applyRoute(latlngs, summary.distance, summary.duration);
+          })
+          .catch(function () { routeViaOsrm(); });
       }
 
       function removeRoute() {
