@@ -258,7 +258,7 @@
       line-height:2;
     }
     .icon-split {
-      position:relative; border-radius:50%; width:28px; height:28px;
+      position:relative; border-radius:50%; width:26px; height:26px;
       overflow:hidden; border:2px solid #555; box-shadow:0 1px 4px rgba(0,0,0,.3);
     }
     .icon-split-l {
@@ -362,7 +362,7 @@
             html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
                   '<div class="icon-split"><div class="icon-split-l">+</div><div class="icon-split-r">−</div></div>' +
                   label + '</div>',
-            iconSize: [28, 55], iconAnchor: [14, 14]
+            iconSize: [26, 55], iconAnchor: [13, 13]
           });
         }
         const symbol  = hasPick ? '➕' : '➖';
@@ -372,10 +372,10 @@
           className: 'custom-marker-wrapper',
           html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
                 '<div style="background:' + bgColor + ';border:2px solid ' + color +
-                ';border-radius:50%;width:28px;height:28px;display:flex;align-items:center;' +
-                'justify-content:center;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.3);">' + symbol + '</div>' +
+                ';border-radius:50%;width:26px;height:26px;display:flex;align-items:center;' +
+                'justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.3);">' + symbol + '</div>' +
                 label + '</div>',
-          iconSize: [28, 55], iconAnchor: [14, 14]
+          iconSize: [26, 55], iconAnchor: [13, 13]
         });
       }
 
