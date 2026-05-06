@@ -194,6 +194,8 @@
   // Gratis collaborative plan: https://account.heigit.org
   const ORS_KEYS = {
     'Pasientreiser Nord-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=',
+    'Kontoret for pasientreiser, Ålesund': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU5YTZmYWFmZGZhOTQxNzQ5OGMyY2UwMzkwZWEyYzA2IiwiaCI6Im11cm11cjY0In0=',
+    'Pasientreiser Sør-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5MDM5NzZiMjAwYjRmY2I5MmFhNjUyNjJjOWU2OGI5IiwiaCI6Im11cm11cjY0In0=',
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
@@ -469,12 +471,12 @@
         if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: est ? est.sortKey : (req.oppmote || '') });
       });
       timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
-      const seen = new Set();
-      const waypoints = timedStops.filter(function (s) {
-        if (!validLL(s)) return false;
+      const waypoints = [];
+      let _prevKey = null;
+      timedStops.filter(function (s) { return validLL(s); }).forEach(function (s) {
         const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
-        if (seen.has(k)) return false; seen.add(k); return true;
-      }).map(function (s) { return L.latLng(s.lat, s.lon); });
+        if (k !== _prevKey) { waypoints.push(L.latLng(s.lat, s.lon)); _prevKey = k; }
+      });
 
       let routeControl = null;
       let routeOn = true;
