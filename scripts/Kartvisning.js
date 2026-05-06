@@ -178,11 +178,24 @@
     return result;
   }
 
+  let _loginVarslet = false;
+  function visInnloggingsFeil() {
+    if (_loginVarslet) return;
+    _loginVarslet = true;
+    hideLoading();
+    _toast('⚠️ Ikke innlogget i NISSY admin – åpner innlogging…', '#d9534f', 3000);
+    const width  = Math.floor(window.innerWidth / 2);
+    const height = Math.floor(window.innerHeight * 0.9);
+    window.open('/administrasjon', 'NissyKartvisning',
+      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`);
+  }
+
   async function fetchReqDetails(reqId) {
     const url = `/administrasjon/admin/ajax_reqdetails?id=${reqId}&db=1&tripid=&showSutiXml=false&hideEvents=true&full=true&highlightTripNr=`;
     try {
       const resp = await fetch(url);
       const html = await resp.text();
+      if (html.includes('login.vm')) { visInnloggingsFeil(); return { reqId, hentested: null, leveringssted: null }; }
       return parseReqDetails(html, reqId);
     } catch (e) {
       console.error(`[Kartvisning] Feil ved henting av req ${reqId}:`, e);
@@ -597,6 +610,7 @@
 
   // ── Hovedfunksjon ─────────────────────────────────────────
   async function visKart() {
+    _loginVarslet = false;
     const voppIds = getVoppReqIds();
     const poppIds = getPoppReqIds();
     const alleIds = [...new Set([...voppIds, ...poppIds])];
@@ -624,7 +638,7 @@
       console.warn('[Kartvisning] Ingen koordinater for:', uten.map(d => d.reqId));
     }
     if (med.length === 0) {
-      showError('🗺️ Fant ingen koordinater for de merkede bestillingene');
+      if (!_loginVarslet) showError('🗺️ Fant ingen koordinater for de merkede bestillingene');
       return;
     }
 
