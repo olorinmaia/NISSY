@@ -624,7 +624,9 @@
       console.warn('[Kartvisning] Ingen koordinater for:', uten.map(d => d.reqId));
     }
     if (med.length === 0) {
-      showError('🗺️ Fant ingen koordinater for de merkede bestillingene');
+      hideLoading();
+      _toast('🗺️ Fant ingen koordinater – åpner NISSY-kart', '#888', 3000);
+      _origOpen.call(window, ...(_lastMapOpenArgs || ['', '_blank', '']));
       return;
     }
 
@@ -633,8 +635,10 @@
 
   // ── Intercepter window.open for mapDisplay.jsp ────────────
   const _origOpen = window.open;
+  let _lastMapOpenArgs = null;
   window.open = function (url, target, features) {
     if (url && url.includes('mapDisplay')) {
+      _lastMapOpenArgs = [url, target, features];
       visKart();
       return null;
     }
