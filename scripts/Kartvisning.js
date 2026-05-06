@@ -191,6 +191,10 @@
   }
 
   const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=';
+  const ORS_OFFICES = ['Pasientreiser Nord-Trøndelag'];
+  const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+  const _currentOffice = _officeMatch?.[1]?.trim() || null;
+  const orsEnabled = ORS_OFFICES.includes(_currentOffice);
 
   // ── Kart-vindu HTML (data sendes via window.opener) ───────
   function buildMapHtml() {
@@ -268,7 +272,7 @@
     <h1>🗺️ Kartvisning – bestillinger</h1>
     <div id="controls">
       <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">ℹ️ Info på ikon</button>
-      <button id="routeToggleBtn" title="Beregnet kjørerute via OSRM">📐 Beregnet rute</button>
+      <button id="routeToggleBtn" title="Beregnet kjørerute via ORS/OSRM">📐 Beregnet rute</button>
       <div id="routeInfo" style="display:none;font-size:13px;padding:5px 12px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
       <div id="status">Laster kart…</div>
     </div>
@@ -542,6 +546,8 @@
           })
           .catch(function () { fallback(); });
         }
+
+        if (!${orsEnabled}) { routeViaOsrm(); return; }
 
         const coords = waypoints.map(function (w) { return [w.lng, w.lat]; });
         fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
