@@ -190,11 +190,15 @@
     }
   }
 
-  const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=';
-  const ORS_OFFICES = ['Pasientreiser Nord-Trøndelag'];
+  // Legg til kontorets ORS-nøkkel her når IT-ansvarlig sender den.
+  // Gratis collaborative plan: https://account.heigit.org
+  const ORS_KEYS = {
+    'Pasientreiser Nord-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=',
+  };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
-  const orsEnabled = ORS_OFFICES.includes(_currentOffice);
+  const ORS_API_KEY = ORS_KEYS[_currentOffice] || null;
+  const orsEnabled = !!ORS_API_KEY;
 
   // ── Kart-vindu HTML (data sendes via window.opener) ───────
   function buildMapHtml() {
