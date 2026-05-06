@@ -7,6 +7,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.3.1] - 06.05.2026
+
+### Kartvisning: Forbedret rutekalkulering
+
+- 🗺️ **Kartvisning**
+  - **Bedre rutekalkulering** via OpenRouteService (ORS) – gir mer realistiske ruteberegninger. Aktivert for HNT, MR og StO som har egne API-nøkler
+  - **Tur/retur-ruter beregnes nå korrekt** – tidligere ble siste stopp forkastet ved runde turer (f.eks. hjem → sykehus → hjem), slik at km og kjøretid ble feil
+
+---
+
 ## 🚀 [4.3.0] - 06.05.2026
 
 ### Ny kartvisning for bestillinger, Smart-søk og ny knapp i Sjekk-telefon

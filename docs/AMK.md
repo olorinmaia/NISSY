@@ -118,7 +118,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
 - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
 - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
-- **Beregnet kjørerute** via OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+- **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
 - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
   - Leveringstid vises med `~`-prefiks på markør og i tooltip
 
