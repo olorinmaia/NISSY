@@ -293,13 +293,22 @@
       }
 
       // Last Leaflet
-      function loadScript(src, cb) {
+      function loadScript(src, cb, onErr) {
         const s = document.createElement('script');
-        s.src = src; s.crossOrigin = ''; s.onload = cb;
+        s.src = src; s.crossOrigin = ''; s.onload = cb; s.onerror = onErr;
         document.head.appendChild(s);
       }
       loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', function () {
-        initMap(reqDetails);
+        initMap(reqDetails).catch(function (err) {
+          console.error('[Kartvisning] initMap feilet:', err);
+          document.getElementById('status').textContent = '⚠️ Kartvisning feilet – se konsoll';
+        });
+      }, function () {
+        document.getElementById('status').textContent = '⚠️ Kartbibliotek lastet ikke';
+        if (window.opener && window.opener._origOpen && window.opener._lastMapOpenArgs) {
+          window.opener._origOpen.apply(window.opener, window.opener._lastMapOpenArgs);
+        }
+        window.close();
       });
     });
 
