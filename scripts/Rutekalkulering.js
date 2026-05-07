@@ -199,6 +199,7 @@
     "Steinkjer rehab/Fysioterapi, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
     "Steinkjer rehab, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
     "Dialyse, 7725 Steinkjer": "DMS Inn-Trøndelag, 7725 Steinkjer",
+    "Fys. Kristiansen, 7712 Steinkjer": "Løsbergvegen 8, 7712 Steinkjer",
     "Rørvik helsesenter/Dialyse, 7900 Rørvik": "Rørvik sykestue, 7900 Rørvik",
     "Fiskarbyen bofelleskap, 7970 Kolvereid": "Bjørkåsvegen 15D, 7970 Kolvereid",
     "Rindal Fysioterapi/Rindal Fysioterapi/Helge Pedersen, 6657 Rindal": "Sjukeheimsvegen 6, 6657 Rindal",
