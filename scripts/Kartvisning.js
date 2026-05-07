@@ -540,24 +540,42 @@
           else if (allLL.length > 1) map.fitBounds(allLL, { padding: [50, 50] });
         };
 
-        function applyRoute(latlngs, distM, durSec) {
-          const poly = L.polyline(latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
-          routeControl = { remove: function () { map.removeLayer(poly); } };
-          setRouteInfo('🛣 ' + formatDist(distM) + ' · ⏱ ca. ' + formatTime(durSec));
-          map.fitBounds(poly.getBounds(), { padding: [50, 50] });
+        function applyLegs(legs, totalDist, totalDur) {
+          const polys = [];
+          legs.forEach(function (leg) {
+            const poly = L.polyline(leg.latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
+            if (legs.length > 1) {
+              poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
+              poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
+              poly.bindTooltip('🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur),
+                { sticky: true });
+            }
+            polys.push(poly);
+          });
+          routeControl = { remove: function () { polys.forEach(function (p) { map.removeLayer(p); }); } };
+          setRouteInfo('🛣 ' + formatDist(totalDist) + ' · ⏱ ca. ' + formatTime(totalDur));
+          let bounds = polys[0].getBounds();
+          for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
+          map.fitBounds(bounds, { padding: [50, 50] });
         }
 
         function routeViaOsrm() {
           const coords = waypoints.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
-          fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson', {
+          fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson&steps=true', {
             signal: AbortSignal.timeout(10000)
           })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             const route = data.routes && data.routes[0];
             if (!route) { fallback(); return; }
-            const latlngs = route.geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
-            applyRoute(latlngs, route.distance, route.duration);
+            const legs = route.legs.map(function (leg) {
+              const latlngs = [];
+              leg.steps.forEach(function (step) {
+                step.geometry.coordinates.forEach(function (c) { latlngs.push([c[1], c[0]]); });
+              });
+              return { latlngs: latlngs, dist: leg.distance, dur: leg.duration };
+            });
+            applyLegs(legs, route.distance, route.duration);
           })
           .catch(function () { fallback(); });
         }
@@ -575,9 +593,13 @@
           .then(function (data) {
             const feature = data.features && data.features[0];
             if (!feature) { routeViaOsrm(); return; }
-            const summary = feature.properties.summary;
-            const latlngs = feature.geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
-            applyRoute(latlngs, summary.distance, summary.duration);
+            const allCoords = feature.geometry.coordinates;
+            const wayPts = feature.properties.way_points;
+            const legs = feature.properties.segments.map(function (seg, i) {
+              const sliced = allCoords.slice(wayPts[i], wayPts[i + 1] + 1);
+              return { latlngs: sliced.map(function (c) { return [c[1], c[0]]; }), dist: seg.distance, dur: seg.duration };
+            });
+            applyLegs(legs, feature.properties.summary.distance, feature.properties.summary.duration);
           })
           .catch(function () { routeViaOsrm(); });
       }
