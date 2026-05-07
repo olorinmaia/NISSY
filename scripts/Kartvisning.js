@@ -160,6 +160,7 @@
             lat: ll.lat, lon: ll.lon,
             adresse: normaliserAdresse(cleanAddressSuffixes(rawAdresse)),
             navn: rows['Navn'] || '',
+            poststed: (rows['Postnr / Sted'] || '').replace(/^\d{4}\s*/, ''),
           };
           if (title === 'Hentested') result.hentested = loc;
           else result.leveringssted = loc;
@@ -238,6 +239,7 @@
     #map { width:100%; height:calc(100vh - 48px); }
     .custom-marker-wrapper { background:transparent; border:none; }
     .leaflet-routing-container { display:none; }
+    .leaflet-interactive:focus { outline: none; }
     .leaflet-popup-content-wrapper { border-radius:8px; padding:0; overflow:hidden; }
     .leaflet-popup-content { margin:0; min-width:240px; max-width:320px; }
     .popup-header {
@@ -331,18 +333,6 @@
 
       // ── Grupper stopp per koordinat ─────────────────────────
       function coordKey(lat, lon) { return lat.toFixed(5) + ',' + lon.toFixed(5); }
-
-      const groups = {}; // key → { pickups: [], deliveries: [], lat, lon }
-
-      reqDetails.forEach(function (req) {
-        function addToGroup(stop, isPickup) {
-          const k = coordKey(stop.lat, stop.lon);
-          if (!groups[k]) groups[k] = { lat: stop.lat, lon: stop.lon, pickups: [], deliveries: [] };
-          (isPickup ? groups[k].pickups : groups[k].deliveries).push({ req, stop });
-        }
-        if (req.hentested)    addToGroup(req.hentested, true);
-        if (req.leveringssted) addToGroup(req.leveringssted, false);
-      });
 
       // ── Ikon ────────────────────────────────────────────────
       function trunc(str, n) { return str && str.length > n ? str.slice(0, n - 1) + '…' : str || ''; }
@@ -472,72 +462,94 @@
         });
       }
 
-      // Waypoints: kronologisk sortering — returer bruker estimert leveringstid
-      const timedStops = [];
-      reqDetails.forEach(function (req) {
-        const est = estimertLev[req.reqId];
-        if (req.hentested)     timedStops.push({ lat: req.hentested.lat,     lon: req.hentested.lon,     t: req.pasientKlar  || '' });
-        if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: est ? est.sortKey : (req.oppmote || '') });
-      });
-      timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
-      const waypoints = [];
-      let _prevKey = null;
-      timedStops.filter(function (s) { return validLL(s); }).forEach(function (s) {
-        const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
-        if (k !== _prevKey) { waypoints.push(L.latLng(s.lat, s.lon)); _prevKey = k; }
-      });
-
+      // ── Tilstand for re-render ───────────────────────────────
+      let currentMarkerLayers = [];
+      let currentAllLL = [];
+      let currentWaypoints = [];
       let routeControl = null;
       let routeOn = true;
 
-      // Rutekalkulering vil håndtere zoom – hopp over innledende fitBounds i så fall
-      const willRoute = routeOn && waypoints.length >= 2;
+      function renderBookings(filtered) {
+        currentMarkerLayers.forEach(function (l) { map.removeLayer(l); });
+        currentMarkerLayers = [];
+        if (routeControl) { routeControl.remove(); routeControl = null; }
+        setRouteInfo(null);
+        currentAllLL = [];
+        currentWaypoints = [];
 
-      // ── Bygg markører ────────────────────────────────────────
-      function earliestTime(entries, field) {
-        return entries.map(function (e) { return (e.req[field] || '').split(' ')[1] || ''; })
-          .filter(Boolean).sort()[0] || '';
-      }
-      function deliveryTime(entries) {
-        const times = [];
-        entries.forEach(function (e) {
-          const est = estimertLev[e.req.reqId];
-          if (est) { times.push({ sort: est.sortKey, display: est.display }); return; }
-          const t = (e.req.oppmote || '').split(' ')[1] || '';
-          if (t) times.push({ sort: t, display: t });
+        const groups = {};
+        filtered.forEach(function (req) {
+          function addToGroup(stop, isPickup) {
+            const k = coordKey(stop.lat, stop.lon);
+            if (!groups[k]) groups[k] = { lat: stop.lat, lon: stop.lon, pickups: [], deliveries: [] };
+            (isPickup ? groups[k].pickups : groups[k].deliveries).push({ req, stop });
+          }
+          if (req.hentested)     addToGroup(req.hentested, true);
+          if (req.leveringssted) addToGroup(req.leveringssted, false);
         });
-        if (!times.length) return '';
-        times.sort(function (a, b) { return a.sort.localeCompare(b.sort); });
-        return times[0].display;
-      }
 
-      const allLL = [];
-      Object.values(groups).forEach(function (g) {
-        const ll = [g.lat, g.lon];
-        allLL.push(ll);
-        const pickTime = earliestTime(g.pickups, 'pasientKlar');
-        const delTime  = deliveryTime(g.deliveries);
-        const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
-        const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
-        L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName) })
-          .addTo(map)
-          .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
-      });
+        const timedStops = [];
+        filtered.forEach(function (req) {
+          const est = estimertLev[req.reqId];
+          if (req.hentested)     timedStops.push({ lat: req.hentested.lat,     lon: req.hentested.lon,     t: req.pasientKlar  || '' });
+          if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: est ? est.sortKey : (req.oppmote || '') });
+        });
+        timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
+        let _prevKey = null;
+        timedStops.filter(function (s) { return validLL(s); }).forEach(function (s) {
+          const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
+          if (k !== _prevKey) { currentWaypoints.push(L.latLng(s.lat, s.lon)); _prevKey = k; }
+        });
 
-      if (!willRoute) {
-        if (allLL.length === 1)     map.setView(allLL[0], 14);
-        else if (allLL.length > 1)  map.fitBounds(allLL, { padding: [50, 50] });
+        function earliestTime(entries, field) {
+          return entries.map(function (e) { return (e.req[field] || '').split(' ')[1] || ''; })
+            .filter(Boolean).sort()[0] || '';
+        }
+        function deliveryTime(entries) {
+          const times = [];
+          entries.forEach(function (e) {
+            const est = estimertLev[e.req.reqId];
+            if (est) { times.push({ sort: est.sortKey, display: est.display }); return; }
+            const t = (e.req.oppmote || '').split(' ')[1] || '';
+            if (t) times.push({ sort: t, display: t });
+          });
+          if (!times.length) return '';
+          times.sort(function (a, b) { return a.sort.localeCompare(b.sort); });
+          return times[0].display;
+        }
+
+        Object.values(groups).forEach(function (g) {
+          const ll = [g.lat, g.lon];
+          currentAllLL.push(ll);
+          const pickTime = earliestTime(g.pickups, 'pasientKlar');
+          const delTime  = deliveryTime(g.deliveries);
+          const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
+          const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
+          const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName) })
+            .addTo(map)
+            .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
+          currentMarkerLayers.push(marker);
+        });
+
+        if (routeOn && currentWaypoints.length >= 2) {
+          drawRoute();
+        } else {
+          if (currentAllLL.length === 1)     map.setView(currentAllLL[0], 14);
+          else if (currentAllLL.length > 1)  map.fitBounds(currentAllLL, { padding: [50, 50] });
+        }
+
+        updateStatus(filtered);
       }
 
       function drawRoute() {
-        if (!routeOn || waypoints.length < 2) return;
+        if (!routeOn || currentWaypoints.length < 2) return;
 
         const fallback = function () {
-          const poly = L.polyline(waypoints.map(function (w) { return [w.lat, w.lng]; }),
+          const poly = L.polyline(currentWaypoints.map(function (w) { return [w.lat, w.lng]; }),
             { color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8,6' }).addTo(map);
           routeControl = { remove: function () { map.removeLayer(poly); } };
-          if (allLL.length === 1) map.setView(allLL[0], 14);
-          else if (allLL.length > 1) map.fitBounds(allLL, { padding: [50, 50] });
+          if (currentAllLL.length === 1) map.setView(currentAllLL[0], 14);
+          else if (currentAllLL.length > 1) map.fitBounds(currentAllLL, { padding: [50, 50] });
         };
 
         function applyLegs(legs, totalDist, totalDur) {
@@ -560,7 +572,7 @@
         }
 
         function routeViaOsrm() {
-          const coords = waypoints.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
+          const coords = currentWaypoints.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
           fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson&steps=true', {
             signal: AbortSignal.timeout(10000)
           })
@@ -582,7 +594,7 @@
 
         if (!${orsEnabled}) { routeViaOsrm(); return; }
 
-        const coords = waypoints.map(function (w) { return [w.lng, w.lat]; });
+        const coords = currentWaypoints.map(function (w) { return [w.lng, w.lat]; });
         fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': '${ORS_API_KEY}' },
@@ -609,7 +621,98 @@
         setRouteInfo(null);
       }
 
-      drawRoute();
+      function updateStatus(filtered) {
+        const n = filtered.length, total = reqDetails.length;
+        let text = n + ' bestilling' + (n !== 1 ? 'er' : '');
+        if (n < total) text += ' av ' + total;
+        if (luftlinjeFallback) text += ' · ⚠️ Lev.tid: luftlinje (OSRM svarte ikke)';
+        document.getElementById('status').textContent = text;
+      }
+
+      // ── Filterpanel ──────────────────────────────────────────
+      let activeFilter = reqDetails.map(function (r) { return r.reqId; });
+
+      const filterPanel = document.createElement('div');
+      filterPanel.style.cssText =
+        'position:fixed;top:48px;right:12px;background:#fff;border:1px solid #ccc;' +
+        'border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.2);padding:10px 14px;' +
+        'z-index:1000;min-width:200px;max-height:70vh;overflow-y:auto;display:none;font-size:13px;';
+
+      const filterTitle = document.createElement('div');
+      filterTitle.style.cssText = 'font-weight:600;margin-bottom:8px;color:#333;';
+      filterTitle.textContent = 'Bestillinger';
+      filterPanel.appendChild(filterTitle);
+
+      function kortSted(loc) {
+        if (!loc) return '';
+        const hoved = loc.navn || loc.adresse.split(',')[0] || '';
+        return hoved + (loc.poststed ? ', ' + loc.poststed : '');
+      }
+
+      function applyBtnLabel(n, total) {
+        const word = total === 1 ? ' bestilling' : ' bestillinger';
+        return n === total ? 'Vis alle ' + total + word : 'Vis ' + n + ' av ' + total;
+      }
+
+      reqDetails.forEach(function (req) {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;cursor:pointer;';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = true;
+        cb.style.marginTop = '2px';
+        cb.addEventListener('change', function () {
+          if (cb.checked) {
+            if (!activeFilter.includes(req.reqId)) activeFilter.push(req.reqId);
+          } else {
+            activeFilter = activeFilter.filter(function (id) { return id !== req.reqId; });
+          }
+          const n = activeFilter.length;
+          applyBtn.textContent = applyBtnLabel(n, reqDetails.length);
+          applyBtn.disabled = n === 0;
+          applyBtn.style.opacity = n === 0 ? '0.45' : '1';
+          applyBtn.style.cursor  = n === 0 ? 'default' : 'pointer';
+        });
+
+        const fra = trunc(kortSted(req.hentested), 30);
+        const til = trunc(kortSted(req.leveringssted), 30);
+        const hentTid = (req.pasientKlar || '').split(' ')[1] || '';
+        const levTid  = (req.oppmote    || '').split(' ')[1] || '';
+        const tidDel  = hentTid ? hentTid + (levTid ? '–' + levTid : '') : levTid;
+
+        const txt = document.createElement('span');
+        txt.style.lineHeight = '1.3';
+        const rute = [fra, til].filter(Boolean).join(' → ');
+        txt.textContent = (tidDel ? tidDel + ' · ' : '') + rute;
+
+        row.appendChild(cb);
+        row.appendChild(txt);
+        filterPanel.appendChild(row);
+      });
+
+      const applyBtn = document.createElement('button');
+      applyBtn.textContent = applyBtnLabel(reqDetails.length, reqDetails.length);
+      applyBtn.style.cssText =
+        'margin-top:6px;width:100%;padding:6px;background:#025671;color:#fff;' +
+        'border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;';
+      applyBtn.addEventListener('click', function () {
+        filterPanel.style.display = 'none';
+        renderBookings(reqDetails.filter(function (r) { return activeFilter.includes(r.reqId); }));
+      });
+      filterPanel.appendChild(applyBtn);
+
+      document.body.appendChild(filterPanel);
+
+      const statusEl = document.getElementById('status');
+      statusEl.style.cursor = 'pointer';
+      statusEl.title = 'Klikk for å filtrere bestillinger';
+      statusEl.addEventListener('click', function () {
+        filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
+      });
+      map.on('click', function () { filterPanel.style.display = 'none'; });
+
+      renderBookings(reqDetails);
 
       // Knapp – rute
       const btn = document.getElementById('routeToggleBtn');
@@ -627,11 +730,6 @@
         document.body.classList.toggle('labels-hidden', !showLabels);
         labelBtn.classList.toggle('av', !showLabels);
       });
-
-      const antall = reqDetails.length;
-      document.getElementById('status').textContent =
-        antall + ' bestilling' + (antall !== 1 ? 'er' : '') +
-        (luftlinjeFallback ? ' · ⚠️ Lev.tid: luftlinje (OSRM svarte ikke)' : '');
     }
   </script>
 </body>
