@@ -337,7 +337,7 @@
       // ── Ikon ────────────────────────────────────────────────
       function trunc(str, n) { return str && str.length > n ? str.slice(0, n - 1) + '…' : str || ''; }
 
-      function makeIcon(hasPick, hasDel, pickTime, delTime, locName) {
+      function makeIcon(hasPick, hasDel, pickTime, delTime, locName, pickCount, delCount) {
         const timePart = (pickTime || delTime)
           ? '<div class="icon-label-time">' +
             (hasPick && hasDel
@@ -355,11 +355,22 @@
           ? '<div class="icon-label">' + timePart + addrPart + '</div>'
           : '';
 
+        function badgeHtml(count, color, side) {
+          if (count <= 1) return '';
+          return '<div style="position:absolute;top:-5px;' + side + ':-5px;background:' + color + ';color:#fff;' +
+            'border-radius:50%;width:15px;height:15px;font-size:9px;font-weight:900;' +
+            'display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;">' + count + '</div>';
+        }
+
         if (hasPick && hasDel) {
           return L.divIcon({
             className: 'custom-marker-wrapper',
             html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                  '<div style="position:relative;">' +
                   '<div class="icon-split"><div class="icon-split-l">+</div><div class="icon-split-r">−</div></div>' +
+                  badgeHtml(pickCount, '#2e7d32', 'left') +
+                  badgeHtml(delCount,  '#1565c0', 'right') +
+                  '</div>' +
                   label + '</div>',
             iconSize: [26, 55], iconAnchor: [13, 13]
           });
@@ -367,12 +378,16 @@
         const symbol  = hasPick ? '➕' : '➖';
         const color   = hasPick ? '#2e7d32' : '#1565c0';
         const bgColor = hasPick ? '#e8f5e9' : '#e3f2fd';
+        const count   = hasPick ? pickCount : delCount;
         return L.divIcon({
           className: 'custom-marker-wrapper',
           html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                '<div style="position:relative;">' +
                 '<div style="background:' + bgColor + ';border:2px solid ' + color +
                 ';border-radius:50%;width:26px;height:26px;display:flex;align-items:center;' +
                 'justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.3);">' + symbol + '</div>' +
+                badgeHtml(count, color, 'right') +
+                '</div>' +
                 label + '</div>',
           iconSize: [26, 55], iconAnchor: [13, 13]
         });
@@ -525,7 +540,7 @@
           const delTime  = deliveryTime(g.deliveries);
           const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
           const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
-          const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName) })
+          const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length) })
             .addTo(map)
             .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
           currentMarkerLayers.push(marker);
