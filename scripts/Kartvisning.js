@@ -641,6 +641,7 @@
         let text = n + ' bestilling' + (n !== 1 ? 'er' : '');
         if (n < total) text += ' av ' + total;
         if (luftlinjeFallback) text += ' · ⚠️ Lev.tid: luftlinje (OSRM svarte ikke)';
+        if (total > 1) text += ' ▾';
         document.getElementById('status').textContent = text;
       }
 
@@ -720,11 +721,13 @@
       document.body.appendChild(filterPanel);
 
       const statusEl = document.getElementById('status');
-      statusEl.style.cursor = 'pointer';
-      statusEl.title = 'Klikk for å filtrere bestillinger';
-      statusEl.addEventListener('click', function () {
-        filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
-      });
+      if (reqDetails.length > 1) {
+        statusEl.style.cursor = 'pointer';
+        statusEl.title = 'Klikk for å filtrere bestillinger';
+        statusEl.addEventListener('click', function () {
+          filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
+        });
+      }
       map.on('click', function () { filterPanel.style.display = 'none'; });
 
       renderBookings(reqDetails);
