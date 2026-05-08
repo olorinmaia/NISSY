@@ -540,9 +540,21 @@
           const delTime  = deliveryTime(g.deliveries);
           const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
           const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
+          const groupReqIds = g.pickups.concat(g.deliveries).map(function (e) { return e.req.reqId; })
+            .filter(function (id, i, arr) { return arr.indexOf(id) === i; });
           const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length) })
             .addTo(map)
             .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
+          if (reqDetails.length > 1) {
+            marker.on('click', function (e) {
+              L.DomEvent.stopPropagation(e);
+              activeHighlight = groupReqIds;
+              filterPanel.style.display = 'block';
+              applyRowStyles();
+              const firstRow = filterRows[groupReqIds[0]];
+              if (firstRow) firstRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            });
+          }
           currentMarkerLayers.push(marker);
         });
 
@@ -670,15 +682,19 @@
         return n === total ? 'Vis alle ' + total + word : 'Vis ' + n + ' av ' + total;
       }
 
+      const filterRows = {};
+      let activeHighlight = [];
+
       const sortedForFilter = reqDetails.slice().sort(function (a, b) {
         const tA = (a.pasientKlar || '').split(' ')[1] || '';
         const tB = (b.pasientKlar || '').split(' ')[1] || '';
         return tA.localeCompare(tB);
       });
 
-      sortedForFilter.forEach(function (req) {
+      sortedForFilter.forEach(function (req, rowIdx) {
         const row = document.createElement('label');
-        row.style.cssText = 'display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;cursor:pointer;';
+        row.style.cssText = 'display:flex;align-items:flex-start;gap:6px;margin-bottom:2px;cursor:pointer;padding:4px 5px;border-radius:3px;border-left:3px solid transparent;';
+        filterRows[req.reqId] = row;
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
@@ -720,9 +736,26 @@
         'border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;';
       applyBtn.addEventListener('click', function () {
         filterPanel.style.display = 'none';
+        activeHighlight = [];
+        applyRowStyles();
         renderBookings(reqDetails.filter(function (r) { return activeFilter.includes(r.reqId); }));
       });
       filterPanel.appendChild(applyBtn);
+
+      function applyRowStyles() {
+        sortedForFilter.forEach(function (req, idx) {
+          const r = filterRows[req.reqId];
+          if (!r) return;
+          if (activeHighlight.indexOf(req.reqId) !== -1) {
+            r.style.background = '#fff3cd';
+            r.style.borderLeftColor = '#e6820a';
+          } else {
+            r.style.background = idx % 2 === 0 ? '#f0f4f8' : '';
+            r.style.borderLeftColor = 'transparent';
+          }
+        });
+      }
+      applyRowStyles();
 
       document.body.appendChild(filterPanel);
 
@@ -731,10 +764,16 @@
         statusEl.style.cursor = 'pointer';
         statusEl.title = 'Klikk for å filtrere bestillinger';
         statusEl.addEventListener('click', function () {
-          filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
+          const isOpening = filterPanel.style.display === 'none';
+          filterPanel.style.display = isOpening ? 'block' : 'none';
+          if (!isOpening) { activeHighlight = []; applyRowStyles(); }
         });
       }
-      map.on('click', function () { filterPanel.style.display = 'none'; });
+      map.on('click', function () {
+        filterPanel.style.display = 'none';
+        activeHighlight = [];
+        applyRowStyles();
+      });
 
       renderBookings(reqDetails);
 
