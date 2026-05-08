@@ -7,6 +7,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.3.5] - 11.05.2026
+
+### Kartvisning: Filterpanel for bestillinger og mulighet til å se reisetid/avstand for delstrekninger
+
+- 🗺️ **Kartvisning**
+  - **Filterpanel** – Klikk på kartikon åpner bestillingslisten og fremhever den/de tilhørende bestillingene med gul bakgrunn
+  - **▾-hint** på statusfeltet øverst til høyre viser at listen kan åpnes – kun synlig når det er mer enn én bestilling
+  - Lagt til funksjonalitet for å holde musa over en delstrekning for og se reisetid/avstand mellom to hendelser
+  - **Antall-badge på ikoner** – når flere bestillinger har hentested eller leveringssted på nøyaktig samme adresse vises antallet som et lite tall på ikonet 
+
+---
+
 ## 🔧 [4.3.1] - 06.05.2026
 
 ### Kartvisning: Forbedret rutekalkulering
