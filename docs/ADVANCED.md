@@ -104,7 +104,8 @@ Navn: `NISSY-Avansert`
 - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
 - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
 - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
-  - Leveringstid vises med `~`-prefiks på markør og i tooltip
+- Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
+- Hold over et segment for å se reisetid/avstand mellom to hendelser.
 
 ### 🚕 Ressursinfo (ALT+D)
 

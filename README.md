@@ -24,11 +24,11 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
   - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
   - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
-  - 12 siffer → Rekvisisjonsnummer
-  - 11 siffer → Personnummer
-  - 8 siffer → Turnummer
-  - 6 siffer → Personnummer (fødselsdato)
-  - Bokstaver/komma → Navn (Etternavn, Fornavn)
+    - 12 siffer → Rekvisisjonsnummer
+    - 11 siffer → Personnummer
+    - 8 siffer → Turnummer
+    - 6 siffer → Personnummer (fødselsdato)
+    - Bokstaver/komma → Navn (Etternavn, Fornavn)
 
 - 🪄 **Smart-tildel (Alt+S)**
   - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING, TA KONTAKT FOR HJELP**
@@ -68,6 +68,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
   - Adresser normaliseres og navn forkortes for kompakt visning
+  - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
+  - Hold over et segment for å se reisetid/avstand mellom to hendelser.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
 
 - 🚕 **Ressursinfo (Alt+D)**
