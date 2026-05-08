@@ -7,7 +7,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.3.5] - 11.05.2026
+## 🔧 [4.3.5] - 08.05.2026
 
 ### Kartvisning: Filterpanel for bestillinger og mulighet til å se reisetid/avstand for delstrekninger
 
