@@ -670,7 +670,13 @@
         return n === total ? 'Vis alle ' + total + word : 'Vis ' + n + ' av ' + total;
       }
 
-      reqDetails.forEach(function (req) {
+      const sortedForFilter = reqDetails.slice().sort(function (a, b) {
+        const tA = (a.pasientKlar || '').split(' ')[1] || '';
+        const tB = (b.pasientKlar || '').split(' ')[1] || '';
+        return tA.localeCompare(tB);
+      });
+
+      sortedForFilter.forEach(function (req) {
         const row = document.createElement('label');
         row.style.cssText = 'display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;cursor:pointer;';
 
