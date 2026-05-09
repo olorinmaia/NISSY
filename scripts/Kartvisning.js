@@ -364,7 +364,6 @@
         },
         {
           id: 'leka',
-          island_bbox: [65.03, 11.54, 65.16, 11.84],
           crossing_min: 20,
           leier: [
             {
@@ -396,7 +395,6 @@
         },
         {
           id: 'ytterøy',
-          island_bbox: [63.73, 11.00, 63.86, 11.23],
           crossing_min: 35,
           leier: [
             {
@@ -421,6 +419,58 @@
               avganger: {
                 'man-fre': ['04:20','05:30','06:40','08:00','09:15','10:45','12:00','14:00','15:35','16:45','18:00'],
                 'lor': null, 'son': null
+              }
+            }
+          ]
+        },
+        {
+          id: 'jøa',
+          crossing_min: 5,
+          leier: [
+            {
+              navn: 'Seierstad', lat: 64.637475, lon: 11.345592,
+              mainland: false,
+              retning: 'Seierstad → Ølhammeren',
+              label_ankomst: 'Fremme Sykehuset Namsos',
+              avganger: {
+                'man-fre': [
+                  ['06:15','06:55'],['06:45','07:25'],['07:15','07:55'],['07:45','08:25'],
+                  ['08:15','08:55'],['08:45','09:25'],['09:45','10:25'],['10:45','11:25'],
+                  ['11:45','12:25'],['12:45','13:25'],['13:15','13:55'],['13:45','14:25'],
+                  ['14:15','14:55'],['14:45','15:25'],['15:15','15:55'],['15:45','16:25'],
+                  ['16:15','16:55'],['16:45','17:25'],['17:15','17:55'],['17:45','18:25'],
+                  ['18:45','19:25'],['19:45','20:25'],['20:45','21:25'],['21:45','22:25'],
+                  ['22:45','23:25']
+                ],
+                'lor': [
+                  ['06:15','06:55'],['06:45','07:25'],['07:15','07:55'],['07:45','08:25'],
+                  ['08:45','09:25'],['09:45','10:25'],['10:45','11:25'],['11:45','12:25'],
+                  ['12:45','13:25'],['13:45','14:25'],['14:45','15:25'],['15:45','16:25'],
+                  ['16:45','17:25'],['17:45','18:25'],['18:45','19:25'],['19:45','20:25'],
+                  ['20:45','21:25'],['21:45','22:25'],['22:45','23:25']
+                ],
+                'son': [
+                  ['06:15','06:55'],['07:45','08:25'],['08:45','09:25'],['09:45','10:25'],
+                  ['10:45','11:25'],['11:45','12:25'],['12:45','13:25'],['13:45','14:25'],
+                  ['14:45','15:25'],['15:45','16:25'],['16:45','17:25'],['17:45','18:25'],
+                  ['18:45','19:25'],['19:45','20:25'],['20:45','21:25'],['21:45','22:25'],
+                  ['22:45','23:25']
+                ]
+              }
+            },
+            {
+              navn: 'Ølhammeren', lat: 64.636655, lon: 11.360349,
+              retning: 'Ølhammeren → Seierstad',
+              label_ankomst: null,
+              note: 'Ca. 35 min kjøring Ølhammeren → Sykehuset Namsos',
+              avganger: {
+                'man-fre': ['06:30','07:00','07:30','08:00','08:30','09:00','10:00','11:00','12:00',
+                            '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00',
+                            '17:30','18:00','19:00','20:00','21:00','22:00','23:00'],
+                'lor': ['06:30','07:00','07:30','08:00','09:00','10:00','11:00','12:00','13:00',
+                        '14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'],
+                'son': ['06:30','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00',
+                        '16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00']
               }
             }
           ]
@@ -510,14 +560,15 @@
       // ── Ikon ────────────────────────────────────────────────
       function trunc(str, n) { return str && str.length > n ? str.slice(0, n - 1) + '…' : str || ''; }
 
-      function makeIcon(hasPick, hasDel, pickTime, delTime, locName, pickCount, delCount) {
+      function makeIcon(hasPick, hasDel, pickTime, delTime, locName, pickCount, delCount, delIsLate) {
+        const delColor = delIsLate ? '#c62828' : '#1565c0';
         const timePart = (pickTime || delTime)
           ? '<div class="icon-label-time">' +
             (hasPick && hasDel
               ? (pickTime ? '<span style="color:#2e7d32">' + pickTime + '</span>' : '') +
                 (pickTime && delTime ? '<span style="color:#999">·</span>' : '') +
-                (delTime  ? '<span style="color:#1565c0">' + delTime  + '</span>' : '')
-              : '<span style="color:' + (hasPick ? '#2e7d32' : '#1565c0') + '">' +
+                (delTime  ? '<span style="color:' + delColor + '">' + delTime  + '</span>' : '')
+              : '<span style="color:' + (hasPick ? '#2e7d32' : delColor) + '">' +
                 (hasPick ? pickTime : delTime) + '</span>') +
             '</div>'
           : '';
@@ -577,9 +628,19 @@
         let hasEst = false;
         g.deliveries.forEach(function (e) {
           const est = estimertLev[e.req.reqId];
-          const t = est ? ' kl.' + est.display : (e.req.oppmote ? ' kl.' + (e.req.oppmote.split(' ')[1] || '') : '');
-          if (est) hasEst = true;
-          lines.push('➖ ' + (e.req.pasientNavn || '?') + t);
+          const oppmoteTid = (e.req.oppmote || '').split(' ')[1] || '';
+          let tidTekst;
+          if (est) {
+            hasEst = true;
+            const klarMin = parseMin(e.req.pasientKlar), oppMin = parseMin(e.req.oppmote);
+            const erRetur = klarMin !== null && oppMin !== null && oppMin <= klarMin;
+            const estStyle = est.isLate ? ' style="color:#c62828;font-weight:700"' : '';
+            tidTekst = ' kl.<span' + estStyle + '>' + est.display + '</span>' +
+              (!erRetur && oppmoteTid ? ' <span style="color:#888;font-size:11px">(oppmøte ' + oppmoteTid + ')</span>' : '');
+          } else {
+            tidTekst = oppmoteTid ? ' kl.' + oppmoteTid : '';
+          }
+          lines.push('➖ ' + (e.req.pasientNavn || '?') + tidTekst);
         });
         if (hasEst) lines.push('<span style="color:#888;font-size:11px">ℹ️ ~ = estimert leveringstid</span>');
         return lines.join('<br>');
@@ -634,13 +695,7 @@
       const returReqs = reqDetails.filter(function (req) {
         if (!validLL(req.hentested) || !validLL(req.leveringssted)) return false;
         const hMin = parseMin(req.pasientKlar), lMin = parseMin(req.oppmote);
-        if (hMin === null || lMin === null || lMin > hMin) return false;
-        return !FERGER.some(function (ferge) {
-          const bb = ferge.island_bbox;
-          if (!bb) return false;
-          const inBb = function (loc) { return loc.lat >= bb[0] && loc.lon >= bb[1] && loc.lat <= bb[2] && loc.lon <= bb[3]; };
-          return inBb(req.hentested) || inBb(req.leveringssted);
-        });
+        return hMin !== null && lMin !== null && lMin <= hMin;
       });
       let luftlinjeFallback = false;
       if (returReqs.length > 0) {
@@ -664,7 +719,7 @@
             travelMin = Math.round(haversine(req.hentested, req.leveringssted) / 70000 * 60) + 10;
             luftlinjeFallback = true;
           }
-          estimertLev[req.reqId] = { sortKey: dateStr + ' ' + minToStr(hMin + travelMin), display: '~' + minToStr(hMin + travelMin) };
+          estimertLev[req.reqId] = { sortKey: dateStr + ' ' + minToStr(hMin + travelMin), display: '~' + minToStr(hMin + travelMin), isLate: false };
         });
       }
 
@@ -694,14 +749,21 @@
         times.sort(function (a, b) { return a.sort.localeCompare(b.sort); });
         return times[0].display;
       }
+      function deliveryIsLate(entries) {
+        return entries.some(function (e) {
+          const est = estimertLev[e.req.reqId];
+          return est && est.isLate;
+        });
+      }
       function refreshMarker(k) {
         const marker = markersByKey[k], g = groupsByKey[k];
         if (!marker || !g) return;
-        const pickTime = earliestTime(g.pickups, 'pasientKlar');
-        const delTime  = deliveryTime(g.deliveries);
+        const pickTime  = earliestTime(g.pickups, 'pasientKlar');
+        const delTime   = deliveryTime(g.deliveries);
+        const delIsLate = deliveryIsLate(g.deliveries);
         const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
         const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
-        marker.setIcon(makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length));
+        marker.setIcon(makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length, delIsLate));
         if (marker.getTooltip()) marker.setTooltipContent(groupTooltip(g));
       }
 
@@ -744,13 +806,14 @@
           const ll = [g.lat, g.lon];
           const k = coordKey(g.lat, g.lon);
           currentAllLL.push(ll);
-          const pickTime = earliestTime(g.pickups, 'pasientKlar');
-          const delTime  = deliveryTime(g.deliveries);
+          const pickTime  = earliestTime(g.pickups, 'pasientKlar');
+          const delTime   = deliveryTime(g.deliveries);
+          const delIsLate = deliveryIsLate(g.deliveries);
           const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
           const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
           const groupReqIds = g.pickups.concat(g.deliveries).map(function (e) { return e.req.reqId; })
             .filter(function (id, i, arr) { return arr.indexOf(id) === i; });
-          const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length) })
+          const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length, delIsLate) })
             .addTo(map)
             .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
           if (reqDetails.length > 1) {
@@ -891,9 +954,6 @@
         const dagNr = startDato ? new Date(startDato).getDay() : new Date().getDay();
         const dagKey = dagNr === 0 ? 'son' : dagNr === 6 ? 'lor' : 'man-fre';
 
-        function inBbox(lat, lon, bbox) {
-          return lat >= bbox[0] && lon >= bbox[1] && lat <= bbox[2] && lon <= bbox[3];
-        }
 
         function computeTiming(leie, ankomstMin) {
           const avganger = leie.avganger[dagKey] || leie.avganger['man-fre'];
@@ -1005,8 +1065,11 @@
                 const cumSec = forwardSecs[i];
                 if (cumSec === null) return;
                 const estimertMin = nesteAvgangMin + crossingMin + Math.round(cumSec / 60);
+                const dateStr = (r.b.oppmote || '').split(' ')[0];
                 const oppmoteMin = parseMin(r.b.oppmote);
-                const diff = estimertMin - oppmoteMin;
+                const diff = oppmoteMin !== null ? estimertMin - oppmoteMin : 0;
+                estimertLev[r.b.reqId] = { sortKey: dateStr + ' ' + minTil(estimertMin), display: '~' + minTil(estimertMin), isLate: diff > 0 };
+                refreshMarker(coordKey(r.b.leveringssted.lat, r.b.leveringssted.lon));
                 if (diff > 0) {
                   maxDiff = Math.max(maxDiff, diff);
                   advarsler.push('<span style="color:#c62828;font-size:11px">⚠️ ' + (r.b.pasientNavn || '?') +
@@ -1020,7 +1083,7 @@
                 const estimertMin = nesteAvgangMin + crossingMin + Math.round(cumSec / 60);
                 const klarMin = parseMin(r.b.pasientKlar);
                 const dateStr = (r.b.pasientKlar || r.b.oppmote || '').split(' ')[0];
-                estimertLev[r.b.reqId] = { sortKey: dateStr + ' ' + minTil(estimertMin), display: '~' + minTil(estimertMin) };
+                estimertLev[r.b.reqId] = { sortKey: dateStr + ' ' + minTil(estimertMin), display: '~' + minTil(estimertMin), isLate: false };
                 refreshMarker(coordKey(r.b.leveringssted.lat, r.b.leveringssted.lon));
                 let ventTekst = '';
                 if (r.boardSec !== null && klarMin !== null) {
@@ -1051,89 +1114,7 @@
         }
 
         FERGER.forEach(function (ferge) {
-          if (ferge.island_bbox) {
-            const bbox = ferge.island_bbox;
-            const crossingMin = ferge.crossing_min || 0;
-            const islandReqs = currentFiltered.filter(function (r) {
-              const h = r.hentested, l = r.leveringssted;
-              return (h && inBbox(h.lat, h.lon, bbox)) || (l && inBbox(l.lat, l.lon, bbox));
-            });
-            if (!islandReqs.length) return;
-
-            const islandLeie = ferge.leier.find(function (l) { return l.mainland === false; });
-            const mainlandLeie = ferge.leier.find(function (l) { return l.mainland !== false; });
-            const islandFm = islandLeie ? ferjeMarkers[islandLeie.navn] : null;
-            const mainlandFm = mainlandLeie ? ferjeMarkers[mainlandLeie.navn] : null;
-
-            // fromIsland: pickup is on the island → patient travelling island → mainland
-            const fromIsland = islandReqs.some(function (r) {
-              return r.hentested && inBbox(r.hentested.lat, r.hentested.lon, bbox);
-            });
-
-            if (fromIsland) {
-              // Påstigning på øysiden: OSRM fra startpunkt (pasientens hjem på øya) til fergekai på øya
-              if (islandLeie && islandFm) {
-                if (!map.hasLayer(islandFm)) islandFm.addTo(map);
-                islandFm.setIcon(makeFerjeIcon(islandLeie, null));
-                islandFm.setTooltipContent(ferjeTooltipDefault(islandLeie));
-              }
-              if (mainlandLeie && mainlandFm) {
-                if (!map.hasLayer(mainlandFm)) mainlandFm.addTo(map);
-                mainlandFm.setIcon(makeFerjeIcon(mainlandLeie, null));
-                mainlandFm.setTooltipContent(ferjeTooltipDefault(mainlandLeie));
-              }
-              if (startTid !== null && currentWaypoints.length && islandLeie && islandFm) {
-                const startWp = currentWaypoints[0];
-                fetch('https://router.project-osrm.org/route/v1/driving/' +
-                  startWp.lng + ',' + startWp.lat + ';' + islandLeie.lon + ',' + islandLeie.lat + '?overview=false',
-                  { signal: AbortSignal.timeout(5000) })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                  const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
-                  if (sec === null) return;
-                  const nesteAvgangMin = visLeieBording(islandLeie, islandFm, Math.round(startTid + sec / 60));
-                  if (mainlandLeie && mainlandFm && nesteAvgangMin !== null) {
-                    visLeieAnkomst(mainlandLeie, mainlandFm, nesteAvgangMin + crossingMin);
-                    sjekkLeveringViaFerge(islandLeie, islandFm, mainlandLeie, crossingMin, nesteAvgangMin,
-                      islandReqs.filter(function (r) { return r.hentested && inBbox(r.hentested.lat, r.hentested.lon, bbox); }));
-                  }
-                })
-                .catch(function () {});
-              }
-            } else {
-              // Påstigning på fastlandssiden, estimer ankomst på øysiden
-              if (mainlandLeie && mainlandFm) {
-                if (!map.hasLayer(mainlandFm)) mainlandFm.addTo(map);
-                mainlandFm.setIcon(makeFerjeIcon(mainlandLeie, null));
-                mainlandFm.setTooltipContent(ferjeTooltipDefault(mainlandLeie));
-              }
-              if (islandLeie && islandFm) {
-                if (!map.hasLayer(islandFm)) islandFm.addTo(map);
-                islandFm.setIcon(makeFerjeIcon(islandLeie, null));
-                islandFm.setTooltipContent(ferjeTooltipDefault(islandLeie));
-              }
-              if (startTid !== null && currentWaypoints.length && mainlandLeie && mainlandFm) {
-                const startWp = currentWaypoints[0];
-                fetch('https://router.project-osrm.org/route/v1/driving/' +
-                  startWp.lng + ',' + startWp.lat + ';' + mainlandLeie.lon + ',' + mainlandLeie.lat + '?overview=false',
-                  { signal: AbortSignal.timeout(5000) })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                  const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
-                  if (sec === null) return;
-                  const nesteAvgangMin = visLeieBording(mainlandLeie, mainlandFm, Math.round(startTid + sec / 60));
-                  if (islandLeie && islandFm && nesteAvgangMin !== null) {
-                    visLeieAnkomst(islandLeie, islandFm, nesteAvgangMin + crossingMin);
-                    sjekkLeveringViaFerge(mainlandLeie, mainlandFm, islandLeie, crossingMin, nesteAvgangMin, islandReqs);
-                  }
-                })
-                .catch(function () {});
-              }
-            }
-            return;
-          }
-
-          // Fastlandsferge: finn leier som er nær rutelinjen
+          // Finn leier som er nær rutelinjen
           // Lagre også hvilken ruteindeks hvert leie først dukker opp på
           const detectedLeier = [];
           ferge.leier.forEach(function (leie) {
