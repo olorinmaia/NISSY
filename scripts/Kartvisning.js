@@ -909,7 +909,7 @@
           return { relevante: relevante, nesteIdx: nesteIdx, neste: neste };
         }
 
-        // Board side: show timetable with highlighted departure; returns next departure in minutes or null
+        // Påstigningssiden: vis rutetabell med fremhevet avgang; returnerer neste avgangstidspunkt i minutter eller null
         function visLeieBording(leie, fm, ankomstMin) {
           if (!map.hasLayer(fm)) fm.addTo(map);
           fm.setIcon(makeFerjeIcon(leie, null));
@@ -926,7 +926,7 @@
           return neste !== null ? tidMin(neste) : null;
         }
 
-        // Exit side: show estimated arrival time only (no timetable)
+        // Avstigningssiden: vis kun estimert ankomsttid (ingen rutetabell)
         function visLeieAnkomst(leie, fm, ankomstMin) {
           if (!map.hasLayer(fm)) fm.addTo(map);
           const timeStr = '~' + minTil(ankomstMin);
@@ -941,7 +941,7 @@
           });
           if (!kandidater.length) return;
 
-          // Phase 1: individual fetches – exit→delivery (sort order) + hentested→board (wait time for returns)
+          // Fase 1: individuelle OSRM-kall – exit→levering (for sortering) + hentested→board (ventetid for returer)
           Promise.all(kandidater.map(function (b) {
             const klarMin = parseMin(b.pasientKlar);
             const oppmoteMin = parseMin(b.oppmote);
@@ -967,14 +967,14 @@
               return { b: b, indivSec: sec, boardSec: null, erRetur: erRetur };
             });
           })).then(function (phase1) {
-            // Split and sort nearest-first (natural sequential delivery order)
+            // Del opp og sorter nærmest-først (naturlig sekvensiell leveringsrekkefølge)
             const forwards = phase1.filter(function (r) { return !r.erRetur && r.indivSec !== null; });
             const returs   = phase1.filter(function (r) { return  r.erRetur && r.indivSec !== null; });
             forwards.sort(function (a, b) { return a.indivSec - b.indivSec; });
             returs.sort(function (a, b) { return a.indivSec - b.indivSec; });
 
-            // Phase 2: multi-stop chain fetch for cumulative delivery times
-            // Single stop → reuse individual time (no extra fetch). Multiple stops → one chained OSRM call.
+            // Fase 2: flerstopps-OSRM for kumulative leveringstider
+            // Én stopp → gjenbruk individuell tid (ingen ekstra kall). Flere stopp → ett kjedet OSRM-kall.
             function chainFetch(sorted) {
               if (!sorted.length) return Promise.resolve([]);
               if (sorted.length === 1) return Promise.resolve([sorted[0].indivSec]);
@@ -1071,7 +1071,7 @@
             });
 
             if (fromIsland) {
-              // Board at island side: OSRM from startWp (patient home on island) to island ferry stop
+              // Påstigning på øysiden: OSRM fra startpunkt (pasientens hjem på øya) til fergekai på øya
               if (islandLeie && islandFm) {
                 if (!map.hasLayer(islandFm)) islandFm.addTo(map);
                 islandFm.setIcon(makeFerjeIcon(islandLeie, null));
@@ -1101,7 +1101,7 @@
                 .catch(function () {});
               }
             } else {
-              // Board at mainland side, estimate arrival at island side
+              // Påstigning på fastlandssiden, estimer ankomst på øysiden
               if (mainlandLeie && mainlandFm) {
                 if (!map.hasLayer(mainlandFm)) mainlandFm.addTo(map);
                 mainlandFm.setIcon(makeFerjeIcon(mainlandLeie, null));
@@ -1133,8 +1133,8 @@
             return;
           }
 
-          // Non-island ferry: detect by route polyline proximity
-          // Find detected leiers and the route index where they first appear
+          // Fastlandsferge: finn leier som er nær rutelinjen
+          // Lagre også hvilken ruteindeks hvert leie først dukker opp på
           const detectedLeier = [];
           ferge.leier.forEach(function (leie) {
             let firstIdx = Infinity;
@@ -1147,7 +1147,7 @@
           if (!detectedLeier.length) return;
 
           if (ferge.crossing_min && detectedLeier.length === 2) {
-            // Direction-aware: the leie encountered first in the route is the boarding side
+            // Retningssensitiv: leiet som opptrer først i ruten er påstigningssiden
             detectedLeier.sort(function (a, b) { return a.firstIdx - b.firstIdx; });
             const board = detectedLeier[0].leie, exit = detectedLeier[1].leie;
             const boardFm = ferjeMarkers[board.navn], exitFm = ferjeMarkers[exit.navn];
@@ -1170,8 +1170,8 @@
               })
               .catch(function () {});
             }
-          } else {
-            // No crossing time or only one leie detected: handle each independently
+          } else if (!ferge.crossing_min) {
+            // Ingen overfartstid definert: vis leier som er nær ruten
             detectedLeier.forEach(function (item) {
               const fm = ferjeMarkers[item.leie.navn];
               if (!fm) return;
