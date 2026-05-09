@@ -331,6 +331,179 @@
         '<span class="icon-split-l">+</span><span class="icon-split-r">−</span></span> Begge</div>';
       document.getElementById('map').appendChild(legend);
 
+      // ── Fergedata ────────────────────────────────────────────
+      const FERGER = [
+        {
+          id: 'nearoysund',
+          crossing_min: 25,
+          leier: [
+            {
+              navn: 'Hofles', lat: 64.827474, lon: 11.612125,
+              retning: 'Hofles → Lund',
+              label_ankomst: 'Fremme Sykehuset Namsos',
+              avganger: {
+                'man-fre': [
+                  ['05:50','07:20'],['07:10','08:40'],['08:30','10:00'],
+                  ['09:50','11:20'],['11:10','12:40'],['13:00','14:30'],
+                  ['14:00','15:30'],['15:20','16:50'],['16:40','18:10'],
+                  ['18:00','19:30']
+                ],
+                'lor': null, 'son': null
+              }
+            },
+            {
+              navn: 'Lund', lat: 64.768195, lon: 11.623273,
+              retning: 'Lund → Hofles',
+              label_ankomst: null,
+              avganger: {
+                'man-fre': ['09:00','10:20','11:40','13:30','14:30','15:50','17:10','18:30','20:30','22:00'],
+                'lor': null, 'son': null
+              }
+            }
+          ]
+        },
+        {
+          id: 'leka',
+          island_bbox: [65.03, 11.54, 65.16, 11.84],
+          crossing_min: 20,
+          leier: [
+            {
+              navn: 'Skei', lat: 65.088040, lon: 11.738099,
+              mainland: false,
+              retning: 'Skei → Gutvik',
+              label_ankomst: 'Fremme Namsos',
+              note: 'Ca. 2t 30min kjøring Namsos → Gutvik',
+              avganger: {
+                'man-fre': [
+                  ['06:50','09:40'],['08:00','10:50'],['09:35','12:25'],
+                  ['10:35','13:25'],['12:40','15:30'],['13:40','16:30'],
+                  ['14:40','17:30'],['15:40','18:30'],['16:40','19:30'],
+                  ['18:15','21:05']
+                ],
+                'lor': null, 'son': null
+              }
+            },
+            {
+              navn: 'Gutvik', lat: 65.084413, lon: 11.828773,
+              retning: 'Gutvik → Skei',
+              label_ankomst: null,
+              avganger: {
+                'man-fre': ['07:30','08:30','10:05','11:05','13:10','14:10','15:10','16:10','17:10','18:45','19:45','21:30','22:30','23:40'],
+                'lor': null, 'son': null
+              }
+            }
+          ]
+        },
+        {
+          id: 'ytterøy',
+          island_bbox: [63.73, 11.00, 63.86, 11.23],
+          crossing_min: 35,
+          leier: [
+            {
+              navn: 'Hokstad', lat: 63.798396, lon: 11.168300,
+              mainland: false,
+              retning: 'Hokstad → Levanger',
+              label_ankomst: 'Fremme Sykehuset Levanger',
+              avganger: {
+                'man-fre': [
+                  ['04:55','05:35'],['06:05','06:45'],['07:15','07:55'],
+                  ['08:35','09:15'],['09:50','10:30'],['11:20','12:00'],
+                  ['12:35','13:15'],['14:35','15:15'],['16:10','16:50'],
+                  ['17:20','18:00'],['18:35','19:15']
+                ],
+                'lor': null, 'son': null
+              }
+            },
+            {
+              navn: 'Levanger', lat: 63.749221, lon: 11.299541,
+              retning: 'Levanger → Hokstad',
+              label_ankomst: null,
+              avganger: {
+                'man-fre': ['04:20','05:30','06:40','08:00','09:15','10:45','12:00','14:00','15:35','16:45','18:00'],
+                'lor': null, 'son': null
+              }
+            }
+          ]
+        }
+      ];
+
+      function tidMin(a) {
+        const s = Array.isArray(a) ? a[0] : a;
+        const p = s.split(':');
+        return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+      }
+      function minTil(m) {
+        const h = Math.floor(m / 60) % 24, mn = m % 60;
+        return (h < 10 ? '0' : '') + h + ':' + (mn < 10 ? '0' : '') + mn;
+      }
+
+      function makeFerjeIcon(leie, timeInfo, warning, warnColor) {
+        const timePart = timeInfo
+          ? '<div class="icon-label-time">' +
+            '<span style="color:#00897b">' + timeInfo.avgang + '</span>' +
+            (timeInfo.ankomst
+              ? '<span style="color:#999">→</span><span style="color:#00695c">' + timeInfo.ankomst + '</span>'
+              : '') +
+            '</div>'
+          : '';
+        const warnPart = warning
+          ? '<div class="icon-label-time"><span style="color:' + (warnColor || '#c62828') + '">' + warning + '</span></div>'
+          : '';
+        const label = (timePart || warnPart) ? '<div class="icon-label">' + timePart + warnPart + '</div>' : '';
+        return L.divIcon({
+          className: 'custom-marker-wrapper',
+          html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                '<div style="background:#e0f2f1;border:2px solid #00897b;border-radius:50%;width:26px;height:26px;' +
+                'display:flex;align-items:center;justify-content:center;font-size:14px;' +
+                'box-shadow:0 1px 4px rgba(0,0,0,.3);">⛴</div>' +
+                label + '</div>',
+          iconSize: [26, 55], iconAnchor: [13, 13]
+        });
+      }
+
+      function ferjeTooltipDefault(leie) {
+        const avg = leie.avganger['man-fre'];
+        const lines = ['<b>⛴ ' + leie.retning + '</b>'];
+        if (leie.label_ankomst) {
+          avg.slice(0, 5).forEach(function (a) {
+            lines.push(a[0] + ' <span style="color:#888">→ ' + leie.label_ankomst + ' ' + a[1] + '</span>');
+          });
+          if (avg.length > 5) lines.push('…');
+        } else {
+          for (let i = 0; i < avg.length; i += 5)
+            lines.push(avg.slice(i, i + 5).join('&nbsp;&nbsp;'));
+        }
+        if (leie.note) lines.push('<span style="color:#aaa;font-size:11px">' + leie.note + '</span>');
+        return lines.join('<br>');
+      }
+
+      function ferjeTooltipMedRute(leie, ankomstMin, relevante, nesteIdx) {
+        const lines = ['<b>⛴ ' + leie.retning + '</b>'];
+        if (ankomstMin !== null) lines.push('Est. ankomst: <b>' + minTil(ankomstMin) + '</b>');
+        relevante.forEach(function (a, idx) {
+          const erNeste = idx === nesteIdx;
+          if (Array.isArray(a)) {
+            lines.push((erNeste ? '<b>' : '') + a[0] +
+              ' <span style="color:#888">→ ' + leie.label_ankomst + ' ' + a[1] + '</span>' +
+              (erNeste ? '</b>' : ''));
+          } else {
+            lines.push((erNeste ? '<b>' : '') + a + (erNeste ? '</b>' : ''));
+          }
+        });
+        if (leie.note) lines.push('<span style="color:#aaa;font-size:11px">' + leie.note + '</span>');
+        return lines.join('<br>');
+      }
+
+      const ferjeMarkers = {};
+      FERGER.forEach(function (ferge) {
+        ferge.leier.forEach(function (leie) {
+          const m = L.marker([leie.lat, leie.lon], {
+            icon: makeFerjeIcon(leie, null), zIndexOffset: -50
+          }).bindTooltip(ferjeTooltipDefault(leie), { direction: 'top', offset: [0, -8] });
+          ferjeMarkers[leie.navn] = m;
+        });
+      });
+
       // ── Grupper stopp per koordinat ─────────────────────────
       function coordKey(lat, lon) { return lat.toFixed(5) + ',' + lon.toFixed(5); }
 
@@ -408,7 +581,7 @@
           if (est) hasEst = true;
           lines.push('➖ ' + (e.req.pasientNavn || '?') + t);
         });
-        if (hasEst) lines.push('<span style="color:#888;font-size:11px">ℹ️ ~ = estimat + 10 min av/påstigning</span>');
+        if (hasEst) lines.push('<span style="color:#888;font-size:11px">ℹ️ ~ = estimert leveringstid</span>');
         return lines.join('<br>');
       }
 
@@ -422,6 +595,18 @@
         const el = document.getElementById('routeInfo');
         if (text) { el.textContent = text; el.style.display = ''; }
         else { el.style.display = 'none'; el.textContent = ''; }
+      }
+
+      function resetFerjeMarkers() {
+        FERGER.forEach(function (ferge) {
+          ferge.leier.forEach(function (leie) {
+            const m = ferjeMarkers[leie.navn];
+            if (!m) return;
+            if (map.hasLayer(m)) map.removeLayer(m);
+            m.setIcon(makeFerjeIcon(leie, null));
+            m.setTooltipContent(ferjeTooltipDefault(leie));
+          });
+        });
       }
 
       function haversine(a, b) {
@@ -449,7 +634,13 @@
       const returReqs = reqDetails.filter(function (req) {
         if (!validLL(req.hentested) || !validLL(req.leveringssted)) return false;
         const hMin = parseMin(req.pasientKlar), lMin = parseMin(req.oppmote);
-        return hMin !== null && lMin !== null && lMin <= hMin;
+        if (hMin === null || lMin === null || lMin > hMin) return false;
+        return !FERGER.some(function (ferge) {
+          const bb = ferge.island_bbox;
+          if (!bb) return false;
+          const inBb = function (loc) { return loc.lat >= bb[0] && loc.lon >= bb[1] && loc.lat <= bb[2] && loc.lon <= bb[3]; };
+          return inBb(req.hentested) || inBb(req.leveringssted);
+        });
       });
       let luftlinjeFallback = false;
       if (returReqs.length > 0) {
@@ -483,14 +674,47 @@
       let currentWaypoints = [];
       let routeControl = null;
       let routeOn = true;
+      let currentFiltered = [];
+      let markersByKey = {};
+      let groupsByKey = {};
+
+      function earliestTime(entries, field) {
+        return entries.map(function (e) { return (e.req[field] || '').split(' ')[1] || ''; })
+          .filter(Boolean).sort()[0] || '';
+      }
+      function deliveryTime(entries) {
+        const times = [];
+        entries.forEach(function (e) {
+          const est = estimertLev[e.req.reqId];
+          if (est) { times.push({ sort: est.sortKey, display: est.display }); return; }
+          const t = (e.req.oppmote || '').split(' ')[1] || '';
+          if (t) times.push({ sort: t, display: t });
+        });
+        if (!times.length) return '';
+        times.sort(function (a, b) { return a.sort.localeCompare(b.sort); });
+        return times[0].display;
+      }
+      function refreshMarker(k) {
+        const marker = markersByKey[k], g = groupsByKey[k];
+        if (!marker || !g) return;
+        const pickTime = earliestTime(g.pickups, 'pasientKlar');
+        const delTime  = deliveryTime(g.deliveries);
+        const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
+        const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
+        marker.setIcon(makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length));
+        if (marker.getTooltip()) marker.setTooltipContent(groupTooltip(g));
+      }
 
       function renderBookings(filtered) {
+        currentFiltered = filtered;
         currentMarkerLayers.forEach(function (l) { map.removeLayer(l); });
         currentMarkerLayers = [];
         if (routeControl) { routeControl.remove(); routeControl = null; }
         setRouteInfo(null);
         currentAllLL = [];
         currentWaypoints = [];
+        markersByKey = {};
+        groupsByKey = {};
 
         const groups = {};
         filtered.forEach(function (req) {
@@ -516,25 +740,9 @@
           if (k !== _prevKey) { currentWaypoints.push(L.latLng(s.lat, s.lon)); _prevKey = k; }
         });
 
-        function earliestTime(entries, field) {
-          return entries.map(function (e) { return (e.req[field] || '').split(' ')[1] || ''; })
-            .filter(Boolean).sort()[0] || '';
-        }
-        function deliveryTime(entries) {
-          const times = [];
-          entries.forEach(function (e) {
-            const est = estimertLev[e.req.reqId];
-            if (est) { times.push({ sort: est.sortKey, display: est.display }); return; }
-            const t = (e.req.oppmote || '').split(' ')[1] || '';
-            if (t) times.push({ sort: t, display: t });
-          });
-          if (!times.length) return '';
-          times.sort(function (a, b) { return a.sort.localeCompare(b.sort); });
-          return times[0].display;
-        }
-
         Object.values(groups).forEach(function (g) {
           const ll = [g.lat, g.lon];
+          const k = coordKey(g.lat, g.lon);
           currentAllLL.push(ll);
           const pickTime = earliestTime(g.pickups, 'pasientKlar');
           const delTime  = deliveryTime(g.deliveries);
@@ -555,12 +763,15 @@
               if (firstRow) firstRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             });
           }
+          markersByKey[k] = marker;
+          groupsByKey[k] = g;
           currentMarkerLayers.push(marker);
         });
 
         if (routeOn && currentWaypoints.length >= 2) {
           drawRoute();
         } else {
+          resetFerjeMarkers();
           if (currentAllLL.length === 1)     map.setView(currentAllLL[0], 14);
           else if (currentAllLL.length > 1)  map.fitBounds(currentAllLL, { padding: [50, 50] });
         }
@@ -596,6 +807,7 @@
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
+          sjekkFerger(legs);
         }
 
         function routeViaOsrm() {
@@ -609,10 +821,12 @@
             if (!route) { fallback(); return; }
             const legs = route.legs.map(function (leg) {
               const latlngs = [];
-              leg.steps.forEach(function (step) {
-                step.geometry.coordinates.forEach(function (c) { latlngs.push([c[1], c[0]]); });
+              const steps = leg.steps.map(function (step) {
+                const sl = step.geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
+                sl.forEach(function (pt) { latlngs.push(pt); });
+                return { latlngs: sl, dur: step.duration };
               });
-              return { latlngs: latlngs, dist: leg.distance, dur: leg.duration };
+              return { latlngs: latlngs, dist: leg.distance, dur: leg.duration, steps: steps };
             });
             applyLegs(legs, route.distance, route.duration);
           })
@@ -636,7 +850,11 @@
             const wayPts = feature.properties.way_points;
             const legs = feature.properties.segments.map(function (seg, i) {
               const sliced = allCoords.slice(wayPts[i], wayPts[i + 1] + 1);
-              return { latlngs: sliced.map(function (c) { return [c[1], c[0]]; }), dist: seg.distance, dur: seg.duration };
+              const steps = (seg.steps || []).map(function (step) {
+                const sc = allCoords.slice(step.way_points[0], step.way_points[1] + 1);
+                return { latlngs: sc.map(function (c) { return [c[1], c[0]]; }), dur: step.duration };
+              });
+              return { latlngs: sliced.map(function (c) { return [c[1], c[0]]; }), dist: seg.distance, dur: seg.duration, steps: steps };
             });
             applyLegs(legs, feature.properties.summary.distance, feature.properties.summary.duration);
           })
@@ -646,6 +864,335 @@
       function removeRoute() {
         if (routeControl) { routeControl.remove(); routeControl = null; }
         setRouteInfo(null);
+        resetFerjeMarkers();
+      }
+
+      function sjekkFerger(legs) {
+        const RADIUS_M = 400;
+
+        let startTid = null, startDato = null;
+        if (currentFiltered.length) {
+          const tider = currentFiltered.map(function (r) { return r.pasientKlar || ''; }).filter(Boolean).sort();
+          if (tider.length) {
+            const deler = tider[0].split(' ');
+            startDato = deler[0];
+            const tp = (deler[1] || '').split(':');
+            if (tp.length >= 2) startTid = parseInt(tp[0], 10) * 60 + parseInt(tp[1], 10);
+          }
+        }
+
+        const flatPts = [];
+        legs.forEach(function (leg) {
+          leg.latlngs.forEach(function (pt) {
+            flatPts.push({ lat: pt[0], lon: pt[1] });
+          });
+        });
+
+        const dagNr = startDato ? new Date(startDato).getDay() : new Date().getDay();
+        const dagKey = dagNr === 0 ? 'son' : dagNr === 6 ? 'lor' : 'man-fre';
+
+        function inBbox(lat, lon, bbox) {
+          return lat >= bbox[0] && lon >= bbox[1] && lat <= bbox[2] && lon <= bbox[3];
+        }
+
+        function computeTiming(leie, ankomstMin) {
+          const avganger = leie.avganger[dagKey] || leie.avganger['man-fre'];
+          if (!avganger) return null;
+          const sortert = avganger.slice().sort(function (a, b) { return tidMin(a) - tidMin(b); });
+          let etterIdx = sortert.length;
+          for (let i = 0; i < sortert.length; i++) {
+            if (tidMin(sortert[i]) >= ankomstMin) { etterIdx = i; break; }
+          }
+          const relevante = sortert.slice(Math.max(0, etterIdx - 1), Math.min(sortert.length, etterIdx + 2));
+          const nesteIdx = relevante.findIndex(function (a) { return tidMin(a) >= ankomstMin; });
+          const neste = nesteIdx >= 0 ? relevante[nesteIdx] : (relevante.length ? relevante[relevante.length - 1] : null);
+          return { relevante: relevante, nesteIdx: nesteIdx, neste: neste };
+        }
+
+        // Board side: show timetable with highlighted departure; returns next departure in minutes or null
+        function visLeieBording(leie, fm, ankomstMin) {
+          if (!map.hasLayer(fm)) fm.addTo(map);
+          fm.setIcon(makeFerjeIcon(leie, null));
+          fm.setTooltipContent(ferjeTooltipDefault(leie));
+          if (ankomstMin === null) return null;
+          const timing = computeTiming(leie, ankomstMin);
+          if (!timing) return null;
+          const neste = timing.neste;
+          const timeInfo = neste
+            ? { avgang: Array.isArray(neste) ? neste[0] : neste }
+            : null;
+          fm.setIcon(makeFerjeIcon(leie, timeInfo));
+          fm.setTooltipContent(ferjeTooltipMedRute(leie, ankomstMin, timing.relevante, timing.nesteIdx));
+          return neste !== null ? tidMin(neste) : null;
+        }
+
+        // Exit side: show estimated arrival time only (no timetable)
+        function visLeieAnkomst(leie, fm, ankomstMin) {
+          if (!map.hasLayer(fm)) fm.addTo(map);
+          const timeStr = '~' + minTil(ankomstMin);
+          fm.setIcon(makeFerjeIcon(leie, { avgang: timeStr, ankomst: null }));
+          fm.setTooltipContent('<b>⛴ ' + leie.navn + '</b><br>Est. fremme: <b>' + timeStr + '</b>');
+        }
+
+        function sjekkLeveringViaFerge(boardLeie, boardFm, exitLeie, crossingMin, nesteAvgangMin, bookings) {
+          const VENT_GRENSE = 20;
+          const kandidater = bookings.filter(function (b) {
+            return validLL(b.leveringssted) && parseMin(b.oppmote) !== null;
+          });
+          if (!kandidater.length) return;
+
+          // Phase 1: individual fetches – exit→delivery (sort order) + hentested→board (wait time for returns)
+          Promise.all(kandidater.map(function (b) {
+            const klarMin = parseMin(b.pasientKlar);
+            const oppmoteMin = parseMin(b.oppmote);
+            const erRetur = klarMin !== null && oppmoteMin <= klarMin;
+            const delFetch = fetch('https://router.project-osrm.org/route/v1/driving/' +
+              exitLeie.lon + ',' + exitLeie.lat + ';' + b.leveringssted.lon + ',' + b.leveringssted.lat + '?overview=false',
+              { signal: AbortSignal.timeout(5000) })
+              .then(function (r) { return r.json(); })
+              .then(function (data) { return data.routes && data.routes[0] ? data.routes[0].duration : null; })
+              .catch(function () { return null; });
+            if (erRetur && validLL(b.hentested)) {
+              const boardFetch = fetch('https://router.project-osrm.org/route/v1/driving/' +
+                b.hentested.lon + ',' + b.hentested.lat + ';' + boardLeie.lon + ',' + boardLeie.lat + '?overview=false',
+                { signal: AbortSignal.timeout(5000) })
+                .then(function (r) { return r.json(); })
+                .then(function (data) { return data.routes && data.routes[0] ? data.routes[0].duration : null; })
+                .catch(function () { return null; });
+              return Promise.all([delFetch, boardFetch]).then(function (both) {
+                return { b: b, indivSec: both[0], boardSec: both[1], erRetur: erRetur };
+              });
+            }
+            return delFetch.then(function (sec) {
+              return { b: b, indivSec: sec, boardSec: null, erRetur: erRetur };
+            });
+          })).then(function (phase1) {
+            // Split and sort nearest-first (natural sequential delivery order)
+            const forwards = phase1.filter(function (r) { return !r.erRetur && r.indivSec !== null; });
+            const returs   = phase1.filter(function (r) { return  r.erRetur && r.indivSec !== null; });
+            forwards.sort(function (a, b) { return a.indivSec - b.indivSec; });
+            returs.sort(function (a, b) { return a.indivSec - b.indivSec; });
+
+            // Phase 2: multi-stop chain fetch for cumulative delivery times
+            // Single stop → reuse individual time (no extra fetch). Multiple stops → one chained OSRM call.
+            function chainFetch(sorted) {
+              if (!sorted.length) return Promise.resolve([]);
+              if (sorted.length === 1) return Promise.resolve([sorted[0].indivSec]);
+              const coords = [exitLeie.lon + ',' + exitLeie.lat]
+                .concat(sorted.map(function (r) { return r.b.leveringssted.lon + ',' + r.b.leveringssted.lat; }))
+                .join(';');
+              return fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=false',
+                { signal: AbortSignal.timeout(5000) })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                  const legs = data.routes && data.routes[0] ? data.routes[0].legs : null;
+                  if (!legs) return sorted.map(function (r) { return r.indivSec; });
+                  let cum = 0;
+                  return legs.map(function (leg) { cum += leg.duration; return cum; });
+                })
+                .catch(function () { return sorted.map(function (r) { return r.indivSec; }); });
+            }
+
+            Promise.all([chainFetch(forwards), chainFetch(returs)]).then(function (chains) {
+              const forwardSecs = chains[0];
+              const returSecs   = chains[1];
+              const advarsler = [];
+              const returer = [];
+              let maxDiff = 0;
+              let maxVentMin = 0;
+
+              forwards.forEach(function (r, i) {
+                const cumSec = forwardSecs[i];
+                if (cumSec === null) return;
+                const estimertMin = nesteAvgangMin + crossingMin + Math.round(cumSec / 60);
+                const oppmoteMin = parseMin(r.b.oppmote);
+                const diff = estimertMin - oppmoteMin;
+                if (diff > 0) {
+                  maxDiff = Math.max(maxDiff, diff);
+                  advarsler.push('<span style="color:#c62828;font-size:11px">⚠️ ' + (r.b.pasientNavn || '?') +
+                    ': levering ~' + minTil(estimertMin) + ' (<b>' + diff + ' min for sent</b>, oppmøte ' + minTil(oppmoteMin) + ')</span>');
+                }
+              });
+
+              returs.forEach(function (r, i) {
+                const cumSec = returSecs[i];
+                if (cumSec === null) return;
+                const estimertMin = nesteAvgangMin + crossingMin + Math.round(cumSec / 60);
+                const klarMin = parseMin(r.b.pasientKlar);
+                const dateStr = (r.b.pasientKlar || r.b.oppmote || '').split(' ')[0];
+                estimertLev[r.b.reqId] = { sortKey: dateStr + ' ' + minTil(estimertMin), display: '~' + minTil(estimertMin) };
+                refreshMarker(coordKey(r.b.leveringssted.lat, r.b.leveringssted.lon));
+                let ventTekst = '';
+                if (r.boardSec !== null && klarMin !== null) {
+                  const ankomstFerjeMin = klarMin + Math.round(r.boardSec / 60);
+                  const ventMin = nesteAvgangMin - ankomstFerjeMin;
+                  if (ventMin > VENT_GRENSE) {
+                    maxVentMin = Math.max(maxVentMin, ventMin);
+                    ventTekst = ' <span style="color:#e65100">⏱ ' + ventMin + ' min venting</span>';
+                  }
+                }
+                returer.push('<span style="color:#1565c0;font-size:11px">🏠 ' + (r.b.pasientNavn || '?') +
+                  ': est. levering ~' + minTil(estimertMin) + ventTekst + '</span>');
+              });
+
+              const tooltip = boardFm.getTooltip();
+              if (!tooltip) return;
+              const alleLinjer = advarsler.concat(returer);
+              if (!alleLinjer.length) return;
+              if (advarsler.length) {
+                boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⚠️ ' + maxDiff + 'min'));
+              } else if (maxVentMin > 0) {
+                boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⏱ ' + maxVentMin + 'min', '#e65100'));
+              }
+              boardFm.setTooltipContent((tooltip.getContent() || '') +
+                '<hr style="border:none;border-top:1px solid #bbdefb;margin:4px 0">' + alleLinjer.join('<br>'));
+            });
+          });
+        }
+
+        FERGER.forEach(function (ferge) {
+          if (ferge.island_bbox) {
+            const bbox = ferge.island_bbox;
+            const crossingMin = ferge.crossing_min || 0;
+            const islandReqs = currentFiltered.filter(function (r) {
+              const h = r.hentested, l = r.leveringssted;
+              return (h && inBbox(h.lat, h.lon, bbox)) || (l && inBbox(l.lat, l.lon, bbox));
+            });
+            if (!islandReqs.length) return;
+
+            const islandLeie = ferge.leier.find(function (l) { return l.mainland === false; });
+            const mainlandLeie = ferge.leier.find(function (l) { return l.mainland !== false; });
+            const islandFm = islandLeie ? ferjeMarkers[islandLeie.navn] : null;
+            const mainlandFm = mainlandLeie ? ferjeMarkers[mainlandLeie.navn] : null;
+
+            // fromIsland: pickup is on the island → patient travelling island → mainland
+            const fromIsland = islandReqs.some(function (r) {
+              return r.hentested && inBbox(r.hentested.lat, r.hentested.lon, bbox);
+            });
+
+            if (fromIsland) {
+              // Board at island side: OSRM from startWp (patient home on island) to island ferry stop
+              if (islandLeie && islandFm) {
+                if (!map.hasLayer(islandFm)) islandFm.addTo(map);
+                islandFm.setIcon(makeFerjeIcon(islandLeie, null));
+                islandFm.setTooltipContent(ferjeTooltipDefault(islandLeie));
+              }
+              if (mainlandLeie && mainlandFm) {
+                if (!map.hasLayer(mainlandFm)) mainlandFm.addTo(map);
+                mainlandFm.setIcon(makeFerjeIcon(mainlandLeie, null));
+                mainlandFm.setTooltipContent(ferjeTooltipDefault(mainlandLeie));
+              }
+              if (startTid !== null && currentWaypoints.length && islandLeie && islandFm) {
+                const startWp = currentWaypoints[0];
+                fetch('https://router.project-osrm.org/route/v1/driving/' +
+                  startWp.lng + ',' + startWp.lat + ';' + islandLeie.lon + ',' + islandLeie.lat + '?overview=false',
+                  { signal: AbortSignal.timeout(5000) })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                  const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
+                  if (sec === null) return;
+                  const nesteAvgangMin = visLeieBording(islandLeie, islandFm, Math.round(startTid + sec / 60));
+                  if (mainlandLeie && mainlandFm && nesteAvgangMin !== null) {
+                    visLeieAnkomst(mainlandLeie, mainlandFm, nesteAvgangMin + crossingMin);
+                    sjekkLeveringViaFerge(islandLeie, islandFm, mainlandLeie, crossingMin, nesteAvgangMin,
+                      islandReqs.filter(function (r) { return r.hentested && inBbox(r.hentested.lat, r.hentested.lon, bbox); }));
+                  }
+                })
+                .catch(function () {});
+              }
+            } else {
+              // Board at mainland side, estimate arrival at island side
+              if (mainlandLeie && mainlandFm) {
+                if (!map.hasLayer(mainlandFm)) mainlandFm.addTo(map);
+                mainlandFm.setIcon(makeFerjeIcon(mainlandLeie, null));
+                mainlandFm.setTooltipContent(ferjeTooltipDefault(mainlandLeie));
+              }
+              if (islandLeie && islandFm) {
+                if (!map.hasLayer(islandFm)) islandFm.addTo(map);
+                islandFm.setIcon(makeFerjeIcon(islandLeie, null));
+                islandFm.setTooltipContent(ferjeTooltipDefault(islandLeie));
+              }
+              if (startTid !== null && currentWaypoints.length && mainlandLeie && mainlandFm) {
+                const startWp = currentWaypoints[0];
+                fetch('https://router.project-osrm.org/route/v1/driving/' +
+                  startWp.lng + ',' + startWp.lat + ';' + mainlandLeie.lon + ',' + mainlandLeie.lat + '?overview=false',
+                  { signal: AbortSignal.timeout(5000) })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                  const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
+                  if (sec === null) return;
+                  const nesteAvgangMin = visLeieBording(mainlandLeie, mainlandFm, Math.round(startTid + sec / 60));
+                  if (islandLeie && islandFm && nesteAvgangMin !== null) {
+                    visLeieAnkomst(islandLeie, islandFm, nesteAvgangMin + crossingMin);
+                    sjekkLeveringViaFerge(mainlandLeie, mainlandFm, islandLeie, crossingMin, nesteAvgangMin, islandReqs);
+                  }
+                })
+                .catch(function () {});
+              }
+            }
+            return;
+          }
+
+          // Non-island ferry: detect by route polyline proximity
+          // Find detected leiers and the route index where they first appear
+          const detectedLeier = [];
+          ferge.leier.forEach(function (leie) {
+            let firstIdx = Infinity;
+            flatPts.forEach(function (p, ptIdx) {
+              if (haversine({ lat: p.lat, lon: p.lon }, { lat: leie.lat, lon: leie.lon }) <= RADIUS_M && ptIdx < firstIdx)
+                firstIdx = ptIdx;
+            });
+            if (firstIdx < Infinity) detectedLeier.push({ leie: leie, firstIdx: firstIdx });
+          });
+          if (!detectedLeier.length) return;
+
+          if (ferge.crossing_min && detectedLeier.length === 2) {
+            // Direction-aware: the leie encountered first in the route is the boarding side
+            detectedLeier.sort(function (a, b) { return a.firstIdx - b.firstIdx; });
+            const board = detectedLeier[0].leie, exit = detectedLeier[1].leie;
+            const boardFm = ferjeMarkers[board.navn], exitFm = ferjeMarkers[exit.navn];
+            if (boardFm) { if (!map.hasLayer(boardFm)) boardFm.addTo(map); boardFm.setIcon(makeFerjeIcon(board, null)); boardFm.setTooltipContent(ferjeTooltipDefault(board)); }
+            if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit)); }
+            if (startTid !== null && currentWaypoints.length && boardFm) {
+              const startWp = currentWaypoints[0];
+              fetch('https://router.project-osrm.org/route/v1/driving/' +
+                startWp.lng + ',' + startWp.lat + ';' + board.lon + ',' + board.lat + '?overview=false',
+                { signal: AbortSignal.timeout(5000) })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
+                if (sec === null) return;
+                const nesteAvgangMin = visLeieBording(board, boardFm, Math.round(startTid + sec / 60));
+                if (exitFm && nesteAvgangMin !== null) {
+                  visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
+                  sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, currentFiltered);
+                }
+              })
+              .catch(function () {});
+            }
+          } else {
+            // No crossing time or only one leie detected: handle each independently
+            detectedLeier.forEach(function (item) {
+              const fm = ferjeMarkers[item.leie.navn];
+              if (!fm) return;
+              if (!map.hasLayer(fm)) fm.addTo(map);
+              fm.setIcon(makeFerjeIcon(item.leie, null));
+              fm.setTooltipContent(ferjeTooltipDefault(item.leie));
+              if (startTid === null || !currentWaypoints.length) return;
+              const startWp = currentWaypoints[0];
+              fetch('https://router.project-osrm.org/route/v1/driving/' +
+                startWp.lng + ',' + startWp.lat + ';' + item.leie.lon + ',' + item.leie.lat + '?overview=false',
+                { signal: AbortSignal.timeout(5000) })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
+                if (sec === null) return;
+                visLeieBording(item.leie, fm, Math.round(startTid + sec / 60));
+              })
+              .catch(function () {});
+            });
+          }
+        });
       }
 
       function updateStatus(filtered) {
