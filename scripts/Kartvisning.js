@@ -202,6 +202,10 @@
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
   const ORS_API_KEY = ORS_KEYS[_currentOffice] || null;
   const orsEnabled = !!ORS_API_KEY;
+  // 'ors' eller 'osrm' — avgjør hvilken tjeneste som er primær for fergepipelinen
+  const FERRY_ROUTING = 'ors';
+  // Bruk ORS for returReqs-estimater kun for dette kontoret (test av ORS-forbruk)
+  const orsReturReqs = _currentOffice === 'Pasientreiser Nord-Trøndelag' && orsEnabled;
 
   // ── Kart-vindu HTML (data sendes via window.opener) ───────
   function buildMapHtml() {
@@ -690,7 +694,88 @@
         return (h < 10 ? '0' : '') + h + ':' + (mn < 10 ? '0' : '') + mn;
       }
 
-      // Returer med dårlig datakvalitet: oppmote <= pasientKlar → hent faktisk kjøretid fra OSRM
+      // ── Routing-hjelpere for fergepipeline ───────────────────
+      const _orsEnabled    = ${orsEnabled};
+      const _orsKey        = '${ORS_API_KEY}';
+      const _ferryRouting  = '${FERRY_ROUTING}';
+      const _orsReturReqs  = ${orsReturReqs};
+
+      function fetchDurationORS(lonA, latA, lonB, latB) {
+        if (!_orsEnabled) return Promise.reject(new Error('ORS ikke aktivert'));
+        return fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+          method: 'POST',
+          headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]] }),
+          signal: AbortSignal.timeout(8000)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { return d.routes && d.routes[0] ? d.routes[0].summary.duration : null; });
+      }
+
+      function fetchDurationOSRM(lonA, latA, lonB, latB) {
+        return fetch('https://router.project-osrm.org/route/v1/driving/' +
+          lonA + ',' + latA + ';' + lonB + ',' + latB + '?overview=false',
+          { signal: AbortSignal.timeout(5000) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { return d.routes && d.routes[0] ? d.routes[0].duration : null; });
+      }
+
+      function fetchSegmentDuration(lonA, latA, lonB, latB) {
+        const primary   = _ferryRouting === 'ors' ? fetchDurationORS  : fetchDurationOSRM;
+        const secondary = _ferryRouting === 'ors' ? fetchDurationOSRM : fetchDurationORS;
+        return primary(lonA, latA, lonB, latB)
+          .then(function (sec) {
+            if (sec !== null) return sec;
+            return secondary(lonA, latA, lonB, latB).catch(function () { return null; });
+          })
+          .catch(function () {
+            return secondary(lonA, latA, lonB, latB).catch(function () { return null; });
+          });
+      }
+
+      function fetchChainDurations(points, fallbackSecs) {
+        function viaORS() {
+          if (!_orsEnabled) return Promise.reject(new Error('ORS ikke aktivert'));
+          return fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+            method: 'POST',
+            headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ coordinates: points }),
+            signal: AbortSignal.timeout(8000)
+          })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            const segs = d.routes && d.routes[0] ? d.routes[0].segments : null;
+            if (!segs) return null;
+            let cum = 0;
+            return segs.map(function (s) { cum += s.duration; return cum; });
+          });
+        }
+        function viaOSRM() {
+          const coords = points.map(function (p) { return p[0] + ',' + p[1]; }).join(';');
+          return fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=false',
+            { signal: AbortSignal.timeout(5000) })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            const legs = data.routes && data.routes[0] ? data.routes[0].legs : null;
+            if (!legs) return null;
+            let cum = 0;
+            return legs.map(function (leg) { cum += leg.duration; return cum; });
+          });
+        }
+        const primary   = _ferryRouting === 'ors' ? viaORS  : viaOSRM;
+        const secondary = _ferryRouting === 'ors' ? viaOSRM : viaORS;
+        return primary()
+          .then(function (res) {
+            if (res) return res;
+            return secondary().catch(function () { return null; });
+          })
+          .catch(function () {
+            return secondary().catch(function () { return null; });
+          })
+          .then(function (res) { return res || fallbackSecs; });
+      }
+
+      // Returer med dårlig datakvalitet: oppmote <= pasientKlar → hent faktisk kjøretid fra rutingstjeneste
       const estimertLev = {};
       const returReqs = reqDetails.filter(function (req) {
         if (!validLL(req.hentested) || !validLL(req.leveringssted)) return false;
@@ -701,11 +786,8 @@
       if (returReqs.length > 0) {
         const osrmRes = await Promise.all(returReqs.map(function (req) {
           const h = req.hentested, l = req.leveringssted;
-          const url = 'https://router.project-osrm.org/route/v1/driving/' +
-            h.lon + ',' + h.lat + ';' + l.lon + ',' + l.lat + '?overview=false';
-          return fetch(url, { signal: AbortSignal.timeout(1000) })
-            .then(function (r) { return r.json(); })
-            .then(function (d) { return { req: req, sec: d.routes && d.routes[0] ? d.routes[0].duration : null }; })
+          return (_orsReturReqs ? fetchSegmentDuration : fetchDurationOSRM)(h.lon, h.lat, l.lon, l.lat)
+            .then(function (sec) { return { req: req, sec: sec }; })
             .catch(function () { return { req: req, sec: null }; });
         }));
         osrmRes.forEach(function (result) {
@@ -1001,23 +1083,15 @@
           });
           if (!kandidater.length) return;
 
-          // Fase 1: individuelle OSRM-kall – exit→levering (for sortering) + hentested→board (ventetid for returer)
+          // Fase 1: individuelle kall – exit→levering (for sortering) + hentested→board (ventetid for returer)
           Promise.all(kandidater.map(function (b) {
             const klarMin = parseMin(b.pasientKlar);
             const oppmoteMin = parseMin(b.oppmote);
             const erRetur = klarMin !== null && oppmoteMin <= klarMin;
-            const delFetch = fetch('https://router.project-osrm.org/route/v1/driving/' +
-              exitLeie.lon + ',' + exitLeie.lat + ';' + b.leveringssted.lon + ',' + b.leveringssted.lat + '?overview=false',
-              { signal: AbortSignal.timeout(5000) })
-              .then(function (r) { return r.json(); })
-              .then(function (data) { return data.routes && data.routes[0] ? data.routes[0].duration : null; })
+            const delFetch = fetchSegmentDuration(exitLeie.lon, exitLeie.lat, b.leveringssted.lon, b.leveringssted.lat)
               .catch(function () { return null; });
             if (erRetur && validLL(b.hentested)) {
-              const boardFetch = fetch('https://router.project-osrm.org/route/v1/driving/' +
-                b.hentested.lon + ',' + b.hentested.lat + ';' + boardLeie.lon + ',' + boardLeie.lat + '?overview=false',
-                { signal: AbortSignal.timeout(5000) })
-                .then(function (r) { return r.json(); })
-                .then(function (data) { return data.routes && data.routes[0] ? data.routes[0].duration : null; })
+              const boardFetch = fetchSegmentDuration(b.hentested.lon, b.hentested.lat, boardLeie.lon, boardLeie.lat)
                 .catch(function () { return null; });
               return Promise.all([delFetch, boardFetch]).then(function (both) {
                 return { b: b, indivSec: both[0], boardSec: both[1], erRetur: erRetur };
@@ -1033,24 +1107,15 @@
             forwards.sort(function (a, b) { return a.indivSec - b.indivSec; });
             returs.sort(function (a, b) { return a.indivSec - b.indivSec; });
 
-            // Fase 2: flerstopps-OSRM for kumulative leveringstider
-            // Én stopp → gjenbruk individuell tid (ingen ekstra kall). Flere stopp → ett kjedet OSRM-kall.
+            // Fase 2: flerstopps-rute for kumulative leveringstider
+            // Én stopp → gjenbruk individuell tid (ingen ekstra kall). Flere stopp → ett kjedet kall.
             function chainFetch(sorted) {
               if (!sorted.length) return Promise.resolve([]);
               if (sorted.length === 1) return Promise.resolve([sorted[0].indivSec]);
-              const coords = [exitLeie.lon + ',' + exitLeie.lat]
-                .concat(sorted.map(function (r) { return r.b.leveringssted.lon + ',' + r.b.leveringssted.lat; }))
-                .join(';');
-              return fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=false',
-                { signal: AbortSignal.timeout(5000) })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                  const legs = data.routes && data.routes[0] ? data.routes[0].legs : null;
-                  if (!legs) return sorted.map(function (r) { return r.indivSec; });
-                  let cum = 0;
-                  return legs.map(function (leg) { cum += leg.duration; return cum; });
-                })
-                .catch(function () { return sorted.map(function (r) { return r.indivSec; }); });
+              const points = [[exitLeie.lon, exitLeie.lat]]
+                .concat(sorted.map(function (r) { return [r.b.leveringssted.lon, r.b.leveringssted.lat]; }));
+              const fallback = sorted.map(function (r) { return r.indivSec; });
+              return fetchChainDurations(points, fallback);
             }
 
             Promise.all([chainFetch(forwards), chainFetch(returs)]).then(function (chains) {
@@ -1136,12 +1201,8 @@
             if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit)); }
             if (startTid !== null && currentWaypoints.length && boardFm) {
               const startWp = currentWaypoints[0];
-              fetch('https://router.project-osrm.org/route/v1/driving/' +
-                startWp.lng + ',' + startWp.lat + ';' + board.lon + ',' + board.lat + '?overview=false',
-                { signal: AbortSignal.timeout(5000) })
-              .then(function (r) { return r.json(); })
-              .then(function (data) {
-                const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
+              fetchSegmentDuration(startWp.lng, startWp.lat, board.lon, board.lat)
+              .then(function (sec) {
                 if (sec === null) return;
                 const nesteAvgangMin = visLeieBording(board, boardFm, Math.round(startTid + sec / 60));
                 if (exitFm && nesteAvgangMin !== null) {
@@ -1161,12 +1222,8 @@
               fm.setTooltipContent(ferjeTooltipDefault(item.leie));
               if (startTid === null || !currentWaypoints.length) return;
               const startWp = currentWaypoints[0];
-              fetch('https://router.project-osrm.org/route/v1/driving/' +
-                startWp.lng + ',' + startWp.lat + ';' + item.leie.lon + ',' + item.leie.lat + '?overview=false',
-                { signal: AbortSignal.timeout(5000) })
-              .then(function (r) { return r.json(); })
-              .then(function (data) {
-                const sec = data.routes && data.routes[0] ? data.routes[0].duration : null;
+              fetchSegmentDuration(startWp.lng, startWp.lat, item.leie.lon, item.leie.lat)
+              .then(function (sec) {
                 if (sec === null) return;
                 visLeieBording(item.leie, fm, Math.round(startTid + sec / 60));
               })
@@ -1180,7 +1237,7 @@
         const n = filtered.length, total = reqDetails.length;
         let text = n + ' bestilling' + (n !== 1 ? 'er' : '');
         if (n < total) text += ' av ' + total;
-        if (luftlinjeFallback) text += ' · ⚠️ Lev.tid: luftlinje (OSRM svarte ikke)';
+        if (luftlinjeFallback) text += ' · ⚠️ Lev.tid: luftlinje (rutingstjeneste svarte ikke)';
         if (total > 1) text += ' ▾';
         document.getElementById('status').textContent = text;
       }
