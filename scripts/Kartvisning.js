@@ -1178,6 +1178,28 @@
           });
         }
 
+        // Kumulativ kjøretid (sekunder) fra rutestart til boardLeie.
+        // Summer fullstendige etapper (fanger opp omkjøringer ved samkjøring),
+        // deretter ett ORS-kall fra starten av siste etappe til selve leiet.
+        // Fallback: lineær interpolasjon på koordinatantall (som før).
+        function tidTilBoardIdx(targetIdx, boardLat, boardLon) {
+          let ptIdx = 0, cumSec = 0;
+          for (let li = 0; li < legs.length; li++) {
+            const leg = legs[li];
+            const legPts = leg.latlngs.length;
+            if (ptIdx + legPts > targetIdx) {
+              const startPt = leg.latlngs[0];
+              return fetchSegmentDuration(startPt[1], startPt[0], boardLon, boardLat)
+                .then(function (sec) {
+                  return cumSec + (sec !== null ? sec : leg.dur * (targetIdx - ptIdx) / Math.max(legPts - 1, 1));
+                });
+            }
+            cumSec += leg.dur;
+            ptIdx += legPts;
+          }
+          return Promise.resolve(cumSec);
+        }
+
         FERGER.forEach(function (ferge) {
           // Finn leier som er nær rutelinjen
           // Lagre også hvilken ruteindeks hvert leie først dukker opp på
@@ -1199,18 +1221,14 @@
             const boardFm = ferjeMarkers[board.navn], exitFm = ferjeMarkers[exit.navn];
             if (boardFm) { if (!map.hasLayer(boardFm)) boardFm.addTo(map); boardFm.setIcon(makeFerjeIcon(board, null)); boardFm.setTooltipContent(ferjeTooltipDefault(board)); }
             if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit)); }
-            if (startTid !== null && currentWaypoints.length && boardFm) {
-              const startWp = currentWaypoints[0];
-              fetchSegmentDuration(startWp.lng, startWp.lat, board.lon, board.lat)
-              .then(function (sec) {
-                if (sec === null) return;
+            if (startTid !== null && boardFm) {
+              tidTilBoardIdx(detectedLeier[0].firstIdx, board.lat, board.lon).then(function (sec) {
                 const nesteAvgangMin = visLeieBording(board, boardFm, Math.round(startTid + sec / 60));
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, currentFiltered);
                 }
-              })
-              .catch(function () {});
+              });
             }
           } else if (!ferge.crossing_min) {
             // Ingen overfartstid definert: vis leier som er nær ruten
@@ -1220,14 +1238,10 @@
               if (!map.hasLayer(fm)) fm.addTo(map);
               fm.setIcon(makeFerjeIcon(item.leie, null));
               fm.setTooltipContent(ferjeTooltipDefault(item.leie));
-              if (startTid === null || !currentWaypoints.length) return;
-              const startWp = currentWaypoints[0];
-              fetchSegmentDuration(startWp.lng, startWp.lat, item.leie.lon, item.leie.lat)
-              .then(function (sec) {
-                if (sec === null) return;
+              if (startTid === null) return;
+              tidTilBoardIdx(item.firstIdx, item.leie.lat, item.leie.lon).then(function (sec) {
                 visLeieBording(item.leie, fm, Math.round(startTid + sec / 60));
-              })
-              .catch(function () {});
+              });
             });
           }
         });
