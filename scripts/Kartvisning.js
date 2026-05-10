@@ -597,7 +597,7 @@
       // ── Ikon ────────────────────────────────────────────────
       function trunc(str, n) { return str && str.length > n ? str.slice(0, n - 1) + '…' : str || ''; }
 
-      function makeIcon(hasPick, hasDel, pickTime, delTime, locName, pickCount, delCount, delIsLate) {
+      function makeIcon(hasPick, hasDel, pickTime, delTime, locName, pickCount, delCount, delIsLate, suggestedPickTime) {
         const delColor = delIsLate ? '#c62828' : '#1565c0';
         const timePart = (pickTime || delTime)
           ? '<div class="icon-label-time">' +
@@ -609,11 +609,14 @@
                 (hasPick ? pickTime : delTime) + '</span>') +
             '</div>'
           : '';
+        const suggestedPart = (hasPick && suggestedPickTime)
+          ? '<div style="color:#e65100;font-size:10px;line-height:1.2">→ ' + suggestedPickTime + '</div>'
+          : '';
         const addrPart = locName
           ? '<div class="icon-label-addr">' + trunc(locName, 25) + '</div>'
           : '';
-        const label = (timePart || addrPart)
-          ? '<div class="icon-label">' + timePart + addrPart + '</div>'
+        const label = (timePart || suggestedPart || addrPart)
+          ? '<div class="icon-label">' + timePart + suggestedPart + addrPart + '</div>'
           : '';
 
         function badgeHtml(count, color, side) {
@@ -660,7 +663,9 @@
         if (sted.navn && sted.adresse) lines.push(sted.adresse);
         g.pickups.forEach(function (e) {
           const t = e.req.pasientKlar ? ' kl.' + (e.req.pasientKlar.split(' ')[1] || '') : '';
-          lines.push('➕ ' + (e.req.pasientNavn || '?') + t);
+          const sugg = foreslåttHent[e.req.reqId];
+          const suggTekst = sugg ? ' <span style="color:#e65100;font-size:11px">→ hent ' + sugg + '?</span>' : '';
+          lines.push('➕ ' + (e.req.pasientNavn || '?') + t + suggTekst);
         });
         let hasEst = false;
         g.deliveries.forEach(function (e) {
@@ -810,6 +815,7 @@
 
       // Returer med dårlig datakvalitet: oppmote <= pasientKlar → hent faktisk kjøretid fra rutingstjeneste
       const estimertLev = {};
+      const foreslåttHent = {};
       const returReqs = reqDetails.filter(function (req) {
         if (!validLL(req.hentested) || !validLL(req.leveringssted)) return false;
         const hMin = parseMin(req.pasientKlar), lMin = parseMin(req.oppmote);
@@ -878,7 +884,10 @@
         const delIsLate = deliveryIsLate(g.deliveries);
         const firstStop = (g.pickups[0] || g.deliveries[0]).stop;
         const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
-        marker.setIcon(makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length, delIsLate));
+        const suggestedPickTime = g.pickups.length > 0
+          ? g.pickups.map(function (e) { return foreslåttHent[e.req.reqId]; }).filter(Boolean)[0] || null
+          : null;
+        marker.setIcon(makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length, delIsLate, suggestedPickTime));
         if (marker.getTooltip()) marker.setTooltipContent(groupTooltip(g));
       }
 
@@ -928,7 +937,10 @@
           const locName = firstStop.navn || firstStop.adresse.split(',')[0] || '';
           const groupReqIds = g.pickups.concat(g.deliveries).map(function (e) { return e.req.reqId; })
             .filter(function (id, i, arr) { return arr.indexOf(id) === i; });
-          const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length, delIsLate) })
+          const suggestedPickTime = g.pickups.length > 0
+            ? g.pickups.map(function (e) { return foreslåttHent[e.req.reqId]; }).filter(Boolean)[0] || null
+            : null;
+          const marker = L.marker(ll, { icon: makeIcon(g.pickups.length > 0, g.deliveries.length > 0, pickTime, delTime, locName, g.pickups.length, g.deliveries.length, delIsLate, suggestedPickTime) })
             .addTo(map)
             .bindTooltip(groupTooltip(g), { direction: 'top', offset: [0, -8] });
           if (reqDetails.length > 1) {
@@ -1109,12 +1121,19 @@
           fm.setTooltipContent('<b>⛴ ' + leie.navn + '</b><br>Est. fremme: <b>' + timeStr + '</b>');
         }
 
-        function sjekkLeveringViaFerge(boardLeie, boardFm, exitLeie, crossingMin, nesteAvgangMin, bookings) {
+        function sjekkLeveringViaFerge(boardLeie, boardFm, exitLeie, crossingMin, nesteAvgangMin, boardAnkomstMin, bookings) {
           const VENT_GRENSE = 20;
           const kandidater = bookings.filter(function (b) {
             return validLL(b.leveringssted) && parseMin(b.oppmote) !== null;
           });
           if (!kandidater.length) return;
+
+          // Forrige avgangstid – basis for å beregne nødvendig forkorting av hentetiden
+          const boardAvgSortert = ((boardLeie.avganger[dagKey] || boardLeie.avganger['man-fre']) || [])
+            .slice().sort(function (a, b) { return tidMin(a) - tidMin(b); });
+          const prevBoardAvgang = boardAvgSortert.filter(function (a) { return tidMin(a) < nesteAvgangMin; }).pop() || null;
+          const prevAvgangMin = prevBoardAvgang !== null ? tidMin(prevBoardAvgang) : null;
+          const minutterTidligere = prevAvgangMin !== null ? boardAnkomstMin - (prevAvgangMin - 10) : null;
 
           // Fase 1: individuelle kall – exit→levering (for sortering) + hentested→board (ventetid for returer)
           Promise.all(kandidater.map(function (b) {
@@ -1172,6 +1191,13 @@
                   maxDiff = Math.max(maxDiff, diff);
                   advarsler.push('<span style="color:#c62828;font-size:11px">⚠️ ' + (r.b.pasientNavn || '?') +
                     ': levering ~' + minTil(estimertMin) + ' (<b>' + diff + ' min for sent</b>, oppmøte ' + minTil(oppmoteMin) + ')</span>');
+                  if (minutterTidligere !== null && minutterTidligere > 0 && validLL(r.b.hentested)) {
+                    const hKlarMin = parseMin(r.b.pasientKlar);
+                    if (hKlarMin !== null) {
+                      foreslåttHent[r.b.reqId] = minTil(hKlarMin - minutterTidligere);
+                      refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
+                    }
+                  }
                 }
               });
 
@@ -1202,6 +1228,9 @@
               if (!alleLinjer.length) return;
               if (advarsler.length) {
                 boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⚠️ ' + maxDiff + 'min'));
+                if (minutterTidligere !== null && minutterTidligere > 0) {
+                  alleLinjer.push('<span style="color:#e65100;font-size:11px">⬆ Hent <b>' + minutterTidligere + ' min</b> tidligere → rekker ' + minTil(prevAvgangMin) + '-fergen</span>');
+                }
               } else if (maxVentMin > 0) {
                 boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⏱ ' + maxVentMin + 'min', '#e65100'));
               }
@@ -1256,10 +1285,11 @@
             if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit)); }
             if (startTid !== null && boardFm) {
               tidTilBoardIdx(detectedLeier[0].firstIdx, board.lat, board.lon).then(function (sec) {
-                const nesteAvgangMin = visLeieBording(board, boardFm, Math.round(startTid + sec / 60));
+                const boardAnkomstMin = Math.round(startTid + sec / 60);
+                const nesteAvgangMin = visLeieBording(board, boardFm, boardAnkomstMin);
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
-                  sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, currentFiltered);
+                  sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered);
                 }
               });
             }
