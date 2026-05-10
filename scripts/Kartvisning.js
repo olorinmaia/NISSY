@@ -191,16 +191,23 @@
     }
   }
 
-  // Legg til kontorets ORS-nøkkel her når IT-ansvarlig sender den.
+  // Kontor-nøkler: legg til / bytt ut når IT-ansvarlig sender ny nøkkel.
   // Gratis collaborative plan: https://account.heigit.org
   const ORS_KEYS = {
     'Pasientreiser Nord-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=',
     'Kontoret for pasientreiser, Ålesund': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU5YTZmYWFmZGZhOTQxNzQ5OGMyY2UwMzkwZWEyYzA2IiwiaCI6Im11cm11cjY0In0=',
     'Pasientreiser Sør-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5MDM5NzZiMjAwYjRmY2I5MmFhNjUyNjJjOWU2OGI5IiwiaCI6Im11cm11cjY0In0=',
   };
+  // Personlige nøkler: brukerens egen kvote brukes fremfor kontorets.
+  // Legg til id (fra popup/changePassword?id=XXXXX) → nøkkel.
+  const ORS_USER_KEYS = {
+    108137: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVjODQwMjk1OTQyYzRjMzJhNmM1YWUyMWExN2U2Y2UzIiwiaCI6Im11cm11cjY0In0=', // alfeinarj
+  };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
-  const ORS_API_KEY = ORS_KEYS[_currentOffice] || null;
+  const _userIdMatch = document.querySelector('a[href*="changePassword"]')?.getAttribute('href')?.match(/id=(\d+)/);
+  const _currentUserId = _userIdMatch ? parseInt(_userIdMatch[1], 10) : null;
+  const ORS_API_KEY = ORS_USER_KEYS[_currentUserId] || ORS_KEYS[_currentOffice] || null;
   const orsEnabled = !!ORS_API_KEY;
   // 'ors' eller 'osrm' — avgjør hvilken tjeneste som er primær for fergepipelinen
   const FERRY_ROUTING = 'ors';
