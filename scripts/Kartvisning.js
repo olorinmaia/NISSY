@@ -202,6 +202,7 @@
   // Legg til id (fra popup/changePassword?id=XXXXX) → nøkkel.
   const ORS_USER_KEYS = {
     108137: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVjODQwMjk1OTQyYzRjMzJhNmM1YWUyMWExN2U2Y2UzIiwiaCI6Im11cm11cjY0In0=', // alfeinarj
+    113859: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjFhYTUxNDg3NGMzZjRkN2RhZTExMzg4NWEwMzZjM2ZmIiwiaCI6Im11cm11cjY0In0=', // augustk
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
