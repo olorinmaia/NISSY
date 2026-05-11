@@ -1105,6 +1105,8 @@
           if (ankomstMin === null) return null;
           const timing = computeTiming(leie, ankomstMin);
           if (!timing) return null;
+          if (timing.nesteIdx === -1) return null;
+
           const neste = timing.neste;
           const timeInfo = neste
             ? { avgang: Array.isArray(neste) ? neste[0] : neste }
@@ -1291,6 +1293,20 @@
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered);
+                } else if (exitFm && nesteAvgangMin === null) {
+                  const boardAvg = board.avganger[dagKey] || board.avganger['man-fre'];
+                  const exitAvg  = exit.avganger[dagKey]  || exit.avganger['man-fre'];
+                  if (boardAvg && boardAvg.length) {
+                    const sisteAvgMinBoard = Math.max.apply(null, boardAvg.map(function (a) { return tidMin(a); }));
+                    if (boardAnkomstMin > sisteAvgMinBoard) {
+                      const sisteAvgMinExit = exitAvg && exitAvg.length
+                        ? Math.max.apply(null, exitAvg.map(function (a) { return tidMin(a); })) : null;
+                      exitFm.setIcon(makeFerjeIcon(exit, null, '🚫 Siste ferge'));
+                      exitFm.setTooltipContent(ferjeTooltipDefault(exit) + '<br>' +
+                        '<span style="color:#c62828;font-weight:700">⚠️ Siste ferge fra ' + exit.navn + (sisteAvgMinExit !== null ? ' kl. ' + minTil(sisteAvgMinExit) : '') + ' – nås ikke</span><br>' +
+                        '<span style="color:#888;font-size:11px">Ingen fergeberegning – planlegg manuelt</span>');
+                    }
+                  }
                 }
               });
             }
