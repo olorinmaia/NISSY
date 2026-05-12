@@ -1200,7 +1200,6 @@
               const forwardSecs = chains[0];
               const returSecs   = chains[1];
               const advarsler = [];
-              const returer = [];
               let maxDiff = 0;
               let maxVentMin = 0;
 
@@ -1235,23 +1234,17 @@
                 const dateStr = (r.b.pasientKlar || r.b.oppmote || '').split(' ')[0];
                 estimertLev[r.b.reqId] = { sortKey: dateStr + ' ' + minTil(estimertMin), display: '~' + minTil(estimertMin), isLate: false };
                 refreshMarker(coordKey(r.b.leveringssted.lat, r.b.leveringssted.lon));
-                let ventTekst = '';
                 if (r.boardSec !== null && klarMin !== null) {
                   const ankomstFerjeMin = klarMin + Math.round(r.boardSec / 60);
                   const ventMin = nesteAvgangMin - ankomstFerjeMin;
-                  if (ventMin > VENT_GRENSE) {
-                    maxVentMin = Math.max(maxVentMin, ventMin);
-                    ventTekst = ' <span style="color:#e65100">⏱ ' + ventMin + ' min venting</span>';
-                  }
+                  if (ventMin > VENT_GRENSE) maxVentMin = Math.max(maxVentMin, ventMin);
                 }
-                returer.push('<span style="color:#1565c0;font-size:11px">🏠 ' + (r.b.pasientNavn || '?') +
-                  ': est. levering ~' + minTil(estimertMin) + ventTekst + '</span>');
               });
 
+              if (!advarsler.length && maxVentMin === 0) return;
               const tooltip = boardFm.getTooltip();
               if (!tooltip) return;
-              const alleLinjer = advarsler.concat(returer);
-              if (!alleLinjer.length) return;
+              const alleLinjer = advarsler.slice();
               if (advarsler.length) {
                 boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⚠️ ' + maxDiff + 'min'));
                 if (minutterTidligere !== null && minutterTidligere > 0) {
@@ -1259,6 +1252,7 @@
                 }
               } else if (maxVentMin > 0) {
                 boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⏱ ' + maxVentMin + 'min', '#e65100'));
+                alleLinjer.push('<span style="color:#e65100;font-size:11px">⏱ Ankommer ~' + maxVentMin + ' min før neste avgang</span>');
               }
               boardFm.setTooltipContent((tooltip.getContent() || '') +
                 '<hr style="border:none;border-top:1px solid #bbdefb;margin:4px 0">' + alleLinjer.join('<br>'));
