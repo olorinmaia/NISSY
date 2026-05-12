@@ -93,6 +93,12 @@
     setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
   }
   
+  function kortNavn(navn) {
+    if (!navn) return navn;
+    const deler = navn.trim().split(/\s+/);
+    return deler.length <= 2 ? navn : deler[0] + ' ' + deler[deler.length - 1];
+  }
+
   // Konverter UTM sone N til WGS-84 (brukes for koordinater fra 2000 XML)
   function utmToLatLon(easting, northing, zone) {
     const k0 = 0.9996, a = 6378137, e2 = 0.00669437999014;
@@ -379,6 +385,23 @@
           .leaflet-routing-container {
             display: none;
           }
+          .plan-label { display:flex; flex-direction:column; align-items:center; margin-top:1px;
+            text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }
+          .plan-time { display:flex; gap:3px; font-size:10px; font-weight:700; white-space:nowrap; line-height:1.2; }
+          .plan-addr { font-size:10px; font-weight:600; color:#333; max-width:180px;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+          .plan-split { position:relative; border-radius:50%; width:26px; height:26px;
+            overflow:hidden; border:2px solid #555; box-shadow:0 1px 4px rgba(0,0,0,.3); }
+          .plan-split-l { position:absolute; top:0; left:0; width:50%; height:100%;
+            background:#e8f5e9; display:flex; align-items:center; justify-content:center;
+            font-size:12px; font-weight:900; color:#2e7d32; }
+          .plan-split-r { position:absolute; top:0; right:0; width:50%; height:100%;
+            background:#e3f2fd; display:flex; align-items:center; justify-content:center;
+            font-size:12px; font-weight:900; color:#1565c0; }
+          .legend { position:absolute; bottom:24px; right:12px; z-index:1000;
+            background:rgba(255,255,255,0.95); border-radius:6px;
+            padding:7px 11px; font-size:12px; box-shadow:0 1px 4px rgba(0,0,0,0.2);
+            line-height:2; }
         </style>
       </head>
       <body>
@@ -432,6 +455,15 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19
 }).addTo(map);
+
+const legend = document.createElement('div');
+legend.className = 'legend';
+legend.innerHTML =
+  '<div><span style="font-size:14px">➕</span> Henting</div>' +
+  '<div><span style="font-size:14px">➖</span> Levering</div>' +
+  '<div><span class="plan-split" style="display:inline-flex;vertical-align:middle;width:18px;height:18px;font-size:9px;border-width:1.5px;">' +
+  '<span class="plan-split-l">+</span><span class="plan-split-r">−</span></span> Begge</div>';
+document.getElementById('map').appendChild(legend);
 
 // Cluster-gruppe for markører (byttes ut ved hver oppdatering)
 let markerCluster = null;
@@ -592,27 +624,79 @@ function togglePlannedStops(stops, turId) {
   }));
 
   groupList.forEach(({ group, representative }) => {
-    const isPickup = representative.type === '1803';
-    const symbol = isPickup ? '➕' : '➖';
-    const color = isPickup ? '#2e7d32' : '#1565c0';
-    const bgColor = isPickup ? '#e8f5e9' : '#e3f2fd';
+    const hasPickup   = group.some(s => s.type === '1803');
+    const hasDelivery = group.some(s => s.type === '1804');
+    const pickups     = group.filter(s => s.type === '1803');
+    const deliveries  = group.filter(s => s.type === '1804');
+
+    const sorted = group.slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+    // Earliest time per type for label
+    const pickTime = pickups.length
+      ? (pickups.slice().sort((a, b) => (a.time||'').localeCompare(b.time||''))[0].time || '').split('T')[1]?.substring(0, 5) || '' : '';
+    const delTime = deliveries.length
+      ? (deliveries.slice().sort((a, b) => (a.time||'').localeCompare(b.time||''))[0].time || '').split('T')[1]?.substring(0, 5) || '' : '';
+
+    const addrFull = (representative.address || '').split(',')[0].trim();
+    const addrLabel = addrFull.length > 22 ? addrFull.substring(0, 21) + '…' : addrFull;
+
+    let timePart = '';
+    if (hasPickup && hasDelivery) {
+      timePart = '<div class="plan-time">' +
+        (pickTime  ? '<span style="color:#2e7d32">' + pickTime + '</span>' : '') +
+        (pickTime && delTime ? '<span style="color:#999">·</span>' : '') +
+        (delTime   ? '<span style="color:#1565c0">' + delTime  + '</span>' : '') +
+        '</div>';
+    } else if (hasPickup && pickTime) {
+      timePart = '<div class="plan-time"><span style="color:#2e7d32">' + pickTime + '</span></div>';
+    } else if (hasDelivery && delTime) {
+      timePart = '<div class="plan-time"><span style="color:#1565c0">' + delTime + '</span></div>';
+    }
+    const addrPart  = addrLabel ? '<div class="plan-addr">' + addrLabel + '</div>' : '';
+    const labelHtml = (timePart || addrPart) ? '<div class="plan-label">' + timePart + addrPart + '</div>' : '';
+
+    function badgeHtml(count, color, side) {
+      if (count <= 1) return '';
+      return '<div style="position:absolute;top:-5px;' + side + ':-5px;background:' + color + ';color:#fff;' +
+        'border-radius:50%;width:15px;height:15px;font-size:9px;font-weight:900;' +
+        'display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;">' + count + '</div>';
+    }
+
+    let circleHtml;
+    if (hasPickup && hasDelivery) {
+      circleHtml = '<div class="plan-split"><div class="plan-split-l">+</div><div class="plan-split-r">−</div></div>' +
+        badgeHtml(pickups.length, '#2e7d32', 'left') +
+        badgeHtml(deliveries.length, '#1565c0', 'right');
+    } else {
+      const symbol  = hasPickup ? '➕' : '➖';
+      const color   = hasPickup ? '#2e7d32' : '#1565c0';
+      const bgColor = hasPickup ? '#e8f5e9' : '#e3f2fd';
+      const count   = hasPickup ? pickups.length : deliveries.length;
+      circleHtml = '<div style="background:' + bgColor + ';border:2px solid ' + color +
+        ';border-radius:50%;width:26px;height:26px;display:flex;align-items:center;' +
+        'justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.3);">' + symbol + '</div>' +
+        badgeHtml(count, color, 'right');
+    }
+
     const icon = L.divIcon({
       className: 'custom-marker-wrapper',
-      html: '<div style="background:' + bgColor + ';border:2px solid ' + color + ';border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.3);color:' + color + ';font-weight:bold;">' + symbol + '</div>',
-      iconSize: [26, 26],
+      html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+            '<div style="position:relative;">' + circleHtml + '</div>' +
+            labelHtml + '</div>',
+      iconSize: [26, 55],
       iconAnchor: [13, 13]
     });
 
-    const sorted = group.slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-    const tooltipLines = sorted.map(s => {
+    // Tooltip: adresse øverst, deretter navn (eller type) + klokkeslett per stopp
+    const tooltipLines = ['<b>📍 ' + (sorted[0].address || '') + '</b>'];
+    sorted.forEach(s => {
       const t = s.time ? s.time.split('T')[1]?.substring(0, 5) : '–';
-      return (s.type === '1803' ? '➕ Henting' : '➖ Levering') + ' ' + t;
+      const label = s.name || (s.type === '1803' ? 'Henting' : 'Levering');
+      tooltipLines.push((s.type === '1803' ? '➕' : '➖') + ' ' + label + (t ? ' kl.' + t : ''));
     });
-    const address = sorted[0].address || '';
-    const tooltipHtml = tooltipLines.join('<br>') + (address ? '<br>' + address : '');
 
     const marker = L.marker([representative.lat, representative.lon], { icon });
-    marker.bindTooltip(tooltipHtml, { direction: 'top', offset: [0, -8] });
+    marker.bindTooltip(tooltipLines.join('<br>'), { direction: 'top', offset: [0, -8] });
     layer.addLayer(marker);
   });
 
@@ -1419,16 +1503,18 @@ window.addEventListener('beforeunload', () => {
                 const timeStr = n.querySelector('timesNode > time')?.getAttribute('time') || null;
                 const address2000 = formatAddr(n.querySelector('addressNode'));
 
-                // Samle planlagte stopp med koordinater (dedupliisert per node)
+                const passengerName = kortNavn(contentNode.getAttribute('name') || null);
+
+                // Samle planlagte stopp med koordinater
                 const geo2000 = n.querySelector('addressNode > geographicLocation');
                 if (geo2000?.getAttribute('typeOfCoordinate') === 'UTM') {
                   const utmE = parseFloat(geo2000.getAttribute('long'));
                   const utmN = parseFloat(geo2000.getAttribute('lat'));
                   const utmZone = parseInt(geo2000.getAttribute('zone')) || 33;
-                  if (!isNaN(utmE) && !isNaN(utmN) && !plannedStops.some(s => s.utmE === utmE && s.utmN === utmN)) {
+                  if (!isNaN(utmE) && !isNaN(utmN)) {
                     const wgs = utmToLatLon(utmE, utmN, utmZone);
                     const inNorway = wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5;
-                    if (inNorway) plannedStops.push({ type: nodeType, lat: wgs.lat, lon: wgs.lon, address: address2000, time: timeStr, utmE, utmN });
+                    if (inNorway) plannedStops.push({ type: nodeType, lat: wgs.lat, lon: wgs.lon, address: address2000, time: timeStr, name: passengerName, utmE, utmN });
                   }
                 }
 
