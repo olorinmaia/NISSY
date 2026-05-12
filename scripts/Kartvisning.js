@@ -3,6 +3,11 @@
 // Erstatter NISSY sin "Vis i kart" (Alt+W / buttonShowMap)
 // Henter reqId fra merkede rader (vopp + popp) og viser
 // hente/leveringskoordinater i Leaflet/OpenStreetMap-kart
+// ============================================================
+// ORS-rutingresultater mellomlagres i localStorage i 7 dager
+// for å spare API-kvoten. Hvis ruting gir uventede resultater,
+// tøm cachen i konsollen med:
+//   Object.keys(localStorage).filter(k => k.startsWith('ors_')).forEach(k => localStorage.removeItem(k))
 
 (function () {
   if (window.__kartvisningInstalled) {
@@ -717,8 +722,28 @@
       const _ferryRouting  = '${FERRY_ROUTING}';
       const _orsReturReqs  = ${orsReturReqs};
 
+      const ORS_CACHE_DAYS = 7;
+      function _orsCacheKey(lonA, latA, lonB, latB) {
+        function r(n) { return Math.round(n * 10000) / 10000; }
+        return 'ors_' + r(lonA) + ',' + r(latA) + '_' + r(lonB) + ',' + r(latB);
+      }
+      function _orsCacheGet(key) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return null;
+          const entry = JSON.parse(raw);
+          return (Date.now() - entry.ts) / 86400000 <= ORS_CACHE_DAYS ? entry.sec : null;
+        } catch (e) { return null; }
+      }
+      function _orsCacheSet(key, sec) {
+        try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), sec: sec })); } catch (e) {}
+      }
+
       function fetchDurationORS(lonA, latA, lonB, latB) {
         if (!_orsEnabled) return Promise.reject(new Error('ORS ikke aktivert'));
+        const key = _orsCacheKey(lonA, latA, lonB, latB);
+        const cached = _orsCacheGet(key);
+        if (cached !== null) return Promise.resolve(cached);
         return fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
           method: 'POST',
           headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
@@ -726,7 +751,11 @@
           signal: AbortSignal.timeout(8000)
         })
         .then(function (r) { return r.json(); })
-        .then(function (d) { return d.routes && d.routes[0] ? d.routes[0].summary.duration : null; });
+        .then(function (d) {
+          const sec = d.routes && d.routes[0] ? d.routes[0].summary.duration : null;
+          if (sec !== null) _orsCacheSet(key, sec);
+          return sec;
+        });
       }
 
       function fetchDurationOSRM(lonA, latA, lonB, latB) {
