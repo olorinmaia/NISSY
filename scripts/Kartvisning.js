@@ -515,8 +515,8 @@
         });
       }
 
-      function ferjeTooltipDefault(leie) {
-        const avg = leie.avganger['man-fre'];
+      function ferjeTooltipDefault(leie, dk) {
+        const avg = leie.avganger[dk || 'man-fre'] || leie.avganger['man-fre'];
         const lines = ['<b>⛴ ' + leie.retning + '</b>'];
         for (let i = 0; i < avg.length; i += 5)
           lines.push(avg.slice(i, i + 5).join('&nbsp;&nbsp;'));
@@ -1048,9 +1048,13 @@
           });
         });
 
-        const dagNr = startDato ? new Date(startDato).getDay() : new Date().getDay();
+        function parseDatoStr(s) {
+          const m = s && s.match(/^(\\d{2})\\.(\\d{2})\\.(\\d{4})$/);
+          return m ? new Date(m[3] + '-' + m[2] + '-' + m[1]) : new Date(s);
+        }
+        const _datoObj = startDato ? parseDatoStr(startDato) : new Date();
+        const dagNr = _datoObj.getDay();
         const dagKey = dagNr === 0 ? 'son' : dagNr === 6 ? 'lor' : 'man-fre';
-
 
         function computeTiming(leie, ankomstMin) {
           const avganger = leie.avganger[dagKey] || leie.avganger['man-fre'];
@@ -1070,7 +1074,7 @@
         function visLeieBording(leie, fm, ankomstMin) {
           if (!map.hasLayer(fm)) fm.addTo(map);
           fm.setIcon(makeFerjeIcon(leie, null));
-          fm.setTooltipContent(ferjeTooltipDefault(leie));
+          fm.setTooltipContent(ferjeTooltipDefault(leie, dagKey));
           if (ankomstMin === null) return null;
           const timing = computeTiming(leie, ankomstMin);
           if (!timing) return null;
@@ -1253,8 +1257,8 @@
             detectedLeier.sort(function (a, b) { return a.firstIdx - b.firstIdx; });
             const board = detectedLeier[0].leie, exit = detectedLeier[1].leie;
             const boardFm = ferjeMarkers[board.navn], exitFm = ferjeMarkers[exit.navn];
-            if (boardFm) { if (!map.hasLayer(boardFm)) boardFm.addTo(map); boardFm.setIcon(makeFerjeIcon(board, null)); boardFm.setTooltipContent(ferjeTooltipDefault(board)); }
-            if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit)); }
+            if (boardFm) { if (!map.hasLayer(boardFm)) boardFm.addTo(map); boardFm.setIcon(makeFerjeIcon(board, null)); boardFm.setTooltipContent(ferjeTooltipDefault(board, dagKey)); }
+            if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit, dagKey)); }
             if (startTid !== null && boardFm) {
               tidTilBoardIdx(detectedLeier[0].firstIdx, board.lat, board.lon).then(function (sec) {
                 const boardAnkomstMin = Math.round(startTid + sec / 60);
@@ -1271,7 +1275,7 @@
                       const sisteAvgMinExit = exitAvg && exitAvg.length
                         ? Math.max.apply(null, exitAvg.map(function (a) { return tidMin(a); })) : null;
                       exitFm.setIcon(makeFerjeIcon(exit, null, '🚫 Siste ferge'));
-                      exitFm.setTooltipContent(ferjeTooltipDefault(exit) + '<br>' +
+                      exitFm.setTooltipContent(ferjeTooltipDefault(exit, dagKey) + '<br>' +
                         '<span style="color:#c62828;font-weight:700">⚠️ Siste ferge fra ' + exit.navn + (sisteAvgMinExit !== null ? ' kl. ' + minTil(sisteAvgMinExit) : '') + ' – nås ikke</span><br>' +
                         '<span style="color:#888;font-size:11px">Ingen fergeberegning – planlegg manuelt</span>');
                     }
@@ -1286,7 +1290,7 @@
               if (!fm) return;
               if (!map.hasLayer(fm)) fm.addTo(map);
               fm.setIcon(makeFerjeIcon(item.leie, null));
-              fm.setTooltipContent(ferjeTooltipDefault(item.leie));
+              fm.setTooltipContent(ferjeTooltipDefault(item.leie, dagKey));
               if (startTid === null) return;
               tidTilBoardIdx(item.firstIdx, item.leie.lat, item.leie.lon).then(function (sec) {
                 visLeieBording(item.leie, fm, Math.round(startTid + sec / 60));
