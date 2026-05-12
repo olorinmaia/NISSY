@@ -3,7 +3,6 @@
 // Erstatter NISSY sin "Vis i kart" (Alt+W / buttonShowMap)
 // Henter reqId fra merkede rader (vopp + popp) og viser
 // hente/leveringskoordinater i Leaflet/OpenStreetMap-kart
-// ============================================================
 
 (function () {
   if (window.__kartvisningInstalled) {
@@ -700,17 +699,6 @@
 
       function validLL(s) { return s && isFinite(s.lat) && isFinite(s.lon); }
 
-      function routeCrossesFerry(hentested, leveringssted) {
-        return FERGER.some(function (ferge) {
-          if (!ferge.leier || ferge.leier.length < 2) return false;
-          const l0 = ferge.leier[0], l1 = ferge.leier[1];
-          const dH0 = haversine(hentested,    { lat: l0.lat, lon: l0.lon });
-          const dH1 = haversine(hentested,    { lat: l1.lat, lon: l1.lon });
-          const dL0 = haversine(leveringssted, { lat: l0.lat, lon: l0.lon });
-          const dL1 = haversine(leveringssted, { lat: l1.lat, lon: l1.lon });
-          return (dH0 < dH1) !== (dL0 < dL1);
-        });
-      }
 
       function parseMin(s) {
         const t = s && s.split(' ')[1];
@@ -816,10 +804,6 @@
       if (returReqs.length > 0) {
         const osrmRes = await Promise.all(returReqs.map(function (req) {
           const h = req.hentested, l = req.leveringssted;
-          if (!routeCrossesFerry(h, l)) {
-            const travelSec = haversine(h, l) / 70000 * 3600;
-            return Promise.resolve({ req: req, sec: travelSec });
-          }
           return (_orsReturReqs ? fetchSegmentDuration : fetchDurationOSRM)(h.lon, h.lat, l.lon, l.lat)
             .then(function (sec) { return { req: req, sec: sec }; })
             .catch(function () { return { req: req, sec: null }; });
