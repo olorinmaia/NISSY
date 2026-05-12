@@ -723,6 +723,18 @@
 
       function validLL(s) { return s && isFinite(s.lat) && isFinite(s.lon); }
 
+      function routeCrossesFerry(hentested, leveringssted) {
+        return FERGER.some(function (ferge) {
+          if (!ferge.leier || ferge.leier.length < 2) return false;
+          const l0 = ferge.leier[0], l1 = ferge.leier[1];
+          const dH0 = haversine(hentested,    { lat: l0.lat, lon: l0.lon });
+          const dH1 = haversine(hentested,    { lat: l1.lat, lon: l1.lon });
+          const dL0 = haversine(leveringssted, { lat: l0.lat, lon: l0.lon });
+          const dL1 = haversine(leveringssted, { lat: l1.lat, lon: l1.lon });
+          return (dH0 < dH1) !== (dL0 < dL1);
+        });
+      }
+
       function parseMin(s) {
         const t = s && s.split(' ')[1];
         if (!t) return null;
@@ -827,6 +839,10 @@
       if (returReqs.length > 0) {
         const osrmRes = await Promise.all(returReqs.map(function (req) {
           const h = req.hentested, l = req.leveringssted;
+          if (!routeCrossesFerry(h, l)) {
+            const travelSec = haversine(h, l) / 70000 * 3600;
+            return Promise.resolve({ req: req, sec: travelSec });
+          }
           return (_orsReturReqs ? fetchSegmentDuration : fetchDurationOSRM)(h.lon, h.lat, l.lon, l.lat)
             .then(function (sec) { return { req: req, sec: sec }; })
             .catch(function () { return { req: req, sec: null }; });
@@ -1125,10 +1141,16 @@
           fm.setTooltipContent('<b>⛴ ' + leie.navn + '</b><br>Est. fremme: <b>' + timeStr + '</b>');
         }
 
-        function sjekkLeveringViaFerge(boardLeie, boardFm, exitLeie, crossingMin, nesteAvgangMin, boardAnkomstMin, bookings) {
+        function sjekkLeveringViaFerge(boardLeie, boardFm, exitLeie, crossingMin, nesteAvgangMin, boardAnkomstMin, bookings, boardFirstIdx) {
           const VENT_GRENSE = 20;
           const kandidater = bookings.filter(function (b) {
-            return validLL(b.leveringssted) && parseMin(b.oppmote) !== null;
+            if (!validLL(b.leveringssted) || parseMin(b.oppmote) === null) return false;
+            let closestIdx = 0, closestDist = Infinity;
+            flatPts.forEach(function (p, i) {
+              const d = haversine({ lat: p.lat, lon: p.lon }, b.leveringssted);
+              if (d < closestDist) { closestDist = d; closestIdx = i; }
+            });
+            return closestIdx >= boardFirstIdx;
           });
           if (!kandidater.length) return;
 
@@ -1293,7 +1315,7 @@
                 const nesteAvgangMin = visLeieBording(board, boardFm, boardAnkomstMin);
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
-                  sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered);
+                  sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered, detectedLeier[0].firstIdx);
                 } else if (exitFm && nesteAvgangMin === null) {
                   const boardAvg = board.avganger[dagKey] || board.avganger['man-fre'];
                   const exitAvg  = exit.avganger[dagKey]  || exit.avganger['man-fre'];
