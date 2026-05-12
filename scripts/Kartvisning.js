@@ -330,7 +330,7 @@
     async function initMap(reqDetails) {
       const map = L.map('map');
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+        attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors | Ruting: <a href="https://openrouteservice.org">openrouteservice</a>',
         maxZoom: 19
       }).addTo(map);
 
