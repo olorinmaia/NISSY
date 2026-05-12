@@ -476,6 +476,33 @@
               }
             }
           ]
+        },
+        {
+          id: 'gjerdinga',
+          crossing_min: 10,
+          leier: [
+            {
+              navn: 'Gjerdinga', lat: 64.945012, lon: 11.449137,
+              mainland: false,
+              retning: 'Gjerdinga → Eidshaug',
+              note: '12:15 (man+ons). Skoledager: 13:15 (ons). Kun man: 20:00. Ons+fre: 21:00',
+              avganger: {
+                'man-fre': ['06:55','07:40','08:30','12:15','13:15','14:15','15:10','16:00','17:30','20:00','21:00'],
+                'lor': ['10:00','15:45'],
+                'son': ['11:00','15:05','19:00']
+              }
+            },
+            {
+              navn: 'Eidshaug', lat: 64.932361, lon: 11.464512,
+              retning: 'Eidshaug → Gjerdinga',
+              note: '12:30 (man+ons). Skoledager: 13:30 (ons). Kun man: 20:10. Ons+fre: 21:10',
+              avganger: {
+                'man-fre': ['07:30','08:00','08:45','12:30','13:30','14:30','15:40','16:20','18:00','20:10','21:10'],
+                'lor': ['10:10','16:00'],
+                'son': ['11:15','15:20','19:10']
+              }
+            }
+          ]
         }
       ];
 
