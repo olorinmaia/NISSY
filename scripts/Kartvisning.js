@@ -1520,6 +1520,11 @@
       return;
     }
 
+    if (alleIds.length > 16) {
+      showError(`🗺️ For mange bestillinger merket (${alleIds.length}/16) – maks 16 støttes. Fjern noen og prøv igjen.`);
+      return;
+    }
+
     const vTxt = voppIds.length ? `${voppIds.length} ventende` : '';
     const pTxt = poppIds.length ? `${poppIds.length} pågående` : '';
     showLoading(`Henter koordinater for ${[vTxt, pTxt].filter(Boolean).join(' + ')}…`);
