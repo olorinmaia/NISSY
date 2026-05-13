@@ -337,12 +337,12 @@
         <tr>
             <td valign="top" align="left"><input id="buttonAssignVopps" type="button" value="Tildel oppdrag" title="Snarvei: Alt+G" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
             <td valign="top" align="right">
-                <input id="buttonSendSMS" type="button" value="Send SMS" title="Snarvei: Alt+C" class="bigbutton" onclick="ButtonController.onClick(this)">
+                <input id="buttonSendSMS" type="button" value="📱 Send SMS" title="Snarvei: Alt+C" class="bigbutton" onclick="ButtonController.onClick(this)">
             </td>
         </tr>
         <tr>
             <td valign="top" align="left"><input id="buttonAssignVoppsAssist" type="button" value="Tilordningsstøtte" class="bigbutton" onclick="ButtonController.onClick(this)"></td>
-            <td valign="top" align="right"><input id="buttonShowMap" type="button" value="Vis i kart" title="Snarvei: Alt+W" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
+            <td valign="top" align="right"><input id="buttonShowMap" type="button" value="🗺️ Kartvisning" title="Snarvei: Alt+W" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
         </tr>
         <tr>
             <td valign="top" align="left"><input id="buttonMeetingplace" type="button" value="Møteplass" title="Snarvei: Alt+M" class="bigbutton" onclick="ButtonController.onClick(this)" disabled=""></td>
