@@ -104,6 +104,11 @@ Navn: `NISSY-Avansert`
 - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
 - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
 - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
+- **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag: Ytterøy/Levanger, Leka/Gutvik, Jøa, Hofles/Lund, Hofles/Geisnes og Gjerdinga/Eidshaug
+    - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
+    - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
+    - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
+    - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
 

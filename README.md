@@ -67,6 +67,13 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
+  - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag: Ytterøy/Levanger, Leka/Gutvik, Jøa, Hofles/Lund, Hofles/Geisnes og Gjerdinga/Eidshaug
+    - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
+    - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
+    - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
+    - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
+    - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
+    - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
   - Adresser normaliseres og navn forkortes for kompakt visning
   - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
   - Hold over et segment for å se reisetid/avstand mellom to hendelser.

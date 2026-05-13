@@ -19,12 +19,10 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
     - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
     - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
-  - **Fiks: leveringstid på returer** – beregnes nå via faktisk ruting i stedet for luftlinjeavstand, som ga feil estimat på lengre strekninger uten ferge
   - **ORS-caching** – segment-kall mellomlagres i localStorage i 7 dager; drastisk færre API-kall på kjente ruter
-  - **OpenRouteService-attribusjon** lagt til på kartet (krav fra HeiGIT)
-  - Støtte for personlige ORS API-nøkler per bruker-ID
+  - Begrens til maks 16 bestillinger (taksameter-grense) samt for å unngå overbelastning av rutekalkulerings-API
 - 📡 **Live-ressurskart**
-  - Ikonlabeler, badges og pasientnavn på planlagte stopp
+  - Ikonlabeler, badges og pasientnavn på planlagte stopp ala Kartvisning
 
 ---
 
