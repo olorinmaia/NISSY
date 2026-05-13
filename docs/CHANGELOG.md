@@ -9,7 +9,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.4.0] - 16.05.2026
 
-### Kartvisning: Fergeberegning, ORS-forbedringer og Live-ressurskart
+### Kartvisning: Fergeberegning, ORS-forbedringer og forbedring til Live-ressurskart
 
 - 🗺️ **Kartvisning**
   - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag: Ytterøy/Levanger, Leka/Gutvik, Jøa, Hofles/Lund, Hofles/Geisnes og Gjerdinga/Eidshaug
@@ -20,9 +20,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
     - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
   - **ORS-caching** – segment-kall mellomlagres i localStorage i 7 dager; drastisk færre API-kall på kjente ruter
-  - Begrens til maks 16 bestillinger (taksameter-grense) samt for å unngå overbelastning av rutekalkulerings-API
+  - Begrens til maks 16 bestillinger (taksameter-grense)
 - 📡 **Live-ressurskart**
-  - Ikonlabeler, badges og pasientnavn på planlagte stopp ala Kartvisning
+  - Ikonlabeler, badges og pasientnavn på planlagte stopp slik som i Kartvisning
 
 ---
 
