@@ -15,7 +15,7 @@ NISSY AMK er perfekt for deg som:
 - ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 📡 **Live ressurskart** - (Alt+Z) Åpner et interaktivt kart som viser siste kjente posisjon, hendelse samt annen nyttig info for alle merkede ressurser.
-- 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
+- 🧭 **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
 - 🗺️ **Kartvisning** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
 - 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
 - ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en pop-up modal over planleggingsvinduet som husker siste besøkte side eller ny fane basert på preferanse.
@@ -99,7 +99,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
   - Kan startes og stoppes ved trykk på knapp som ligger over ventende oppdrag. Startes automatisk etter loader-popup lukkes.
   - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
 
-### 🗺 Rutekalkulering (ALT+Q)
+### 🧭 Rutekalkulering (ALT+Q)
 
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+Q`

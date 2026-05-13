@@ -2219,7 +2219,7 @@
             "
             title="Åpne merkede bestillinger i kart (Alt+W)"
           >
-            🗺️ Vis i kart
+            🗺️ Kartvisning
           </button>
           <button 
             id="showRouteButton"
@@ -2238,7 +2238,7 @@
             "
             title="Åpne rute i Google Maps for merkede bestillinger (Alt+Q)"
           >
-            🗺️ Rutekalkulering
+            🧭 Rutekalkulering
           </button>
         </div>
       </div>

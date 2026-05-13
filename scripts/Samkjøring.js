@@ -2551,7 +2551,7 @@
                                         onmouseover="this.style.opacity='0.8'"
                                         onmouseout="this.style.opacity='1'"
                                     >
-                                        🗺️ Vis i kart
+                                        🗺️ Kartvisning
                                     </button>
                                     <button 
                                         onclick="window.selectSamkjoringResourcePair('${results.selectedResource.rowId}', '${candidate.rowId}')"
@@ -2724,7 +2724,7 @@
                                             onmouseover="this.style.opacity='0.8'"
                                             onmouseout="this.style.opacity='1'"
                                         >
-                                            🗺️ Vis i kart
+                                            🗺️ Kartvisning
                                         </button>
                                         <button 
                                             onclick="window.selectSamkjoringResource('${result.ventende.rowId}', '${resourceRowId}')"
@@ -3236,7 +3236,7 @@
                     </button>
                     <button id="auto-group-map-btn" onclick="window.showAutoGroupInMap()" 
                         style="background: #2980b9; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                        🗺️ Vis i kart
+                        🗺️ Kartvisning
                     </button>
                     <button id="auto-group-next-btn" onclick="window.nextAutoGrouping()" 
                         style="background: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;"

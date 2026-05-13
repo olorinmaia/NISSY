@@ -15,7 +15,7 @@ NISSY Basic er perfekt for deg som:
 - ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
 - 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 📡 **Live ressurskart** - (Alt+Z) Åpner et interaktivt kart som viser siste kjente posisjon, hendelse samt annen nyttig info for alle merkede ressurser.
-- 🗺️ **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
+- 🧭 **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
 - 🗺️ **Kartvisning** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
 - 🕐 **Hentetid** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
 - 🔠 **Rek-knapper** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
@@ -99,7 +99,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 ## 📖 Detaljert brukerveiledning
 
-### 🗺 Rutekalkulering (ALT+Q)
+### 🧭 Rutekalkulering (ALT+Q)
 
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+Q`

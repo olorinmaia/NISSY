@@ -379,7 +379,7 @@
                    data-hotkey="r" title="Lager hurtigknapper for merkede bestillinger på ventende/pågående oppdrag. Trykk ESC for å lukke popup">
           </td>
           <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
-            <input id="nissy-btn-rutekalkulering" type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn"
+            <input id="nissy-btn-rutekalkulering" type="button" value="🧭 Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn"
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
         </tr>

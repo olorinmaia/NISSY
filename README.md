@@ -54,7 +54,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
 
-- 🗺️ **Rutekalkulering (Alt+Q)**
+- 🧭 **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
   - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse.
 
@@ -210,7 +210,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
 | 🖱️ Hurtigmeny | ✅ | ✅ | ✅ |
 | 🌙 Darkmode | ✅ | ✅ | ✅ |
-| 🗺️ Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
+| 🧭 Rutekalkulering (ALT+Q) | ✅ | ✅ | ✅ |
 | 🗺️ Kartvisning (ALT+W) | ✅ | ✅ | ✅ |
 | 🚕 Ressursinfo (ALT+D) | ✅ | ✅ | ✅ |
 | 📡 Live ressurskart (ALT+Z) | ✅ | ✅ | ✅ |
