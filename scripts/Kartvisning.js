@@ -1139,12 +1139,22 @@
           const VENT_GRENSE = 20;
           const kandidater = bookings.filter(function (b) {
             if (!validLL(b.leveringssted) || parseMin(b.oppmote) === null) return false;
-            let closestIdx = 0, closestDist = Infinity;
+            let closestDelIdx = 0, closestDelDist = Infinity;
             flatPts.forEach(function (p, i) {
               const d = haversine({ lat: p.lat, lon: p.lon }, b.leveringssted);
-              if (d < closestDist) { closestDist = d; closestIdx = i; }
+              if (d < closestDelDist) { closestDelDist = d; closestDelIdx = i; }
             });
-            return closestIdx >= boardFirstIdx;
+            if (closestDelIdx < boardFirstIdx) return false;
+            // Utelat bestillinger der hentestedet er etter fergen – de krysser ikke fergen
+            if (validLL(b.hentested)) {
+              let closestHentIdx = 0, closestHentDist = Infinity;
+              flatPts.forEach(function (p, i) {
+                const d = haversine({ lat: p.lat, lon: p.lon }, b.hentested);
+                if (d < closestHentDist) { closestHentDist = d; closestHentIdx = i; }
+              });
+              if (closestHentIdx >= boardFirstIdx) return false;
+            }
+            return true;
           });
           if (!kandidater.length) return;
 
