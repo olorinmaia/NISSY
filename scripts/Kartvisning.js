@@ -1006,8 +1006,9 @@
           routeControl = { remove: function () { polys.forEach(function (p) { map.removeLayer(p); }); } };
           setRouteInfo('🛣 ' + formatDist(totalDist) + ' · ⏱ ca. ' + formatTime(totalDur));
           // Oppdater leveringstider for returer: akkumuler kjøretid fra returens hentetidspunkt.
-          // Ved sekvensielle returer fra samme pickup (samme pasientKlar) akkumuleres etappetidene
-          // slik at siste stopp får riktig total kjøretid fra pickup, ikke bare inkrementell distanse.
+          // Sekvensielle isReturDel-etapper akkumuleres kontinuerlig – reset skjer kun ved ikke-retur-etappe.
+          // Bruk max(klarMin, batchStartMin) som base slik at returer med ulik (men nær) pasientKlar
+          // fra samme område (f.eks. Sykehuset 15:00 og Øyelegesenter 15:05) også håndteres riktig.
           let _returBatchStartMin = null;
           let _returBatchCumSec = 0;
           legs.forEach(function(leg, i) {
@@ -1017,12 +1018,13 @@
               if (_req && validLL(_req.leveringssted)) {
                 const _klarMin = parseMin(_req.pasientKlar);
                 if (_klarMin !== null) {
-                  if (_returBatchStartMin !== _klarMin) {
+                  if (_returBatchStartMin === null) {
                     _returBatchStartMin = _klarMin;
                     _returBatchCumSec = 0;
                   }
                   _returBatchCumSec += leg.dur;
-                  const _delivMin = _returBatchStartMin + Math.round(_returBatchCumSec / 60) + 5;
+                  const _baseMin = Math.max(_klarMin, _returBatchStartMin);
+                  const _delivMin = _baseMin + Math.round(_returBatchCumSec / 60) + 5;
                   const _dateStr = (_req.pasientKlar || '').split(' ')[0];
                   estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
                   refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
