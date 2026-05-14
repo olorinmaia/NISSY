@@ -1005,28 +1005,34 @@
           });
           routeControl = { remove: function () { polys.forEach(function (p) { map.removeLayer(p); }); } };
           setRouteInfo('🛣 ' + formatDist(totalDist) + ' · ⏱ ca. ' + formatTime(totalDur));
-          // Oppdater leveringstider for returer fra akkumulerte segmenttider
-          const _startTider = currentFiltered.map(function(r) { return r.pasientKlar || ''; }).filter(Boolean).sort();
-          if (_startTider.length) {
-            const _tp = (_startTider[0].split(' ')[1] || '').split(':');
-            if (_tp.length >= 2) {
-              const _startMin = parseInt(_tp[0], 10) * 60 + parseInt(_tp[1], 10);
-              let _cumSec = 0;
-              legs.forEach(function(leg, i) {
-                _cumSec += leg.dur;
-                const _meta = currentWaypointMeta[i + 1];
-                if (_meta && _meta.isReturDel) {
-                  const _req = currentFiltered.find(function(r) { return r.reqId === _meta.reqId; });
-                  if (_req && validLL(_req.leveringssted)) {
-                    const _delivMin = _startMin + Math.round(_cumSec / 60) + 5;
-                    const _dateStr = (_req.pasientKlar || '').split(' ')[0];
-                    estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
-                    refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
+          // Oppdater leveringstider for returer: akkumuler kjøretid fra returens hentetidspunkt.
+          // Ved sekvensielle returer fra samme pickup (samme pasientKlar) akkumuleres etappetidene
+          // slik at siste stopp får riktig total kjøretid fra pickup, ikke bare inkrementell distanse.
+          let _returBatchStartMin = null;
+          let _returBatchCumSec = 0;
+          legs.forEach(function(leg, i) {
+            const _meta = currentWaypointMeta[i + 1];
+            if (_meta && _meta.isReturDel) {
+              const _req = currentFiltered.find(function(r) { return r.reqId === _meta.reqId; });
+              if (_req && validLL(_req.leveringssted)) {
+                const _klarMin = parseMin(_req.pasientKlar);
+                if (_klarMin !== null) {
+                  if (_returBatchStartMin !== _klarMin) {
+                    _returBatchStartMin = _klarMin;
+                    _returBatchCumSec = 0;
                   }
+                  _returBatchCumSec += leg.dur;
+                  const _delivMin = _returBatchStartMin + Math.round(_returBatchCumSec / 60) + 5;
+                  const _dateStr = (_req.pasientKlar || '').split(' ')[0];
+                  estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
+                  refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
                 }
-              });
+              }
+            } else {
+              _returBatchStartMin = null;
+              _returBatchCumSec = 0;
             }
-          }
+          });
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
