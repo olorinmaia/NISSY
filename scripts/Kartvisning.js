@@ -1170,14 +1170,17 @@
               if (d < closestDelDist) { closestDelDist = d; closestDelIdx = i; }
             });
             if (closestDelIdx < boardFirstIdx) return false;
-            // Utelat bestillinger der hentestedet er etter fergen – de krysser ikke fergen
-            if (validLL(b.hentested)) {
+            // Utelat bestillinger der leveringssted er nær påstigningskaien – disse er på boardingsiden og krysser ikke fergen
+            if (haversine(b.leveringssted, { lat: boardLeie.lat, lon: boardLeie.lon }) <= RADIUS_M) return false;
+            // Utelat bestillinger der hentestedet er etter fergen – de krysser ikke fergen.
+            // Unntak: hentested nær selve påstigningskaien krysser alltid fergen, uavhengig av ruteindeks.
+            if (validLL(b.hentested) && haversine(b.hentested, { lat: boardLeie.lat, lon: boardLeie.lon }) > RADIUS_M) {
               let closestHentIdx = 0, closestHentDist = Infinity;
               flatPts.forEach(function (p, i) {
                 const d = haversine({ lat: p.lat, lon: p.lon }, b.hentested);
                 if (d < closestHentDist) { closestHentDist = d; closestHentIdx = i; }
               });
-              if (closestHentIdx >= boardFirstIdx) return false;
+              if (closestHentIdx > boardFirstIdx) return false;
             }
             return true;
           });
