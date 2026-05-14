@@ -843,7 +843,7 @@
           const dateStr = (req.pasientKlar || '').split(' ')[0];
           let travelMin;
           if (result.sec !== null) {
-            travelMin = Math.round(result.sec / 60);
+            travelMin = Math.round(result.sec / 60) + 5;
           } else {
             travelMin = Math.round(haversine(req.hentested, req.leveringssted) / 70000 * 60) + 10;
             luftlinjeFallback = true;
@@ -856,6 +856,7 @@
       let currentMarkerLayers = [];
       let currentAllLL = [];
       let currentWaypoints = [];
+      let currentWaypointMeta = [];
       let routeControl = null;
       let routeOn = true;
       let currentFiltered = [];
@@ -907,6 +908,7 @@
         setRouteInfo(null);
         currentAllLL = [];
         currentWaypoints = [];
+        currentWaypointMeta = [];
         markersByKey = {};
         groupsByKey = {};
 
@@ -924,14 +926,15 @@
         const timedStops = [];
         filtered.forEach(function (req) {
           const est = estimertLev[req.reqId];
-          if (req.hentested)     timedStops.push({ lat: req.hentested.lat,     lon: req.hentested.lon,     t: req.pasientKlar  || '' });
-          if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: est ? est.sortKey : (req.oppmote || '') });
+          const isRetur = returReqs.some(function(r) { return r.reqId === req.reqId; });
+          if (req.hentested)     timedStops.push({ lat: req.hentested.lat,     lon: req.hentested.lon,     t: req.pasientKlar  || '',                          reqId: req.reqId, isReturDel: false });
+          if (req.leveringssted) timedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: est ? est.sortKey : (req.oppmote || ''), reqId: req.reqId, isReturDel: isRetur });
         });
         timedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
         let _prevKey = null;
         timedStops.filter(function (s) { return validLL(s); }).forEach(function (s) {
           const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
-          if (k !== _prevKey) { currentWaypoints.push(L.latLng(s.lat, s.lon)); _prevKey = k; }
+          if (k !== _prevKey) { currentWaypoints.push(L.latLng(s.lat, s.lon)); currentWaypointMeta.push({ reqId: s.reqId, isReturDel: s.isReturDel }); _prevKey = k; }
         });
 
         Object.values(groups).forEach(function (g) {
@@ -1002,6 +1005,28 @@
           });
           routeControl = { remove: function () { polys.forEach(function (p) { map.removeLayer(p); }); } };
           setRouteInfo('🛣 ' + formatDist(totalDist) + ' · ⏱ ca. ' + formatTime(totalDur));
+          // Oppdater leveringstider for returer fra akkumulerte segmenttider
+          const _startTider = currentFiltered.map(function(r) { return r.pasientKlar || ''; }).filter(Boolean).sort();
+          if (_startTider.length) {
+            const _tp = (_startTider[0].split(' ')[1] || '').split(':');
+            if (_tp.length >= 2) {
+              const _startMin = parseInt(_tp[0], 10) * 60 + parseInt(_tp[1], 10);
+              let _cumSec = 0;
+              legs.forEach(function(leg, i) {
+                _cumSec += leg.dur;
+                const _meta = currentWaypointMeta[i + 1];
+                if (_meta && _meta.isReturDel) {
+                  const _req = currentFiltered.find(function(r) { return r.reqId === _meta.reqId; });
+                  if (_req && validLL(_req.leveringssted)) {
+                    const _delivMin = _startMin + Math.round(_cumSec / 60) + 5;
+                    const _dateStr = (_req.pasientKlar || '').split(' ')[0];
+                    estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
+                    refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
+                  }
+                }
+              });
+            }
+          }
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
