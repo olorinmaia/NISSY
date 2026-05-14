@@ -21,6 +21,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
   - **ORS-caching** – segment-kall mellomlagres i localStorage i 7 dager; drastisk færre API-kall på kjente ruter
   - Begrens til maks 16 bestillinger (taksameter-grense)
+  - Forbedret estimering av leveringstid på returer
 - 📡 **Live-ressurskart**
   - Ikonlabeler, badges og pasientnavn på planlagte stopp slik som i Kartvisning
 
