@@ -1005,35 +1005,36 @@
           });
           routeControl = { remove: function () { polys.forEach(function (p) { map.removeLayer(p); }); } };
           setRouteInfo('🛣 ' + formatDist(totalDist) + ' · ⏱ ca. ' + formatTime(totalDur));
-          // Oppdater leveringstider for returer: akkumuler kjøretid fra returens hentetidspunkt.
-          // Sekvensielle isReturDel-etapper akkumuleres kontinuerlig – reset skjer kun ved ikke-retur-etappe.
-          // Bruk max(klarMin, batchStartMin) som base slik at returer med ulik (men nær) pasientKlar
-          // fra samme område (f.eks. Sykehuset 15:00 og Øyelegesenter 15:05) også håndteres riktig.
-          let _returBatchStartMin = null;
-          let _returBatchCumSec = 0;
+          // Oppdater leveringstider for returer: beregn kjøretid fra hentestedet til leveringsstedet
+          // langs den faktiske ruten. Pre-beregn kumulativ kjøretid fra rutestart til hvert veipunkt,
+          // finn nærmeste veipunkt til hvert hentested, og trekk fra – uavhengig av om det er
+          // mellomliggende leveringer (f.eks. retur Meråker→Frøya via levering i Trondheim).
+          const _cumSecAtWp = [0];
+          legs.forEach(function(leg, i) { _cumSecAtWp.push(_cumSecAtWp[i] + leg.dur); });
+          const _returPickupSec = {};
+          currentFiltered.filter(function(req) {
+            return returReqs.some(function(r) { return r.reqId === req.reqId; });
+          }).forEach(function(req) {
+            if (!validLL(req.hentested)) return;
+            let closestIdx = 0, closestDist = Infinity;
+            currentWaypoints.forEach(function(wp, idx) {
+              const d = haversine({ lat: wp.lat, lon: wp.lng }, req.hentested);
+              if (d < closestDist) { closestDist = d; closestIdx = idx; }
+            });
+            _returPickupSec[req.reqId] = _cumSecAtWp[closestIdx];
+          });
           legs.forEach(function(leg, i) {
             const _meta = currentWaypointMeta[i + 1];
-            if (_meta && _meta.isReturDel) {
-              const _req = currentFiltered.find(function(r) { return r.reqId === _meta.reqId; });
-              if (_req && validLL(_req.leveringssted)) {
-                const _klarMin = parseMin(_req.pasientKlar);
-                if (_klarMin !== null) {
-                  if (_returBatchStartMin === null) {
-                    _returBatchStartMin = _klarMin;
-                    _returBatchCumSec = 0;
-                  }
-                  _returBatchCumSec += leg.dur;
-                  const _baseMin = Math.max(_klarMin, _returBatchStartMin);
-                  const _delivMin = _baseMin + Math.round(_returBatchCumSec / 60) + 5;
-                  const _dateStr = (_req.pasientKlar || '').split(' ')[0];
-                  estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
-                  refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
-                }
-              }
-            } else {
-              _returBatchStartMin = null;
-              _returBatchCumSec = 0;
-            }
+            if (!_meta || !_meta.isReturDel) return;
+            const _req = currentFiltered.find(function(r) { return r.reqId === _meta.reqId; });
+            if (!_req || !validLL(_req.leveringssted)) return;
+            const _klarMin = parseMin(_req.pasientKlar);
+            if (_klarMin === null) return;
+            const _fromPickupSec = _cumSecAtWp[i + 1] - (_returPickupSec[_meta.reqId] || 0);
+            const _delivMin = _klarMin + Math.round(Math.max(0, _fromPickupSec) / 60) + 5;
+            const _dateStr = (_req.pasientKlar || '').split(' ')[0];
+            estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
+            refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
           });
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
