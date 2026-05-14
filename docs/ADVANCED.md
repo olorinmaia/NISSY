@@ -83,7 +83,7 @@ Navn: `NISSY-Avansert`
 
 ## 📖 Detaljert brukerveiledning
 
-### 🗺 Rutekalkulering (ALT+Q)
+### 🧭 Rutekalkulering (ALT+Q)
 
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+Q`
