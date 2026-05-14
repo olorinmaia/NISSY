@@ -843,7 +843,7 @@
           const dateStr = (req.pasientKlar || '').split(' ')[0];
           let travelMin;
           if (result.sec !== null) {
-            travelMin = Math.round(result.sec / 60) + 10;
+            travelMin = Math.round(result.sec / 60);
           } else {
             travelMin = Math.round(haversine(req.hentested, req.leveringssted) / 70000 * 60) + 10;
             luftlinjeFallback = true;
