@@ -371,7 +371,7 @@
       const rowsHTML = `
         <tr class="nissy-script-row">
           <td valign="top" align="left" style="padding-top: 5px; padding-bottom: 5px;">
-            <input id="nissy-btn-rutekalkulering" type="button" value="🗺️ Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn"
+            <input id="nissy-btn-rutekalkulering" type="button" value="🧭 Rutekalkulering (Alt+Q)" class="bigbutton nissy-script-btn"
                    data-hotkey="q" title="Åpne rute i Google Maps for merkede bestillinger på ventende/pågående oppdrag">
           </td>
           <td valign="top" align="right" style="padding-top: 5px; padding-bottom: 5px;">
@@ -498,7 +498,7 @@
         </div>
         
         <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg (V4.3.5):</strong><br>
+          <strong>📝 Endringslogg (V4.4.0):</strong><br>
           <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" 
              target="_blank" 
              style="color: #e2934a; text-decoration: none; font-weight: bold;">

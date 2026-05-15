@@ -7,6 +7,26 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.4.0] - 16.05.2026
+
+### Kartvisning: Fergeberegning, ORS-forbedringer og forbedring til Live-ressurskart
+
+- 🗺️ **Kartvisning**
+  - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag: Ytterøy/Levanger, Leka/Gutvik, Jøa, Hofles/Lund, Hofles/Geisnes og Gjerdinga/Eidshaug
+    - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
+    - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
+    - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
+    - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
+    - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
+    - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
+  - **ORS-caching** – segment-kall mellomlagres i localStorage i 7 dager; drastisk færre API-kall på kjente ruter
+  - Begrens til maks 16 bestillinger (taksameter-grense)
+  - Forbedret estimering av leveringstid på returer
+- 📡 **Live-ressurskart**
+  - Ikonlabeler, badges og pasientnavn på planlagte stopp slik som i Kartvisning
+
+---
+
 ## 🔧 [4.3.5] - 08.05.2026
 
 ### Kartvisning: Filterpanel for bestillinger og mulighet til å se reisetid/avstand for delstrekninger
@@ -158,7 +178,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - 🪄 **Smart-tildel** – aktiv kun ved ventende oppdrag merket, viser antall merkede bestillinger (×N)
     - 📆 **Tilordning 2.0** – aktiv kun ved ventende oppdrag uten ressurs eller avtale
     - ✖️ **Avbestilling** – aktiv ved ventende oppdrag eller ressurs merket
-    - 🗺️ **Rutekalkulering** – aktiv ved ventende eller pågående oppdrag merket
+    - 🧭 **Rutekalkulering** – aktiv ved ventende eller pågående oppdrag merket
     - 🕐 **Hentetid** – aktiv ved ventende eller pågående oppdrag merket
     - 🚕 **Ressursinfo** – aktiv kun ved ressurs merket
     - 📡 **Live ressurskart** - aktiv kun ved ressurs merket
@@ -188,7 +208,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 📱 **Send-SMS**
   - Lagt til kontor-spesifikke maler for Pasientreiser St. Olavs hospital
   - Justert kontor-spesifikke maler for Pasientreiser Nord-Trøndelag
-- 🗺️ **Rutekalkulering**
+- 🧭 **Rutekalkulering**
   - Lagt til flere mappinger for adressenavn som ikke blir plassert riktig i Google maps.
 
 ---
@@ -216,7 +236,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - ⌛ **NISSY-fiks**
   - Blokkerer trykk på Alt-tast alene, for å hindre utilsiktet F5-refresh av siden (tap av script)
-- 🗺️ **Rutekalkulering**
+- 🧭 **Rutekalkulering**
   - Lagt til mappinger for adressenavn som ikke blir plassert riktig i Google maps for Helse MR.
 
 ## 🚀 [3.9.4] - 22.03.2026
@@ -236,7 +256,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Fikset gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling
 - ⚙️ **Adminmodul**
   - Husker nå hvilke rader som var markert når en modal (pop-up) åpnes, og re-markerer dem automatisk etter oppdatering når modalen lukkes
-- 🗺️ **Rutekalkulering**
+- 🧭 **Rutekalkulering**
   - Sorterer nå alle merkede bestillinger (ventende og pågående) kronologisk etter hentetid
   - Bestillinger som overlapper i tid – dvs. passasjerer som sitter i bilen samtidig – grupperes i samme segment: alle henteadresser vises først, deretter alle leveringsadresser
   - Returer (lik hentetid og leveringstid) håndteres med en 5-minutters margin for overlappgjenkjenning
@@ -333,7 +353,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🚕 **Ressursinfo**
   - Forbedret visning i enkelthendelse og kjørerute og farger i header
   - Forbedret kartvisning uavhengig av skjermstørrelse/zoom
-- 🗺️ **Rutekalkulering** 
+- 🧭 **Rutekalkulering** 
   - Lagt til mappinger på diverse sykehus og adresser
 - **Loadere**
   - Justert fargekontraster på knapper for bedre synlighet
@@ -374,7 +394,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Forbedret "Søk i planlegging"-funksjonalitet: Når kun 1 bestilling søkes det på rekvisisjonsnummer.
 - 🚐 **Samkjøring**
   - Forbedret logikk på returer og lagt til ytterlig blokkeringslogikk for returer når de samkjøres.
-- 🗺️ **Rutekalkulering** 
+- 🧭 **Rutekalkulering** 
   - Lagt til mapping av adresser knyttet til Ålesund sjukehus for å sikre riktig rutekalkulering der adressene fra NISSY ikke får treff eller feil treff i Google maps.
 
 ## 🚀 [3.6.0] - 15.02.2026

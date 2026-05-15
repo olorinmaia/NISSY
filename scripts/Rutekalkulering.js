@@ -353,7 +353,7 @@
 
       // Sjekk om vi fant noen rader
       if (!ventendeRows.length && !paagaaendeRows.length) {
-        showErrorToast("🗺️ Ingen bestillinger eller turer er valgt. Vennligst marker én eller flere og trykk på Rutekalkulering-knappen eller Alt+Q igjen.");
+        showErrorToast("🧭 Ingen bestillinger eller turer er valgt. Vennligst marker én eller flere og trykk på Rutekalkulering-knappen eller Alt+Q igjen.");
         return;
       }
 

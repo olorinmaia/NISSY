@@ -309,8 +309,8 @@
       item('🚗', 'Alenebil', null, () => clickManualScript('alenebil')),
       sep(),
       ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
-      item('🗺️', 'Vis i kart',      'Alt+W', () => triggerAlt('w')),
-      item('🗺️', 'Rutekalkulering', 'Alt+Q', () => triggerAlt('q')),
+      item('🗺️', 'Kartvisning',      'Alt+W', () => triggerAlt('w')),
+      item('🧭', 'Rutekalkulering', 'Alt+Q', () => triggerAlt('q')),
       sep(),
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
@@ -359,8 +359,8 @@
       ...(scriptLoaded.rekKnapper() ? [item('🔠', 'Rek-knapper', 'Alt+R', () => triggerAlt('r'))] : []),
       ...(scriptLoaded.hentetid() || scriptLoaded.rekKnapper() ? [sep()] : []),
       ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
-      item('🗺️', 'Vis i kart',       'Alt+W', () => triggerAlt('w')),
-      item('🗺️', 'Rutekalkulering',  'Alt+Q', () => triggerAlt('q')),
+      item('🗺️', 'Kartvisning',       'Alt+W', () => triggerAlt('w')),
+      item('🧭', 'Rutekalkulering',  'Alt+Q', () => triggerAlt('q')),
       sep(),
       item('🔍', 'Søk i admin', null, () => {
         // P-13525952 → id-tall er samme som Rxxx66240821 — hent fra name-attr på P-raden
