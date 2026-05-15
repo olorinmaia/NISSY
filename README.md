@@ -74,6 +74,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
     - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
     - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
+    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8d0f1163-6e79-4bee-8916-a6f21c4ac71e" />
   - Adresser normaliseres og navn forkortes for kompakt visning
   - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
   - Hold over et segment for å se reisetid/avstand mellom to hendelser.

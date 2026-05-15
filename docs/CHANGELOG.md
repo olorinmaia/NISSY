@@ -7,7 +7,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.4.0] - 16.05.2026
+## 🔧 [4.4.0] - 15.05.2026
 
 ### Kartvisning: Fergeberegning, ORS-forbedringer og forbedring til Live-ressurskart
 
