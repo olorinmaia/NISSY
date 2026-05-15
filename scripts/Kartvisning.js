@@ -715,6 +715,11 @@
         const h = Math.floor(m / 60) % 24, mn = m % 60;
         return (h < 10 ? '0' : '') + h + ':' + (mn < 10 ? '0' : '') + mn;
       }
+      // Brukes kun i sortKey – ikke % 24, slik at tider forbi midnatt sorterer korrekt
+      function minToSortStr(m) {
+        const h = Math.floor(m / 60), mn = m % 60;
+        return (h < 10 ? '0' : '') + h + ':' + (mn < 10 ? '0' : '') + mn;
+      }
 
       // ── Routing-hjelpere for fergepipeline ───────────────────
       const _orsEnabled    = ${orsEnabled};
@@ -848,7 +853,7 @@
             travelMin = Math.round(haversine(req.hentested, req.leveringssted) / 70000 * 60) + 10;
             luftlinjeFallback = true;
           }
-          estimertLev[req.reqId] = { sortKey: dateStr + ' ' + minToStr(hMin + travelMin), display: '~' + minToStr(hMin + travelMin), isLate: false };
+          estimertLev[req.reqId] = { sortKey: dateStr + ' ' + minToSortStr(hMin + travelMin), display: '~' + minToStr(hMin + travelMin), isLate: false };
         });
       }
 
@@ -1033,7 +1038,7 @@
             const _fromPickupSec = _cumSecAtWp[i + 1] - (_returPickupSec[_meta.reqId] || 0);
             const _delivMin = _klarMin + Math.round(Math.max(0, _fromPickupSec) / 60) + 5;
             const _dateStr = (_req.pasientKlar || '').split(' ')[0];
-            estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
+            estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToSortStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
             refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
           });
           let bounds = polys[0].getBounds();
@@ -1351,17 +1356,15 @@
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered, detectedLeier[0].firstIdx);
-                } else if (exitFm && nesteAvgangMin === null) {
+                } else if (nesteAvgangMin === null) {
                   const boardAvg = board.avganger[dagKey] || board.avganger['man-fre'];
-                  const exitAvg  = exit.avganger[dagKey]  || exit.avganger['man-fre'];
                   if (boardAvg && boardAvg.length) {
                     const sisteAvgMinBoard = Math.max.apply(null, boardAvg.map(function (a) { return tidMin(a); }));
                     if (boardAnkomstMin > sisteAvgMinBoard) {
-                      const sisteAvgMinExit = exitAvg && exitAvg.length
-                        ? Math.max.apply(null, exitAvg.map(function (a) { return tidMin(a); })) : null;
-                      exitFm.setIcon(makeFerjeIcon(exit, null, '🚫 Siste ferge'));
-                      exitFm.setTooltipContent(ferjeTooltipDefault(exit, dagKey) + '<br>' +
-                        '<span style="color:#c62828;font-weight:700">⚠️ Siste ferge fra ' + exit.navn + (sisteAvgMinExit !== null ? ' kl. ' + minTil(sisteAvgMinExit) : '') + ' – nås ikke</span><br>' +
+                      boardFm.setIcon(makeFerjeIcon(board, null, '🚫 Siste ferge'));
+                      boardFm.setTooltipContent(ferjeTooltipDefault(board, dagKey) + '<br>' +
+                        '<span style="color:#888;font-size:12px">Est. ankomst: <b>' + minTil(boardAnkomstMin) + '</b></span><br>' +
+                        '<span style="color:#c62828;font-weight:700">⚠️ Siste ferge fra ' + board.navn + ' kl. ' + minTil(sisteAvgMinBoard) + ' – nås ikke</span><br>' +
                         '<span style="color:#888;font-size:11px">Ingen fergeberegning – planlegg manuelt</span>');
                     }
                   }
