@@ -1538,15 +1538,29 @@
 
   // ── Åpne kart-vindu ───────────────────────────────────────
   function openKartWindow(reqDetails) {
-    const width  = Math.floor(window.innerWidth / 2);
-    const height = Math.floor(window.innerHeight * 0.9);
+    // Finn ledig plass til venstre og høyre for NISSY-vinduet
+    const spaceLeft  = window.screenX;
+    const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+    const minWidth   = 600;
+    let width, left, top, height;
+    if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+      width = spaceLeft; left = 0;
+      top = 0; height = window.screen.availHeight;
+    } else if (spaceRight >= minWidth) {
+      width = spaceRight; left = window.screenX + window.outerWidth;
+      top = 0; height = window.screen.availHeight;
+    } else {
+      // Ikke nok plass på noen side – bruk original oppførsel
+      width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+      left = 0; top = 0; height = window.screen.availHeight;
+    }
 
     // Lagre data på parent-vinduet så popup kan hente det via window.opener
     window._kartvisningData = reqDetails;
 
     const mapWindow = window.open(
       '', 'NissyKartvisning',
-      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
     if (!mapWindow) {
       showError('🗺️ Popup blokkert – tillat popup og prøv igjen');
