@@ -20,6 +20,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
     - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
     - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
   - **ORS-caching** – segment-kall mellomlagres i localStorage i 7 dager; drastisk færre API-kall på kjente ruter
+  - **Pop-up vindu** – kartet åpnes nå ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
   - Begrens til maks 16 bestillinger (taksameter-grense)
   - Forbedret estimering av leveringstid på returer
 - 📡 **Live-ressurskart**
