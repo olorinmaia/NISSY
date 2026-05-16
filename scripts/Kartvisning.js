@@ -985,7 +985,7 @@
         updateStatus(filtered);
       }
 
-      function drawRoute() {
+      function drawRoute(isRedraw) {
         if (!routeOn || currentWaypoints.length < 2) return;
 
         const fallback = function () {
@@ -1041,6 +1041,37 @@
             estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToSortStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
             refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
           });
+          // For flere retur-bestillinger: sjekk om oppdaterte leveringstider gir bedre rekkefølge.
+          // Hvis ja, tegn ruten på nytt én gang med korrekte veipunkter.
+          if (!isRedraw && returReqs.length >= 2) {
+            const _newTimedStops = [];
+            currentFiltered.forEach(function (req) {
+              const _est = estimertLev[req.reqId];
+              const _isRetur = returReqs.some(function(r) { return r.reqId === req.reqId; });
+              if (req.hentested)     _newTimedStops.push({ lat: req.hentested.lat, lon: req.hentested.lon, t: req.pasientKlar || '', reqId: req.reqId, isReturDel: false });
+              if (req.leveringssted) _newTimedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: _est ? _est.sortKey : (req.oppmote || ''), reqId: req.reqId, isReturDel: _isRetur });
+            });
+            _newTimedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
+            const _newWps = [], _newMeta = [];
+            let _prevK2 = null;
+            _newTimedStops.filter(function(s) { return validLL(s); }).forEach(function(s) {
+              const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
+              if (k !== _prevK2) { _newWps.push(L.latLng(s.lat, s.lon)); _newMeta.push({ reqId: s.reqId, isReturDel: s.isReturDel }); _prevK2 = k; }
+            });
+            const _orderChanged = _newWps.length !== currentWaypoints.length ||
+              _newWps.some(function(wp, i) {
+                return Math.abs(wp.lat - currentWaypoints[i].lat) > 0.00001 ||
+                       Math.abs(wp.lng - currentWaypoints[i].lng) > 0.00001;
+              });
+            if (_orderChanged) {
+              currentWaypoints = _newWps;
+              currentWaypointMeta = _newMeta;
+              if (routeControl) { routeControl.remove(); routeControl = null; }
+              setRouteInfo(null);
+              drawRoute(true);
+              return;
+            }
+          }
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
