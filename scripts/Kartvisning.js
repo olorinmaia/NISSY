@@ -715,6 +715,11 @@
         const h = Math.floor(m / 60) % 24, mn = m % 60;
         return (h < 10 ? '0' : '') + h + ':' + (mn < 10 ? '0' : '') + mn;
       }
+      // Brukes kun i sortKey – ikke % 24, slik at tider forbi midnatt sorterer korrekt
+      function minToSortStr(m) {
+        const h = Math.floor(m / 60), mn = m % 60;
+        return (h < 10 ? '0' : '') + h + ':' + (mn < 10 ? '0' : '') + mn;
+      }
 
       // ── Routing-hjelpere for fergepipeline ───────────────────
       const _orsEnabled    = ${orsEnabled};
@@ -848,7 +853,7 @@
             travelMin = Math.round(haversine(req.hentested, req.leveringssted) / 70000 * 60) + 10;
             luftlinjeFallback = true;
           }
-          estimertLev[req.reqId] = { sortKey: dateStr + ' ' + minToStr(hMin + travelMin), display: '~' + minToStr(hMin + travelMin), isLate: false };
+          estimertLev[req.reqId] = { sortKey: dateStr + ' ' + minToSortStr(hMin + travelMin), display: '~' + minToStr(hMin + travelMin), isLate: false };
         });
       }
 
@@ -980,7 +985,7 @@
         updateStatus(filtered);
       }
 
-      function drawRoute() {
+      function drawRoute(isRedraw) {
         if (!routeOn || currentWaypoints.length < 2) return;
 
         const fallback = function () {
@@ -1033,9 +1038,40 @@
             const _fromPickupSec = _cumSecAtWp[i + 1] - (_returPickupSec[_meta.reqId] || 0);
             const _delivMin = _klarMin + Math.round(Math.max(0, _fromPickupSec) / 60) + 5;
             const _dateStr = (_req.pasientKlar || '').split(' ')[0];
-            estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
+            estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToSortStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
             refreshMarker(coordKey(_req.leveringssted.lat, _req.leveringssted.lon));
           });
+          // For flere retur-bestillinger: sjekk om oppdaterte leveringstider gir bedre rekkefølge.
+          // Hvis ja, tegn ruten på nytt én gang med korrekte veipunkter.
+          if (!isRedraw && returReqs.length >= 2) {
+            const _newTimedStops = [];
+            currentFiltered.forEach(function (req) {
+              const _est = estimertLev[req.reqId];
+              const _isRetur = returReqs.some(function(r) { return r.reqId === req.reqId; });
+              if (req.hentested)     _newTimedStops.push({ lat: req.hentested.lat, lon: req.hentested.lon, t: req.pasientKlar || '', reqId: req.reqId, isReturDel: false });
+              if (req.leveringssted) _newTimedStops.push({ lat: req.leveringssted.lat, lon: req.leveringssted.lon, t: _est ? _est.sortKey : (req.oppmote || ''), reqId: req.reqId, isReturDel: _isRetur });
+            });
+            _newTimedStops.sort(function (a, b) { return a.t.localeCompare(b.t); });
+            const _newWps = [], _newMeta = [];
+            let _prevK2 = null;
+            _newTimedStops.filter(function(s) { return validLL(s); }).forEach(function(s) {
+              const k = s.lat.toFixed(5) + ',' + s.lon.toFixed(5);
+              if (k !== _prevK2) { _newWps.push(L.latLng(s.lat, s.lon)); _newMeta.push({ reqId: s.reqId, isReturDel: s.isReturDel }); _prevK2 = k; }
+            });
+            const _orderChanged = _newWps.length !== currentWaypoints.length ||
+              _newWps.some(function(wp, i) {
+                return Math.abs(wp.lat - currentWaypoints[i].lat) > 0.00001 ||
+                       Math.abs(wp.lng - currentWaypoints[i].lng) > 0.00001;
+              });
+            if (_orderChanged) {
+              currentWaypoints = _newWps;
+              currentWaypointMeta = _newMeta;
+              if (routeControl) { routeControl.remove(); routeControl = null; }
+              setRouteInfo(null);
+              drawRoute(true);
+              return;
+            }
+          }
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
@@ -1351,17 +1387,15 @@
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered, detectedLeier[0].firstIdx);
-                } else if (exitFm && nesteAvgangMin === null) {
+                } else if (nesteAvgangMin === null) {
                   const boardAvg = board.avganger[dagKey] || board.avganger['man-fre'];
-                  const exitAvg  = exit.avganger[dagKey]  || exit.avganger['man-fre'];
                   if (boardAvg && boardAvg.length) {
                     const sisteAvgMinBoard = Math.max.apply(null, boardAvg.map(function (a) { return tidMin(a); }));
                     if (boardAnkomstMin > sisteAvgMinBoard) {
-                      const sisteAvgMinExit = exitAvg && exitAvg.length
-                        ? Math.max.apply(null, exitAvg.map(function (a) { return tidMin(a); })) : null;
-                      exitFm.setIcon(makeFerjeIcon(exit, null, '🚫 Siste ferge'));
-                      exitFm.setTooltipContent(ferjeTooltipDefault(exit, dagKey) + '<br>' +
-                        '<span style="color:#c62828;font-weight:700">⚠️ Siste ferge fra ' + exit.navn + (sisteAvgMinExit !== null ? ' kl. ' + minTil(sisteAvgMinExit) : '') + ' – nås ikke</span><br>' +
+                      boardFm.setIcon(makeFerjeIcon(board, null, '🚫 Siste ferge'));
+                      boardFm.setTooltipContent(ferjeTooltipDefault(board, dagKey) + '<br>' +
+                        '<span style="color:#888;font-size:12px">Est. ankomst: <b>' + minTil(boardAnkomstMin) + '</b></span><br>' +
+                        '<span style="color:#c62828;font-weight:700">⚠️ Siste ferge fra ' + board.navn + ' kl. ' + minTil(sisteAvgMinBoard) + ' – nås ikke</span><br>' +
                         '<span style="color:#888;font-size:11px">Ingen fergeberegning – planlegg manuelt</span>');
                     }
                   }
@@ -1538,15 +1572,29 @@
 
   // ── Åpne kart-vindu ───────────────────────────────────────
   function openKartWindow(reqDetails) {
-    const width  = Math.floor(window.innerWidth / 2);
-    const height = Math.floor(window.innerHeight * 0.9);
+    // Finn ledig plass til venstre og høyre for NISSY-vinduet
+    const spaceLeft  = window.screenX;
+    const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+    const minWidth   = 600;
+    let width, left, top, height;
+    if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+      width = spaceLeft; left = 0;
+      top = 0; height = window.screen.availHeight;
+    } else if (spaceRight >= minWidth) {
+      width = spaceRight; left = window.screenX + window.outerWidth;
+      top = 0; height = window.screen.availHeight;
+    } else {
+      // Ikke nok plass på noen side – bruk original oppførsel
+      width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+      left = 0; top = 0; height = window.screen.availHeight;
+    }
 
     // Lagre data på parent-vinduet så popup kan hente det via window.opener
     window._kartvisningData = reqDetails;
 
     const mapWindow = window.open(
       '', 'NissyKartvisning',
-      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
     if (!mapWindow) {
       showError('🗺️ Popup blokkert – tillat popup og prøv igjen');
