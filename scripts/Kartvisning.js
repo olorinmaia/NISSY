@@ -294,7 +294,7 @@
 </head>
 <body>
   <div id="header">
-    <h1>🗺️ Kartvisning – bestillinger</h1>
+    <h1>🗺️ Kartvisning</h1>
     <div id="controls">
       <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">ℹ️ Info på ikon</button>
       <button id="routeToggleBtn" title="Beregnet kjørerute via ORS/OSRM">📐 Beregnet rute</button>
