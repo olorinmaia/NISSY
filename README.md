@@ -60,6 +60,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
 - 🗺️ **Kartvisning**
   - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+  - Pop-up vindu åpnes ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
   - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
   - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
   - Tooltip med pasientnavn og tidspunkt ved mouse-over
