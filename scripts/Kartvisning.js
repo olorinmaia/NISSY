@@ -1000,12 +1000,10 @@
           const polys = [];
           legs.forEach(function (leg) {
             const poly = L.polyline(leg.latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
-            if (legs.length > 1) {
-              poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
-              poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
-              poly.bindTooltip('🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur),
-                { sticky: true });
-            }
+            poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
+            poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
+            poly.bindTooltip('🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur),
+              { sticky: true });
             polys.push(poly);
           });
           routeControl = { remove: function () { polys.forEach(function (p) { map.removeLayer(p); }); } };
@@ -1075,7 +1073,7 @@
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
-          sjekkFerger(legs);
+          sjekkFerger(legs, polys);
         }
 
         function routeViaOsrm() {
@@ -1135,7 +1133,7 @@
         resetFerjeMarkers();
       }
 
-      function sjekkFerger(legs) {
+      function sjekkFerger(legs, polys) {
         const RADIUS_M = 400;
 
         let startTid = null, startDato = null;
@@ -1337,32 +1335,79 @@
           });
         }
 
-        // Kumulativ kjøretid (sekunder) fra rutestart til boardLeie.
-        // Summer fullstendige etapper (fanger opp omkjøringer ved samkjøring),
-        // deretter ett ORS-kall fra starten av siste etappe til selve leiet.
-        // Fallback: lineær interpolasjon på koordinatantall (som før).
-        function tidTilBoardIdx(targetIdx, boardLat, boardLon) {
-          let ptIdx = 0, cumSec = 0;
+        function findLegIdx(flatIdx) {
+          let off = 0;
           for (let li = 0; li < legs.length; li++) {
-            const leg = legs[li];
-            const legPts = leg.latlngs.length;
-            if (ptIdx + legPts > targetIdx) {
-              const startPt = leg.latlngs[0];
-              return fetchSegmentDuration(startPt[1], startPt[0], boardLon, boardLat)
-                .then(function (sec) {
-                  return cumSec + (sec !== null ? sec : leg.dur * (targetIdx - ptIdx) / Math.max(legPts - 1, 1));
-                });
-            }
-            cumSec += leg.dur;
-            ptIdx += legPts;
+            if (off + legs[li].latlngs.length > flatIdx) return li;
+            off += legs[li].latlngs.length;
           }
-          return Promise.resolve(cumSec);
+          return legs.length - 1;
         }
 
         // Indekser i flatPts som allerede tilhører en detektert fergepassering.
         // Hindrer at en pier som deles mellom to ferger (f.eks. Hofles) plukkes opp
         // av feil ferge ved kombinerte ruter med flere fergepasseringer.
         const _claimedIdx = new Set();
+
+        function splitPolyAtFerry(boardFlatIdx, exitFlatIdx, crossingMin, boardLat, boardLon, exitLat, exitLon) {
+          function closestIdx(nearFlat, pierLat, pierLon) {
+            const SEARCH = 80;
+            let best = nearFlat, bestDist = Infinity;
+            for (let i = Math.max(0, nearFlat - SEARCH); i < Math.min(flatPts.length, nearFlat + SEARCH); i++) {
+              const d = haversine({ lat: flatPts[i].lat, lon: flatPts[i].lon }, { lat: pierLat, lon: pierLon });
+              if (d < bestDist) { bestDist = d; best = i; }
+            }
+            return best;
+          }
+          function flatToLeg(targetFlat) {
+            let off = 0;
+            for (let li = 0; li < legs.length; li++) {
+              const n = legs[li].latlngs.length;
+              if (off + n > targetFlat) return { li: li, local: targetFlat - off };
+              off += n;
+            }
+            return null;
+          }
+          function polyDist(latlngs) {
+            let d = 0;
+            for (let i = 1; i < latlngs.length; i++)
+              d += haversine({ lat: latlngs[i-1][0], lon: latlngs[i-1][1] }, { lat: latlngs[i][0], lon: latlngs[i][1] });
+            return d;
+          }
+          const boardBest = closestIdx(boardFlatIdx, boardLat, boardLon);
+          const exitBest  = closestIdx(exitFlatIdx,  exitLat,  exitLon);
+          const boardInfo = flatToLeg(boardBest);
+          const exitInfo  = flatToLeg(exitBest);
+          if (!boardInfo || !exitInfo || exitInfo.li !== boardInfo.li) return null;
+          const bLeg = legs[boardInfo.li];
+          const oldPoly = polys[boardInfo.li];
+          if (oldPoly && map.hasLayer(oldPoly)) map.removeLayer(oldPoly);
+          const preCoords  = bLeg.latlngs.slice(0, boardInfo.local + 1);
+          const midCoords  = bLeg.latlngs.slice(boardInfo.local, exitInfo.local + 1);
+          const postCoords = bLeg.latlngs.slice(exitInfo.local);
+          const preDist  = polyDist(preCoords);
+          const midDist  = polyDist(midCoords);
+          const postDist = polyDist(postCoords);
+          function mkSolid(latlngs, dist) {
+            const p = L.polyline(latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
+            p.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
+            p.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
+            p.bindTooltip('🛣 ' + formatDist(dist), { sticky: true });
+            return p;
+          }
+          const prePoly = preCoords.length >= 2 ? mkSolid(preCoords, preDist) : null;
+          polys[boardInfo.li] = prePoly;
+          if (midCoords.length >= 2) {
+            const midPoly = L.polyline(midCoords, { color: '#047CA1', weight: 4, opacity: 0.5, dashArray: '8,6' }).addTo(map);
+            midPoly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 0.8 }); });
+            midPoly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.5 }); });
+            midPoly.bindTooltip('⛴ ' + formatDist(midDist) + '  ·  ⏱ ca. ' + formatTime(crossingMin * 60), { sticky: true });
+            polys.push(midPoly);
+          }
+          const postPoly = postCoords.length >= 2 ? mkSolid(postCoords, postDist) : null;
+          if (postPoly) polys.push(postPoly);
+          return { prePoly: prePoly, preDist: preDist, postPoly: postPoly, postDist: postDist, legIdx: boardInfo.li };
+        }
 
         FERGER.forEach(function (ferge) {
           // Finn leier som er nær rutelinjen, ignorer allerede-krevde indekser
@@ -1386,12 +1431,26 @@
             const boardFm = ferjeMarkers[board.navn], exitFm = ferjeMarkers[exit.navn];
             if (boardFm) { if (!map.hasLayer(boardFm)) boardFm.addTo(map); boardFm.setIcon(makeFerjeIcon(board, null)); boardFm.setTooltipContent(ferjeTooltipDefault(board, dagKey)); }
             if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit, dagKey)); }
+            const postExitPolyInfo = splitPolyAtFerry(detectedLeier[0].firstIdx, detectedLeier[1].firstIdx, ferge.crossing_min, board.lat, board.lon, exit.lat, exit.lon);
             if (startTid !== null && boardFm) {
-              tidTilBoardIdx(detectedLeier[0].firstIdx, board.lat, board.lon).then(function (sec) {
-                const boardAnkomstMin = Math.round(startTid + sec / 60);
+              const _legIdx = postExitPolyInfo ? postExitPolyInfo.legIdx : findLegIdx(detectedLeier[0].firstIdx);
+              const _cumSec = legs.slice(0, _legIdx).reduce(function (s, l) { return s + l.dur; }, 0);
+              const _legStart = legs[_legIdx].latlngs[0];
+              fetchSegmentDuration(_legStart[1], _legStart[0], board.lon, board.lat).then(function (preSec) {
+                const _preSec = preSec !== null ? preSec : legs[_legIdx].dur;
+                const boardAnkomstMin = Math.round(startTid + (_cumSec + _preSec) / 60);
+                if (postExitPolyInfo && postExitPolyInfo.prePoly)
+                  postExitPolyInfo.prePoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.preDist) + '  ·  ⏱ ca. ' + formatTime(_preSec));
                 const nesteAvgangMin = visLeieBording(board, boardFm, boardAnkomstMin);
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
+                  const _legEnd = currentWaypoints[_legIdx + 1];
+                  if (postExitPolyInfo && postExitPolyInfo.postPoly && _legEnd) {
+                    fetchSegmentDuration(exit.lon, exit.lat, _legEnd.lng, _legEnd.lat).then(function (sec) {
+                      if (sec !== null)
+                        postExitPolyInfo.postPoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.postDist) + '  ·  ⏱ ca. ' + formatTime(sec));
+                    });
+                  }
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered, detectedLeier[0].firstIdx);
                 } else if (nesteAvgangMin === null) {
                   const boardAvg = board.avganger[dagKey] || board.avganger['man-fre'];
@@ -1417,8 +1476,12 @@
               fm.setIcon(makeFerjeIcon(item.leie, null));
               fm.setTooltipContent(ferjeTooltipDefault(item.leie, dagKey));
               if (startTid === null) return;
-              tidTilBoardIdx(item.firstIdx, item.leie.lat, item.leie.lon).then(function (sec) {
-                visLeieBording(item.leie, fm, Math.round(startTid + sec / 60));
+              const _li2 = findLegIdx(item.firstIdx);
+              const _cum2 = legs.slice(0, _li2).reduce(function (s, l) { return s + l.dur; }, 0);
+              const _ls2 = legs[_li2].latlngs[0];
+              fetchSegmentDuration(_ls2[1], _ls2[0], item.leie.lon, item.leie.lat).then(function (sec) {
+                const _pre2 = sec !== null ? sec : legs[_li2].dur;
+                visLeieBording(item.leie, fm, Math.round(startTid + (_cum2 + _pre2) / 60));
               });
             });
           }
