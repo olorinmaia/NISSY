@@ -7,6 +7,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.4.1] - 19.05.2026
+
+### Forbedringer til Hentetid og Kartvisning
+
+- 🕐 **Hentetid**
+  - Fikset slik at fra- og til-adresser i pop-up aldri brytes til mer enn 2 linjer
+- 🗺️ **Kartvisning**
+  - Forbedret visning og beregning av ferger når samme fergekai deles på bestillinger på tur/retur. F.eks. tur Hofles-Lund og retur via Geisnes-Hofles
+
+---
+
 ## 🔧 [4.4.0] - 15.05.2026
 
 ### Kartvisning: Fergeberegning, ORS-forbedringer og forbedring til Live-ressurskart
