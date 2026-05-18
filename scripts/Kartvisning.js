@@ -974,10 +974,10 @@
           currentMarkerLayers.push(marker);
         });
 
+        resetFerjeMarkers();
         if (routeOn && currentWaypoints.length >= 2) {
           drawRoute();
         } else {
-          resetFerjeMarkers();
           if (currentAllLL.length === 1)     map.setView(currentAllLL[0], 14);
           else if (currentAllLL.length > 1)  map.fitBounds(currentAllLL, { padding: [50, 50] });
         }
@@ -1359,14 +1359,18 @@
           return Promise.resolve(cumSec);
         }
 
+        // Indekser i flatPts som allerede tilhører en detektert fergepassering.
+        // Hindrer at en pier som deles mellom to ferger (f.eks. Hofles) plukkes opp
+        // av feil ferge ved kombinerte ruter med flere fergepasseringer.
+        const _claimedIdx = new Set();
+
         FERGER.forEach(function (ferge) {
-          // Finn leier som er nær rutelinjen
-          // Lagre også hvilken ruteindeks hvert leie først dukker opp på
+          // Finn leier som er nær rutelinjen, ignorer allerede-krevde indekser
           const detectedLeier = [];
           ferge.leier.forEach(function (leie) {
             let firstIdx = Infinity;
             flatPts.forEach(function (p, ptIdx) {
-              if (haversine({ lat: p.lat, lon: p.lon }, { lat: leie.lat, lon: leie.lon }) <= RADIUS_M && ptIdx < firstIdx)
+              if (!_claimedIdx.has(ptIdx) && haversine({ lat: p.lat, lon: p.lon }, { lat: leie.lat, lon: leie.lon }) <= RADIUS_M && ptIdx < firstIdx)
                 firstIdx = ptIdx;
             });
             if (firstIdx < Infinity) detectedLeier.push({ leie: leie, firstIdx: firstIdx });
@@ -1376,6 +1380,8 @@
           if (ferge.crossing_min && detectedLeier.length === 2) {
             // Retningssensitiv: leiet som opptrer først i ruten er påstigningssiden
             detectedLeier.sort(function (a, b) { return a.firstIdx - b.firstIdx; });
+            // Krev ruteindeksene mellom de to leiene så ingen annen ferge tar samme segment
+            for (let _ci = detectedLeier[0].firstIdx; _ci <= detectedLeier[1].firstIdx; _ci++) _claimedIdx.add(_ci);
             const board = detectedLeier[0].leie, exit = detectedLeier[1].leie;
             const boardFm = ferjeMarkers[board.navn], exitFm = ferjeMarkers[exit.navn];
             if (boardFm) { if (!map.hasLayer(boardFm)) boardFm.addTo(map); boardFm.setIcon(makeFerjeIcon(board, null)); boardFm.setTooltipContent(ferjeTooltipDefault(board, dagKey)); }
