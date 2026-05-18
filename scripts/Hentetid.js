@@ -659,8 +659,10 @@
             font-size: 12px;
             color: #666;
             line-height: 1.3;
+            overflow: hidden;
           " title="${cleanAddressSuffixes(b.fromAddress)} → ${cleanAddressSuffixes(b.toAddress)}">
-            ${displayFrom} →<br>${displayTo}
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayFrom}</div>
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">→ ${displayTo}</div>
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
             ${b.oppmotetid && !isRetur ? `
@@ -2044,8 +2046,10 @@
             font-size: 12px;
             color: #666;
             line-height: 1.3;
+            overflow: hidden;
           " title="${cleanAddressSuffixes(b.fromAddress)} → ${cleanAddressSuffixes(b.toAddress)}">
-            ${displayFrom} →<br>${displayTo}
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayFrom}</div>
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">→ ${displayTo}</div>
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
             ${b.oppmotetid && !isRetur ? `
