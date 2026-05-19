@@ -620,7 +620,7 @@
       }
       const mapsWin = window.open(
         googleMapsUrl,
-        "RutekalkuleringKart",
+        "_blank",
         `width=${gmWidth},height=${gmHeight},left=${gmLeft},top=${gmTop},resizable=yes,scrollbars=yes`
       );
       if (!mapsWin) showErrorToast("Popup blokkert – tillat popup og prøv igjen");
