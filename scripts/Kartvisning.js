@@ -208,6 +208,7 @@
     108137: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVjODQwMjk1OTQyYzRjMzJhNmM1YWUyMWExN2U2Y2UzIiwiaCI6Im11cm11cjY0In0=', // alfeinarj
     113859: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjFhYTUxNDg3NGMzZjRkN2RhZTExMzg4NWEwMzZjM2ZmIiwiaCI6Im11cm11cjY0In0=', // augustk
     144809: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM2ZWZkMmQ0OWI5MzQxOWM4ZWMwNDE5ZTI5YjI5MGM0IiwiaCI6Im11cm11cjY0In0=', // svelia
+    168713: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZjMjQ5ZjQxZjdjNDRjOWE5ZjY0NThiYmQxZDk3YTMxIiwiaCI6Im11cm11cjY0In0=', // sutnes
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
@@ -217,8 +218,7 @@
   const orsEnabled = !!ORS_API_KEY;
   // 'ors' eller 'osrm' — avgjør hvilken tjeneste som er primær for fergepipelinen
   const FERRY_ROUTING = 'ors';
-  // Bruk ORS for returReqs-estimater kun for dette kontoret (test av ORS-forbruk)
-  const orsReturReqs = _currentOffice === 'Pasientreiser Nord-Trøndelag' && orsEnabled;
+  const orsReturReqs = orsEnabled;
 
   // ── Kart-vindu HTML (data sendes via window.opener) ───────
   function buildMapHtml() {
@@ -749,7 +749,7 @@
         const key = _orsCacheKey(lonA, latA, lonB, latB);
         const cached = _orsCacheGet(key);
         if (cached !== null) return Promise.resolve(cached);
-        return fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+        return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
           method: 'POST',
           headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
           body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]] }),
@@ -787,7 +787,7 @@
       function fetchChainDurations(points, fallbackSecs) {
         function viaORS() {
           if (!_orsEnabled) return Promise.reject(new Error('ORS ikke aktivert'));
-          return fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+          return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
             method: 'POST',
             headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
             body: JSON.stringify({ coordinates: points }),
@@ -974,10 +974,10 @@
           currentMarkerLayers.push(marker);
         });
 
+        resetFerjeMarkers();
         if (routeOn && currentWaypoints.length >= 2) {
           drawRoute();
         } else {
-          resetFerjeMarkers();
           if (currentAllLL.length === 1)     map.setView(currentAllLL[0], 14);
           else if (currentAllLL.length > 1)  map.fitBounds(currentAllLL, { padding: [50, 50] });
         }
@@ -1000,12 +1000,10 @@
           const polys = [];
           legs.forEach(function (leg) {
             const poly = L.polyline(leg.latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
-            if (legs.length > 1) {
-              poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
-              poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
-              poly.bindTooltip('🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur),
-                { sticky: true });
-            }
+            poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
+            poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
+            poly.bindTooltip('🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur),
+              { sticky: true });
             polys.push(poly);
           });
           routeControl = { remove: function () { polys.forEach(function (p) { map.removeLayer(p); }); } };
@@ -1075,7 +1073,7 @@
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
-          sjekkFerger(legs);
+          sjekkFerger(legs, polys);
         }
 
         function routeViaOsrm() {
@@ -1104,7 +1102,7 @@
         if (!${orsEnabled}) { routeViaOsrm(); return; }
 
         const coords = currentWaypoints.map(function (w) { return [w.lng, w.lat]; });
-        fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+        fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': '${ORS_API_KEY}' },
             body: JSON.stringify({ coordinates: coords }),
@@ -1135,7 +1133,7 @@
         resetFerjeMarkers();
       }
 
-      function sjekkFerger(legs) {
+      function sjekkFerger(legs, polys) {
         const RADIUS_M = 400;
 
         let startTid = null, startDato = null;
@@ -1337,36 +1335,87 @@
           });
         }
 
-        // Kumulativ kjøretid (sekunder) fra rutestart til boardLeie.
-        // Summer fullstendige etapper (fanger opp omkjøringer ved samkjøring),
-        // deretter ett ORS-kall fra starten av siste etappe til selve leiet.
-        // Fallback: lineær interpolasjon på koordinatantall (som før).
-        function tidTilBoardIdx(targetIdx, boardLat, boardLon) {
-          let ptIdx = 0, cumSec = 0;
+        function findLegIdx(flatIdx) {
+          let off = 0;
           for (let li = 0; li < legs.length; li++) {
-            const leg = legs[li];
-            const legPts = leg.latlngs.length;
-            if (ptIdx + legPts > targetIdx) {
-              const startPt = leg.latlngs[0];
-              return fetchSegmentDuration(startPt[1], startPt[0], boardLon, boardLat)
-                .then(function (sec) {
-                  return cumSec + (sec !== null ? sec : leg.dur * (targetIdx - ptIdx) / Math.max(legPts - 1, 1));
-                });
-            }
-            cumSec += leg.dur;
-            ptIdx += legPts;
+            if (off + legs[li].latlngs.length > flatIdx) return li;
+            off += legs[li].latlngs.length;
           }
-          return Promise.resolve(cumSec);
+          return legs.length - 1;
+        }
+
+        // Indekser i flatPts som allerede tilhører en detektert fergepassering.
+        // Hindrer at en pier som deles mellom to ferger (f.eks. Hofles) plukkes opp
+        // av feil ferge ved kombinerte ruter med flere fergepasseringer.
+        const _claimedIdx = new Set();
+
+        function splitPolyAtFerry(boardFlatIdx, exitFlatIdx, crossingMin, boardLat, boardLon, exitLat, exitLon) {
+          function closestIdx(nearFlat, pierLat, pierLon) {
+            const SEARCH = 80;
+            let best = nearFlat, bestDist = Infinity;
+            for (let i = Math.max(0, nearFlat - SEARCH); i < Math.min(flatPts.length, nearFlat + SEARCH); i++) {
+              const d = haversine({ lat: flatPts[i].lat, lon: flatPts[i].lon }, { lat: pierLat, lon: pierLon });
+              if (d < bestDist) { bestDist = d; best = i; }
+            }
+            return best;
+          }
+          function flatToLeg(targetFlat) {
+            let off = 0;
+            for (let li = 0; li < legs.length; li++) {
+              const n = legs[li].latlngs.length;
+              if (off + n > targetFlat) return { li: li, local: targetFlat - off };
+              off += n;
+            }
+            return null;
+          }
+          function polyDist(latlngs) {
+            let d = 0;
+            for (let i = 1; i < latlngs.length; i++)
+              d += haversine({ lat: latlngs[i-1][0], lon: latlngs[i-1][1] }, { lat: latlngs[i][0], lon: latlngs[i][1] });
+            return d;
+          }
+          const boardBest = closestIdx(boardFlatIdx, boardLat, boardLon);
+          const exitBest  = closestIdx(exitFlatIdx,  exitLat,  exitLon);
+          const boardInfo = flatToLeg(boardBest);
+          const exitInfo  = flatToLeg(exitBest);
+          if (!boardInfo || !exitInfo || exitInfo.li !== boardInfo.li) return null;
+          const bLeg = legs[boardInfo.li];
+          const oldPoly = polys[boardInfo.li];
+          if (oldPoly && map.hasLayer(oldPoly)) map.removeLayer(oldPoly);
+          const preCoords  = bLeg.latlngs.slice(0, boardInfo.local + 1);
+          const midCoords  = bLeg.latlngs.slice(boardInfo.local, exitInfo.local + 1);
+          const postCoords = bLeg.latlngs.slice(exitInfo.local);
+          const preDist  = polyDist(preCoords);
+          const midDist  = polyDist(midCoords);
+          const postDist = polyDist(postCoords);
+          function mkSolid(latlngs, dist) {
+            const p = L.polyline(latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
+            p.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
+            p.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
+            p.bindTooltip('🛣 ' + formatDist(dist), { sticky: true });
+            return p;
+          }
+          const prePoly = preCoords.length >= 2 ? mkSolid(preCoords, preDist) : null;
+          polys[boardInfo.li] = prePoly;
+          if (midCoords.length >= 2) {
+            const midPoly = L.polyline(midCoords, { color: '#047CA1', weight: 4, opacity: 0.5, dashArray: '8,6' }).addTo(map);
+            midPoly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 0.8 }); });
+            midPoly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.5 }); });
+            midPoly.bindTooltip('⛴ ' + formatDist(midDist) + '  ·  ⏱ ca. ' + formatTime(crossingMin * 60), { sticky: true });
+            polys.push(midPoly);
+          }
+          const postPoly = postCoords.length >= 2 ? mkSolid(postCoords, postDist) : null;
+          if (postPoly) polys.push(postPoly);
+          return { prePoly: prePoly, preDist: preDist, postPoly: postPoly, postDist: postDist, legIdx: boardInfo.li };
         }
 
         FERGER.forEach(function (ferge) {
-          // Finn leier som er nær rutelinjen
-          // Lagre også hvilken ruteindeks hvert leie først dukker opp på
+          // Finn leier som er nær rutelinjen, ignorer allerede-krevde indekser
           const detectedLeier = [];
           ferge.leier.forEach(function (leie) {
             let firstIdx = Infinity;
             flatPts.forEach(function (p, ptIdx) {
-              if (haversine({ lat: p.lat, lon: p.lon }, { lat: leie.lat, lon: leie.lon }) <= RADIUS_M && ptIdx < firstIdx)
+              if (!_claimedIdx.has(ptIdx) && haversine({ lat: p.lat, lon: p.lon }, { lat: leie.lat, lon: leie.lon }) <= RADIUS_M && ptIdx < firstIdx)
                 firstIdx = ptIdx;
             });
             if (firstIdx < Infinity) detectedLeier.push({ leie: leie, firstIdx: firstIdx });
@@ -1376,16 +1425,32 @@
           if (ferge.crossing_min && detectedLeier.length === 2) {
             // Retningssensitiv: leiet som opptrer først i ruten er påstigningssiden
             detectedLeier.sort(function (a, b) { return a.firstIdx - b.firstIdx; });
+            // Krev ruteindeksene mellom de to leiene så ingen annen ferge tar samme segment
+            for (let _ci = detectedLeier[0].firstIdx; _ci <= detectedLeier[1].firstIdx; _ci++) _claimedIdx.add(_ci);
             const board = detectedLeier[0].leie, exit = detectedLeier[1].leie;
             const boardFm = ferjeMarkers[board.navn], exitFm = ferjeMarkers[exit.navn];
             if (boardFm) { if (!map.hasLayer(boardFm)) boardFm.addTo(map); boardFm.setIcon(makeFerjeIcon(board, null)); boardFm.setTooltipContent(ferjeTooltipDefault(board, dagKey)); }
             if (exitFm)  { if (!map.hasLayer(exitFm))  exitFm.addTo(map);  exitFm.setIcon(makeFerjeIcon(exit, null));   exitFm.setTooltipContent(ferjeTooltipDefault(exit, dagKey)); }
+            const postExitPolyInfo = splitPolyAtFerry(detectedLeier[0].firstIdx, detectedLeier[1].firstIdx, ferge.crossing_min, board.lat, board.lon, exit.lat, exit.lon);
             if (startTid !== null && boardFm) {
-              tidTilBoardIdx(detectedLeier[0].firstIdx, board.lat, board.lon).then(function (sec) {
-                const boardAnkomstMin = Math.round(startTid + sec / 60);
+              const _legIdx = postExitPolyInfo ? postExitPolyInfo.legIdx : findLegIdx(detectedLeier[0].firstIdx);
+              const _cumSec = legs.slice(0, _legIdx).reduce(function (s, l) { return s + l.dur; }, 0);
+              const _legStart = legs[_legIdx].latlngs[0];
+              fetchSegmentDuration(_legStart[1], _legStart[0], board.lon, board.lat).then(function (preSec) {
+                const _preSec = preSec !== null ? preSec : legs[_legIdx].dur;
+                const boardAnkomstMin = Math.round(startTid + (_cumSec + _preSec) / 60);
+                if (postExitPolyInfo && postExitPolyInfo.prePoly)
+                  postExitPolyInfo.prePoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.preDist) + '  ·  ⏱ ca. ' + formatTime(_preSec));
                 const nesteAvgangMin = visLeieBording(board, boardFm, boardAnkomstMin);
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
+                  const _legEnd = currentWaypoints[_legIdx + 1];
+                  if (postExitPolyInfo && postExitPolyInfo.postPoly && _legEnd) {
+                    fetchSegmentDuration(exit.lon, exit.lat, _legEnd.lng, _legEnd.lat).then(function (sec) {
+                      if (sec !== null)
+                        postExitPolyInfo.postPoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.postDist) + '  ·  ⏱ ca. ' + formatTime(sec));
+                    });
+                  }
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered, detectedLeier[0].firstIdx);
                 } else if (nesteAvgangMin === null) {
                   const boardAvg = board.avganger[dagKey] || board.avganger['man-fre'];
@@ -1411,8 +1476,12 @@
               fm.setIcon(makeFerjeIcon(item.leie, null));
               fm.setTooltipContent(ferjeTooltipDefault(item.leie, dagKey));
               if (startTid === null) return;
-              tidTilBoardIdx(item.firstIdx, item.leie.lat, item.leie.lon).then(function (sec) {
-                visLeieBording(item.leie, fm, Math.round(startTid + sec / 60));
+              const _li2 = findLegIdx(item.firstIdx);
+              const _cum2 = legs.slice(0, _li2).reduce(function (s, l) { return s + l.dur; }, 0);
+              const _ls2 = legs[_li2].latlngs[0];
+              fetchSegmentDuration(_ls2[1], _ls2[0], item.leie.lon, item.leie.lat).then(function (sec) {
+                const _pre2 = sec !== null ? sec : legs[_li2].dur;
+                visLeieBording(item.leie, fm, Math.round(startTid + (_cum2 + _pre2) / 60));
               });
             });
           }

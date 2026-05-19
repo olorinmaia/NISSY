@@ -91,6 +91,7 @@ Navn: `NISSY-Avansert`
 4. Google Maps åpnes med rute for alle merkede bestillinger
 
 **Tips:**
+- Hvis feilmelding når Google maps åpnes, åpne maps.google.com i ny fane og godta vilkår eller åpne en singel bestilling
 - Bruker adressene som står i NISSY og søker i Google maps, hvis de ikke finnes kan de mappes manuelt, ta kontakt!
 - Fungerer både for ventende og pågående oppdrag
 - Filtrerer automatisk ut bestillinger som er markert som "Framme"

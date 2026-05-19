@@ -193,6 +193,7 @@
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
     "Bjønndalsvegen 54A, 7670 Inderøy": "63.843515, 11.120222",
+    "Allheimveien 12, 7882 Nordli": "64.467132, 13.573297",
     "Brit&Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Brit&amp;Brits, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Brit&amp;Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
@@ -603,12 +604,27 @@
         return;
       }
 
-      // Åpne Google Maps i nytt vindu (halvparten av skjermbredden)
-      window.open(
+      // Åpne Google Maps i nytt vindu – finn ledig plass til venstre/høyre for NISSY-vinduet
+      const spaceLeft  = window.screenX;
+      const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+      const minWidth   = 600;
+      let gmWidth, gmLeft, gmTop, gmHeight;
+      if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+        gmWidth = spaceLeft; gmLeft = 0;
+        gmTop = 0; gmHeight = window.screen.availHeight;
+      } else if (spaceRight >= minWidth) {
+        gmWidth = spaceRight; gmLeft = window.screenX + window.outerWidth;
+        gmTop = 0; gmHeight = window.screen.availHeight;
+      } else {
+        gmWidth = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+        gmLeft = 0; gmTop = 0; gmHeight = window.screen.availHeight;
+      }
+      const mapsWin = window.open(
         googleMapsUrl,
         "_blank",
-        `width=${innerWidth / 2},height=${innerHeight * 0.9},left=0,top=50,resizable=yes,scrollbars=yes`
+        `width=${gmWidth},height=${gmHeight},left=${gmLeft},top=${gmTop},resizable=yes,scrollbars=yes`
       );
+      if (!mapsWin) showErrorToast("Popup blokkert – tillat popup og prøv igjen");
     });
   });
 

@@ -839,13 +839,25 @@ async function runResourceInfo() {
      9. ÅPNE KJØRERUTE I LEAFLET-KART
      ========================== */
   async function openRouteMap(events, licensePlate, turId) {
-    // Åpne nytt vindu
-    const width = Math.floor(window.innerWidth / 2);
-    const height = Math.floor(window.innerHeight * 0.9);
+    // Åpne nytt vindu – finn ledig plass til venstre/høyre for NISSY-vinduet
+    const spaceLeft  = window.screenX;
+    const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+    const minWidth   = 600;
+    let width, left, top, height;
+    if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+      width = spaceLeft; left = 0;
+      top = 0; height = window.screen.availHeight;
+    } else if (spaceRight >= minWidth) {
+      width = spaceRight; left = window.screenX + window.outerWidth;
+      top = 0; height = window.screen.availHeight;
+    } else {
+      width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+      left = 0; top = 0; height = window.screen.availHeight;
+    }
     const mapWindow = window.open(
       '',
-      'RouteMap_' + turId,
-      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+      'RessursinfoRutekart',
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
     
     if (!mapWindow) {
@@ -1409,13 +1421,25 @@ window.reloadRouteData = function() {
     
     const eventInfo = getIconAndTitle(event.eventType);
     
-    // Åpne nytt vindu (alle enkelthendelser bruker samme vindu-navn)
-    const width = Math.floor(window.innerWidth / 2);
-    const height = Math.floor(window.innerHeight * 0.9);
+    // Åpne nytt vindu (alle enkelthendelser bruker samme vindu-navn) – finn ledig plass til venstre/høyre for NISSY-vinduet
+    const spaceLeft  = window.screenX;
+    const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+    const minWidth   = 600;
+    let width, left, top, height;
+    if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+      width = spaceLeft; left = 0;
+      top = 0; height = window.screen.availHeight;
+    } else if (spaceRight >= minWidth) {
+      width = spaceRight; left = window.screenX + window.outerWidth;
+      top = 0; height = window.screen.availHeight;
+    } else {
+      width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+      left = 0; top = 0; height = window.screen.availHeight;
+    }
     const mapWindow = window.open(
       '',
       'EventMap_Single', // Fast vindu-navn - alle hendelser deler samme vindu
-      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
     
     if (!mapWindow) {
@@ -2044,16 +2068,28 @@ window.updateEventData = function(newEvent) {
     loyveLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
-        const width = Math.floor(window.innerWidth / 2);
-        const height = Math.floor(window.innerHeight * 0.9);
+        const spaceLeft  = window.screenX;
+        const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+        const minWidth   = 600;
+        let width, left, top, height;
+        if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+          width = spaceLeft; left = 0;
+          top = 0; height = window.screen.availHeight;
+        } else if (spaceRight >= minWidth) {
+          width = spaceRight; left = window.screenX + window.outerWidth;
+          top = 0; height = window.screen.availHeight;
+        } else {
+          width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+          left = 0; top = 0; height = window.screen.availHeight;
+        }
         window.open(
           link.href,
-          "_blank",
-          `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+          "PasientreiserOversikt",
+          `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
         );
       });
     });
-    
+
     // Kjørerute-knapp (åpner Leaflet-kart)
     const showRouteMapBtn = popup.querySelector("#showRouteMap");
     if (showRouteMapBtn) {

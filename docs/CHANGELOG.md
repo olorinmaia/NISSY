@@ -7,6 +7,21 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.4.5] - 20.05.2026
+
+### Forbedringer til Hentetid, Kartvisning og pop-uper til flere script
+
+- 🕐 **Hentetid**
+  - Fikset slik at fra- og til-adresser i pop-up aldri brytes til mer enn 2 linjer
+- 🗺️ **Kartvisning**
+  - Hover-tooltip med km og kjøretid på hvert rutesegment ved fergepasseringer (pre-ferge, ferge, post-ferge)
+  - Hover-tooltip på segment vises nå også på enkeltbestillinger uten ferge.
+  - OpenRouteService-ruting (ORS) benyttes for estimering av leveringstid på returer for alle kontor med gyldig API-nøkkel.
+- 🧭 **Rutekalkulering, 🚕 Ressursinfo, 📡 Live-ressurskart og 🚖 Løyveregister**
+  - Pop-up vinduer åpnes nå ved siden av NISSY-vinduet der det er plass, og gjenbruker samme vindu (ikke Rutekalkulering) ved påfølgende åpninger. Fallback til halvparten av skjermbredden som før, hvis ikke plass.
+  
+---
+
 ## 🔧 [4.4.0] - 15.05.2026
 
 ### Kartvisning: Fergeberegning, ORS-forbedringer og forbedring til Live-ressurskart
