@@ -218,8 +218,7 @@
   const orsEnabled = !!ORS_API_KEY;
   // 'ors' eller 'osrm' — avgjør hvilken tjeneste som er primær for fergepipelinen
   const FERRY_ROUTING = 'ors';
-  // Bruk ORS for returReqs-estimater kun for dette kontoret (test av ORS-forbruk)
-  const orsReturReqs = _currentOffice === 'Pasientreiser Nord-Trøndelag' && orsEnabled;
+  const orsReturReqs = orsEnabled;
 
   // ── Kart-vindu HTML (data sendes via window.opener) ───────
   function buildMapHtml() {
