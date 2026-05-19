@@ -192,13 +192,25 @@
       return;
     }
     
-    // Åpne nytt vindu med kart
-    const width = Math.floor(window.innerWidth / 2);
-    const height = Math.floor(window.innerHeight * 0.9);
+    // Åpne nytt vindu med kart – finn ledig plass til venstre/høyre for NISSY-vinduet
+    const spaceLeft  = window.screenX;
+    const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+    const minWidth   = 600;
+    let width, left, top, height;
+    if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+      width = spaceLeft; left = 0;
+      top = 0; height = window.screen.availHeight;
+    } else if (spaceRight >= minWidth) {
+      width = spaceRight; left = window.screenX + window.outerWidth;
+      top = 0; height = window.screen.availHeight;
+    } else {
+      width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+      left = 0; top = 0; height = window.screen.availHeight;
+    }
     const mapWindow = window.open(
-      '', 
-      'LiveMap', 
-      `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+      '',
+      'LiveMap',
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
     
     if (!mapWindow) {
