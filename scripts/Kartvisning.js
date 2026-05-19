@@ -750,7 +750,7 @@
         const key = _orsCacheKey(lonA, latA, lonB, latB);
         const cached = _orsCacheGet(key);
         if (cached !== null) return Promise.resolve(cached);
-        return fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+        return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
           method: 'POST',
           headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
           body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]] }),
@@ -788,7 +788,7 @@
       function fetchChainDurations(points, fallbackSecs) {
         function viaORS() {
           if (!_orsEnabled) return Promise.reject(new Error('ORS ikke aktivert'));
-          return fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+          return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
             method: 'POST',
             headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
             body: JSON.stringify({ coordinates: points }),
@@ -1103,7 +1103,7 @@
         if (!${orsEnabled}) { routeViaOsrm(); return; }
 
         const coords = currentWaypoints.map(function (w) { return [w.lng, w.lat]; });
-        fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+        fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': '${ORS_API_KEY}' },
             body: JSON.stringify({ coordinates: coords }),
