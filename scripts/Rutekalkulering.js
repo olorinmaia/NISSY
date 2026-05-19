@@ -193,6 +193,7 @@
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
     "Bjønndalsvegen 54A, 7670 Inderøy": "63.843515, 11.120222",
+    "Allheimveien 12, 7882 Nordli": "64.467132, 13.573297",
     "Brit&Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Brit&amp;Brits, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Brit&amp;Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
