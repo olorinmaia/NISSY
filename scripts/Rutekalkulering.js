@@ -183,12 +183,15 @@
     "Hustadvika Logopedhjelp, Molde, 6415 Molde": "Romsdalsgata 15, 6415 Molde",
     "med. biokjemi lab, 6450 Hjelset": "Sjukehuset Nordmøre og Romsdal (SNR)",
     "Gyn/Føde poliklinikk, 6450 Hjelset": "Sjukehuset Nordmøre og Romsdal (SNR)",
+    "SNR/Øyepoliklinikk SNR, 6450 Hjelset": "Sjukehuset Nordmøre og Romsdal (SNR)",
     "Dialysen Kristiansund, 6508 Kristiansund N": "Kristiansund Sykehus",
     "Kreftpoliklinikken DMS, 6508 Kristiansund N": "Kristiansund Sykehus",
     "Dialyseavd Volda, 6103 Volda": "Volda sykehus",
     "Kommunefysioterapi Averøy, 6530 Averøy": "Averøyveien 424, 6530 Averøy",
     "Kommunefysioterapi Vanylven, 6143 Fiskå": "Vanylven helse- og omsorgssenter, helse- og omsorgssenter, Fiskå",
     "Kommunefysioterapi Vanylven/Fysioterapeut Erik Botnmark, 6143 Fiskå": "Vanylven helse- og omsorgssenter, helse- og omsorgssenter, Fiskå",
+    "Kommunefysioterapi Gjemnes, 6631 Batnfjordsøra": "Torget 5, 6631 Batnfjordsøra",
+    "Kommunefysioterapi Smøla, 6570 Smøla": "Østsideveien 126, 6570 Smøla",
 
     // Diverse adresser 
     "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
