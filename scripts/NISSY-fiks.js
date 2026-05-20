@@ -423,6 +423,9 @@
 
       document.querySelectorAll('img[src="blank.gif"].hspacing').forEach(img => img.remove());
 
+      document.getElementById('buttonPing')?.closest('td')?.remove();
+      document.getElementById('resurserForm')?.closest('td')?.remove();
+
       const bgTable = document.querySelector('footer table.bg-color');
       if (bgTable) bgTable.style.removeProperty('padding');
     }
