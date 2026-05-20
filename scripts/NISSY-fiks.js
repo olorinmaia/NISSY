@@ -437,14 +437,14 @@
 
         const loyveBtn = document.getElementById('buttonTransporterPermit');
         if (loyveBtn) {
-          loyveBtn.closest('tr')?.remove();
+          (loyveBtn.closest('tr') ?? loyveBtn.closest('div'))?.remove();
         } else {
           allFound = false;
         }
 
         const tfilter = document.getElementById('tfilter');
         if (tfilter) {
-          tfilter.closest('tr')?.remove();
+          (tfilter.closest('tr') ?? tfilter)?.remove();
         } else {
           allFound = false;
         }
