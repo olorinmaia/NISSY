@@ -121,8 +121,9 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
 - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
 - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+  - Jeg har ingen direkte styring over ruten som velges, noen ganger vil ikke den forventede ruten velges, men beregning på tid/km vil som regel være ca riktig uansett og bedre enn ingen beregning
 - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
-- **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag: Ytterøy/Levanger, Leka/Gutvik, Jøa, Hofles/Lund, Hofles/Geisnes og Gjerdinga/Eidshaug
+- **Fergeberegning** – rutetabeller for alle ferger i Nord-Trøndelag er konfigurert. Ta kontakt for å få tilsendt mal hvis fergeberegning ønskes inn i kartvisningen
     - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
     - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
     - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
