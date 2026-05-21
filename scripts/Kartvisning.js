@@ -201,6 +201,8 @@
     'Pasientreiser Nord-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=',
     'Kontoret for pasientreiser, Ålesund': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU5YTZmYWFmZGZhOTQxNzQ5OGMyY2UwMzkwZWEyYzA2IiwiaCI6Im11cm11cjY0In0=',
     'Pasientreiser Sør-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5MDM5NzZiMjAwYjRmY2I5MmFhNjUyNjJjOWU2OGI5IiwiaCI6Im11cm11cjY0In0=',
+    'Pasientreiser Helse Bergen': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRlZjdjZTY4MzQ1ZDRhYmM4NzIxZDU1ZTcxMzIxNjBmIiwiaCI6Im11cm11cjY0In0=',
+    'Reisekontoret - Nordlandssykehuset HF': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImEwNjQ2MDUxMjQ0ZTQ5ZDQ5MzJjYzIyYTJkZmIxNDEzIiwiaCI6Im11cm11cjY0In0=',
   };
   // Personlige nøkler: brukerens egen kvote brukes fremfor kontorets.
   // Legg til id (fra popup/changePassword?id=XXXXX) → nøkkel.
