@@ -26,6 +26,10 @@
     style.textContent = `
       /* Fjern NISSY sin max-height på col1/col3 som klipper innhold på enkelte skjermer */
       #col1 div.box, #col3 div.box { max-height: none !important; }
+      /* Ressurser tar tilgjengelig plass, avtaler krympes til 220px liste */
+      .col2-panel--ressurser { flex: 1 !important; min-height: 0; }
+      .col2-panel--avtaler { flex: none !important; }
+      #transportorerpanel { max-height: 25vh; overflow-y: auto; }
     `;
     document.head.appendChild(style);
   })();
