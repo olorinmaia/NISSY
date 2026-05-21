@@ -155,7 +155,7 @@
       });
 
       if (title === 'Hentested' || title === 'Leveringssted') {
-        const m = (rows['Geo-koordinater'] || '').match(/(\d{6,7})\s*\/\s*(\d{4,7})/);
+        const m = (rows['Geo-koordinater'] || '').match(/(\d{6,7})\s*\/\s*(-?\d{4,7})/);
         if (m) {
           const northing = parseInt(m[1]), easting = parseInt(m[2]);
           const ll = utmToLatLon(easting, northing);
@@ -201,6 +201,8 @@
     'Pasientreiser Nord-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjEzZjFjNGE4OWU2MzQ3Y2M4ODYyZTY1MDVhMWRjMzYzIiwiaCI6Im11cm11cjY0In0=',
     'Kontoret for pasientreiser, Ålesund': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU5YTZmYWFmZGZhOTQxNzQ5OGMyY2UwMzkwZWEyYzA2IiwiaCI6Im11cm11cjY0In0=',
     'Pasientreiser Sør-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5MDM5NzZiMjAwYjRmY2I5MmFhNjUyNjJjOWU2OGI5IiwiaCI6Im11cm11cjY0In0=',
+    'Pasientreiser Helse Bergen': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRlZjdjZTY4MzQ1ZDRhYmM4NzIxZDU1ZTcxMzIxNjBmIiwiaCI6Im11cm11cjY0In0=',
+    'Reisekontoret - Nordlandssykehuset HF': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImEwNjQ2MDUxMjQ0ZTQ5ZDQ5MzJjYzIyYTJkZmIxNDEzIiwiaCI6Im11cm11cjY0In0=',
   };
   // Personlige nøkler: brukerens egen kvote brukes fremfor kontorets.
   // Legg til id (fra popup/changePassword?id=XXXXX) → nøkkel.
@@ -210,7 +212,7 @@
     144809: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM2ZWZkMmQ0OWI5MzQxOWM4ZWMwNDE5ZTI5YjI5MGM0IiwiaCI6Im11cm11cjY0In0=', // svelia
     168713: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZjMjQ5ZjQxZjdjNDRjOWE5ZjY0NThiYmQxZDk3YTMxIiwiaCI6Im11cm11cjY0In0=', // sutnes
   };
-  const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+  const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
   const _userIdMatch = document.querySelector('a[href*="changePassword"]')?.getAttribute('href')?.match(/id=(\d+)/);
   const _currentUserId = _userIdMatch ? parseInt(_userIdMatch[1], 10) : null;

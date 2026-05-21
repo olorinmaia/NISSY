@@ -145,6 +145,7 @@
     "Mottakelsen, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Med H4, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Allmennpsyk sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
+    "Psykose sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Dialyse dagbehandling [NA], 7803 Namsos": "Sykehuset Namsos, 7803 Namsos", 
     "Fysio- og ergoterapi, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",
     "Gyn/Føde/Barsel sengepost, 7803 Namsos": "Sykehuset Namsos, 7803 Namsos",

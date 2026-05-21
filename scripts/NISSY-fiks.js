@@ -13,6 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
+  const SCRIPT_VERSION = '4.5.0';
 
   console.log("🚀 Starter NISSY-fiks-script");
 
@@ -400,7 +401,7 @@
 
   (() => {
     const _officeCell  = document.querySelector('.topframe_small');
-    const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+    const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
     const _office1c    = _officeMatch?.[1]?.trim() || null;
 
     function removeCommonElements() {
@@ -423,6 +424,9 @@
 
       document.querySelectorAll('img[src="blank.gif"].hspacing').forEach(img => img.remove());
 
+      document.getElementById('buttonPing')?.closest('td')?.remove();
+      document.getElementById('resurserForm')?.closest('td')?.remove();
+
       const bgTable = document.querySelector('footer table.bg-color');
       if (bgTable) bgTable.style.removeProperty('padding');
     }
@@ -434,14 +438,14 @@
 
         const loyveBtn = document.getElementById('buttonTransporterPermit');
         if (loyveBtn) {
-          loyveBtn.closest('tr')?.remove();
+          (loyveBtn.closest('tr') ?? loyveBtn.closest('div'))?.remove();
         } else {
           allFound = false;
         }
 
         const tfilter = document.getElementById('tfilter');
         if (tfilter) {
-          tfilter.closest('tr')?.remove();
+          (tfilter.closest('tr') ?? tfilter.closest('.dropdown') ?? tfilter)?.remove();
         } else {
           allFound = false;
         }
@@ -885,7 +889,7 @@
       if (!topframeCell) return null;
       
       const text = topframeCell.textContent;
-      const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/)
+      const match = text.match(/Pasientreisekontor for ([^\n]+)/)
       
       if (match && match[1]) {
         return match[1].trim();
@@ -967,6 +971,72 @@
             align-items: center;
             flex-wrap: wrap;
           }
+          #nissy-fiks-about {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #275e90;
+            font-size: 12px;
+            white-space: nowrap;
+            position: fixed;
+            bottom: 4px;
+            right: 6px;
+          }
+          #nissy-fiks-about a {
+            color: inherit;
+            font-weight: bold;
+            text-decoration: none;
+          }
+          #nissy-fiks-about a:hover {
+            text-decoration: underline;
+          }
+          #nissy-about-btn {
+            background: rgba(39, 94, 144, 0.25);
+            color: #275e90;
+            border: 1px solid rgba(39, 94, 144, 0.45);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+            line-height: 16px;
+            text-align: center;
+            flex-shrink: 0;
+          }
+          #nissy-about-btn:hover {
+            background: #275e90;
+            color: white;
+            border-color: #275e90;
+          }
+          #nissy-about-popup {
+            position: absolute;
+            bottom: calc(100% + 6px);
+            right: 0;
+            background: white;
+            border: 1px solid #c0cfe8;
+            border-radius: 8px;
+            padding: 10px 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+            min-width: 210px;
+            z-index: 9999;
+            font-size: 12px;
+            line-height: 1.8;
+            color: #333;
+          }
+          #nissy-about-popup a {
+            color: #4A81BF;
+            text-decoration: none;
+          }
+          #nissy-about-popup a:hover {
+            text-decoration: underline;
+          }
+          #nissy-about-popup hr {
+            border: none;
+            border-top: 1px solid #e0e8f0;
+            margin: 6px 0 4px;
+          }
         `;
         document.head.appendChild(style);
       }
@@ -976,35 +1046,59 @@
       newCell.className = 'd';
       newCell.setAttribute('valign', 'top');
       newCell.innerHTML = `
-        <div id="nissy-manual-scripts">
-          <button id="nissy-btn-alenebil" class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
-            🚗 Alenebil
-          </button>
-          <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
-            🤖 Auto-Bestill
-          </button>
-          <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer">
-            🔍 Sjekk-Bestilling
-          </button>
-          ${hasSjekkPlakatAccess() ? `
-          <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først">
-            🚩 Sjekk-Plakat
-          </button>
-          ` : ''}
-          <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
-            📞 Sjekk-Telefon
-          </button>
-          <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter">
-            📊 Statistikk
-          </button>
-          <button class="nissy-manual-btn" data-script="trondertaxi-loyve" title="Åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes">
-            🚖 Trøndertaxi-Løyve
-          </button>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <div id="nissy-manual-scripts">
+            <button id="nissy-btn-alenebil" class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
+              🚗 Alenebil
+            </button>
+            <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
+              🤖 Auto-Bestill
+            </button>
+            <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer">
+              🔍 Sjekk-Bestilling
+            </button>
+            ${hasSjekkPlakatAccess() ? `
+            <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først">
+              🚩 Sjekk-Plakat
+            </button>
+            ` : ''}
+            <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
+              📞 Sjekk-Telefon
+            </button>
+            <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter">
+              📊 Statistikk
+            </button>
+            <button class="nissy-manual-btn" data-script="trondertaxi-loyve" title="Åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes">
+              🚖 Trøndertaxi-Løyve
+            </button>
+          </div>
+          <div id="nissy-fiks-about">
+            <span>Script <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">v${SCRIPT_VERSION}</a></span>
+            <button id="nissy-about-btn" title="Om prosjektet NISSY-JavaScript">ℹ</button>
+            <div id="nissy-about-popup" style="display:none">
+              <div style="margin-bottom:2px"><strong>NISSY powered by JavaScript v${SCRIPT_VERSION}</strong></div>
+              <a href="https://github.com/olorinmaia/NISSY" target="_blank" rel="noopener">GitHub</a><br>
+              <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">Endringslogg</a><br>
+              Utviklet av: Alf Einar Johnsen / <a href="mailto:aej@hnt.no">aej@hnt.no</a>
+              <hr>
+              ❤️ Make NISSY great 🤓
+            </div>
+          </div>
         </div>
       `;
       
       // Legg til cellen etter "Dynamiske plakater"
       bottomTable.appendChild(newCell);
+
+      const aboutBtn = document.getElementById('nissy-about-btn');
+      const aboutPopup = document.getElementById('nissy-about-popup');
+      if (aboutBtn && aboutPopup) {
+        aboutBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          aboutPopup.style.display = aboutPopup.style.display === 'none' ? 'block' : 'none';
+        });
+        document.addEventListener('click', () => { aboutPopup.style.display = 'none'; }, true);
+      }
 
       // Styr disabled-tilstand for Alenebil
       if (typeof ListSelectionGroup !== 'undefined') {

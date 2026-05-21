@@ -86,8 +86,29 @@
       background: #dde;
       margin: 3px 8px;
     }
+
+    /* ── Darkmode-overrides ───────────────────────────────────── */
+    #cm-popup.cm-dark {
+      background: #b0c4d8;
+      border-color: #8aa8c0;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+    }
+    #cm-popup.cm-dark .cm-item {
+      color: #1a2535;
+    }
+    #cm-popup.cm-dark .cm-item:hover        { background: #8aa8c0; color: #1a2535; }
+    #cm-popup.cm-dark.cm-ressurser .cm-item:hover { background: #90b89c; color: #1a2535; }
+    #cm-popup.cm-dark.cm-general   .cm-item:hover { background: #9898c0; color: #1a2535; }
+    #cm-popup.cm-dark .cm-separator { background: #8aa8c0; }
+    #cm-popup.cm-dark .cm-badge     { background: #c5d4e3; color: #3a5068; }
+    #cm-popup.cm-dark .cm-badge.cm-single { background: #e8d89a; color: #6a4a00; }
   `;
   document.head.appendChild(style);
+
+  // ── Sjekk om Darkmode er aktiv ──────────────────────────────
+  function isDarkmodeActive() {
+    return !!document.getElementById('nissy-darkmode-css');
+  }
 
   // ── Lukk meny ───────────────────────────────────────────────
   function closeMenu() {
@@ -158,7 +179,7 @@
     const topframeCell = document.querySelector('.topframe_small');
     if (!topframeCell) return null;
     const text  = topframeCell.textContent;
-    const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+    const match = text.match(/Pasientreisekontor for ([^\n]+)/);
     return match?.[1]?.trim() || null;
   }
 
@@ -444,6 +465,7 @@
     const popup = document.createElement('div');
     popup.id = 'cm-popup';
     popup.classList.add(`cm-${type}`);
+    if (isDarkmodeActive()) popup.classList.add('cm-dark');
 
     // Header
     const header = document.createElement('div');
@@ -623,6 +645,7 @@
     const popup = document.createElement('div');
     popup.id = 'cm-popup';
     popup.classList.add('cm-general');
+    if (isDarkmodeActive()) popup.classList.add('cm-dark');
 
     const header = document.createElement('div');
     header.className = 'cm-header';

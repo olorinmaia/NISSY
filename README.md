@@ -65,10 +65,11 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
   - Tooltip med pasientnavn og tidspunkt ved mouse-over
   - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+    - Jeg har ingen direkte kontroll over ruten som velges, noen ganger vil ikke forventet rute velges, men beregning vil være ca riktig uansett
   - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
-  - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag: Ytterøy/Levanger, Leka/Gutvik, Jøa, Hofles/Lund, Hofles/Geisnes og Gjerdinga/Eidshaug
+  - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag er konfigurert. Ta kontakt om deres kontor ønsker fergeberegninger i kartvisningen for å få tilsendt mal
     - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
     - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
     - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
@@ -79,6 +80,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Adresser normaliseres og navn forkortes for kompakt visning
   - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
   - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+  - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
 
 - 🚕 **Ressursinfo (Alt+D)**
@@ -147,6 +149,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
   - Logger SMS-utsendelser i Handlingslogg.
   - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+  - Se [veiledning for å konfigurere SMS-maler](docs/SMS_Maler.md) for mal og instruksjoner for oppsett.
   - <img width="300" alt="image" src="https://github.com/user-attachments/assets/0f0780f4-e2cd-4c6a-a66e-e82704673130" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/e48215bb-a6b6-4f08-8697-152a7c61a32a" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/4400471f-a0da-4ed5-848c-2b0d9376f560" />
 
 - 🖱️ **Hurtigmeny**

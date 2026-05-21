@@ -12,18 +12,18 @@ NISSY AMK er perfekt for deg som:
 ## 📦 Hva får du?
 
 ### Inkluderte scripts:
-- ⌛ **NISSY-fiks** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
-- 🚕 **Ressursinfo** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
-- 📡 **Live ressurskart** - (Alt+Z) Åpner et interaktivt kart som viser siste kjente posisjon, hendelse samt annen nyttig info for alle merkede ressurser.
-- 🧭 **Rutekalkulering** - (Alt+Q) Åpne rute i Google Maps
-- 🗺️ **Kartvisning** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
-- 📝 **Bestillingsmodul** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
-- ⚙️ **Adminmodul** - (Alt+A) Åpner admin-modulen i en pop-up modal over planleggingsvinduet som husker siste besøkte side eller ny fane basert på preferanse.
-- 📋 **Handlingslogg** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
-- 📱 **Send-SMS** - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag. Send SMS til sjåfør ved å høyreklikke på løyve, henter automatisk nummer fra 3003.
-- 🖱️ **Hurtigmeny** - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene. Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
+- ⌛ **[NISSY-fiks](#-nissy-fiks)** - Bugfixer, forbedringer, tastatursnarveier og kolonnejusteringer
+- 🚕 **[Ressursinfo](#-ressursinfo-altd)** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
+- 📡 **[Live ressurskart](#-live-ressurskart-altz)** - (Alt+Z) Åpner et interaktivt kart som viser siste kjente posisjon, hendelse samt annen nyttig info for alle merkede ressurser.
+- 🧭 **[Rutekalkulering](#-rutekalkulering-altq)** - (Alt+Q) Åpne rute i Google Maps
+- 🗺️ **[Kartvisning](#️-kartvisning-altw)** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
+- 📝 **[Bestillingsmodul](#-bestillingsmodul-altn)** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
+- ⚙️ **[Adminmodul](#️-adminmodul-alta)** - (Alt+A) Åpner admin-modulen i en pop-up modal over planleggingsvinduet som husker siste besøkte side eller ny fane basert på preferanse.
+- 📋 **[Handlingslogg](#-handlingslogg-altl)** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
+- 📱 **[Send-SMS](#-send-sms-altc)** - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag. Send SMS til sjåfør ved å høyreklikke på løyve, henter automatisk nummer fra 3003.
+- 🖱️ **[Hurtigmeny](#️-hurtigmeny)** - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene. Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
 - 🌙 **Darkmode** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
-- 🔔 **Overvåk-Ventende** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
+- 🔔 **[Overvåk-Ventende](#-overvåk-ventende)** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **Sjekk-Bestilling** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og dato/tidsfeil, lar deg søke opp disse for å rette opp.
@@ -121,14 +121,16 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
 - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
 - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+  - Jeg har ingen direkte styring over ruten som velges, noen ganger vil ikke den forventede ruten velges, men beregning på tid/km vil som regel være ca riktig uansett og bedre enn ingen beregning
 - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
-- **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag: Ytterøy/Levanger, Leka/Gutvik, Jøa, Hofles/Lund, Hofles/Geisnes og Gjerdinga/Eidshaug
+- **Fergeberegning** – rutetabeller for alle ferger i Nord-Trøndelag er konfigurert. Se [veiledning for å konfigurere fergeruter](Ferge_Konfigurasjon.md) for mal og instruksjoner for oppsett
     - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
     - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
     - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
     - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md).
 
 ### 🚕 Ressursinfo (ALT+D)
 
@@ -223,6 +225,7 @@ Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger 
 - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
 - Logger SMS-utsendelser i Handlingslogg.
 - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+- Se [veiledning for å konfigurere SMS-maler](SMS_Maler.md) for mal og instruksjoner for oppsett.
 
 ### 🖱️ **Hurtigmeny**
 Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.

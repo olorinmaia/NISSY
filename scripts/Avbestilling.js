@@ -17,7 +17,7 @@
     'Kontoret for pasientreiser, Ålesund',
   ];
   const _officeCell  = document.querySelector('.topframe_small');
-  const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+  const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _office      = _officeMatch?.[1]?.trim() || null;
 
   console.log("🚀 Starter Avbestilling-script");

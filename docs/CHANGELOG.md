@@ -4,6 +4,29 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## Planlagt
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig.
+- Se på muligheter for script som planlegger vognløp basert på koordinater, tidspunkt og ruting fra ORS.
+- Varsling/overvåking av forsinkelser
+
+---
+
+## 🔧 [4.5.0] - 22.05.2026
+
+### Versjonsinformasjon i footer, forbedringer til Hentetid, Hurtigmeny og nye ORS-nøkler
+
+- ⌛ **NISSY-fiks**
+  - **Scriptversjon og info-knapp** – Versjonsnummer vises nå nederst til høyre i planleggingsvinduet. Klikk på ⓘ for pop-up med lenke til endringslogg, GitHub og kontaktinfo
+  - Fjernet ping-knapp og tema-velger fra footer
+- 🕐 **Hentetid**
+  - Hentetid kan ikke lenger settes lik eller senere enn oppmøtetid på reiser til behandling – validering forhindrer feilregistrering
+- 🗺️ **Kartvisning**
+  - ORS API-nøkkel lagt til for Pasientreiser Helse Bergen og Nordlandssykehuset HF
+- 🖱️ **Hurtigmeny**
+  - Hurtigmenyen bruker nå Darkmode-fargetema når Darkmode er aktivert
+- 📚 **Dokumentasjon**
+  - Ny [veiledning for å konfigurere Smart-tildeling](Smart-tildeling_Konfigurasjon.md) – avtalemapping for RB/ERS og mellomstor bil
+  - Ny [veiledning for å konfigurere SMS-maler](SMS_Maler.md) – kontorspesifikke maler for Send-SMS
+  - Ny [veiledning for å konfigurere fergeruter](Ferge_Konfigurasjon.md) – rutetabeller for fergeberegning i Kartvisning
+  - Ny [veiledning for å opprette HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md) – ORS-nøkkel for ruteberegning i Kartvisning
 
 ---
 

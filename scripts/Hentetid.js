@@ -2481,17 +2481,18 @@
 
       const changes = [];
       let invalidFields = [];
-      
+      let lateFields = [];
+
       for (const b of bestillinger) {
         const displayId = b.uniqueId || b.id;
         const input = popup.querySelector(`#time_${displayId}`);
         const newTime = input.value.trim();
         const originalTime = input.getAttribute('data-original');
-        
+
         if (newTime === originalTime) {
           continue;
         }
-        
+
         if (newTime) {
           if (!isValidTime(newTime)) {
             input.style.borderColor = '#dc3545';
@@ -2499,7 +2500,23 @@
             invalidFields.push(b.name);
             continue;
           }
-          
+
+          // Sperre: hentetid kan ikke være lik eller senere enn oppmøtetid for reiser til behandling
+          const isRetur = b.oppmotetid && (
+            b.existingTime === b.oppmotetid ||
+            (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''))
+          );
+          if (b.oppmotetid && !isRetur) {
+            const oppTimeInput = popup.querySelector(`#opptime_${displayId}`);
+            const currentOppmotetid = oppTimeInput ? oppTimeInput.value.trim() : b.oppmotetid;
+            if (isValidTime(currentOppmotetid) && newTime.replace(':', '') >= currentOppmotetid.replace(':', '')) {
+              input.style.borderColor = '#dc3545';
+              input.style.background = '#fff5f5';
+              lateFields.push(`${b.name} (${newTime} ≥ oppmøte ${currentOppmotetid})`);
+              continue;
+            }
+          }
+
           input.style.borderColor = '#28a745';
           input.style.background = '#f0fff0';
           changes.push({
@@ -2508,12 +2525,20 @@
           });
         }
       }
-      
+
       if (invalidFields.length > 0) {
-        const fieldsList = invalidFields.length > 3 
+        const fieldsList = invalidFields.length > 3
           ? invalidFields.slice(0, 3).join(', ') + '...'
           : invalidFields.join(', ');
         showErrorToast(`⚠️ Ugyldig tidspunkt (må være mellom 00:00 og 23:59): ${fieldsList}`);
+        return;
+      }
+
+      if (lateFields.length > 0) {
+        const fieldsList = lateFields.length > 3
+          ? lateFields.slice(0, 3).join(', ') + '...'
+          : lateFields.join(', ');
+        showErrorToast(`⚠️ Hentetid kan ikke være lik eller senere enn oppmøtetid: ${fieldsList}`);
         return;
       }
 
