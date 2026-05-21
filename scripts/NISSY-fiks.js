@@ -449,7 +449,7 @@
 
         const tfilter = document.getElementById('tfilter');
         if (tfilter) {
-          (tfilter.closest('tr') ?? tfilter)?.remove();
+          (tfilter.closest('tr') ?? tfilter.closest('.dropdown') ?? tfilter)?.remove();
         } else {
           allFound = false;
         }
