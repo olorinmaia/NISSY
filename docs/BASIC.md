@@ -130,6 +130,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
     - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md).
 
 ### 🚕 Ressursinfo (ALT+D)
 

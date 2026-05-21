@@ -80,6 +80,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Adresser normaliseres og navn forkortes for kompakt visning
   - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
   - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+  - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
 
 - 🚕 **Ressursinfo (Alt+D)**
