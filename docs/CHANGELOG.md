@@ -22,6 +22,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - ORS API-nøkkel lagt til for Pasientreiser Helse Bergen og Nordlandssykehuset HF
 - 🖱️ **Hurtigmeny**
   - Hurtigmenyen bruker nå Darkmode-fargetema når Darkmode er aktivert
+- 📱 **Send SMS**
+  - Alt+C fungerer nå som snarvei til NISSY sin innebygde Send SMS-knapp for kontorer uten egendefinerte maler
 - 📚 **Dokumentasjon**
   - Ny [veiledning for å konfigurere Smart-tildeling](Smart-tildeling_Konfigurasjon.md) – avtalemapping for RB/ERS og mellomstor bil
   - Ny [veiledning for å konfigurere SMS-maler](SMS_Maler.md) – kontorspesifikke maler for Send-SMS
