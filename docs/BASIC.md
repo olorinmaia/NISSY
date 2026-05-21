@@ -297,7 +297,7 @@ Klar for mer funksjonalitet?
 
 ### NISSY Advanced
 Legger til:
-- Smart tildeling (ALT+S) **(OBS!! KREVER KONFIGURASJON. TA KONTAKT)**
+- Smart tildeling (ALT+S) **(OBS!! KREVER KONFIGURASJON)** – se [veiledning for å konfigurere Smart-tildeling](Smart-tildeling_Konfigurasjon.md)
 - Tilordningsstøtte 2.0 (ALT+T)
 - Samkjøring (ALT+X) (Fungerer best for Nord-Trøndelag eller områder der postnummer stiger eller synker fra nord til sør)
 

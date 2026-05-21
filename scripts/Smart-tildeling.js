@@ -29,23 +29,35 @@
     // Legg til flere behov her ved behov
   };
   
-  // Regler når RB/ERS finnes i bestillingene
-  const RB_ERS_RULES = {
-    4116: 4120, 8942: 9041, 8918: 9035, 8948: 9043, 8950: 9043,
-    8922: 9034, 8932: 9039, 8946: 9114, 8920: 9035, 8928: 9038,
-    8914: 9031, 8934: 9040, 8936: 9040, 8954: 9045, 8958: 9046,
-    8940: 9041, 8952: 9044, 8956: 9045, 8930: 9037, 8938: 9039,
-    8926: 9038, 8916: 9032, 8960: 9046, 8924: 9036, 8944: 9042
+  // Avtalemapping per kontor.
+  // Nøkkel må matche eksakt kontorets navn fra NISSY ("Pasientreisekontor for <navn>").
+  // rb_ers:   standard avtale-ID → RB/ERS avtale-ID (brukes når én eller flere bestillinger har RB/ERS-behov)
+  // multiple: standard avtale-ID → mellomstor bil avtale-ID (brukes ved 4+ samtidige passasjerer uten RB/ERS)
+  const KONTOR_REGLER = {
+    'Pasientreiser Nord-Trøndelag': {
+      rb_ers: {
+        8942: 9041, 8918: 9035, 8948: 9043, 8950: 9043, 8922: 9034,
+        8932: 9039, 8946: 9114, 8920: 9035, 8928: 9038, 8914: 9031,
+        8934: 9040, 8936: 9040, 8954: 9045, 8958: 9046, 8940: 9041,
+        8952: 9044, 8956: 9045, 8930: 9037, 8938: 9039, 8926: 9038,
+        8916: 9032, 8960: 9046, 8924: 9036, 8944: 9042
+      },
+      multiple: {
+        8942: 8943, 8918: 8919, 8948: 8949, 8950: 8951, 8922: 8923,
+        8932: 8933, 8946: 8947, 8920: 8921, 8928: 8929, 8914: 8915,
+        8934: 8935, 8936: 8937, 8954: 8955, 8958: 8959, 8940: 8941,
+        8952: 8953, 8956: 8957, 8930: 8931, 8938: 8939, 8926: 8927,
+        8916: 8917, 8960: 8961, 8924: 8925, 8944: 8945
+      }
+    },
+    // Legg til flere kontorer her – se Smart-tildeling_Konfigurasjon.md
   };
-  
-  // Regler når 3+ samtidig reisende UTEN RB/ERS
-  const MULTIPLE_ORDERS_RULES = {
-    8942: 8943, 8918: 8919, 8948: 8949, 8950: 8951, 8922: 8923,
-    8932: 8933, 8946: 8947, 8920: 8921, 8928: 8929, 8914: 8915,
-    8934: 8935, 8936: 8937, 8954: 8955, 8958: 8959, 8940: 8941,
-    8952: 8953, 8956: 8957, 8930: 8931, 8938: 8939, 8926: 8927,
-    8916: 8917, 8960: 8961, 8924: 8925, 8944: 8945
-  };
+
+  const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
+  const _office      = _officeMatch?.[1]?.trim() || null;
+  const _regler      = _office ? KONTOR_REGLER[_office] : null;
+  const RB_ERS_RULES       = _regler?.rb_ers   ?? {};
+  const MULTIPLE_ORDERS_RULES = _regler?.multiple ?? {};
 
   let currentToast = null;
   let currentErrorToast = null;
