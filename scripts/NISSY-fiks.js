@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.4.6';
+  const SCRIPT_VERSION = '4.5.0';
 
   console.log("🚀 Starter NISSY-fiks-script");
 
@@ -401,7 +401,7 @@
 
   (() => {
     const _officeCell  = document.querySelector('.topframe_small');
-    const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+    const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
     const _office1c    = _officeMatch?.[1]?.trim() || null;
 
     function removeCommonElements() {
@@ -889,7 +889,7 @@
       if (!topframeCell) return null;
       
       const text = topframeCell.textContent;
-      const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/)
+      const match = text.match(/Pasientreisekontor for ([^\n]+)/)
       
       if (match && match[1]) {
         return match[1].trim();

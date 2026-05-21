@@ -17,7 +17,7 @@
     // Legg til flere kontorer her etter hvert
   ];
   const _officeCell  = document.querySelector('.topframe_small');
-  const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+  const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _office      = _officeMatch?.[1]?.trim() || null;
   if (!_office || !SEND_SMS_OFFICES.includes(_office)) {
     console.log(`ℹ️ SendSMS ikke tilgjengelig for kontor: ${_office || '(ukjent)'}`);

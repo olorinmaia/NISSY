@@ -179,7 +179,7 @@
     const topframeCell = document.querySelector('.topframe_small');
     if (!topframeCell) return null;
     const text  = topframeCell.textContent;
-    const match = text.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+    const match = text.match(/Pasientreisekontor for ([^\n]+)/);
     return match?.[1]?.trim() || null;
   }
 

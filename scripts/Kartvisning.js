@@ -212,7 +212,7 @@
     144809: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM2ZWZkMmQ0OWI5MzQxOWM4ZWMwNDE5ZTI5YjI5MGM0IiwiaCI6Im11cm11cjY0In0=', // svelia
     168713: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZjMjQ5ZjQxZjdjNDRjOWE5ZjY0NThiYmQxZDk3YTMxIiwiaCI6Im11cm11cjY0In0=', // sutnes
   };
-  const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for (.+?)\s+(?:&nbsp;|-)/);
+  const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
   const _userIdMatch = document.querySelector('a[href*="changePassword"]')?.getAttribute('href')?.match(/id=(\d+)/);
   const _currentUserId = _userIdMatch ? parseInt(_userIdMatch[1], 10) : null;
