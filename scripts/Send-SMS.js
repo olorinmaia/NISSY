@@ -20,7 +20,13 @@
   const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _office      = _officeMatch?.[1]?.trim() || null;
   if (!_office || !SEND_SMS_OFFICES.includes(_office)) {
-    console.log(`ℹ️ SendSMS ikke tilgjengelig for kontor: ${_office || '(ukjent)'}`);
+    console.log(`ℹ️ SendSMS ikke tilgjengelig for kontor: ${_office || '(ukjent)'} – mapper Alt+C til NISSY-knappen`);
+    document.addEventListener("keydown", (e) => {
+      if (e.altKey && e.key.toLowerCase() === "c") {
+        const btn = document.getElementById("buttonSendSMS");
+        if (btn) { e.preventDefault(); btn.click(); }
+      }
+    });
     return;
   }
 
