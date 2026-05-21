@@ -31,7 +31,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - Bokstaver/komma → Navn (Etternavn, Fornavn)
 
 - 🪄 **Smart-tildel (Alt+S)**
-  - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING, TA KONTAKT FOR HJELP**
+  - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING**
+  - Se [veiledning for å konfigurere Smart-tildeling](docs/Smart-tildeling_Konfigurasjon.md) for avtalemapping og instruksjoner for oppsett.
   - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
   - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
   - Støtter også direkte tildeling til valgt avtale eller ressurs.
@@ -69,7 +70,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
-  - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag er konfigurert. Ta kontakt om deres kontor ønsker fergeberegninger i kartvisningen for å få tilsendt mal
+  - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag er konfigurert. Se [veiledning for å konfigurere fergeruter](docs/Ferge_Konfigurasjon.md) for mal og instruksjoner for oppsett.
     - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
     - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
     - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
