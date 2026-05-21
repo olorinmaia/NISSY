@@ -14,16 +14,16 @@ Kartvisning bruker [OpenRouteService (HeiGIT)](https://openrouteservice.org/) fo
 
 ## Steg 2 – Kopier API-nøkkelen
 
-Etter registrering opprettes en **Basic key** automatisk i Dashboard.
+Etter registrering opprettes en **Basic key** automatisk.
 
-1. Logg inn og gå til **Dashboard**
+1. Logg inn og gå til **API-key**
 2. Kopier nøkkelen (lang tekststreng under API Key)
 
 ---
 
 ## Steg 3 – Oppgrader til Collaborative plan
 
-Standardplanen har begrenset kvote. For å få tilstrekkelig kapasitet:
+Standardplanen **Basic key** har begrenset kvote. For å få tilstrekkelig kapasitet:
 
 1. I Dashboard, klikk **Upgrade** ved nøkkelen din
 2. Fyll ut søknaden. Bruk gjerne denne malen:
@@ -39,7 +39,7 @@ Standardplanen har begrenset kvote. For å få tilstrekkelig kapasitet:
 
 ---
 
-## Steg 4 – Send nøkkelen til aej@hnt.no
+## Steg 4 – Send nøkkelen til Alf Einar
 
 Når nøkkelen er opprettet, send følgende til **aej@hnt.no** eller på Teams:
 

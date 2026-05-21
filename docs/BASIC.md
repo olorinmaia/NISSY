@@ -281,6 +281,7 @@ Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger 
 - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
 - Logger SMS-utsendelser i Handlingslogg.
 - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+- Se [veiledning for å konfigurere SMS-maler](SMS_Maler.md) for mal og instruksjoner for oppsett.
 
 ### 🖱️ **Hurtigmeny**
 Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.

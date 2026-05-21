@@ -149,6 +149,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
   - Logger SMS-utsendelser i Handlingslogg.
   - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+  - Se [veiledning for å konfigurere SMS-maler](docs/SMS_Maler.md) for mal og instruksjoner for oppsett.
   - <img width="300" alt="image" src="https://github.com/user-attachments/assets/0f0780f4-e2cd-4c6a-a66e-e82704673130" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/e48215bb-a6b6-4f08-8697-152a7c61a32a" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/4400471f-a0da-4ed5-848c-2b0d9376f560" />
 
 - 🖱️ **Hurtigmeny**
