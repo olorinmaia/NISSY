@@ -9,6 +9,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.5.1] - 22.05.2026
+
+### Kontorspesifikke SMS-maler for Nordlandssykehuset
+
+- 📱 **Send SMS**
+  - Lagt til kontorspesifikke SMS-maler for Pasientreiser Nordlandssykehuset
+
+---
+
 ## 🔧 [4.5.0] - 22.05.2026
 
 ### Versjonsinformasjon i footer, forbedringer til Hentetid, Hurtigmeny og nye ORS-nøkler
