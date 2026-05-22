@@ -217,7 +217,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🚗 Alenebil | ✅ | ✅ | ✅ |
 | 🤖 Auto-Bestill | ✅ | ✅ | ✅ |
 | 🔍 Sjekk-Bestilling | ✅ | ✅ | ✅ |
-| 🚩 Sjekk-Plakat (Kun Nord-Trøndelag) | ✅ | ✅ | ✅ |
+| 🚩 Sjekk-Plakat | ✅ | ✅ | ✅ |
 | 📞 Sjekk-Telefon | ✅ | ✅ | ✅ |
 | 📊 Statistikk | ✅ | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |

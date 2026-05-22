@@ -899,21 +899,6 @@
     }
 
     // ============================================================
-    // LISTE OVER KONTORER MED TILGANG TIL SJEKK-PLAKAT
-    // ============================================================
-    const SJEKK_PLAKAT_OFFICES = [
-      'Pasientreiser Nord-Trøndelag'
-      // Legg til flere kontorer her etter hvert
-      // 'Pasientreiser Sør-Trøndelag',
-      // 'Pasientreiser Oslo',
-    ];
-
-    function hasSjekkPlakatAccess() {
-      const office = getCurrentOffice();
-      return office && SJEKK_PLAKAT_OFFICES.includes(office);
-    }
-
-    // ============================================================
     // LISTE OVER KONTORER MED TILGANG TIL TRØNDERTAXI-LØYVE
     // ============================================================
     const TRØNDERTAXI_OFFICES = [
@@ -1071,11 +1056,9 @@
             <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer">
               🔍 Sjekk-Bestilling
             </button>
-            ${hasSjekkPlakatAccess() ? `
             <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først">
               🚩 Sjekk-Plakat
             </button>
-            ` : ''}
             <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
               📞 Sjekk-Telefon
             </button>
