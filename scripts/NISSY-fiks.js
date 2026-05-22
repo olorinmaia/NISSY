@@ -913,6 +913,20 @@
       return office && SJEKK_PLAKAT_OFFICES.includes(office);
     }
 
+    // ============================================================
+    // LISTE OVER KONTORER MED TILGANG TIL TRØNDERTAXI-LØYVE
+    // ============================================================
+    const TRØNDERTAXI_OFFICES = [
+      'Pasientreiser Nord-Trøndelag',
+      'Kontoret for pasientreiser, Ålesund',
+      'Pasientreiser Sør-Trøndelag',
+    ];
+
+    function hasTrøndertaxiAccess() {
+      const office = getCurrentOffice();
+      return office && TRØNDERTAXI_OFFICES.includes(office);
+    }
+
     function addManualButtons() {
       // Finn bottomframe tabellen
       const bottomTable = document.querySelector('.bottomframe table tbody tr');
@@ -1068,9 +1082,11 @@
             <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter">
               📊 Statistikk
             </button>
+            ${hasTrøndertaxiAccess() ? `
             <button class="nissy-manual-btn" data-script="trondertaxi-loyve" title="Åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes">
               🚖 Trøndertaxi-Løyve
             </button>
+            ` : ''}
           </div>
           <div id="nissy-fiks-about">
             <span>Script <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">v${SCRIPT_VERSION}</a></span>
