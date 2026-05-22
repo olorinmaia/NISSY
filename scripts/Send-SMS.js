@@ -14,6 +14,7 @@
     'Pasientreiser Nord-Trøndelag',
     'Kontoret for pasientreiser, Ålesund',
     'Pasientreiser Sør-Trøndelag',
+    'Reisekontoret - Nordlandssykehuset HF',
     // Legg til flere kontorer her etter hvert
   ];
   const _officeCell  = document.querySelector('.topframe_small');
@@ -335,14 +336,90 @@
       ],
 
     },
+    
+    // ----------------------------------------------------------
+    // Pasientreiser Nordlandssykehuset
+    // ----------------------------------------------------------
+    'Reisekontoret - Nordlandssykehuset HF': {
+
+      bestilling: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Endret hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Planlagt reise til behandling",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+      ],
+
+      fritekst: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting kl. TT:MM.\nHentetid kan variere med +/- 15 minutter. Vær parfymefri.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Endret hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til kl. TT:MM.\nHentetid kan variere med +/- 15 minutter. Vær parfymefri.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+      ],
+
+      sjaafor: [
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Tildelt bestilling for retur",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter for retur.\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+      ],
+
+    },
     // ----------------------------------------------------------
     // Legg til nye kontor her:
     // ----------------------------------------------------------
-    // 'Pasientreiser Sør-Trøndelag': {
-    //   bestilling: [ ... ],
-    //   fritekst:   [ ... ],
-    //   sjaafor:    [ ... ],
-    // },
 
   };
 

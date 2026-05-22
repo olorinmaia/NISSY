@@ -160,6 +160,7 @@ Send den tilpassede blokken (og kontorets navn) til **aej@hnt.no** eller på Tea
 ## Tips
 
 - Legg til så mange maler per type som ønskelig – de vises i en nedtrekksliste i SMS-vinduet.
+- De nasjonale malene som ligger fra før i NISSY forsvinner, de som evt. brukes av de må legges til i kontorspesifikke maler.
 - `\n` lager linjeskift i meldingsteksten.
 - `autoVelgHvis` kan brukes til å automatisk velge en mal basert på f.eks. adressen: `autoVelgHvis: (info) => /flyplass|lufthavn/i.test(info.fraAdresse)`
 - Sjåfør-SMS (`sjaafor`) sendes via høyreklikk på ressurs i ressurskolonnen.

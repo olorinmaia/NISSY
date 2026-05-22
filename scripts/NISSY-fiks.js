@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.5.0';
+  const SCRIPT_VERSION = '4.5.1';
 
   console.log("🚀 Starter NISSY-fiks-script");
 
