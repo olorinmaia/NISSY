@@ -30,14 +30,18 @@ Tre mal-typer støttes per kontor:
 
 ### Tilgjengelige variabler i `bestilling`-maler
 
-| Variabel | Eksempel |
-|---|---|
-| `info.pasientNavn` | `Johnsen, Alf` |
-| `info.fornavn` | `Alf` |
-| `info.reiseTid` | `18:36` |
-| `info.oppTid` | `19:00` |
-| `info.fraAdresse` | `Brubakken 15, 7608 Levanger` |
-| `info.tilAdresse` | `St. Olavs Hospital, 7006 Trondheim` |
+| Variabel | Eksempel – samme dag | Eksempel – frem i tid |
+|---|---|---|
+| `info.pasientNavn` | `Johnsen, Alf` | `Johnsen, Alf` |
+| `info.fornavn` | `Alf` | `Alf` |
+| `info.reiseTid` | `18:36` | `06.03 08:00` |
+| `info.oppTid` | `19:00` | `06.03 09:00` |
+| `info.fraAdresse` | `Brubakken 15, 7608 Levanger` | `Brubakken 15, 7608 Levanger` |
+| `info.tilAdresse` | `St. Olavs Hospital, 7006 Trondheim` | `St. Olavs Hospital, 7006 Trondheim` |
+
+Bruk alltid `formaterTid(info.reiseTid)` og `formaterTid(info.oppTid)` i stedet for variablene direkte – da formateres tidspunktet riktig i begge tilfeller:
+- Samme dag: `18:36` → `kl. 18:36`
+- Frem i tid: `06.03 08:00` → `06.03 kl. 08:00`
 
 I `fritekst`- og `sjaafor`-maler er ingen variabler tilgjengelig – bruk plassholdere som `TT:MM` for tidspunkt og skriv inn manuelt ved sending.
 
