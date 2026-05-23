@@ -21,6 +21,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🚩 **Sjekk-plakat**
   - Advarsel vises ved 50 eller flere røde plakater, med råd om å innsnevre filtre
   - Tilgjengelig for alle kontorer (ikke lenger begrenset til Nord-Trøndelag)
+- 📞 **Sjekk-telefon**
+  - Legg til tips-seksjon for hvordan å enklest rette opp manglende mobilnummer
 - ⌛ **NISSY-fiks**
   - Trøndertaxi-løyve-knappen vises kun for relevante kontorer
 
