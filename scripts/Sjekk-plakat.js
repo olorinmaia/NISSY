@@ -851,21 +851,33 @@
     if (allPosters.length === 0) {
       return { all: [], problematic: [], normal: [] };
     }
-    
+
+    const ADVARSEL_GRENSE = 50;
+    if (allPosters.length >= ADVARSEL_GRENSE) {
+      const ok = await showConfirm(
+        `<strong style="font-size:15px;">⚠️ ${allPosters.length} røde plakater funnet</strong><br><br>` +
+        `Dette kan ta noen sekunder å hente.<br><br>` +
+        `Hvis antallet virker uventet høyt, kan du lukke og justere filtrene i planleggingsbildet før du kjører på nytt.<br><br>` +
+        `Vil du fortsette?`
+      );
+      if (!ok) {
+        window.__sjekkPlakatActive = false;
+        return null;
+      }
+    }
+
     console.log(`🔍 Fant ${allPosters.length} røde plakater, henter fritekst...`);
-    
-    // Hent data for alle
+
     const results = [];
-    
+
     for (const poster of allPosters) {
       const xmlDoc = await fetchRequisitionData(poster.requisitionId);
       const freetext = parseFreetextFromXML(xmlDoc);
-      
-      // Legg kun til hvis det faktisk er fritekst
+
       if (freetext && (freetext.amtp || freetext.amtt || freetext.mohts)) {
         const isProblematic = hasProblematicText(freetext);
         const keywords = isProblematic ? findProblematicKeywords(freetext) : [];
-        
+
         results.push({
           ...poster,
           freetext,
@@ -874,16 +886,11 @@
         });
       }
     }
-    
-    // Sorter: problematiske først
+
     const problematic = results.filter(r => r.isProblematic);
     const normal = results.filter(r => !r.isProblematic);
-    
-    return {
-      all: results,
-      problematic,
-      normal
-    };
+
+    return { all: results, problematic, normal };
   }
 
   // ============================================================
@@ -1158,9 +1165,10 @@
     console.log('🚀 Starter Sjekk-plakat script...');
     
     const data = await fetchAllRedPosterData();
-    
+    if (!data) return;
+
     console.log(`✅ Ferdig! Fant ${data.all.length} bestillinger med fritekst (${data.problematic.length} problematiske)`);
-    
+
     showModal(data);
   })();
 })();

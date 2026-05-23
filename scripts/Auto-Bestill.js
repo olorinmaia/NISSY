@@ -122,11 +122,15 @@
             <div class="bpanel-buttons">
                 <button id="startBtn">▶ Start</button>
                 <button id="stopBtn" disabled>⏸ Stopp</button>
-                <button id="closeBtn">X</button>
+                <button id="closeBtn">Lukk</button>
             </div>
             <div id="status"><b>Inaktiv.</b><br><b>${initialCount}</b> tur${initialCount === 1 ? '' : 'er'} funnet som kan bestilles opp på valgt filter.</div>
         </div>
     `;
+    // Overlay som blokkerer bakgrunnen
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.3);';
+    document.body.appendChild(overlay);
     document.body.appendChild(panel);
 
     // Posisjonering: sentrert horisontalt over col2, bunnen mot toppen av headerTransportorer
@@ -151,7 +155,7 @@
     }
 
     // Variabler
-    let buttons = [];
+    let dispatches = [];
     let index = 0;
     let running = false;
     let timer = null;
@@ -167,47 +171,83 @@
             .filter(a => a.textContent.trim() === '[B]');
     }
 
-    function clickNext() {
+    function getDispatchCalls(btns) {
+        return btns.map(a => {
+            const href = a.getAttribute('href') || '';
+            const match = href.match(/immediateDispatch\('([^']+)',(\d+)\)/);
+            return match ? { reknr: match[1], id: match[2] } : null;
+        }).filter(Boolean);
+    }
+
+    function onceAfterOpenPopp(callback) {
+        const originalOpen = XMLHttpRequest.prototype.open;
+        let restored = false;
+
+        const restore = () => {
+            if (!restored) {
+                restored = true;
+                XMLHttpRequest.prototype.open = originalOpen;
+            }
+        };
+
+        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
+                restore();
+                this.addEventListener('load', function() {
+                    setTimeout(callback, 50);
+                }, { once: true });
+            }
+            return originalOpen.call(this, method, url, ...rest);
+        };
+
+        setTimeout(restore, 3000);
+    }
+
+    function runNext() {
         if (!running) return;
-        if (index < buttons.length) {
-            buttons[index].click();
+        if (index < dispatches.length) {
+            const { reknr, id } = dispatches[index];
+            if (typeof immediateDispatch === 'function') {
+                immediateDispatch(reknr, id);
+            }
             statusDiv.innerHTML =
-                `<b>Aktiv</b><br>Bestiller opp tur nummer ${index + 1} av ${buttons.length}`;
+                `<b>Aktiv</b><br>Bestiller opp tur ${index + 1} av ${dispatches.length}`;
             index++;
-            timer = setTimeout(clickNext, 250);
+            timer = setTimeout(runNext, 250);
         } else {
-            buttons = findButtons();
-            if (buttons.length > 0) {
-                index = 0;
-                statusDiv.innerHTML =
-                    `<b>Aktiv</b><br>Fant ${buttons.length} flere turer å bestille opp, fortsetter...`;
-                timer = setTimeout(clickNext, 250);
-            } else {
-                statusDiv.innerHTML =
-                    '<b>✓ Ferdig!</b><br>Alle turer er bestilt opp!';
+            statusDiv.innerHTML = `<b>Oppdaterer...</b><br>Refresher planleggingsbildet...`;
+            onceAfterOpenPopp(() => {
+                const newBtns = findButtons();
                 running = false;
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
-            }
+                if (newBtns.length > 0) {
+                    statusDiv.innerHTML =
+                        `<b>✓ Ferdig!</b><br>Alle turer bestilt opp. Fant <b>${newBtns.length}</b> nye tur${newBtns.length === 1 ? '' : 'er'} som kan bestilles opp.`;
+                } else {
+                    statusDiv.innerHTML = '<b>✓ Ferdig!</b><br>Alle turer er bestilt opp!';
+                }
+            });
+            openPopp("-1");
         }
     }
 
     function startClicking() {
-        buttons = findButtons();
+        dispatches = getDispatchCalls(findButtons());
         index = 0;
         running = true;
         startBtn.disabled = true;
         stopBtn.disabled = false;
         statusDiv.innerHTML =
-            `<b>Starter...</b><br>Fant ${buttons.length} knapper`;
-        clickNext();
+            `<b>Starter...</b><br>Fant ${dispatches.length} turer å bestille opp`;
+        runNext();
     }
 
     function stopClicking() {
         running = false;
         clearTimeout(timer);
-        const remaining = buttons.length - index;
-        statusDiv.innerHTML = 
+        const remaining = dispatches.length - index;
+        statusDiv.innerHTML =
             `<b>⏸ Stoppet</b><br>${remaining} turer gjenstår å bestille opp`;
         startBtn.disabled = false;
         stopBtn.disabled = true;
@@ -215,10 +255,11 @@
 
     function closePanel() {
         stopClicking();
+        overlay.remove();
         panel.remove();
         document.removeEventListener('keydown', escListener);
-        // Frigjør sperren når panelet lukkes
         window.__autobestillActive = false;
+        openPopp("-1");
     }
 
     // ESC = lukk panel

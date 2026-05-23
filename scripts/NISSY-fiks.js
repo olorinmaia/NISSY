@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.5.1';
+  const SCRIPT_VERSION = '4.5.2'; // Versjonsnummer for debugging og fremtidige oppdateringer
 
   console.log("🚀 Starter NISSY-fiks-script");
 
@@ -899,18 +899,17 @@
     }
 
     // ============================================================
-    // LISTE OVER KONTORER MED TILGANG TIL SJEKK-PLAKAT
+    // LISTE OVER KONTORER MED TILGANG TIL TRØNDERTAXI-LØYVE
     // ============================================================
-    const SJEKK_PLAKAT_OFFICES = [
-      'Pasientreiser Nord-Trøndelag'
-      // Legg til flere kontorer her etter hvert
-      // 'Pasientreiser Sør-Trøndelag',
-      // 'Pasientreiser Oslo',
+    const TRØNDERTAXI_OFFICES = [
+      'Pasientreiser Nord-Trøndelag',
+      'Kontoret for pasientreiser, Ålesund',
+      'Pasientreiser Sør-Trøndelag',
     ];
 
-    function hasSjekkPlakatAccess() {
+    function hasTrøndertaxiAccess() {
       const office = getCurrentOffice();
-      return office && SJEKK_PLAKAT_OFFICES.includes(office);
+      return office && TRØNDERTAXI_OFFICES.includes(office);
     }
 
     function addManualButtons() {
@@ -1057,20 +1056,20 @@
             <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer">
               🔍 Sjekk-Bestilling
             </button>
-            ${hasSjekkPlakatAccess() ? `
             <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først">
               🚩 Sjekk-Plakat
             </button>
-            ` : ''}
             <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
               📞 Sjekk-Telefon
             </button>
             <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter">
               📊 Statistikk
             </button>
+            ${hasTrøndertaxiAccess() ? `
             <button class="nissy-manual-btn" data-script="trondertaxi-loyve" title="Åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes">
               🚖 Trøndertaxi-Løyve
             </button>
+            ` : ''}
           </div>
           <div id="nissy-fiks-about">
             <span>Script <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">v${SCRIPT_VERSION}</a></span>

@@ -327,6 +327,21 @@
             intro.style.cssText = 'color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; border-left: 4px solid #ffc107;';
             modal.appendChild(intro);
 
+            const tips = document.createElement('details');
+            tips.style.cssText = 'margin: 10px 0 16px 0; font-size: 13px; color: #555;';
+            const tipsSummary = document.createElement('summary');
+            tipsSummary.textContent = 'ℹ️ Slik retter du manglende telefonnummer';
+            tipsSummary.style.cssText = 'cursor: pointer; color: #007bff; font-weight: 500; user-select: none;';
+            const tipsList = document.createElement('ol');
+            tipsList.style.cssText = 'margin: 8px 0 0 0; padding-left: 20px; line-height: 1.7;';
+            tipsList.innerHTML =
+                '<li>Klikk <strong>Rediger person</strong> → legg til mobilnummer og lagre</li>' +
+                '<li>Klikk <strong>Søk i planlegging</strong> → rediger aktuelle bestillinger og legg til mobilnummer på ønsket plass → lagre</li>' +
+                '<li>Kjør Sjekk-telefon på nytt for å bekrefte at alle er rettet</li>';
+            tips.appendChild(tipsSummary);
+            tips.appendChild(tipsList);
+            modal.appendChild(tips);
+
             // Opprett liste
             const list = document.createElement('ul');
             list.style.cssText = 'list-style: none; padding: 0; margin: 20px 0;';

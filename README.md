@@ -190,7 +190,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 - 🚩 **Sjekk-Plakat**
   - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
-  - Eksempel på problematisk tekst: 'alenebil','hentes','adresse','framsete','rullestol','rullator','lav bil','liten bil','forsete','direktebil','må ha med seg'.
+  - Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
 - 📞 **Sjekk-Telefon**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
@@ -217,7 +217,7 @@ Under er en oversikt over de features som følger med i hver pakke.
 | 🚗 Alenebil | ✅ | ✅ | ✅ |
 | 🤖 Auto-Bestill | ✅ | ✅ | ✅ |
 | 🔍 Sjekk-Bestilling | ✅ | ✅ | ✅ |
-| 🚩 Sjekk-Plakat (Kun Nord-Trøndelag) | ✅ | ✅ | ✅ |
+| 🚩 Sjekk-Plakat | ✅ | ✅ | ✅ |
 | 📞 Sjekk-Telefon | ✅ | ✅ | ✅ |
 | 📊 Statistikk | ✅ | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
