@@ -168,11 +168,6 @@
   }
 
   // ── Kontor-tilgang ───────────────────────────────────────────
-  const SJEKK_PLAKAT_OFFICES = [
-    'Pasientreiser Nord-Trøndelag',
-    // Legg til flere kontorer her etter hvert
-    // 'Pasientreiser Sør-Trøndelag',
-  ];
 
   // ── Hjelpefunksjon: Sjekk hvilket kontor brukeren er på ─────
   function getCurrentOffice() {
@@ -181,11 +176,6 @@
     const text  = topframeCell.textContent;
     const match = text.match(/Pasientreisekontor for ([^\n]+)/);
     return match?.[1]?.trim() || null;
-  }
-
-  function hasSjekkPlakatAccess() {
-    const office = getCurrentOffice();
-    return office && SJEKK_PLAKAT_OFFICES.includes(office);
   }
 
   // ── Hent fødselsnummer fra plakat ───────────────────────────
@@ -598,7 +588,6 @@
 
   // ── Generell meny (utenfor tabellene) ───────────────────────
   function generalMeny() {
-    const plakatAccess = hasSjekkPlakatAccess();
     return [
       ...clipboardSection(),
       // ── Moduler ──────────────────────────────────────────────
@@ -607,9 +596,7 @@
       sep(),
       // ── Sjekk-verktøy ────────────────────────────────────────
       item('🔍', 'Sjekk-Bestilling', null, () => clickManualScript('sjekk-bestilling')),
-      ...(plakatAccess
-        ? [item('🚩', 'Sjekk-Plakat', null, () => clickManualScript('sjekk-plakat'))]
-        : []),
+      item('🚩', 'Sjekk-Plakat',     null, () => clickManualScript('sjekk-plakat')),
       item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
       sep(),
       // ── Diverse verktøy ──────────────────────────────────────
