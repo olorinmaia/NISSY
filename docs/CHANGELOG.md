@@ -6,6 +6,23 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig.
 - Se på muligheter for script som planlegger vognløp basert på koordinater, tidspunkt og ruting fra ORS.
 - Varsling/overvåking av forsinkelser
+- Integrasjon mot Zisson via API
+
+---
+
+## 🔧 [4.5.2] - 23.05.2026
+
+### Forbedringer til Auto-Bestill og Sjekk-plakat
+
+- 🤖 **Auto-Bestill**
+  - Bestilling kjøres nå via direkte `immediateDispatch`-kall i stedet for [B]-klikk, som eliminerer risiko for dobbeltbestilling
+  - Planleggingsbildet refreshes automatisk etter at alle turer er bestilt opp og når panelet lukkes
+  - Overlay blokkerer nå trykk i bakgrunnen mens panelet er åpent
+- 🚩 **Sjekk-plakat**
+  - Advarsel vises ved 50 eller flere røde plakater, med råd om å innsnevre filtre
+  - Tilgjengelig for alle kontorer (ikke lenger begrenset til Nord-Trøndelag)
+- ⌛ **NISSY-fiks**
+  - Trøndertaxi-løyve-knappen vises kun for relevante kontorer
 
 ---
 
