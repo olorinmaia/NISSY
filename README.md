@@ -57,7 +57,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
 - 🧭 **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
-  - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse.
+  - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse. Se [veiledning for å sende inn adressemapping](docs/Rutekalkulering_Adresser.md)
 
 - 🗺️ **Kartvisning**
   - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
