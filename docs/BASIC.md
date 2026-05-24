@@ -108,7 +108,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 **Tips:**
 - Hvis feilmelding når Google maps åpnes, åpne maps.google.com i ny fane og godta vilkår eller åpne en singel bestilling
-- Bruker adressene som står i NISSY og søker i Google maps, hvis de ikke finnes kan de mappes manuelt, ta kontakt!
+- Bruker adressene som står i NISSY og søker i Google Maps. Adresser som ikke gjenkjennes kan mappes inn – se [veiledning for å sende inn adressemapping](Rutekalkulering_Adresser.md)
 - Fungerer både for ventende og pågående oppdrag
 - Filtrerer automatisk ut bestillinger som er markert som "Framme"
 
