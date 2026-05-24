@@ -25,6 +25,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Legg til tips-seksjon for hvordan å enklest rette opp manglende mobilnummer
 - ⌛ **NISSY-fiks**
   - Trøndertaxi-løyve-knappen vises kun for relevante kontorer
+- 📚 **Dokumentasjon**
+  - Ny [veiledning for å konfigurere adressemappinger](Rutekalkulering_Adresser.md) – Google Maps adressemappinger for Rutekalkulering
 
 ---
 
