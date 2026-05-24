@@ -12,7 +12,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.5.2] - 23.05.2026
 
-### Forbedringer til Auto-Bestill og Sjekk-plakat
+### Forbedringer til Auto-Bestill og Sjekk-plakat samt justeringer til andre script
 
 - 🤖 **Auto-Bestill**
   - Bestilling kjøres nå via direkte `immediateDispatch`-kall i stedet for [B]-klikk, som eliminerer risiko for dobbeltbestilling
@@ -25,6 +25,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Legg til tips-seksjon for hvordan å enklest rette opp manglende mobilnummer
 - ⌛ **NISSY-fiks**
   - Trøndertaxi-løyve-knappen vises kun for relevante kontorer
+- 📱 **Send SMS**
+  - Lagt til kontorspesifikke SMS-maler for Pasientreiser Helse Bergen
+  - Maks tillatt meldingslengde utvidet fra 480 til 640 tegn (4 SMS'er)
 - 📚 **Dokumentasjon**
   - Ny [veiledning for å konfigurere adressemappinger](Rutekalkulering_Adresser.md) – Google Maps adressemappinger for Rutekalkulering
 

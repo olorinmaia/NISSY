@@ -15,6 +15,7 @@
     'Kontoret for pasientreiser, Ålesund',
     'Pasientreiser Sør-Trøndelag',
     'Reisekontoret - Nordlandssykehuset HF',
+    'Pasientreiser Helse Bergen',
     // Legg til flere kontorer her etter hvert
   ];
   const _officeCell  = document.querySelector('.topframe_small');
@@ -417,6 +418,152 @@
       ],
 
     },
+
+    // ----------------------------------------------------------
+    // Pasientreiser Helse Bergen
+    // ----------------------------------------------------------
+    'Pasientreiser Helse Bergen': {
+
+      bestilling: [
+        {
+          navn: "Avbestilt reise",
+          tekst: (info) =>
+            `Dette er en melding fra Pasientreiser. Denne SMS-en kan ikke besvares.\n\nTransport til time ${formaterTid(info.oppTid)} er avbestilt.\n\nDersom du har spørsmål vedrørende dette, kontakt Pasientreiser på telefon 05515.`,
+        },
+        {
+          navn: "Endre reisetid pasient",
+          tekst: (info) =>
+            `Ditt avreisetidspunkt er endret til: ${formaterTid(info.reiseTid)}.\n\nVed spørsmål, kontakt Pasientreiser på telefon 05515. Denne SMS-en kan ikke besvares.`,
+        },
+        {
+          navn: "Bekreftelse mottager",
+          tekst: () =>
+            `Dette er en melding fra Pasientreiser. Denne SMS-en kan ikke besvares.\n\nDet bekreftes at din reise er bestilt. Ditt personnummer er vårt referansenummer.\n\nDersom du har spørsmål vedrørende dette, kontakt Pasientreiser på telefon 05515.`,
+        },
+        {
+          navn: "Skriftlig klage",
+          tekst: () =>
+            `Takk for at du tok kontakt med oss. For å sende klage til Pasientreiser er det følgende alternativer som gjelder:\n\nVanlig post:\nHelse Bergen\nHaukeland universitetssjukehus\nAvdeling for pasientreiser\nPostboks 1400\n5021 Bergen\n\nAll post til avdelinger på sykehuset skal sendes til det sentrale postmottaket vårt.\n\neDialog (sikker og kryptert oversending av brev og dokumenter):\nhttps://www.helse-bergen.no/om-oss/kontaktinformasjon/edialog/\n\nHar du andre spørsmål, ta kontakt med oss igjen på 05515.\n\nMed vennlig hilsen Pasientreiser.`,
+        },
+        {
+          navn: "NT forsinkelse - ikke bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Norgestaxi. Taxien er forsinket, men de jobber med å skaffe bil så fort som mulig.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "NT forsinkelse - bekreftet tidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Norgestaxi. Taxien er forsinket. Forventet ankomst er om ca. XX minutter.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "NT forsinkelse - bekreftet bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Norgestaxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "CT forsinkelse - ikke bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket, men de jobber med å skaffe bil så fort som mulig.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "CT forsinkelse - bekreftet bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "CT forsinkelse - bekreftet tidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket. Forventet ankomst er om ca. XX minutter.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Fly",
+          tekst: (info) =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nViser til drosjebestillingen din fra Flesland flyplass. Ved ankomst ringer du Christiania Taxi på 23 89 26 08. Oppgi at du har drosjerekvisisjon hos Pasientreiser. Forventet avreise fra Flesland er ${formaterTid(info.reiseTid)}. Hentestedet er på høyre side for utgangen ved innenlands ankomst. Ved endring eller avbestilling, ring 05515 snarest.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Fly RB",
+          tekst: (info) =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nViser til drosjebestillingen din fra Flesland flyplass. Ved ankomst ringer du Bergen Taxi på 55 97 70 70. Oppgi at du har drosjerekvisisjon hos Pasientreiser. Forventet avreise fra Flesland er ${formaterTid(info.reiseTid)}. Hentestedet er på høyre side for utgangen ved innenlands ankomst. Ved endring eller avbestilling, ring 05515 snarest.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Forsinkelser",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har for tiden tekniske problemer som kan føre til lengre ventetid på pasientreisen din i dag. Vi beklager ulempen. Hvis du må legge ut for reisen selv, kan du søke om refusjon i etterkant.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Bestilt reise",
+          tekst: (info) =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDin reise til behandling er bestilt. Estimert hentetid: ${formaterTid(info.reiseTid)}. Noe ventetid må påregnes. Ring 05515 for å endre eller avbestille. Du finner mer informasjon på helsenorge.no.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Endring på avreise tidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDin reise til behandling er bestilt. Estimert avreise: ${formaterTid(info.reiseTid)}.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Bomtur",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nHelse Bergen sendte en drosje for å kjøre deg til behandling i dag, men du var ikke å treffe. Husk å avbestille reisen på 05515 så fort som mulig ved endringer.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Manglende betaling av egenandel",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDet er registrert at du ikke har betalt egenandel for pasientreisen i dag. Du vil motta Vipps-krav eller faktura på egenandelsbeløpet fra Helse Bergen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "BT forsinkelse - ikke bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket, men de jobber med å skaffe bil så fort som mulig.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "BT forsinkelse - bekreftet bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "BT forsinkelse - bekreftet tidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket. Forventet ankomst er om ca. XX minutter.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Oma - uten avtale",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nHelse Bergen har ikke lenger avtale om kjøring i Omastrand og Strandebarm. På denne reisen må du derfor organisere transporten selv og legge ut for reisen. Vi beklager ulempen. Rekvisisjonen fungerer som dokumentasjon på behovet ditt når du søker om dekning av reiseutgifter. Du kan lese mer på helse-bergen.no/pasientreiser eller ringe 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "SMS Etterlyse pasient, PVA",
+          tekst: (info) =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi ser at du har en reise med Pasientreiser i dag fra ${info.fraAdresse}. Husk å melde deg i skranken hos Pasientreiser når du er klar for avreise. Ring 05515 ved spørsmål.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Refusjon ok",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDrosjen som er bestilt til deg i dag, er forsinket. Hvis du ønsker å ordne transport på egen hånd, kan du kontakte oss på 05515, slik at vi får registrert det og du får godkjent søknad om refusjon.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Refusjonsbekreftelse",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi bekrefter at du vil få refundert drosjeutgifter til behandling i dag. Dersom du ikke har frikort, trekkes en egenandel på 171 kr. Søk om refusjon på helse-bergen.no/pasientreiser og legg ved kvittering.\n\nHilsen Pasientreiser.`,
+        },
+      ],
+
+      fritekst: [
+        {
+          navn: "Skriftlig klage",
+          tekst: () =>
+            `Takk for at du tok kontakt med oss. For å sende klage til Pasientreiser er det følgende alternativer som gjelder:\n\nVanlig post:\nHelse Bergen\nHaukeland universitetssjukehus\nAvdeling for pasientreiser\nPostboks 1400\n5021 Bergen\n\nAll post til avdelinger på sykehuset skal sendes til det sentrale postmottaket vårt.\n\neDialog (sikker og kryptert oversending av brev og dokumenter):\nhttps://www.helse-bergen.no/om-oss/kontaktinformasjon/edialog/\n\nHar du andre spørsmål, ta kontakt med oss igjen på 05515.\n\nMed vennlig hilsen Pasientreiser.`,
+        },
+      ],
+
+      sjaafor: [
+        {
+          navn: "Osterøy fergeselskap (Padøy)",
+          tekst: () =>
+            `Fra: XXXX, til: XXXX. Tur-id: XXXXXX. Dato: DD.MM, kl. TT:MM. Pasient: INITIALER.\n\nRetur fra: XXXX, til: XXXX. Tur-id: XXXXXX, kl. TT:MM.\n\nMvh Pasientreiser.`,
+        },
+      ],
+
+    },
     // ----------------------------------------------------------
     // Legg til nye kontor her:
     // ----------------------------------------------------------
@@ -430,7 +577,7 @@
   const SMS_MALER_SJAAFOR  = _kontorMaler.sjaafor   || [];
   // ============================================================
   // ============================================================
-  const MAX_TEGN           = 480;
+  const MAX_TEGN           = 640;
   const MAX_NAVN_LENGDE    = 22;
   const MAX_ADRESSE_LENGDE = 28;
   // ============================================================
