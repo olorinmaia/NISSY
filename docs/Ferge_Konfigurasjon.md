@@ -127,7 +127,7 @@ Her er avgangene `20:00` og `21:00` tatt med i `man-fre`-listen selv om de ikke 
 
 ## Steg 4 – Send til Alf Einar
 
-Send den ferdige `FERGER`-blokken til **aej@hnt.no** eller på Teams. Fergeberegning aktiveres ved neste oppdatering av scriptet.
+Send den ferdige `FERGER`-blokken til **aej@hnt.no**, på Teams, eller [opprett en GitHub Issue](https://github.com/olorinmaia/NISSY/issues). Fergeberegning aktiveres ved neste oppdatering av scriptet.
 
 ---
 

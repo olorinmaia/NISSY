@@ -33,6 +33,4 @@ Send gjerne i bolker per behandlingssted/sykehus.
 
 ## Send til
 
-Send tabellen på e-post til **aej@hnt.no** med emne `Rutekalkulering – adressemapping`.
-
-Adressene legges inn i neste oppdatering og vil gjelde for alle kontorer.
+Send tabellen til **aej@hnt.no**, på Teams, eller [opprett en GitHub Issue](https://github.com/olorinmaia/NISSY/issues). Adressene legges inn i neste oppdatering og vil gjelde for alle kontorer.

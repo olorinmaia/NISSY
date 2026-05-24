@@ -157,7 +157,7 @@ Nedenfor er et fullstendig eksempel fra Pasientreiser Nord-Trøndelag. Kopier bl
 
 ## Steg 4 – Send til Alf Einar
 
-Send den tilpassede blokken (og kontorets navn) til **aej@hnt.no** eller på Teams. Malene legges inn og aktiveres ved neste oppdatering av scriptet.
+Send den tilpassede blokken (og kontorets navn) til **aej@hnt.no**, på Teams, eller [opprett en GitHub Issue](https://github.com/olorinmaia/NISSY/issues). Malene legges inn og aktiveres ved neste oppdatering av scriptet.
 
 ---
 

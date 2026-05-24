@@ -110,7 +110,7 @@ Ta kontakt dersom ditt kontor bruker andre behov som bør gi samme effekt.
 
 ## Steg 5 – Send til Alf Einar
 
-Send en liste over avtaleparene til **aej@hnt.no** eller på Teams, gjerne i tabellform:
+Send en liste over avtaleparene til **aej@hnt.no**, på Teams, eller [opprett en GitHub Issue](https://github.com/olorinmaia/NISSY/issues), gjerne i tabellform:
 
 | Standard avtale | Standard ID | RB-avtale | RB ID | Mellomstor avtale | Mellomstor ID |
 |---|---|---|---|---|---|
