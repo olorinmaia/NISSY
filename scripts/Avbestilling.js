@@ -532,7 +532,7 @@
     
     isProcessing = true;
     
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     // Finn raden hvis ikke sendt med
     if (!row) {
@@ -644,6 +644,7 @@
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
     
@@ -651,6 +652,7 @@
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -888,7 +890,7 @@
   // POPUP: Valg mellom turer og bestillinger
   // ============================================================
   function showChoicePopup(turer, bestillinger) {
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
@@ -961,6 +963,7 @@
     const closeChoice = () => {
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
+      removeTrap();
       isProcessing = false; // Frigi sperre
     };
 
@@ -984,7 +987,7 @@
   // POPUP: Avbestill turer
   // ============================================================
   function showTurPopup(turer, baseUrl) {
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     const listBoxStyle = `
       text-align:left;
@@ -1096,6 +1099,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false; // Frigi sperre når popup lukkes
     };
     
@@ -1103,6 +1107,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1192,7 +1197,7 @@ ${listTurer}
     isProcessing = true;
     
     const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&rid=";
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
@@ -1287,6 +1292,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
     
@@ -1294,6 +1300,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1371,7 +1378,7 @@ ${listTurer}
   // POPUP: Avbestill bestillinger
   // ============================================================
   function showBestillingPopup(bestillinger, baseUrl) {
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     const listBoxStyle = `
       text-align:left;
@@ -1520,6 +1527,14 @@ ${listBestillinger}
       }
     });
 
+    // Håndter Enter-tast i avvik-felt
+    deviationInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
     // Håndter Enter-tast på bekreft-knapp
     confirmButton.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -1532,6 +1547,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false; // Frigi sperre når popup lukkes
     };
 
@@ -1539,6 +1555,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1638,7 +1655,7 @@ ${listBestillinger}
     isProcessing = true;
     
     const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&vid=";
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     // Bygg ansvarlig-options
     const responsibilityOptions = Object.entries(currentCodes)
@@ -1773,6 +1790,14 @@ ${listBestillinger}
       }
     });
 
+    // Håndter Enter-tast i avvik-felt
+    deviationInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
     // Håndter Enter-tast på bekreft-knapp
     confirmButton.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -1785,6 +1810,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
 
@@ -1792,6 +1818,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1882,7 +1909,7 @@ ${listBestillinger}
     isProcessing = true;
     
     const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&pid=";
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
@@ -1979,6 +2006,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
     
@@ -1986,6 +2014,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -2052,6 +2081,34 @@ ${listBestillinger}
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Lås Tab-fokus innenfor popup
+  // ============================================================
+  function trapFocus(popup) {
+    const handler = (e) => {
+      if (e.key !== 'Tab') return;
+      const focusableArr = [...popup.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled])'
+      )].filter(el => el.style.display !== 'none');
+      if (focusableArr.length === 0) return;
+      const first = focusableArr[0];
+      const last = focusableArr[focusableArr.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Opprett popup base
   // ============================================================
   function createPopupBase() {
@@ -2099,7 +2156,8 @@ ${listBestillinger}
       popup.style.transform = "translate(-50%, -50%)";
     }
 
-    return { overlay, popup };
+    const removeTrap = trapFocus(popup);
+    return { overlay, popup, removeTrap };
   }
 
   // ============================================================
