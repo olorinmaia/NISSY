@@ -513,7 +513,7 @@
             const cleanedInfo = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " →<br>");
             
             // Vis popup for enkelt-avbestilling
-            showSingleBestillingPopup({ vid, pasient, info: cleanedInfo });
+            showSingleBestillingPopup({ vid, pasient, info: cleanedInfo, rekvNr });
           }
         }
       }
@@ -829,7 +829,7 @@
       // Rens først for problematiske suffikser, deretter erstatt <br> med pil
       let info = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " → ");
 
-      return { type: 'bestilling', vid, pasient, info, row };
+      return { type: 'bestilling', vid, pasient, info, row, rekvNr };
     }
 
     // ============================================================
@@ -1411,8 +1411,8 @@ ${listBestillinger}
         <label style="display:block; margin-bottom:8px; font-weight:600; color:#1565c0; font-size:14px;">
           Ansvarlig for avbestilling:
         </label>
-        <select 
-          id="responsibilityCode" 
+        <select
+          id="responsibilityCode"
           style="
             width:100%;
             padding:8px;
@@ -1424,8 +1424,26 @@ ${listBestillinger}
         >
           ${responsibilityOptions}
         </select>
+        <label style="display:block; margin-top:12px; margin-bottom:4px; font-weight:600; color:#1565c0; font-size:14px;">
+          Avvik (valgfritt):
+        </label>
+        <input
+          type="text"
+          id="deviationText"
+          placeholder="Skriv avvik her..."
+          maxlength="400"
+          style="
+            width:100%;
+            padding:8px;
+            border:1px solid #2196f3;
+            border-radius:4px;
+            font-size:14px;
+            background:#fff;
+            box-sizing:border-box;
+          "
+        >
         <p style="margin:8px 0 0; font-size:12px; color:#1565c0;">
-          💡 Dette valget gjelder for alle merkede bestillinger
+          💡 Disse valgene gjelder for alle merkede bestillinger
         </p>
       </div>
       
@@ -1488,6 +1506,7 @@ ${listBestillinger}
     document.body.appendChild(popup);
     const statusBox = popup.querySelector("#removeStatus");
     const responsibilitySelect = popup.querySelector("#responsibilityCode");
+    const deviationInput = popup.querySelector("#deviationText");
     const confirmButton = popup.querySelector("#confirmRemove");
 
     // Sett fokus på ansvarlig-feltet
@@ -1515,7 +1534,7 @@ ${listBestillinger}
       document.removeEventListener('keydown', escapeHandler);
       isProcessing = false; // Frigi sperre når popup lukkes
     };
-    
+
     const closePopupWithRefresh = () => {
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
@@ -1526,11 +1545,13 @@ ${listBestillinger}
 
     confirmButton.onclick = async () => {
       const code = responsibilitySelect.value;
-      
+      const deviationText = deviationInput.value.trim();
+
       statusBox.style.display = "block";
       confirmButton.style.display = "none";
       popup.querySelector("#cancelRemove").style.display = "none";
       responsibilitySelect.disabled = true;
+      deviationInput.disabled = true;
 
       // Grå ut bestillinger umiddelbart
       disableRows(bestillinger.map(b => b.vid), 'bestilling');
@@ -1548,6 +1569,14 @@ ${listBestillinger}
             resolve();
           });
         });
+      }
+
+      if (deviationText) {
+        for (const item of bestillinger) {
+          if (item.rekvNr) {
+            await sendDeviation(item.vid, item.rekvNr, deviationText);
+          }
+        }
       }
 
       statusBox.style.background = "#d4edda";
@@ -1638,8 +1667,8 @@ ${listBestillinger}
         <label style="display:block; margin-bottom:8px; font-weight:600; color:#1565c0; font-size:14px;">
           Ansvarlig for avbestilling:
         </label>
-        <select 
-          id="responsibilityCode" 
+        <select
+          id="responsibilityCode"
           style="
             width:100%;
             padding:8px;
@@ -1651,6 +1680,24 @@ ${listBestillinger}
         >
           ${responsibilityOptions}
         </select>
+        <label style="display:block; margin-top:12px; margin-bottom:4px; font-weight:600; color:#1565c0; font-size:14px;">
+          Avvik (valgfritt):
+        </label>
+        <input
+          type="text"
+          id="deviationText"
+          placeholder="Skriv avvik her..."
+          maxlength="400"
+          style="
+            width:100%;
+            padding:8px;
+            border:1px solid #2196f3;
+            border-radius:4px;
+            font-size:14px;
+            background:#fff;
+            box-sizing:border-box;
+          "
+        >
       </div>
       
       <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:15px;">
@@ -1712,6 +1759,7 @@ ${listBestillinger}
     document.body.appendChild(popup);
     const statusBox = popup.querySelector("#removeStatus");
     const responsibilitySelect = popup.querySelector("#responsibilityCode");
+    const deviationInput = popup.querySelector("#deviationText");
     const confirmButton = popup.querySelector("#confirmRemove");
 
     // Sett fokus på ansvarlig-feltet
@@ -1739,7 +1787,7 @@ ${listBestillinger}
       document.removeEventListener('keydown', escapeHandler);
       isProcessing = false;
     };
-    
+
     const closePopupWithRefresh = () => {
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
@@ -1750,11 +1798,13 @@ ${listBestillinger}
 
     confirmButton.onclick = async () => {
       const code = responsibilitySelect.value;
-      
+      const deviationText = deviationInput.value.trim();
+
       statusBox.style.display = "block";
       confirmButton.style.display = "none";
       popup.querySelector("#cancelRemove").style.display = "none";
       responsibilitySelect.disabled = true;
+      deviationInput.disabled = true;
 
       // Grå ut bestilling umiddelbart
       disableRows([bestilling.vid], 'bestilling');
@@ -1768,6 +1818,10 @@ ${listBestillinger}
           resolve();
         });
       });
+
+      if (deviationText && bestilling.rekvNr) {
+        await sendDeviation(bestilling.vid, bestilling.rekvNr, deviationText);
+      }
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
@@ -2093,6 +2147,27 @@ ${listBestillinger}
     } catch (e) {
       console.warn("Kunne ikke bruke ListSelectionGroup.disableSelection:", e);
     }
+  }
+
+  // ============================================================
+  // POST FUNKSJON: Registrer avvik i admin
+  // ============================================================
+  async function sendDeviation(vid, rekvNr, deviationText) {
+    const body = new URLSearchParams({
+      id: vid,
+      reqNr: rekvNr,
+      submit_action: 'register_deviation',
+      successView: `requisitions?nr=${rekvNr}`,
+      deviationtext: deviationText
+    });
+    return fetch('/administrasjon/admin/registerDeviation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      credentials: 'include',
+      body: body.toString()
+    }).catch(err => {
+      console.error('Avvik-feil:', err);
+    });
   }
 
   // ============================================================
