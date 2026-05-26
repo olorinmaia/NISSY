@@ -10,6 +10,23 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.5.5] - 26.05.2026
+
+### Rutekalkulering: Koordinater fra NISSY – Kartvisning: Framme-filtrering - Avbestilling: Avvik-registrering
+
+- 🧭 **Rutekalkulering**
+  - **Koordinater fra NISSY** – Koordinater hentes automatisk fra NISSY Admin og brukes direkte i Google Maps for nøyaktig posisjonering; adressetekst i NISSY Planlegging benyttes som fallback
+- 🗺️ **Kartvisning**
+  - **Framme-filtrering** – bestillinger med status «Framme» (levert) skjules automatisk ved oppstart; sparer rute- og ferge-API-kall for allerede leverte pasienter
+  - «Framme (X)»-knapp øverst til høyre lar deg vise/skjule disse bestillingene ved behov
+- ✖️ **Avbestilling**
+  - **Avvik-registrering** – nytt avvik-felt (maks 400 tegn) i popup for enkelt- og masseavbestilling av bestillinger; sendes til NISSY etter gjennomført avbestilling
+  - Forbedret tastaturnavigering – Tab-fokus holdes innenfor popup; Enter i avvik-feltet avbestiller på samme måte som fra dropdown
+- 📚 **Dokumentasjon**
+  - Veiledning for adressemapping fjernet – koordinathenting fra NISSY Admin gjør den overflødig
+
+---
+
 ## 🔧 [4.5.2] - 23.05.2026
 
 ### Forbedringer til Auto-Bestill og Sjekk-plakat samt justeringer til andre script
@@ -28,8 +45,6 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 📱 **Send SMS**
   - Lagt til kontorspesifikke SMS-maler for Pasientreiser Helse Bergen
   - Maks tillatt meldingslengde utvidet fra 480 til 640 tegn (4 SMS'er)
-- 📚 **Dokumentasjon**
-  - Ny [veiledning for å konfigurere adressemappinger](Rutekalkulering_Adresser.md) – Google Maps adressemappinger for Rutekalkulering
 
 ---
 

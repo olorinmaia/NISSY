@@ -253,6 +253,7 @@ Fanger opp "?"-linker i planleggingsvinduet og søker frem tur/bestilling velger
 Lar deg merke bestillinger/turer og trykke på snarvei Alt+K for å masse-avbestille. Nyttig hvis mye er tildelt på autodispatch eller du skal replanlegge en del turer som ligger en og en. Eller du skal avbestille en tur/retur bestilling.
 - Fanger opp klikk på "X"-knappene i ventende/pågående oppdrag og ressurser og lager en pop-up med mer informasjon om hva du er i ferd med å gjøre
 - Hindrer bruker fra å gjøre ting som ikke er i henhold til SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
+- Avvik-registrering (maks 400 tegn) i popup for enkelt- og masseavbestilling av bestillinger; sendes til NISSY etter gjennomført avbestilling
 
 **Tips:**
 - Trykk ENTER for å avbestille med en gang. Trykk utenfor boksen for å lukke den.
