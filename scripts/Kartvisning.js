@@ -29,17 +29,31 @@
 
   function getPoppReqIds() {
     const reqIds = [];
+    const frammeIds = new Set();
+    const headers = document.querySelectorAll('#pagaendeoppdrag thead th');
+    let statusColIdx = -1;
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].querySelector('a[href*="resourceStatus"]')) { statusColIdx = i; break; }
+    }
     Array.from(document.querySelectorAll('#pagaendeoppdrag tbody tr'))
       .filter(r => r.id?.startsWith('P-') && r.style.backgroundColor === SELECTED_BG)
       .forEach(tr => {
-        // Én popp-rad kan inneholde flere bestillinger – hent alle reqIds via toggleManualStatusRequisition
         const imgs = tr.querySelectorAll("img[onclick*='toggleManualStatusRequisition']");
-        imgs.forEach(img => {
+        const cells = statusColIdx !== -1 ? [...tr.querySelectorAll('td')] : [];
+        imgs.forEach((img, i) => {
           const m = img.getAttribute('onclick').match(/toggleManualStatusRequisition\(this,(\d+)\)/);
-          if (m && !reqIds.includes(m[1])) reqIds.push(m[1]);
+          if (!m) return;
+          if (!reqIds.includes(m[1])) reqIds.push(m[1]);
+          if (statusColIdx !== -1) {
+            const statusDivs = cells[statusColIdx]?.querySelectorAll('div.row-image');
+            const status = statusDivs?.length
+              ? (statusDivs[i]?.textContent.trim() ?? '')
+              : (cells[statusColIdx]?.textContent.trim() ?? '');
+            if (status === 'Framme') frammeIds.add(m[1]);
+          }
         });
       });
-    return reqIds;
+    return { ids: reqIds, frammeIds };
   }
 
   // ── Toast-hjelpere ────────────────────────────────────────
@@ -227,12 +241,12 @@
     }
     #header h1 { font-size:17px; font-weight:600; }
     #controls { display:flex; gap:10px; align-items:center; }
-    #routeToggleBtn, #labelToggleBtn {
+    #routeToggleBtn, #labelToggleBtn, #frammeToggleBtn {
       padding:6px 14px; background:#CFECF5; color:#025671;
       border:none; border-radius:4px; font-weight:600; cursor:pointer;
       transition:all 0.2s; font-size:13px;
     }
-    #routeToggleBtn.av, #labelToggleBtn.av { background:rgba(255,255,255,0.2); color:#fff; opacity:0.7; }
+    #routeToggleBtn.av, #labelToggleBtn.av, #frammeToggleBtn.av { background:rgba(255,255,255,0.2); color:#fff; opacity:0.7; }
     .icon-label { display:flex; flex-direction:column; align-items:center; margin-top:1px;
       text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }
     .icon-label-time { display:flex; gap:3px; font-size:10px; font-weight:700; white-space:nowrap; line-height:1.2; }
@@ -286,6 +300,7 @@
       <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">ℹ️ Info på ikon</button>
       <button id="routeToggleBtn" title="Beregnet kjørerute via ORS/OSRM">📐 Beregnet rute</button>
       <div id="routeInfo" style="display:none;font-size:13px;padding:5px 12px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
+      <button id="frammeToggleBtn" style="display:none;" title="Vis/skjul Framme-bestillinger">Framme (0)</button>
       <div id="status">Laster kart…</div>
     </div>
   </div>
@@ -1485,7 +1500,9 @@
       }
 
       // ── Filterpanel ──────────────────────────────────────────
-      let activeFilter = reqDetails.map(function (r) { return r.reqId; });
+      const framme = reqDetails.filter(function (r) { return r.erFramme; });
+      const aktive = reqDetails.filter(function (r) { return !r.erFramme; });
+      let activeFilter = aktive.map(function (r) { return r.reqId; });
 
       const filterPanel = document.createElement('div');
       filterPanel.style.cssText =
@@ -1510,6 +1527,7 @@
       }
 
       const filterRows = {};
+      const filterCbs = {};
       let activeHighlight = [];
 
       const sortedForFilter = reqDetails.slice().sort(function (a, b) {
@@ -1525,8 +1543,9 @@
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
-        cb.checked = true;
+        cb.checked = !req.erFramme;
         cb.style.marginTop = '2px';
+        filterCbs[req.reqId] = cb;
         cb.addEventListener('change', function () {
           if (cb.checked) {
             if (!activeFilter.includes(req.reqId)) activeFilter.push(req.reqId);
@@ -1557,7 +1576,7 @@
       });
 
       const applyBtn = document.createElement('button');
-      applyBtn.textContent = applyBtnLabel(reqDetails.length, reqDetails.length);
+      applyBtn.textContent = applyBtnLabel(aktive.length, reqDetails.length);
       applyBtn.style.cssText =
         'margin-top:6px;width:100%;padding:6px;background:#025671;color:#fff;' +
         'border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;';
@@ -1602,7 +1621,7 @@
         applyRowStyles();
       });
 
-      renderBookings(reqDetails);
+      renderBookings(reqDetails.filter(function (r) { return activeFilter.includes(r.reqId); }));
 
       // Knapp – rute
       const btn = document.getElementById('routeToggleBtn');
@@ -1620,6 +1639,35 @@
         document.body.classList.toggle('labels-hidden', !showLabels);
         labelBtn.classList.toggle('av', !showLabels);
       });
+
+      // Knapp – Framme
+      const frammeBtn = document.getElementById('frammeToggleBtn');
+      if (framme.length > 0) {
+        frammeBtn.textContent = 'Framme (' + framme.length + ')';
+        frammeBtn.style.display = '';
+        frammeBtn.classList.add('av');
+        frammeBtn.addEventListener('click', function () {
+          const nowOff = frammeBtn.classList.contains('av');
+          if (nowOff) {
+            framme.forEach(function (r) {
+              if (!activeFilter.includes(r.reqId)) activeFilter.push(r.reqId);
+              if (filterCbs[r.reqId]) filterCbs[r.reqId].checked = true;
+            });
+            frammeBtn.classList.remove('av');
+          } else {
+            const frammeSet = new Set(framme.map(function (r) { return r.reqId; }));
+            activeFilter = activeFilter.filter(function (id) { return !frammeSet.has(id); });
+            framme.forEach(function (r) { if (filterCbs[r.reqId]) filterCbs[r.reqId].checked = false; });
+            frammeBtn.classList.add('av');
+          }
+          const n = activeFilter.length;
+          applyBtn.textContent = applyBtnLabel(n, reqDetails.length);
+          applyBtn.disabled = n === 0;
+          applyBtn.style.opacity = n === 0 ? '0.45' : '1';
+          applyBtn.style.cursor = n === 0 ? 'default' : 'pointer';
+          renderBookings(reqDetails.filter(function (r) { return activeFilter.includes(r.reqId); }));
+        });
+      }
     }
   </script>
 </body>
@@ -1663,7 +1711,7 @@
   // ── Hovedfunksjon ─────────────────────────────────────────
   async function visKart() {
     const voppIds = getVoppReqIds();
-    const poppIds = getPoppReqIds();
+    const { ids: poppIds, frammeIds } = getPoppReqIds();
     const alleIds = [...new Set([...voppIds, ...poppIds])];
 
     if (alleIds.length === 0) {
@@ -1677,6 +1725,7 @@
     }
 
     const allDetails = await Promise.all(alleIds.map(id => fetchReqDetails(id)));
+    allDetails.forEach(d => { d.erFramme = frammeIds.has(d.reqId); });
 
     const med  = allDetails.filter(d => d.hentested || d.leveringssted);
     const uten = allDetails.filter(d => !d.hentested && !d.leveringssted);
