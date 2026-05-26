@@ -43,8 +43,6 @@
   }
 
   // ── Toast-hjelpere ────────────────────────────────────────
-  let _loadingToast = null;
-
   function _toast(msg, bg, durationMs) {
     const t = document.createElement('div');
     t.textContent = msg;
@@ -65,19 +63,6 @@
       }, durationMs);
     }
     return t;
-  }
-
-  function showLoading(msg) {
-    hideLoading();
-    _loadingToast = _toast(msg, '#047CA1', 0);
-  }
-
-  function hideLoading() {
-    if (!_loadingToast) return;
-    const t = _loadingToast;
-    _loadingToast = null;
-    t.style.opacity = '0';
-    setTimeout(() => t.parentNode?.removeChild(t), 300);
   }
 
   function showError(msg) { _toast(msg, '#d9534f', 4000); }
@@ -1691,16 +1676,7 @@
       return;
     }
 
-    const vTxt = voppIds.length ? `${voppIds.length} ventende` : '';
-    const pTxt = poppIds.length ? `${poppIds.length} pågående` : '';
-    showLoading(`Henter koordinater for ${[vTxt, pTxt].filter(Boolean).join(' + ')}…`);
-
-    let allDetails;
-    try {
-      allDetails = await Promise.all(alleIds.map(id => fetchReqDetails(id)));
-    } finally {
-      hideLoading();
-    }
+    const allDetails = await Promise.all(alleIds.map(id => fetchReqDetails(id)));
 
     const med  = allDetails.filter(d => d.hentested || d.leveringssted);
     const uten = allDetails.filter(d => !d.hentested && !d.leveringssted);
@@ -1709,7 +1685,6 @@
       console.warn('[Kartvisning] Ingen koordinater for:', uten.map(d => d.reqId));
     }
     if (med.length === 0) {
-      hideLoading();
       _toast('🗺️ Fant ingen koordinater – åpner NISSY-kart', '#888', 3000);
       _origOpen.call(window, ...(_lastMapOpenArgs || ['', '_blank', '']));
       return;
