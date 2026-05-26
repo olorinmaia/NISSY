@@ -513,7 +513,7 @@
             const cleanedInfo = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " →<br>");
             
             // Vis popup for enkelt-avbestilling
-            showSingleBestillingPopup({ vid, pasient, info: cleanedInfo });
+            showSingleBestillingPopup({ vid, pasient, info: cleanedInfo, rekvNr });
           }
         }
       }
@@ -532,7 +532,7 @@
     
     isProcessing = true;
     
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     // Finn raden hvis ikke sendt med
     if (!row) {
@@ -644,6 +644,7 @@
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
     
@@ -651,6 +652,7 @@
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -829,7 +831,7 @@
       // Rens først for problematiske suffikser, deretter erstatt <br> med pil
       let info = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " → ");
 
-      return { type: 'bestilling', vid, pasient, info, row };
+      return { type: 'bestilling', vid, pasient, info, row, rekvNr };
     }
 
     // ============================================================
@@ -888,7 +890,7 @@
   // POPUP: Valg mellom turer og bestillinger
   // ============================================================
   function showChoicePopup(turer, bestillinger) {
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
@@ -961,6 +963,7 @@
     const closeChoice = () => {
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
+      removeTrap();
       isProcessing = false; // Frigi sperre
     };
 
@@ -984,7 +987,7 @@
   // POPUP: Avbestill turer
   // ============================================================
   function showTurPopup(turer, baseUrl) {
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     const listBoxStyle = `
       text-align:left;
@@ -1096,6 +1099,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false; // Frigi sperre når popup lukkes
     };
     
@@ -1103,6 +1107,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1192,7 +1197,7 @@ ${listTurer}
     isProcessing = true;
     
     const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&rid=";
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
@@ -1287,6 +1292,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
     
@@ -1294,6 +1300,7 @@ ${listTurer}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1371,7 +1378,7 @@ ${listTurer}
   // POPUP: Avbestill bestillinger
   // ============================================================
   function showBestillingPopup(bestillinger, baseUrl) {
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     const listBoxStyle = `
       text-align:left;
@@ -1411,8 +1418,8 @@ ${listBestillinger}
         <label style="display:block; margin-bottom:8px; font-weight:600; color:#1565c0; font-size:14px;">
           Ansvarlig for avbestilling:
         </label>
-        <select 
-          id="responsibilityCode" 
+        <select
+          id="responsibilityCode"
           style="
             width:100%;
             padding:8px;
@@ -1424,8 +1431,26 @@ ${listBestillinger}
         >
           ${responsibilityOptions}
         </select>
+        <label style="display:block; margin-top:12px; margin-bottom:4px; font-weight:600; color:#1565c0; font-size:14px;">
+          Avvik (valgfritt):
+        </label>
+        <input
+          type="text"
+          id="deviationText"
+          placeholder="Skriv avvik her..."
+          maxlength="400"
+          style="
+            width:100%;
+            padding:8px;
+            border:1px solid #2196f3;
+            border-radius:4px;
+            font-size:14px;
+            background:#fff;
+            box-sizing:border-box;
+          "
+        >
         <p style="margin:8px 0 0; font-size:12px; color:#1565c0;">
-          💡 Dette valget gjelder for alle merkede bestillinger
+          💡 Disse valgene gjelder for alle merkede bestillinger
         </p>
       </div>
       
@@ -1488,6 +1513,7 @@ ${listBestillinger}
     document.body.appendChild(popup);
     const statusBox = popup.querySelector("#removeStatus");
     const responsibilitySelect = popup.querySelector("#responsibilityCode");
+    const deviationInput = popup.querySelector("#deviationText");
     const confirmButton = popup.querySelector("#confirmRemove");
 
     // Sett fokus på ansvarlig-feltet
@@ -1495,6 +1521,14 @@ ${listBestillinger}
 
     // Håndter Enter-tast i dropdown
     responsibilitySelect.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    // Håndter Enter-tast i avvik-felt
+    deviationInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         confirmButton.click();
@@ -1513,24 +1547,28 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false; // Frigi sperre når popup lukkes
     };
-    
+
     const closePopupWithRefresh = () => {
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
 
     confirmButton.onclick = async () => {
       const code = responsibilitySelect.value;
-      
+      const deviationText = deviationInput.value.trim();
+
       statusBox.style.display = "block";
       confirmButton.style.display = "none";
       popup.querySelector("#cancelRemove").style.display = "none";
       responsibilitySelect.disabled = true;
+      deviationInput.disabled = true;
 
       // Grå ut bestillinger umiddelbart
       disableRows(bestillinger.map(b => b.vid), 'bestilling');
@@ -1548,6 +1586,14 @@ ${listBestillinger}
             resolve();
           });
         });
+      }
+
+      if (deviationText) {
+        for (const item of bestillinger) {
+          if (item.rekvNr) {
+            await sendDeviation(item.vid, item.rekvNr, deviationText);
+          }
+        }
       }
 
       statusBox.style.background = "#d4edda";
@@ -1609,7 +1655,7 @@ ${listBestillinger}
     isProcessing = true;
     
     const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&vid=";
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     // Bygg ansvarlig-options
     const responsibilityOptions = Object.entries(currentCodes)
@@ -1638,8 +1684,8 @@ ${listBestillinger}
         <label style="display:block; margin-bottom:8px; font-weight:600; color:#1565c0; font-size:14px;">
           Ansvarlig for avbestilling:
         </label>
-        <select 
-          id="responsibilityCode" 
+        <select
+          id="responsibilityCode"
           style="
             width:100%;
             padding:8px;
@@ -1651,6 +1697,24 @@ ${listBestillinger}
         >
           ${responsibilityOptions}
         </select>
+        <label style="display:block; margin-top:12px; margin-bottom:4px; font-weight:600; color:#1565c0; font-size:14px;">
+          Avvik (valgfritt):
+        </label>
+        <input
+          type="text"
+          id="deviationText"
+          placeholder="Skriv avvik her..."
+          maxlength="400"
+          style="
+            width:100%;
+            padding:8px;
+            border:1px solid #2196f3;
+            border-radius:4px;
+            font-size:14px;
+            background:#fff;
+            box-sizing:border-box;
+          "
+        >
       </div>
       
       <div style="background:#fff3cd; border:1px solid #ffc107; padding:12px; border-radius:6px; margin-bottom:15px;">
@@ -1712,6 +1776,7 @@ ${listBestillinger}
     document.body.appendChild(popup);
     const statusBox = popup.querySelector("#removeStatus");
     const responsibilitySelect = popup.querySelector("#responsibilityCode");
+    const deviationInput = popup.querySelector("#deviationText");
     const confirmButton = popup.querySelector("#confirmRemove");
 
     // Sett fokus på ansvarlig-feltet
@@ -1719,6 +1784,14 @@ ${listBestillinger}
 
     // Håndter Enter-tast i dropdown
     responsibilitySelect.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmButton.click();
+      }
+    });
+
+    // Håndter Enter-tast i avvik-felt
+    deviationInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         confirmButton.click();
@@ -1737,24 +1810,28 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
-    
+
     const closePopupWithRefresh = () => {
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
 
     confirmButton.onclick = async () => {
       const code = responsibilitySelect.value;
-      
+      const deviationText = deviationInput.value.trim();
+
       statusBox.style.display = "block";
       confirmButton.style.display = "none";
       popup.querySelector("#cancelRemove").style.display = "none";
       responsibilitySelect.disabled = true;
+      deviationInput.disabled = true;
 
       // Grå ut bestilling umiddelbart
       disableRows([bestilling.vid], 'bestilling');
@@ -1768,6 +1845,10 @@ ${listBestillinger}
           resolve();
         });
       });
+
+      if (deviationText && bestilling.rekvNr) {
+        await sendDeviation(bestilling.vid, bestilling.rekvNr, deviationText);
+      }
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
@@ -1828,7 +1909,7 @@ ${listBestillinger}
     isProcessing = true;
     
     const baseUrl = "/planlegging/ajax-dispatch?did=all&action=remove&pid=";
-    const { overlay, popup } = createPopupBase();
+    const { overlay, popup, removeTrap } = createPopupBase();
 
     popup.innerHTML = `
       <h2 style="margin:0 0 16px; font-size:20px; color:#333;">
@@ -1925,6 +2006,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       isProcessing = false;
     };
     
@@ -1932,6 +2014,7 @@ ${listBestillinger}
       popup.parentNode?.removeChild(popup);
       overlay.parentNode?.removeChild(overlay);
       document.removeEventListener('keydown', escapeHandler);
+      removeTrap();
       if (typeof openPopp === 'function') openPopp('-1');
       isProcessing = false;
     };
@@ -1998,6 +2081,34 @@ ${listBestillinger}
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Lås Tab-fokus innenfor popup
+  // ============================================================
+  function trapFocus(popup) {
+    const handler = (e) => {
+      if (e.key !== 'Tab') return;
+      const focusableArr = [...popup.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled])'
+      )].filter(el => el.style.display !== 'none');
+      if (focusableArr.length === 0) return;
+      const first = focusableArr[0];
+      const last = focusableArr[focusableArr.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Opprett popup base
   // ============================================================
   function createPopupBase() {
@@ -2045,7 +2156,8 @@ ${listBestillinger}
       popup.style.transform = "translate(-50%, -50%)";
     }
 
-    return { overlay, popup };
+    const removeTrap = trapFocus(popup);
+    return { overlay, popup, removeTrap };
   }
 
   // ============================================================
@@ -2093,6 +2205,27 @@ ${listBestillinger}
     } catch (e) {
       console.warn("Kunne ikke bruke ListSelectionGroup.disableSelection:", e);
     }
+  }
+
+  // ============================================================
+  // POST FUNKSJON: Registrer avvik i admin
+  // ============================================================
+  async function sendDeviation(vid, rekvNr, deviationText) {
+    const body = new URLSearchParams({
+      id: vid,
+      reqNr: rekvNr,
+      submit_action: 'register_deviation',
+      successView: `requisitions?nr=${rekvNr}`,
+      deviationtext: deviationText
+    });
+    return fetch('/administrasjon/admin/registerDeviation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      credentials: 'include',
+      body: body.toString()
+    }).catch(err => {
+      console.error('Avvik-feil:', err);
+    });
   }
 
   // ============================================================

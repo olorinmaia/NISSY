@@ -284,6 +284,60 @@
     return trimmedAddress;
   }
 
+  // ── UTM33N → WGS84 ────────────────────────────────────────
+  function utmToLatLon(easting, northing) {
+    const zone = 33;
+    const k0 = 0.9996, a = 6378137, e2 = 0.00669437999014;
+    const x = easting - 500000, y = northing;
+    const e12 = e2 / (1 - e2);
+    const M = y / k0;
+    const mu = M / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 * e2 * e2 / 256));
+    const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+    const p1 = mu + e1 * (3 / 2 - 27 * e1 * e1 / 32) * Math.sin(2 * mu)
+      + e1 * e1 * (21 / 16 - 55 * e1 * e1 / 32) * Math.sin(4 * mu)
+      + e1 * e1 * e1 * (151 / 96) * Math.sin(6 * mu);
+    const sp1 = Math.sin(p1), cp1 = Math.cos(p1), tp1 = Math.tan(p1);
+    const N1 = a / Math.sqrt(1 - e2 * sp1 * sp1);
+    const R1 = a * (1 - e2) / Math.pow(1 - e2 * sp1 * sp1, 1.5);
+    const T1 = tp1 * tp1, C1 = e12 * cp1 * cp1;
+    const D = x / (N1 * k0);
+    const lat = p1 - N1 * tp1 / R1 * (D * D / 2 - D * D * D * D * (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * e12) / 24);
+    const lon0 = (zone * 6 - 183) * Math.PI / 180;
+    const lon = lon0 + (D - D * D * D * (1 + 2 * T1 + C1) / 6) / cp1;
+    return { lat: lat * 180 / Math.PI, lon: lon * 180 / Math.PI };
+  }
+
+  async function fetchReqCoords(reqId) {
+    try {
+      const url = `/administrasjon/admin/ajax_reqdetails?id=${reqId}&db=1&tripid=&showSutiXml=false&hideEvents=true&full=true&highlightTripNr=`;
+      const resp = await fetch(url);
+      const html = await resp.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const coords = {};
+      doc.querySelectorAll('fieldset').forEach(fs => {
+        const legend = fs.querySelector('legend.fieldname');
+        if (!legend) return;
+        const title = legend.textContent.trim();
+        if (title !== 'Hentested' && title !== 'Leveringssted') return;
+        const rows = {};
+        fs.querySelectorAll('tr').forEach(tr => {
+          const cells = tr.querySelectorAll('td');
+          if (cells.length >= 2)
+            rows[cells[0].textContent.replace(':', '').trim()] =
+              cells[1].textContent.replace(/\s+/g, ' ').trim();
+        });
+        const m = (rows['Geo-koordinater'] || '').match(/(\d{6,7})\s*\/\s*(-?\d{4,7})/);
+        if (m) {
+          const ll = utmToLatLon(parseInt(m[2]), parseInt(m[1]));
+          coords[title === 'Hentested' ? 'fra' : 'til'] = ll;
+        }
+      });
+      return Object.keys(coords).length ? coords : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // ============================================================
   // GOOGLE MAPS CONSENT-HÅNDTERING
   // Google Maps krever at bruker godtar vilkår første gang
@@ -337,7 +391,7 @@
     e.preventDefault();
 
     // Sjekk Google Maps consent først
-    ensureGoogleConsent((consentOK) => {
+    ensureGoogleConsent(async (consentOK) => {
       if (!consentOK) {
         // Bruker må godta vilkår først
         return;
@@ -466,7 +520,8 @@
           pickupTime:   parseTime(startText),
           deliveryTime: parseTime(treatText),
           fromAddresses,
-          toAddresses
+          toAddresses,
+          reqId: row.id.startsWith('V-') ? row.id.slice(2) : null
         });
       });
 
@@ -488,6 +543,7 @@
 
         if (rowImages && rowImages.length > 0) {
           // Sammensatt tur: behandle hvert sub-oppdrag som egen booking
+          const _pReqImgs = row.querySelectorAll("img[onclick*='toggleManualStatusRequisition']");
           rowImages.forEach((_, i) => {
             const status = pStatusIdx !== -1
               ? cells[pStatusIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim()
@@ -505,11 +561,13 @@
               ? (cells[pTreatIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim() ?? '')
               : '';
 
+            const _pReqIdM = _pReqImgs[i]?.getAttribute('onclick')?.match(/toggleManualStatusRequisition\(this,(\d+)\)/);
             allBookings.push({
               pickupTime:   parseTime(startText),
               deliveryTime: parseTime(treatText),
               fromAddresses,
-              toAddresses
+              toAddresses,
+              reqId: _pReqIdM ? _pReqIdM[1] : null
             });
           });
         } else {
@@ -523,11 +581,14 @@
           const startText = pStartIdx !== -1 ? (cells[pStartIdx]?.textContent.trim() ?? '') : '';
           const treatText = pTreatIdx !== -1 ? (cells[pTreatIdx]?.textContent.trim() ?? '') : '';
 
+          const _singleImg = row.querySelector("img[onclick*='toggleManualStatusRequisition']");
+          const _singleReqIdM = _singleImg?.getAttribute('onclick')?.match(/toggleManualStatusRequisition\(this,(\d+)\)/);
           allBookings.push({
             pickupTime:   parseTime(startText),
             deliveryTime: parseTime(treatText),
             fromAddresses,
-            toAddresses
+            toAddresses,
+            reqId: _singleReqIdM ? _singleReqIdM[1] : null
           });
         }
       });
@@ -548,6 +609,12 @@
         if (b.pickupTime === null) return -1;
         return a.pickupTime - b.pickupTime;
       });
+
+      const _coordIds = [...new Set(allBookings.map(b => b.reqId).filter(Boolean))];
+      const _coordsMap = {};
+      await Promise.all(_coordIds.map(async id => {
+        _coordsMap[id] = await fetchReqCoords(id);
+      }));
 
       // Grupper i segmenter: B tilhører samme segment som A hvis
       // B.pickupTime <= maks-levertid i segmentet (overlapper i bilen).
@@ -579,13 +646,21 @@
       }
 
       // Bygg adresseliste: per segment → alle hente-adresser, så alle lever-adresser
+      function _getPoint(booking, type) {
+        const ll = booking.reqId && _coordsMap[booking.reqId]?.[type];
+        if (ll) return `${ll.lat.toFixed(6)},${ll.lon.toFixed(6)}`;
+        const addrs = type === 'fra' ? booking.fromAddresses : booking.toAddresses;
+        return addrs[0] || null;
+      }
       const allAddresses = [];
       for (const segment of segments) {
         for (const booking of segment) {
-          allAddresses.push(...booking.fromAddresses);
+          const p = _getPoint(booking, 'fra');
+          if (p) allAddresses.push(p);
         }
         for (const booking of segment) {
-          allAddresses.push(...booking.toAddresses);
+          const p = _getPoint(booking, 'til');
+          if (p) allAddresses.push(p);
         }
       }
       

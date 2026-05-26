@@ -57,7 +57,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
 - 🧭 **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
-  - Mapping-system som konverterer adresser/adressenavn i NISSY som Google sitt smart-søk ikke gjenkjenner til gjenkjennelig adresse. Se [veiledning for å sende inn adressemapping](docs/Rutekalkulering_Adresser.md)
+  - Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps; adresser slik de står i NISSY benyttes som fallback.
+  - Filtrerer automatisk ut bestillinger med status «Framme»
 
 - 🗺️ **Kartvisning**
   - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
@@ -80,6 +81,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8d0f1163-6e79-4bee-8916-a6f21c4ac71e" />
   - Adresser normaliseres og navn forkortes for kompakt visning
   - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
+  - Bestillinger med status «Framme» (levert) skjules automatisk – kan vises igjen via «Framme (X)»-knappen øverst til høyre
   - Hold over et segment for å se reisetid/avstand mellom to hendelser.
   - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
@@ -126,7 +128,8 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
   - Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
   - Hindrer bruker fra å gjøre ting som ikke er i henhold til beste-praksis / SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
-  - <img width="250" alt="image" src="https://github.com/user-attachments/assets/24464cf1-e838-446c-8e4a-69607869bea8" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/aa169114-34a7-42e4-b2ef-5c5b1776f751" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/08d00111-24cd-4206-8f27-3d825554a02f" />
+  - Avvik-registrering (maks 400 tegn) i popup for enkelt- og masseavbestilling av bestillinger; sendes til NISSY etter gjennomført avbestilling
+  - <img width="250" alt="image" src="https://github.com/user-attachments/assets/24464cf1-e838-446c-8e4a-69607869bea8" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/8314c5e8-ebf3-4100-95fe-9fb41420d7bf" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/08d00111-24cd-4206-8f27-3d825554a02f" />
 
 - 🚐 **Samkjøring (Alt+X)**
   - Velg aktuelle filter. Merk bestilling(er) på ventende eller en ressurs på pågående oppdrag og trykk på Samkjøring-knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.

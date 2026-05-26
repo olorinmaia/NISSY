@@ -155,6 +155,12 @@
     
     console.log(`📍 Fant ${allSelectedRows.length} merkede ressurser`);
 
+    const MAX_RESOURCES = 20;
+    if (allSelectedRows.length > MAX_RESOURCES) {
+      showErrorToast(`📡 Maks ${MAX_RESOURCES} ressurser om gangen – ${allSelectedRows.length} er merket.`);
+      return;
+    }
+
     // Sjekk om kartet allerede er åpent og gjenbruk det
     if (window.currentMapWindow && !window.currentMapWindow.closed &&
         window.currentMapWindow.document.getElementById('map') !== null) {

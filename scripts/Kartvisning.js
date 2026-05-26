@@ -29,22 +29,34 @@
 
   function getPoppReqIds() {
     const reqIds = [];
+    const frammeIds = new Set();
+    const headers = document.querySelectorAll('#pagaendeoppdrag thead th');
+    let statusColIdx = -1;
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].querySelector('a[href*="resourceStatus"]')) { statusColIdx = i; break; }
+    }
     Array.from(document.querySelectorAll('#pagaendeoppdrag tbody tr'))
       .filter(r => r.id?.startsWith('P-') && r.style.backgroundColor === SELECTED_BG)
       .forEach(tr => {
-        // Én popp-rad kan inneholde flere bestillinger – hent alle reqIds via toggleManualStatusRequisition
         const imgs = tr.querySelectorAll("img[onclick*='toggleManualStatusRequisition']");
-        imgs.forEach(img => {
+        const cells = statusColIdx !== -1 ? [...tr.querySelectorAll('td')] : [];
+        imgs.forEach((img, i) => {
           const m = img.getAttribute('onclick').match(/toggleManualStatusRequisition\(this,(\d+)\)/);
-          if (m && !reqIds.includes(m[1])) reqIds.push(m[1]);
+          if (!m) return;
+          if (!reqIds.includes(m[1])) reqIds.push(m[1]);
+          if (statusColIdx !== -1) {
+            const statusDivs = cells[statusColIdx]?.querySelectorAll('div.row-image');
+            const status = statusDivs?.length
+              ? (statusDivs[i]?.textContent.trim() ?? '')
+              : (cells[statusColIdx]?.textContent.trim() ?? '');
+            if (status === 'Framme') frammeIds.add(m[1]);
+          }
         });
       });
-    return reqIds;
+    return { ids: reqIds, frammeIds };
   }
 
   // ── Toast-hjelpere ────────────────────────────────────────
-  let _loadingToast = null;
-
   function _toast(msg, bg, durationMs) {
     const t = document.createElement('div');
     t.textContent = msg;
@@ -65,19 +77,6 @@
       }, durationMs);
     }
     return t;
-  }
-
-  function showLoading(msg) {
-    hideLoading();
-    _loadingToast = _toast(msg, '#047CA1', 0);
-  }
-
-  function hideLoading() {
-    if (!_loadingToast) return;
-    const t = _loadingToast;
-    _loadingToast = null;
-    t.style.opacity = '0';
-    setTimeout(() => t.parentNode?.removeChild(t), 300);
   }
 
   function showError(msg) { _toast(msg, '#d9534f', 4000); }
@@ -207,10 +206,15 @@
   // Personlige nøkler: brukerens egen kvote brukes fremfor kontorets.
   // Legg til id (fra popup/changePassword?id=XXXXX) → nøkkel.
   const ORS_USER_KEYS = {
+    // Pasientreiser Nord-Trøndelag
     108137: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVjODQwMjk1OTQyYzRjMzJhNmM1YWUyMWExN2U2Y2UzIiwiaCI6Im11cm11cjY0In0=', // alfeinarj
     113859: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjFhYTUxNDg3NGMzZjRkN2RhZTExMzg4NWEwMzZjM2ZmIiwiaCI6Im11cm11cjY0In0=', // augustk
     144809: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM2ZWZkMmQ0OWI5MzQxOWM4ZWMwNDE5ZTI5YjI5MGM0IiwiaCI6Im11cm11cjY0In0=', // svelia
     168713: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZjMjQ5ZjQxZjdjNDRjOWE5ZjY0NThiYmQxZDk3YTMxIiwiaCI6Im11cm11cjY0In0=', // sutnes
+    // Pasientreiser Helse Bergen
+    167735: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM3MDNkNmRhN2JlNTRmZjNhYTE5OWZiMjJkMTkyZjY2IiwiaCI6Im11cm11cjY0In0=', // jonjar
+     44123: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjQ3YjdiMTk3NmZkZDQyNDhhYzk3MmVjM2U1ODViY2UxIiwiaCI6Im11cm11cjY0In0=', // vece
+    144780: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjI1MzUxNDlhNTY2ZTRlNjVhYzIwODBlMzRkYjc1ODhmIiwiaCI6Im11cm11cjY0In0=', // kinkah
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
@@ -242,12 +246,12 @@
     }
     #header h1 { font-size:17px; font-weight:600; }
     #controls { display:flex; gap:10px; align-items:center; }
-    #routeToggleBtn, #labelToggleBtn {
+    #routeToggleBtn, #labelToggleBtn, #frammeToggleBtn {
       padding:6px 14px; background:#CFECF5; color:#025671;
       border:none; border-radius:4px; font-weight:600; cursor:pointer;
       transition:all 0.2s; font-size:13px;
     }
-    #routeToggleBtn.av, #labelToggleBtn.av { background:rgba(255,255,255,0.2); color:#fff; opacity:0.7; }
+    #routeToggleBtn.av, #labelToggleBtn.av, #frammeToggleBtn.av { background:rgba(255,255,255,0.2); color:#fff; opacity:0.7; }
     .icon-label { display:flex; flex-direction:column; align-items:center; margin-top:1px;
       text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }
     .icon-label-time { display:flex; gap:3px; font-size:10px; font-weight:700; white-space:nowrap; line-height:1.2; }
@@ -301,6 +305,7 @@
       <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">ℹ️ Info på ikon</button>
       <button id="routeToggleBtn" title="Beregnet kjørerute via ORS/OSRM">📐 Beregnet rute</button>
       <div id="routeInfo" style="display:none;font-size:13px;padding:5px 12px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
+      <button id="frammeToggleBtn" style="display:none;" title="Vis/skjul Framme-bestillinger">Framme (0)</button>
       <div id="status">Laster kart…</div>
     </div>
   </div>
@@ -1500,7 +1505,9 @@
       }
 
       // ── Filterpanel ──────────────────────────────────────────
-      let activeFilter = reqDetails.map(function (r) { return r.reqId; });
+      const framme = reqDetails.filter(function (r) { return r.erFramme; });
+      const aktive = reqDetails.filter(function (r) { return !r.erFramme; });
+      let activeFilter = aktive.map(function (r) { return r.reqId; });
 
       const filterPanel = document.createElement('div');
       filterPanel.style.cssText =
@@ -1525,6 +1532,7 @@
       }
 
       const filterRows = {};
+      const filterCbs = {};
       let activeHighlight = [];
 
       const sortedForFilter = reqDetails.slice().sort(function (a, b) {
@@ -1540,8 +1548,9 @@
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
-        cb.checked = true;
+        cb.checked = !req.erFramme;
         cb.style.marginTop = '2px';
+        filterCbs[req.reqId] = cb;
         cb.addEventListener('change', function () {
           if (cb.checked) {
             if (!activeFilter.includes(req.reqId)) activeFilter.push(req.reqId);
@@ -1572,7 +1581,7 @@
       });
 
       const applyBtn = document.createElement('button');
-      applyBtn.textContent = applyBtnLabel(reqDetails.length, reqDetails.length);
+      applyBtn.textContent = applyBtnLabel(aktive.length, reqDetails.length);
       applyBtn.style.cssText =
         'margin-top:6px;width:100%;padding:6px;background:#025671;color:#fff;' +
         'border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;';
@@ -1617,7 +1626,7 @@
         applyRowStyles();
       });
 
-      renderBookings(reqDetails);
+      renderBookings(reqDetails.filter(function (r) { return activeFilter.includes(r.reqId); }));
 
       // Knapp – rute
       const btn = document.getElementById('routeToggleBtn');
@@ -1635,6 +1644,35 @@
         document.body.classList.toggle('labels-hidden', !showLabels);
         labelBtn.classList.toggle('av', !showLabels);
       });
+
+      // Knapp – Framme
+      const frammeBtn = document.getElementById('frammeToggleBtn');
+      if (framme.length > 0) {
+        frammeBtn.textContent = 'Framme (' + framme.length + ')';
+        frammeBtn.style.display = '';
+        frammeBtn.classList.add('av');
+        frammeBtn.addEventListener('click', function () {
+          const nowOff = frammeBtn.classList.contains('av');
+          if (nowOff) {
+            framme.forEach(function (r) {
+              if (!activeFilter.includes(r.reqId)) activeFilter.push(r.reqId);
+              if (filterCbs[r.reqId]) filterCbs[r.reqId].checked = true;
+            });
+            frammeBtn.classList.remove('av');
+          } else {
+            const frammeSet = new Set(framme.map(function (r) { return r.reqId; }));
+            activeFilter = activeFilter.filter(function (id) { return !frammeSet.has(id); });
+            framme.forEach(function (r) { if (filterCbs[r.reqId]) filterCbs[r.reqId].checked = false; });
+            frammeBtn.classList.add('av');
+          }
+          const n = activeFilter.length;
+          applyBtn.textContent = applyBtnLabel(n, reqDetails.length);
+          applyBtn.disabled = n === 0;
+          applyBtn.style.opacity = n === 0 ? '0.45' : '1';
+          applyBtn.style.cursor = n === 0 ? 'default' : 'pointer';
+          renderBookings(reqDetails.filter(function (r) { return activeFilter.includes(r.reqId); }));
+        });
+      }
     }
   </script>
 </body>
@@ -1678,7 +1716,7 @@
   // ── Hovedfunksjon ─────────────────────────────────────────
   async function visKart() {
     const voppIds = getVoppReqIds();
-    const poppIds = getPoppReqIds();
+    const { ids: poppIds, frammeIds } = getPoppReqIds();
     const alleIds = [...new Set([...voppIds, ...poppIds])];
 
     if (alleIds.length === 0) {
@@ -1691,16 +1729,8 @@
       return;
     }
 
-    const vTxt = voppIds.length ? `${voppIds.length} ventende` : '';
-    const pTxt = poppIds.length ? `${poppIds.length} pågående` : '';
-    showLoading(`Henter koordinater for ${[vTxt, pTxt].filter(Boolean).join(' + ')}…`);
-
-    let allDetails;
-    try {
-      allDetails = await Promise.all(alleIds.map(id => fetchReqDetails(id)));
-    } finally {
-      hideLoading();
-    }
+    const allDetails = await Promise.all(alleIds.map(id => fetchReqDetails(id)));
+    allDetails.forEach(d => { d.erFramme = frammeIds.has(d.reqId); });
 
     const med  = allDetails.filter(d => d.hentested || d.leveringssted);
     const uten = allDetails.filter(d => !d.hentested && !d.leveringssted);
@@ -1709,7 +1739,6 @@
       console.warn('[Kartvisning] Ingen koordinater for:', uten.map(d => d.reqId));
     }
     if (med.length === 0) {
-      hideLoading();
       _toast('🗺️ Fant ingen koordinater – åpner NISSY-kart', '#888', 3000);
       _origOpen.call(window, ...(_lastMapOpenArgs || ['', '_blank', '']));
       return;

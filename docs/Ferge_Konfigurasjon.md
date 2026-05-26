@@ -136,3 +136,8 @@ Send den ferdige `FERGER`-blokken til **aej@hnt.no**, på Teams, eller [opprett 
 - Koordinatene (`lat`/`lon`) må plasseres nøyaktig på fergeleiet – de brukes for å detektere om kjøreruten passerer nær nok til å utløse fergeberegning. Bruk Google Maps eller nettleserens kart for å finne presis posisjon.
 - Er klokkeslettene de samme alle ukedager, kan du bruke identiske lister for `'man-fre'`, `'lor'` og `'son'`.
 - Har fergen kun avganger på ukedager (ingen helg), bruk tomme lister: `'lor': [], 'son': []`.
+
+---
+
+## Skjermdump
+<img width="1000" alt="image" src="https://github.com/user-attachments/assets/8d0f1163-6e79-4bee-8916-a6f21c4ac71e" />
