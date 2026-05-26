@@ -206,10 +206,15 @@
   // Personlige nøkler: brukerens egen kvote brukes fremfor kontorets.
   // Legg til id (fra popup/changePassword?id=XXXXX) → nøkkel.
   const ORS_USER_KEYS = {
+    // Pasientreiser Nord-Trøndelag
     108137: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVjODQwMjk1OTQyYzRjMzJhNmM1YWUyMWExN2U2Y2UzIiwiaCI6Im11cm11cjY0In0=', // alfeinarj
     113859: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjFhYTUxNDg3NGMzZjRkN2RhZTExMzg4NWEwMzZjM2ZmIiwiaCI6Im11cm11cjY0In0=', // augustk
     144809: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM2ZWZkMmQ0OWI5MzQxOWM4ZWMwNDE5ZTI5YjI5MGM0IiwiaCI6Im11cm11cjY0In0=', // svelia
     168713: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZjMjQ5ZjQxZjdjNDRjOWE5ZjY0NThiYmQxZDk3YTMxIiwiaCI6Im11cm11cjY0In0=', // sutnes
+    // Pasientreiser Helse Bergen
+    167735: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM3MDNkNmRhN2JlNTRmZjNhYTE5OWZiMjJkMTkyZjY2IiwiaCI6Im11cm11cjY0In0=', // jonjar
+     44123: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjQ3YjdiMTk3NmZkZDQyNDhhYzk3MmVjM2U1ODViY2UxIiwiaCI6Im11cm11cjY0In0=', // vece
+    144780: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjI1MzUxNDlhNTY2ZTRlNjVhYzIwODBlMzRkYjc1ODhmIiwiaCI6Im11cm11cjY0In0=', // kinkah
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
