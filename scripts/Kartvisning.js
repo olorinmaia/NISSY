@@ -30,6 +30,8 @@
   function getPoppReqIds() {
     const reqIds = [];
     const frammeIds = new Set();
+    const ikkeMottIds = new Set();
+    const ikkeMottHideIds = new Set();
     const headers = document.querySelectorAll('#pagaendeoppdrag thead th');
     let statusColIdx = -1;
     for (let i = 0; i < headers.length; i++) {
@@ -40,20 +42,27 @@
       .forEach(tr => {
         const imgs = tr.querySelectorAll("img[onclick*='toggleManualStatusRequisition']");
         const cells = statusColIdx !== -1 ? [...tr.querySelectorAll('td')] : [];
+        const statuses = Array.from(imgs).map((_, i) => {
+          if (statusColIdx === -1) return '';
+          const statusDivs = cells[statusColIdx]?.querySelectorAll('div.row-image');
+          return statusDivs?.length
+            ? (statusDivs[i]?.textContent.trim() ?? '')
+            : (cells[statusColIdx]?.textContent.trim() ?? '');
+        });
+        const hasOtherActive = statuses.some(s => s !== 'Framme' && s !== 'Ikke møtt');
         imgs.forEach((img, i) => {
           const m = img.getAttribute('onclick').match(/toggleManualStatusRequisition\(this,(\d+)\)/);
           if (!m) return;
-          if (!reqIds.includes(m[1])) reqIds.push(m[1]);
-          if (statusColIdx !== -1) {
-            const statusDivs = cells[statusColIdx]?.querySelectorAll('div.row-image');
-            const status = statusDivs?.length
-              ? (statusDivs[i]?.textContent.trim() ?? '')
-              : (cells[statusColIdx]?.textContent.trim() ?? '');
-            if (status === 'Framme') frammeIds.add(m[1]);
+          const status = statuses[i];
+          if (status === 'Framme') { frammeIds.add(m[1]); }
+          if (status === 'Ikke møtt') {
+            ikkeMottIds.add(m[1]);
+            if (hasOtherActive) ikkeMottHideIds.add(m[1]);
           }
+          if (!reqIds.includes(m[1])) reqIds.push(m[1]);
         });
       });
-    return { ids: reqIds, frammeIds };
+    return { ids: reqIds, frammeIds, ikkeMottIds, ikkeMottHideIds };
   }
 
   // ── Toast-hjelpere ────────────────────────────────────────
@@ -305,7 +314,7 @@
       <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">ℹ️ Info på ikon</button>
       <button id="routeToggleBtn" title="Beregnet kjørerute via ORS/OSRM">📐 Beregnet rute</button>
       <div id="routeInfo" style="display:none;font-size:13px;padding:5px 12px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
-      <button id="frammeToggleBtn" style="display:none;" title="Vis/skjul Framme-bestillinger">Framme (0)</button>
+      <button id="frammeToggleBtn" style="display:none;" title="Vis/skjul Framme og Ikke møtt-bestillinger">Utført (0)</button>
       <div id="status">Laster kart…</div>
     </div>
   </div>
@@ -1505,8 +1514,8 @@
       }
 
       // ── Filterpanel ──────────────────────────────────────────
-      const framme = reqDetails.filter(function (r) { return r.erFramme; });
-      const aktive = reqDetails.filter(function (r) { return !r.erFramme; });
+      const utfort = reqDetails.filter(function (r) { return r.erFramme || r.erIkkeMott; });
+      const aktive = reqDetails.filter(function (r) { return !r.erHiddenByDefault; });
       let activeFilter = aktive.map(function (r) { return r.reqId; });
 
       const filterPanel = document.createElement('div');
@@ -1548,7 +1557,7 @@
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
-        cb.checked = !req.erFramme;
+        cb.checked = !req.erHiddenByDefault;
         cb.style.marginTop = '2px';
         filterCbs[req.reqId] = cb;
         cb.addEventListener('change', function () {
@@ -1647,22 +1656,22 @@
 
       // Knapp – Framme
       const frammeBtn = document.getElementById('frammeToggleBtn');
-      if (framme.length > 0) {
-        frammeBtn.textContent = 'Framme (' + framme.length + ')';
+      if (utfort.length > 0 && reqDetails.length > 1) {
+        frammeBtn.textContent = 'Utført (' + utfort.length + ')';
         frammeBtn.style.display = '';
         frammeBtn.classList.add('av');
         frammeBtn.addEventListener('click', function () {
           const nowOff = frammeBtn.classList.contains('av');
           if (nowOff) {
-            framme.forEach(function (r) {
+            utfort.forEach(function (r) {
               if (!activeFilter.includes(r.reqId)) activeFilter.push(r.reqId);
               if (filterCbs[r.reqId]) filterCbs[r.reqId].checked = true;
             });
             frammeBtn.classList.remove('av');
           } else {
-            const frammeSet = new Set(framme.map(function (r) { return r.reqId; }));
-            activeFilter = activeFilter.filter(function (id) { return !frammeSet.has(id); });
-            framme.forEach(function (r) { if (filterCbs[r.reqId]) filterCbs[r.reqId].checked = false; });
+            const utfortSet = new Set(utfort.map(function (r) { return r.reqId; }));
+            activeFilter = activeFilter.filter(function (id) { return !utfortSet.has(id); });
+            utfort.forEach(function (r) { if (filterCbs[r.reqId]) filterCbs[r.reqId].checked = false; });
             frammeBtn.classList.add('av');
           }
           const n = activeFilter.length;
@@ -1716,7 +1725,8 @@
   // ── Hovedfunksjon ─────────────────────────────────────────
   async function visKart() {
     const voppIds = getVoppReqIds();
-    const { ids: poppIds, frammeIds } = getPoppReqIds();
+    const { ids: poppIds, frammeIds, ikkeMottIds, ikkeMottHideIds } = getPoppReqIds();
+    const hiddenByDefault = new Set([...frammeIds, ...ikkeMottHideIds]);
     const alleIds = [...new Set([...voppIds, ...poppIds])];
 
     if (alleIds.length === 0) {
@@ -1724,13 +1734,18 @@
       return;
     }
 
-    if (alleIds.length > 16) {
-      showError(`🗺️ For mange bestillinger merket (${alleIds.length}/16) – maks 16 støttes. Fjern noen og prøv igjen.`);
+    const activeCount = alleIds.filter(id => !hiddenByDefault.has(id)).length;
+    if (activeCount > 16) {
+      showError(`🗺️ For mange bestillinger merket (${activeCount}/16) – maks 16 støttes. Fjern noen og prøv igjen.`);
       return;
     }
 
     const allDetails = await Promise.all(alleIds.map(id => fetchReqDetails(id)));
-    allDetails.forEach(d => { d.erFramme = frammeIds.has(d.reqId); });
+    allDetails.forEach(d => {
+      d.erFramme = frammeIds.has(d.reqId);
+      d.erIkkeMott = ikkeMottIds.has(d.reqId);
+      d.erHiddenByDefault = hiddenByDefault.has(d.reqId);
+    });
 
     const med  = allDetails.filter(d => d.hentested || d.leveringssted);
     const uten = allDetails.filter(d => !d.hentested && !d.leveringssted);
