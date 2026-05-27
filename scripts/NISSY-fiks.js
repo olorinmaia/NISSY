@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.5.5'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.6.0'; // Versjonsnummer for debugging og fremtidige oppdateringer
 
   console.log("🚀 Starter NISSY-fiks-script");
 
