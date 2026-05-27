@@ -372,17 +372,17 @@
         {
           navn: "Bodø lufthavn",
           tekst: () =>
-            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Bodø. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550. Ha en fin dag.`,
+            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\n\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Bodø. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550.\n\nHa en fin dag.`,
         },
         {
           navn: "Svolvær lufthavn",
           tekst: () =>
-            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Svolvær. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550. Ha en fin dag.`,
+            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\n\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Svolvær. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550.\n\nHa en fin dag.`,
         },
         {
           navn: "Stokmarknes lufthavn",
           tekst: () =>
-            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Stokmarknes. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550. Ha en fin dag.`,
+            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\n\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Stokmarknes. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550.\n\nHa en fin dag.`,
         },
         {
           navn: "Ring oss tilbake",
