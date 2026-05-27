@@ -31,6 +31,27 @@
     'Kartvisning.js'
   ];
 
+  // ============================================================
+  // ANONYM BRUKSSTATISTIKK PER KONTOR
+  // Logger kun kontor-navn (ingen persondata)
+  // ============================================================
+  try {
+    const officeCell  = document.querySelector('.topframe_small');
+    const officeMatch = officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
+    const office      = officeMatch?.[1]?.trim() || 'Ukjent kontor';
+
+    const gcScript = document.createElement('script');
+    gcScript.async = true;
+    gcScript.src   = '//gc.zgo.at/count.js';
+    gcScript.setAttribute('data-goatcounter', 'https://nissy.goatcounter.com/count');
+    gcScript.setAttribute('data-goatcounter-settings', JSON.stringify({ no_onload: true }));
+    gcScript.onload = () => {
+      window.goatcounter?.count({ path: '/nissy/' + office, title: 'NISSY – ' + office });
+      window.goatcounter?.count({ path: '/nissy-loader/basic-dev', title: 'Loader: basic-dev', event: true });
+    };
+    document.head.appendChild(gcScript);
+  } catch (e) {}
+
   console.log('📦 Laster NISSY Basic DEV...');
   
   for (const script of scripts) {
@@ -448,9 +469,32 @@
   })();
 
   // ============================================================
-  // VIS SNARVEI-POPUP
+  // VIS SNARVEI-POPUP (eller toast hvis "ikke vis igjen" er valgt)
   // ============================================================
   setTimeout(() => {
+    const SKIP_KEY = 'nissy-skip-startup-popup';
+
+    if (localStorage.getItem(SKIP_KEY) === '1') {
+      const toast = document.createElement('div');
+      toast.textContent = '✅ NISSY Basic (DEV) lastet!';
+      Object.assign(toast.style, {
+        position: 'fixed', bottom: '20px', left: '50%',
+        transform: 'translateX(-50%)', background: '#27ae60',
+        color: '#fff', padding: '10px 20px', borderRadius: '5px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.3)', fontFamily: 'Arial, sans-serif',
+        fontSize: '13px', zIndex: '999999', opacity: '0',
+        transition: 'opacity 0.3s ease', whiteSpace: 'nowrap',
+      });
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '1'; }, 10);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+      if (typeof openPopp === 'function') openPopp('-1');
+      return;
+    }
+
     const popup = document.createElement('div');
     popup.innerHTML = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -480,7 +524,7 @@
           • ALT+Q → Rutekalkulering (Google Maps)<br>
           • ALT+W → Kartvisning<br>
           • ALT+K → Avbestilling<br>
-          • ALT+D → Ressursinfo pop-up<br>
+          • ALT+D → Ressursinfo<br>
           • ALT+N → Bestillingsmodul<br>
           • ALT+A → Adminmodul<br>
           • ALT+L → Handlingslogg<br>
@@ -506,21 +550,19 @@
           </a>
         </div>
 
-        <button id="closeNissyPopup" style="
-          margin-top: 20px;
-          padding: 10px 24px;
-          background: #4a90e2;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: bold;
-          width: 100%;
-        ">Lukk</button>
+        <div style="display:flex;gap:8px;margin-top:20px;">
+          <button id="closeNissyPopup" style="
+            flex:1;padding:10px 24px;background:#4a90e2;color:white;
+            border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:bold;
+          ">Lukk</button>
+          <button id="closeNissyPopupSkip" style="
+            padding:10px 16px;background:#f5f5f5;color:#555;
+            border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:12px;
+          ">Ikke vis igjen</button>
+        </div>
       </div>
     `;
-    
+
     Object.assign(popup.style, {
       position: 'fixed',
       top: '50%',
@@ -550,29 +592,19 @@
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 
-    const closePopup = () => {
-      if (popup && popup.parentNode) {
-        popup.parentNode.removeChild(popup);
-      }
-      if (overlay && overlay.parentNode) {
-        overlay.parentNode.removeChild(overlay);
-      }
-      
+    const closePopup = (skip = false) => {
+      if (skip) localStorage.setItem(SKIP_KEY, '1');
+      if (popup && popup.parentNode) popup.parentNode.removeChild(popup);
+      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
       document.removeEventListener('keydown', escHandler);
-      
-      if (typeof openPopp === 'function') {
-        openPopp('-1');
-      }
+      if (typeof openPopp === 'function') openPopp('-1');
     };
 
-    popup.querySelector('#closeNissyPopup').onclick = closePopup;
-    overlay.onclick = closePopup;
+    popup.querySelector('#closeNissyPopup').onclick = () => closePopup(false);
+    popup.querySelector('#closeNissyPopupSkip').onclick = () => closePopup(true);
+    overlay.onclick = () => closePopup(false);
 
-    const escHandler = (e) => {
-      if (e.key === 'Escape') {
-        closePopup();
-      }
-    };
+    const escHandler = (e) => { if (e.key === 'Escape') closePopup(false); };
     document.addEventListener('keydown', escHandler);
   }, 500);
 })();
