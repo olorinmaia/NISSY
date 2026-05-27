@@ -350,6 +350,16 @@
             `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
         },
         {
+          navn: "Pasientekspress",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise med pasientekspressen er planlagt med henting ${formaterTid(info.reiseTid)}. For spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Tilkjøring til pasientekspressen",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse} for tilkjøring til pasientekspressen.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
           navn: "Endret hentetidspunkt",
           tekst: (info) =>
             `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
@@ -358,6 +368,21 @@
           navn: "Planlagt reise til behandling",
           tekst: (info) =>
             `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nMvh Pasientreiser Nordlandssykehuset.`,
+        },
+        {
+          navn: "Bodø lufthavn",
+          tekst: () =>
+            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Bodø. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550. Ha en fin dag.`,
+        },
+        {
+          navn: "Svolvær lufthavn",
+          tekst: () =>
+            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Svolvær. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550. Ha en fin dag.`,
+        },
+        {
+          navn: "Stokmarknes lufthavn",
+          tekst: () =>
+            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Stokmarknes. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550. Ha en fin dag.`,
         },
         {
           navn: "Ring oss tilbake",
