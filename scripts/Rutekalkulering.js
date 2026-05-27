@@ -548,7 +548,7 @@
             const status = pStatusIdx !== -1
               ? cells[pStatusIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim()
               : '';
-            if (status === 'Framme') return;
+            if (status === 'Framme' || status === 'Ikke møtt') return;
 
             const fromText = cells[pFromIdx]?.querySelectorAll('div.row-image')[i]?.textContent.trim() ?? '';
             const toText   = cells[pToIdx]  ?.querySelectorAll('div.row-image')[i]?.textContent.trim() ?? '';
@@ -572,6 +572,9 @@
           });
         } else {
           // Enkelt oppdrag
+          const status = pStatusIdx !== -1 ? (cells[pStatusIdx]?.textContent.trim() ?? '') : '';
+          if (status === 'Framme') return;
+
           const fromText = cells[pFromIdx]?.textContent.trim() ?? '';
           const toText   = cells[pToIdx]  ?.textContent.trim() ?? '';
           const fromAddresses = addressRegex.test(fromText) ? [normalizeAddress(fromText.replace(/\s+/g, " "))] : [];
@@ -592,6 +595,12 @@
           });
         }
       });
+
+      const MAX_BOOKINGS = 16;
+      if (allBookings.length > MAX_BOOKINGS) {
+        showErrorToast(`🧭 Maks ${MAX_BOOKINGS} bestillinger om gangen – ${allBookings.length} er merket.`);
+        return;
+      }
 
       // Normaliser returturer: levertid før hentetid = dårlig NISSY-datakvalitet
       // Sett levertid = hentetid slik at segmentlogikken håndterer dem korrekt

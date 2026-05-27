@@ -10,6 +10,22 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.5.6] - 27.05.2026
+
+### Kartvisning: Utført-filtrering – Rutekalkulering: Ikke møtt-filtrering
+
+- 🗺️ **Kartvisning**
+  - **Utført-knapp** – erstatter «Framme»-knappen og inkluderer nå også «Ikke møtt»-bestillinger
+  - «Ikke møtt» skjules automatisk hvis ressursen har andre aktive bestillinger, men vises om det er eneste gjenværende status
+  - Maks antall bestillinger: 16-grensen teller kun aktive bestillinger (Framme/Ikke møtt holdes utenfor)
+- 🧭 **Rutekalkulering (pågående oppdrag)**
+  - Sammensatt tur: «Ikke møtt» filtreres bort (i tillegg til «Framme»)
+  - Maks antall bestillinger: 16-grensen teller korrekt antall bestillinger som faktisk beregnes
+- 🗺️ **Live-ressurskart**
+  - Maks 20 ressurser åpnes per gang
+
+---
+
 ## 🔧 [4.5.5] - 26.05.2026
 
 ### Rutekalkulering: Koordinater fra NISSY – Kartvisning: Framme-filtrering - Avbestilling: Avvik-registrering

@@ -58,7 +58,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 - 🧭 **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
   - Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps; adresser slik de står i NISSY benyttes som fallback.
-  - Filtrerer automatisk ut bestillinger med status «Framme»
+  - Filtrerer automatisk ut bestillinger med status «Framme» og "Ikke møtt".
 
 - 🗺️ **Kartvisning**
   - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
@@ -81,7 +81,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
     - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8d0f1163-6e79-4bee-8916-a6f21c4ac71e" />
   - Adresser normaliseres og navn forkortes for kompakt visning
   - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
-  - Bestillinger med status «Framme» (levert) skjules automatisk – kan vises igjen via «Framme (X)»-knappen øverst til høyre
+  - Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
   - Hold over et segment for å se reisetid/avstand mellom to hendelser.
   - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />

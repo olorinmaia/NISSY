@@ -94,7 +94,7 @@ Navn: `NISSY-Avansert`
 - Hvis feilmelding når Google maps åpnes, åpne maps.google.com i ny fane og godta vilkår eller åpne en singel bestilling
 - Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps; adresser slik de står i NISSY benyttes som fallback.
 - Fungerer både for ventende og pågående oppdrag
-- Filtrerer automatisk ut bestillinger som er markert som "Framme"
+- Filtrerer automatisk ut bestillinger som er markert som "Framme" og "Ikke møtt"
 
 ### 🗺️ Kartvisning (ALT+W)
 1. Merk én eller flere bestillinger (klikk på radene)
@@ -113,7 +113,7 @@ Navn: `NISSY-Avansert`
     - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
     - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
-- Bestillinger med status «Framme» (levert) skjules automatisk – kan vises igjen via «Framme (X)»-knappen øverst til høyre
+- Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
 - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md).
 
