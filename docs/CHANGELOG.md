@@ -21,7 +21,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🧭 **Rutekalkulering (pågående oppdrag)**
   - Sammensatt tur: «Ikke møtt» filtreres bort (i tillegg til «Framme»)
   - Maks antall bestillinger: 16-grensen teller korrekt antall bestillinger som faktisk beregnes
-- 🗺️ **Live-ressurskart**
+- 📡 **Live-ressurskart**
   - Maks 20 ressurser åpnes per gang
 - 🧩 **Loadere (Advanced, Basic, AMK)**
   - **«Ikke vis igjen»-knapp** i oppstartsvinduet – etter første gangs klikk vises vinduet ikke igjen; i stedet bekrefter en kort melding at scriptet er lastet inn
