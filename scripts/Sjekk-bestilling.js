@@ -485,18 +485,21 @@
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
     const allData = [...ventendeData, ...pagaendeData];
-    
+
+    // Grupper per (navn, hentetid-dato) for å unngå falske treff ved visning av flere dager
     const grouped = new Map();
     for (const item of allData) {
-      if (!grouped.has(item.navn)) {
-        grouped.set(item.navn, []);
+      const date = extractDate(item.hentetid) || '';
+      const key = `${item.navn}\t${date}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, { navn: item.navn, items: [] });
       }
-      grouped.get(item.navn).push(item);
+      grouped.get(key).items.push(item);
     }
-    
+
     const duplicates = [];
-    const excludedNames = new Set();
-    for (const [navn, items] of grouped.entries()) {
+    const excludedKeys = new Set(); // "navn\tdate"-nøkler
+    for (const [key, { navn, items }] of grouped.entries()) {
       if (items.length > 2) {
         items.sort((a, b) => {
           const timeA = parseTime(a.hentetid);
@@ -506,18 +509,18 @@
           return timeA - timeB;
         });
         duplicates.push({ navn, items, reason: 'Mer enn 2 bestillinger' });
-        excludedNames.add(navn);
+        excludedKeys.add(key);
       }
     }
-    
-    return { duplicates, excludedNames };
+
+    return { duplicates, excludedKeys };
   }
 
-  function findSameRouteDuplicates(excludedNames) {
+  function findSameRouteDuplicates(excludedKeys) {
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
     const allData = [...ventendeData, ...pagaendeData];
-    
+
     const grouped = new Map();
     for (const item of allData) {
       if (!grouped.has(item.navn)) {
@@ -525,25 +528,31 @@
       }
       grouped.get(item.navn).push(item);
     }
-    
+
     const duplicates = [];
     const processedPairs = new Set(); // For å unngå duplikater
-    
+
     for (const [navn, items] of grouped.entries()) {
-      if (excludedNames.has(navn)) continue;
-      
       if (items.length < 2) continue;
-      
+
       // Sjekk for duplikater basert på Fra-adresse, Til-adresse, eller begge
       for (let i = 0; i < items.length; i++) {
         for (let j = i + 1; j < items.length; j++) {
           const item1 = items[i];
           const item2 = items[j];
-          
+
+          // Kun sammenlign bestillinger på samme dag
+          const date1 = extractDate(item1.hentetid) || '';
+          const date2 = extractDate(item2.hentetid) || '';
+          if (date1 !== date2) continue;
+
+          // Skip hvis denne dag-gruppen er flagget for >2 bestillinger
+          if (excludedKeys.has(`${navn}\t${date1}`)) continue;
+
           // Lag en unik nøkkel for dette paret (sortert for å unngå duplikater)
           const pairKey = [item1.reknr, item2.reknr].sort().join('|');
           if (processedPairs.has(pairKey)) continue;
-          
+
           const sameFra = item1.fra === item2.fra && item1.fra !== '';
           const sameTil = item1.til === item2.til && item1.til !== '';
           
@@ -687,13 +696,13 @@
     return errors;
   }
 
-  function findReturnBeforeOutbound(excludedNames) {
+  function findReturnBeforeOutbound(excludedKeys) {
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
     const allData = [...ventendeData, ...pagaendeData];
-    
+
     const errors = [];
-    
+
     // Grupper per pasient
     const grouped = new Map();
     for (const item of allData) {
@@ -702,58 +711,62 @@
       }
       grouped.get(item.navn).push(item);
     }
-    
+
     // Sjekk hver pasient
     for (const [navn, items] of grouped.entries()) {
-      // Skip pasienter som allerede er flagget for >2 bestillinger
-      if (excludedNames.has(navn)) continue;
-      
       if (items.length < 2) continue; // Trenger minst 2 reiser
-      
+
       // Identifiser reiser og returer
       const outboundTrips = [];
       const returnTrips = [];
-      
+
       for (const item of items) {
         const hentetidMinutes = parseTimeFlexible(item.hentetid);
         const leveringstidMinutes = parseTimeFlexible(item.leveringstid);
-        
+
         if (hentetidMinutes === null || leveringstidMinutes === null) continue;
-        
+
         // Skip ubekreftede returtider (21:59 eller 16:59)
         const timeStr = item.hentetid.replace(/<[^>]*>/g, '').trim();
         if (timeStr.includes('21:59') || timeStr.includes('16:59')) {
           continue;
         }
-        
+
         // Identifiser om det er retur basert KUN på tidspunkt
         // Retur = hentetid >= leveringstid
         const isReturn = (hentetidMinutes >= leveringstidMinutes);
-        
+
         if (isReturn) {
-          returnTrips.push({ 
-            ...item, 
-            parsedPickupTime: hentetidMinutes 
+          returnTrips.push({
+            ...item,
+            parsedPickupTime: hentetidMinutes
           });
         } else {
           // Utgående reise (hentetid < leveringstid)
-          outboundTrips.push({ 
-            ...item, 
+          outboundTrips.push({
+            ...item,
             parsedPickupTime: hentetidMinutes,
-            parsedArrivalTime: leveringstidMinutes 
+            parsedArrivalTime: leveringstidMinutes
           });
         }
       }
-      
-      // Sammenlign returer med utgående reiser til samme sted
+
+      // Sammenlign returer med utgående reiser til samme sted, kun innen samme dag
       for (const returnTrip of returnTrips) {
-        // Finn stedet (Fra-adressen på returen)
+        const returnDate = extractDate(returnTrip.hentetid) || '';
+
+        // Skip hvis denne dag-gruppen allerede er flagget for >2 bestillinger
+        if (excludedKeys.has(`${navn}\t${returnDate}`)) continue;
+
         const location = returnTrip.fra;
-        
+
         for (const outboundTrip of outboundTrips) {
-          // Sjekk om det er til samme sted
+          const outboundDate = extractDate(outboundTrip.hentetid) || '';
+
+          // Kun sammenlign innen samme dag
+          if (returnDate !== outboundDate) continue;
+
           if (outboundTrip.til === location) {
-            // Sjekk om retur-hentetid er <= oppmøtetid (leveringstid på utgående reise)
             if (returnTrip.parsedPickupTime <= outboundTrip.parsedArrivalTime) {
               errors.push({
                 navn: navn,
@@ -765,7 +778,7 @@
         }
       }
     }
-    
+
     return errors;
   }
 
@@ -1104,12 +1117,12 @@
   // HOVEDKJØRING - wrapped i try-catch for kolonnevalidering
   // ============================================================
   try {
-    const { duplicates: countDuplicates, excludedNames } = findDuplicates();
-    const routeDuplicates = findSameRouteDuplicates(excludedNames);
+    const { duplicates: countDuplicates, excludedKeys } = findDuplicates();
+    const routeDuplicates = findSameRouteDuplicates(excludedKeys);
     const dateMismatches = findDateMismatches();
     const problematicNeeds = findProblematicNeeds();
     const timeLogicErrors = findTimeLogicErrors();
-    const returnBeforeOutbound = findReturnBeforeOutbound(excludedNames);
+    const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
     const shortTravelTime = findShortTravelTime();
     showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime);
   } catch (error) {
