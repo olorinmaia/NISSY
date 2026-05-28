@@ -10,6 +10,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.5.7] - 28.05.2026
+
+### Loader: URL-validering og forbedring til Live-ressurskart
+
+- 🧩 **Loadere (Advanced, Basic, AMK)**
+  - Scriptet kjører nå kun på godkjente NISSY-domener (PROD, QA og TEST) – forhindrer at scriptet kjøres på utdaterte URL-er som ikke lenger fungerer som tiltenkt
+  - Ved feil URL vises en popup med forklaring og klikkbar lenke til riktig URL, slik at bruker enkelt kan oppdatere bokmerket sitt
+- 📡 **Live-ressurskart**
+  - **Hover på beregnet rute** – holder man musepekeren over en rutestrekning vises veglengde og estimert reisetid for det segmentet
+
+---
+
 ## 🔧 [4.5.6] - 27.05.2026
 
 ### Kartvisning: Utført-filtrering – Rutekalkulering: Ikke møtt-filtrering
