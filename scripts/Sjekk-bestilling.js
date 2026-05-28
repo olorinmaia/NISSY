@@ -45,11 +45,24 @@
   ];
 
   // ============================================================
+  // KONFIGURASJON: ADRESSEVISNING
+  // ============================================================
+  const MAX_ADDRESS_LENGTH = 50; // Maks antall tegn i adressevisning (sett til Infinity for å vise fullt)
+
+  // ============================================================
   // KONFIGURASJON: TIDSFEIL-SJEKK
   // ============================================================
   // Kontroller hvilke reiseretninger som skal sjekkes for tidsfeil
   const CHECK_TO_TREATMENT = true;    // Sjekk reiser TIL behandling (fra gateadresse)
   const CHECK_FROM_TREATMENT = false;  // Sjekk returreiser FRA behandling (til gateadresse)
+
+  // ============================================================
+  // HJELPEFUNKSJON: Kutt adresse til maks lengde
+  // ============================================================
+  function truncateAddress(address) {
+    if (!address || address.length <= MAX_ADDRESS_LENGTH) return { display: address || '', full: address || '', truncated: false };
+    return { display: address.slice(0, MAX_ADDRESS_LENGTH) + '…', full: address, truncated: true };
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Sjekk om en adresse er en gateadresse (har husnummer)
@@ -472,18 +485,21 @@
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
     const allData = [...ventendeData, ...pagaendeData];
-    
+
+    // Grupper per (navn, hentetid-dato) for å unngå falske treff ved visning av flere dager
     const grouped = new Map();
     for (const item of allData) {
-      if (!grouped.has(item.navn)) {
-        grouped.set(item.navn, []);
+      const date = extractDate(item.hentetid) || '';
+      const key = `${item.navn}\t${date}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, { navn: item.navn, items: [] });
       }
-      grouped.get(item.navn).push(item);
+      grouped.get(key).items.push(item);
     }
-    
+
     const duplicates = [];
-    const excludedNames = new Set();
-    for (const [navn, items] of grouped.entries()) {
+    const excludedKeys = new Set(); // "navn\tdate"-nøkler
+    for (const [key, { navn, items }] of grouped.entries()) {
       if (items.length > 2) {
         items.sort((a, b) => {
           const timeA = parseTime(a.hentetid);
@@ -493,18 +509,18 @@
           return timeA - timeB;
         });
         duplicates.push({ navn, items, reason: 'Mer enn 2 bestillinger' });
-        excludedNames.add(navn);
+        excludedKeys.add(key);
       }
     }
-    
-    return { duplicates, excludedNames };
+
+    return { duplicates, excludedKeys };
   }
 
-  function findSameRouteDuplicates(excludedNames) {
+  function findSameRouteDuplicates(excludedKeys) {
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
     const allData = [...ventendeData, ...pagaendeData];
-    
+
     const grouped = new Map();
     for (const item of allData) {
       if (!grouped.has(item.navn)) {
@@ -512,25 +528,31 @@
       }
       grouped.get(item.navn).push(item);
     }
-    
+
     const duplicates = [];
     const processedPairs = new Set(); // For å unngå duplikater
-    
+
     for (const [navn, items] of grouped.entries()) {
-      if (excludedNames.has(navn)) continue;
-      
       if (items.length < 2) continue;
-      
+
       // Sjekk for duplikater basert på Fra-adresse, Til-adresse, eller begge
       for (let i = 0; i < items.length; i++) {
         for (let j = i + 1; j < items.length; j++) {
           const item1 = items[i];
           const item2 = items[j];
-          
+
+          // Kun sammenlign bestillinger på samme dag
+          const date1 = extractDate(item1.hentetid) || '';
+          const date2 = extractDate(item2.hentetid) || '';
+          if (date1 !== date2) continue;
+
+          // Skip hvis denne dag-gruppen er flagget for >2 bestillinger
+          if (excludedKeys.has(`${navn}\t${date1}`)) continue;
+
           // Lag en unik nøkkel for dette paret (sortert for å unngå duplikater)
           const pairKey = [item1.reknr, item2.reknr].sort().join('|');
           if (processedPairs.has(pairKey)) continue;
-          
+
           const sameFra = item1.fra === item2.fra && item1.fra !== '';
           const sameTil = item1.til === item2.til && item1.til !== '';
           
@@ -674,13 +696,13 @@
     return errors;
   }
 
-  function findReturnBeforeOutbound(excludedNames) {
+  function findReturnBeforeOutbound(excludedKeys) {
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
     const allData = [...ventendeData, ...pagaendeData];
-    
+
     const errors = [];
-    
+
     // Grupper per pasient
     const grouped = new Map();
     for (const item of allData) {
@@ -689,58 +711,62 @@
       }
       grouped.get(item.navn).push(item);
     }
-    
+
     // Sjekk hver pasient
     for (const [navn, items] of grouped.entries()) {
-      // Skip pasienter som allerede er flagget for >2 bestillinger
-      if (excludedNames.has(navn)) continue;
-      
       if (items.length < 2) continue; // Trenger minst 2 reiser
-      
+
       // Identifiser reiser og returer
       const outboundTrips = [];
       const returnTrips = [];
-      
+
       for (const item of items) {
         const hentetidMinutes = parseTimeFlexible(item.hentetid);
         const leveringstidMinutes = parseTimeFlexible(item.leveringstid);
-        
+
         if (hentetidMinutes === null || leveringstidMinutes === null) continue;
-        
+
         // Skip ubekreftede returtider (21:59 eller 16:59)
         const timeStr = item.hentetid.replace(/<[^>]*>/g, '').trim();
         if (timeStr.includes('21:59') || timeStr.includes('16:59')) {
           continue;
         }
-        
+
         // Identifiser om det er retur basert KUN på tidspunkt
         // Retur = hentetid >= leveringstid
         const isReturn = (hentetidMinutes >= leveringstidMinutes);
-        
+
         if (isReturn) {
-          returnTrips.push({ 
-            ...item, 
-            parsedPickupTime: hentetidMinutes 
+          returnTrips.push({
+            ...item,
+            parsedPickupTime: hentetidMinutes
           });
         } else {
           // Utgående reise (hentetid < leveringstid)
-          outboundTrips.push({ 
-            ...item, 
+          outboundTrips.push({
+            ...item,
             parsedPickupTime: hentetidMinutes,
-            parsedArrivalTime: leveringstidMinutes 
+            parsedArrivalTime: leveringstidMinutes
           });
         }
       }
-      
-      // Sammenlign returer med utgående reiser til samme sted
+
+      // Sammenlign returer med utgående reiser til samme sted, kun innen samme dag
       for (const returnTrip of returnTrips) {
-        // Finn stedet (Fra-adressen på returen)
+        const returnDate = extractDate(returnTrip.hentetid) || '';
+
+        // Skip hvis denne dag-gruppen allerede er flagget for >2 bestillinger
+        if (excludedKeys.has(`${navn}\t${returnDate}`)) continue;
+
         const location = returnTrip.fra;
-        
+
         for (const outboundTrip of outboundTrips) {
-          // Sjekk om det er til samme sted
+          const outboundDate = extractDate(outboundTrip.hentetid) || '';
+
+          // Kun sammenlign innen samme dag
+          if (returnDate !== outboundDate) continue;
+
           if (outboundTrip.til === location) {
-            // Sjekk om retur-hentetid er <= oppmøtetid (leveringstid på utgående reise)
             if (returnTrip.parsedPickupTime <= outboundTrip.parsedArrivalTime) {
               errors.push({
                 navn: navn,
@@ -752,7 +778,7 @@
         }
       }
     }
-    
+
     return errors;
   }
 
@@ -885,6 +911,10 @@
     modalDiv = document.createElement('div');
     
     const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length;
+
+    // Beregn Reknr-bredde én gang basert på alle grupper, slik at alle tabeller er like brede
+    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime];
+    const reknrWidth = allGroups.some(dup => dup.items.some(item => item.status)) ? 165 : 110;
     
     let html = `
       <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -929,37 +959,37 @@
       
       if (problematicNeeds.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">♿ Bestillinger med problematisk kombinasjon av spesielle behov</h3>';
-        html += renderDuplicates(problematicNeeds, 'problematic');
+        html += renderDuplicates(problematicNeeds, 'problematic', reknrWidth);
       }
-      
+
       if (timeLogicErrors.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⏰ Bestillinger med tidsfeil (hentetid > leveringstid)</h3>';
-        html += renderDuplicates(timeLogicErrors, 'timelogic');
+        html += renderDuplicates(timeLogicErrors, 'timelogic', reknrWidth);
       }
-      
+
       if (returnBeforeOutbound.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄⏰ Retur-hentetid lik eller før oppmøtetid</h3>';
-        html += renderDuplicates(returnBeforeOutbound, 'returnbeforeout');
+        html += renderDuplicates(returnBeforeOutbound, 'returnbeforeout', reknrWidth);
       }
-      
+
       if (dateMismatches.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">📅 Bestillinger med datofeil (hentetid ≠ leveringstid)</h3>';
-        html += renderDuplicates(dateMismatches, 'date');
+        html += renderDuplicates(dateMismatches, 'date', reknrWidth);
       }
-      
+
       if (countDuplicates.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">📊 Pasienter med mer enn 2 bestillinger</h3>';
-        html += renderDuplicates(countDuplicates, 'count');
+        html += renderDuplicates(countDuplicates, 'count', reknrWidth);
       }
-      
+
       if (shortTravelTime.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">⚡ Bestillinger med veldig kort reisetid</h3>';
-        html += renderDuplicates(shortTravelTime, 'shorttravel');
+        html += renderDuplicates(shortTravelTime, 'shorttravel', reknrWidth);
       }
 
       if (routeDuplicates.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄 Duplikater med samme fra- eller til-adresse</h3>';
-        html += renderDuplicates(routeDuplicates, 'route');
+        html += renderDuplicates(routeDuplicates, 'route', reknrWidth);
       }
     }
     
@@ -995,7 +1025,8 @@
     });
   }
 
-  function renderDuplicates(duplicates, type) {
+  function renderDuplicates(duplicates, type, reknrWidth) {
+    const tableWidth = 1015 + reknrWidth; // 1015 = sum av alle andre kolonner (65+85+85+100+340+340)
     let html = '';
     
     const colorMap = {
@@ -1017,7 +1048,7 @@
         ? `data-reknr="${dup.items[0].reknr}"` 
         : `data-navn="${dup.navn}"`;
       const buttonClass = isSingleBooking ? 'nissy-search-reknr-btn' : 'nissy-search-btn';
-      
+
       html += `
         <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -1030,16 +1061,16 @@
             </button>
           </div>
           <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <table style="table-layout: fixed; width: ${tableWidth}px; border-collapse: collapse; font-size: 13px;">
               <thead>
                 <tr style="background: #e9ecef;">
-                  <th style="padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Type</th>
-                  <th style="padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Reknr</th>
-                  <th style="padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Hentetid</th>
-                  <th style="padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Leveringstid</th>
-                  <th style="padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Behov</th>
-                  <th style="padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Fra</th>
-                  <th style="padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Til</th>
+                  <th style="width:  65px; padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Type</th>
+                  <th style="width: ${reknrWidth}px; padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Reknr</th>
+                  <th style="width:  85px; padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Hentetid</th>
+                  <th style="width:  85px; padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Leveringstid</th>
+                  <th style="width: 100px; padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Behov</th>
+                  <th style="width: 340px; padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Fra</th>
+                  <th style="width: 340px; padding: 6px 8px; text-align: left; font-weight: 500; color: #495057;">Til</th>
                 </tr>
               </thead>
               <tbody>
@@ -1067,12 +1098,12 @@
         html += `
           <tr style="border-bottom: 1px solid #dee2e6;">
             <td style="padding: 6px 8px;"><span style="background: ${item.type === 'Ventende' ? '#ffc107' : '#17a2b8'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">${item.type}</span></td>
-            <td style="padding: 6px 8px; color: #495057;">${reknrDisplay}</td>
+            <td style="padding: 6px 8px; color: #495057; white-space: nowrap; overflow: hidden;">${reknrDisplay}</td>
             <td style="padding: 6px 8px; ${hentetidStyle}">${item.hentetid}</td>
             <td style="padding: 6px 8px; ${leveringstidStyle}">${item.leveringstid}</td>
             <td style="padding: 6px 8px; ${behovStyle}">${behovDisplay}</td>
-            <td style="padding: 6px 8px; color: #495057;">${cleanAddressSuffixes(item.fra)}</td>
-            <td style="padding: 6px 8px; color: #495057;">${cleanAddressSuffixes(item.til)}</td>
+            <td style="padding: 6px 8px; color: #495057; white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.fra)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
+            <td style="padding: 6px 8px; color: #495057; white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.til)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
           </tr>
         `;
       }
@@ -1091,12 +1122,12 @@
   // HOVEDKJØRING - wrapped i try-catch for kolonnevalidering
   // ============================================================
   try {
-    const { duplicates: countDuplicates, excludedNames } = findDuplicates();
-    const routeDuplicates = findSameRouteDuplicates(excludedNames);
+    const { duplicates: countDuplicates, excludedKeys } = findDuplicates();
+    const routeDuplicates = findSameRouteDuplicates(excludedKeys);
     const dateMismatches = findDateMismatches();
     const problematicNeeds = findProblematicNeeds();
     const timeLogicErrors = findTimeLogicErrors();
-    const returnBeforeOutbound = findReturnBeforeOutbound(excludedNames);
+    const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
     const shortTravelTime = findShortTravelTime();
     showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime);
   } catch (error) {

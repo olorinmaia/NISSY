@@ -12,13 +12,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.5.7] - 28.05.2026
 
-### Loader: URL-validering og forbedring til Live-ressurskart
+### Loader: URL-validering og forbedringer til Live-ressurskart og Sjekk-bestilling
 
 - 🧩 **Loadere (Advanced, Basic, AMK)**
   - Scriptet kjører nå kun på godkjente NISSY-domener (PROD, QA og TEST) – forhindrer at scriptet kjøres på utdaterte URL-er som ikke lenger fungerer som tiltenkt
   - Ved feil URL vises en popup med forklaring og klikkbar lenke til riktig URL, slik at bruker enkelt kan oppdatere bokmerket sitt
 - 📡 **Live-ressurskart**
   - **Hover på beregnet rute** – holder man musepekeren over en rutestrekning vises veglengde og estimert reisetid for det segmentet
+- 🔍 **Sjekk-bestilling**
+  - **Dagsbasert duplikatsjekk** – duplikater, rute-duplikater og retur-tidsfeil sjekkes nå per dag, slik at pasienter med daglige turer ikke feilaktig flagges når filteret viser flere dager
+  - **Adressekutting** – adresser i Fra/Til-kolonnene kuttes til maks 50 tegn; full adresse vises ved hover
+  - **Faste kolonnebredder** – Forbedret layout på tabeller slik at det blir likt på tvers av resultatene
 
 ---
 
