@@ -45,6 +45,11 @@
     return;
   }
 
+  if (!document.querySelector('.topframe_small')?.textContent.includes('Pasientreisekontor for')) {
+    console.warn('⚠️ NISSY: Ikke logget inn i NISSY Planlegging');
+    return;
+  }
+
   const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
   
   const scripts = [
