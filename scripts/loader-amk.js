@@ -3,12 +3,45 @@
   // URL-VALIDERING
   // Sjekk at vi er på riktig side før vi laster scripts
   // ============================================================
+  const VALID_ORIGINS = [
+    'https://nissy6.pasientreiser.nhn.no',
+    'https://nissy6.qa.pasientreiser.nhn.no',
+    'https://nissy6.test.pasientreiser.nhn.no'
+  ];
   const currentUrl = window.location.href;
-  
+  const validOrigin = VALID_ORIGINS.some(o => currentUrl.startsWith(o));
+
+  if (!validOrigin) {
+    if (currentUrl.includes('/planlegging')) {
+      (() => {
+        const ov = document.createElement('div');
+        Object.assign(ov.style, { position:'fixed', top:0, left:0, width:'100vw', height:'100vh',
+          background:'rgba(0,0,0,0.5)', zIndex:'999999', display:'flex', alignItems:'center', justifyContent:'center' });
+        const box = document.createElement('div');
+        box.innerHTML = `
+          <h3 style="margin:0 0 12px;color:#c0392b;">⚠️ Feil URL oppdaget</h3>
+          <p style="margin:0 0 12px;color:#333;font-size:14px;">For at scriptene skal virke som tiltenkt må ny URL til NISSY planlegging benyttes.<br><br>Oppdater bokmerket ditt til riktig URL:</p>
+          <a href="https://nissy6.pasientreiser.nhn.no/planlegging/"
+             style="display:block;padding:8px 12px;background:#f0f8ff;border:1px solid #4a90e2;
+                    border-radius:4px;color:#4a90e2;font-family:monospace;font-size:13px;
+                    word-break:break-all;text-decoration:none;margin-bottom:16px;"
+          >https://nissy6.pasientreiser.nhn.no/planlegging/</a>
+          <button id="_nissyUrlOk" style="padding:8px 20px;background:#4a90e2;color:white;border:none;
+                  border-radius:6px;cursor:pointer;font-size:14px;width:100%;">OK</button>`;
+        Object.assign(box.style, { background:'white', padding:'24px', borderRadius:'10px',
+          boxShadow:'0 8px 30px rgba(0,0,0,0.3)', maxWidth:'420px', width:'90%', fontFamily:'Arial, sans-serif' });
+        ov.appendChild(box);
+        document.body.appendChild(ov);
+        const close = () => ov.remove();
+        box.querySelector('#_nissyUrlOk').onclick = close;
+        ov.addEventListener('click', e => { if (e.target === ov) close(); });
+      })();
+    }
+    return;
+  }
+
   if (!currentUrl.includes('/planlegging')) {
-    console.warn('⚠️ NISSY: Feil URL - scriptet kjører kun på /planlegging');
-    console.log('📍 Nåværende URL:', currentUrl);
-    console.log('✅ Scriptet kjører på alle URLer som inneholder /planlegging');
+    console.warn('⚠️ NISSY: Scriptet kjører kun på /planlegging-siden');
     return;
   }
 
