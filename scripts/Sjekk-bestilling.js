@@ -45,11 +45,24 @@
   ];
 
   // ============================================================
+  // KONFIGURASJON: ADRESSEVISNING
+  // ============================================================
+  const MAX_ADDRESS_LENGTH = 50; // Maks antall tegn i adressevisning (sett til Infinity for å vise fullt)
+
+  // ============================================================
   // KONFIGURASJON: TIDSFEIL-SJEKK
   // ============================================================
   // Kontroller hvilke reiseretninger som skal sjekkes for tidsfeil
   const CHECK_TO_TREATMENT = true;    // Sjekk reiser TIL behandling (fra gateadresse)
   const CHECK_FROM_TREATMENT = false;  // Sjekk returreiser FRA behandling (til gateadresse)
+
+  // ============================================================
+  // HJELPEFUNKSJON: Kutt adresse til maks lengde
+  // ============================================================
+  function truncateAddress(address) {
+    if (!address || address.length <= MAX_ADDRESS_LENGTH) return { display: address || '', full: address || '', truncated: false };
+    return { display: address.slice(0, MAX_ADDRESS_LENGTH) + '…', full: address, truncated: true };
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Sjekk om en adresse er en gateadresse (har husnummer)
@@ -1071,8 +1084,8 @@
             <td style="padding: 6px 8px; ${hentetidStyle}">${item.hentetid}</td>
             <td style="padding: 6px 8px; ${leveringstidStyle}">${item.leveringstid}</td>
             <td style="padding: 6px 8px; ${behovStyle}">${behovDisplay}</td>
-            <td style="padding: 6px 8px; color: #495057;">${cleanAddressSuffixes(item.fra)}</td>
-            <td style="padding: 6px 8px; color: #495057;">${cleanAddressSuffixes(item.til)}</td>
+            <td style="padding: 6px 8px; color: #495057;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.fra)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
+            <td style="padding: 6px 8px; color: #495057;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.til)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
           </tr>
         `;
       }
