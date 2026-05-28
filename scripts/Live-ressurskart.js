@@ -237,7 +237,6 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
         <style>
           * {
             margin: 0;
@@ -400,9 +399,6 @@
             background: #035f7d !important;
           }
 
-          .leaflet-routing-container {
-            display: none;
-          }
           .plan-label { display:flex; flex-direction:column; align-items:center; margin-top:1px;
             text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }
           .plan-time { display:flex; gap:3px; font-size:10px; font-weight:700; white-space:nowrap; line-height:1.2; }
@@ -457,9 +453,7 @@
       }
       // Last Leaflet, deretter MarkerCluster (rekkefølge er viktig)
       loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', () => {
-        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', () => {
-          loadScript('https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', resolve);
-        });
+        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', resolve);
       });
     });
     
@@ -522,6 +516,22 @@ function updateRouteToggleBtn() {
   }
 }
 
+function formatDist(meters) {
+  return meters < 1000 ? Math.round(meters) + ' m' : (meters / 1000).toFixed(1) + ' km';
+}
+function haversineDist(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const φ1 = lat1*Math.PI/180, φ2 = lat2*Math.PI/180;
+  const dφ = (lat2-lat1)*Math.PI/180, dλ = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function formatTime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  return h > 0 ? h + ' t ' + m + ' min' : m + ' min';
+}
+
 function drawRoute() {
   removeActiveRoute();
   if (!routeEnabled || !activeVehicleData || !activePlanStopGroupList || !activePlanStopLayer) return;
@@ -533,36 +543,60 @@ function drawRoute() {
     if (timeCmp !== 0) return timeCmp;
     return (a.representative.type || '').localeCompare(b.representative.type || '');
   });
-  const nowMs = Date.now();
-  const pastPickups = sortedGroups.filter(({ representative: r }) =>
-    r.type === '1803' && r.time && new Date(r.time).getTime() <= nowMs
+  const vTimestampMs = activeVehicleData.timestamp
+    ? new Date(activeVehicleData.timestamp).getTime()
+    : Date.now();
+  const beforeCar = sortedGroups.filter(({ representative: r }) =>
+    r.time && new Date(r.time).getTime() <= vTimestampMs
   );
-  const remainingStops = sortedGroups.filter(({ representative: r }) =>
-    !(r.type === '1803' && r.time && new Date(r.time).getTime() <= nowMs)
+  const afterCar = sortedGroups.filter(({ representative: r }) =>
+    !r.time || new Date(r.time).getTime() > vTimestampMs
   );
-  if (pastPickups.length === 0 && remainingStops.length === 0) return;
+  if (beforeCar.length === 0 && afterCar.length === 0) return;
   const waypoints = [
-    ...pastPickups.map(({ representative: r }) => L.latLng(r.lat, r.lon)),
+    ...beforeCar.map(({ representative: r }) => L.latLng(r.lat, r.lon)),
     L.latLng(vLat, vLon),
-    ...remainingStops.map(({ representative: r }) => L.latLng(r.lat, r.lon))
+    ...afterCar.map(({ representative: r }) => L.latLng(r.lat, r.lon))
   ];
+
+  let cancelled = false;
+  const polys = [];
+
   const fallback = () => {
-    const poly = L.polyline(waypoints.map(w => [w.lat, w.lng]), {
-      color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8, 6'
-    }).addTo(map);
-    activeRouteControl = { remove: () => map.removeLayer(poly) };
+    if (cancelled) return;
+    waypoints.slice(0,-1).forEach((w, i) => {
+      const next = waypoints[i+1];
+      const poly = L.polyline([[w.lat,w.lng],[next.lat,next.lng]], {
+        color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8, 6'
+      }).addTo(map);
+      poly.bindTooltip('🛣 ' + formatDist(haversineDist(w.lat,w.lng,next.lat,next.lng)), { sticky: true });
+      polys.push(poly);
+    });
+    activeRouteControl = { remove: () => { cancelled = true; polys.forEach(p => map.removeLayer(p)); polys.length = 0; } };
   };
-  try {
-    const ctrl = L.Routing.control({
-      waypoints,
-      router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'driving', timeout: 10000 }),
-      lineOptions: { styles: [{ color: '#047CA1', weight: 4, opacity: 0.7 }] },
-      createMarker: () => null, addWaypoints: false, routeWhileDragging: false,
-      showAlternatives: false, fitSelectedRoutes: false, show: false
-    }).addTo(map);
-    ctrl.on('routingerror', () => { map.removeControl(ctrl); fallback(); });
-    activeRouteControl = { remove: () => map.removeControl(ctrl) };
-  } catch (e) { fallback(); }
+
+  activeRouteControl = { remove: () => { cancelled = true; polys.forEach(p => map.removeLayer(p)); polys.length = 0; } };
+
+  const coords = waypoints.map(w => w.lng + ',' + w.lat).join(';');
+  fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=false&steps=true&geometries=geojson',
+    { signal: AbortSignal.timeout(10000) })
+  .then(r => r.json())
+  .then(data => {
+    if (cancelled) return;
+    const route = data.routes && data.routes[0];
+    if (!route) { fallback(); return; }
+    route.legs.forEach(leg => {
+      const latlngs = [];
+      leg.steps.forEach(step => step.geometry.coordinates.forEach(c => latlngs.push([c[1], c[0]])));
+      const poly = L.polyline(latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
+      poly.on('mouseover', function() { this.setStyle({ weight: 6, opacity: 1 }); });
+      poly.on('mouseout',  function() { this.setStyle({ weight: 4, opacity: 0.7 }); });
+      poly.bindTooltip('🛣 ' + formatDist(leg.distance) + '  ·  ⏱ ca. ' + formatTime(leg.duration), { sticky: true });
+      polys.push(poly);
+    });
+    activeRouteControl = { remove: () => { cancelled = true; polys.forEach(p => map.removeLayer(p)); polys.length = 0; } };
+  })
+  .catch(() => { if (!cancelled) fallback(); });
 }
 
 updateRouteToggleBtn();
