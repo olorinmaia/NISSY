@@ -26,18 +26,7 @@
         }
     }
 
-    // Finn rekvisisjons-ID fra rad-ID (V- og P-rader)
-    function getRidFromRowId(rowId) {
-        if (rowId.startsWith('V-')) return rowId.replace(/^V-/, '');
-        if (rowId.startsWith('P-')) {
-            const row = document.getElementById(rowId);
-            const poppImg = row?.querySelector('img[id^="popp_"]');
-            return poppImg?.id.replace('popp_', '') || null;
-        }
-        return null;
-    }
-
-    // Regulært uttrykk for gyldig telefonnummer
+// Regulært uttrykk for gyldig telefonnummer
     // Aksepterer: 
     // - 12345678 (8 siffer)
     // - +4712345678 (+ og 10 siffer)
@@ -173,7 +162,8 @@
                     results.push({
                         name: name,
                         phone: phone === '' || phone === '&nbsp;' ? 'Mangler' : phone,
-                        rowId: row.id
+                        rowId: row.id,
+                        reqId: row.id.replace(/^V-/, '')
                     });
                 }
             }
@@ -228,7 +218,8 @@
                 const phoneDivs = phoneCell.querySelectorAll('div');
 
                 if (nameDivs.length > 0 && phoneDivs.length > 0) {
-                    // Flere oppdrag i samme ressurs
+                    // Flere oppdrag i samme ressurs — hent reqId per indeks
+                    const poppImgs = row.querySelectorAll('img[id^="popp_"]');
                     for (let i = 0; i < nameDivs.length; i++) {
                         const name = nameDivs[i].textContent.trim();
                         const phone = i < phoneDivs.length ? phoneDivs[i].textContent.trim() : '';
@@ -237,7 +228,8 @@
                             results.push({
                                 name: name,
                                 phone: phone === '' || phone === '&nbsp;' ? 'Mangler' : phone,
-                                rowId: row.id
+                                rowId: row.id,
+                                reqId: poppImgs[i]?.id.replace('popp_', '') || null
                             });
                         }
                     }
@@ -245,12 +237,14 @@
                     // Enkelt oppdrag
                     const name = nameCell.textContent.trim();
                     const phone = phoneCell.textContent.trim();
+                    const poppImg = row.querySelector('img[id^="popp_"]');
 
                     if (!isValidPhone(phone)) {
                         results.push({
                             name: name,
                             phone: phone === '' || phone === '&nbsp;' ? 'Mangler' : phone,
-                            rowId: row.id
+                            rowId: row.id,
+                            reqId: poppImg?.id.replace('popp_', '') || null
                         });
                     }
                 }
@@ -272,7 +266,7 @@
         const uniqueNames = {};
         results.forEach(result => {
             if (!uniqueNames[result.name]) {
-                uniqueNames[result.name] = { phone: result.phone, rowId: result.rowId };
+                uniqueNames[result.name] = { phone: result.phone, rowId: result.rowId, reqId: result.reqId };
             }
         });
 
@@ -280,6 +274,7 @@
             name: name,
             phone: uniqueNames[name].phone,
             rowId: uniqueNames[name].rowId,
+            reqId: uniqueNames[name].reqId,
         }));
 
         // Opprett modal overlay
@@ -465,7 +460,7 @@
                     this.style.transform = 'translateY(0)';
                 };
                 editButton.onclick = async function() {
-                    const rid = getRidFromRowId(result.rowId);
+                    const rid = result.reqId;
                     if (!rid) { alert('Kunne ikke finne rekvisisjons-ID for denne bestillingen.'); return; }
                     const ssn = await fetchSSN(rid);
                     if (!ssn) { alert('Kunne ikke hente fødselsnummer for denne bestillingen.'); return; }
