@@ -10,6 +10,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.5.8] - 29.05.2026
+
+### Kartvisning: Raskere ruteberegning – NISSY-fiks: Raskere og mer pålitelig filterbytte
+
+- 🗺️ **Kartvisning**
+  - **Raskere ruteberegning** – timeout for ruteberegning er halvert fra 8–10 sekunder til 4 sekunder, slik at kartet reagerer raskere når en rute ikke kan beregnes
+- ⌛ **NISSY-fiks**
+  - **Filterbytte – ventende oppdrag**: fjernet unødvendig lasting etter filterbytte på ventende oppdrag, noe som gir raskere respons og færre kall til serveren
+  - **Filterbytte – pågående oppdrag**: fikset en timing-feil som kunne føre til at pågående oppdrag ble åpnet for tidlig (før filteret var ferdig lastet) ved rask veksling mellom filtre
+
+---
+
 ## 🔧 [4.5.7] - 28.05.2026
 
 ### Loader: URL-validering og forbedringer til Live-ressurskart og Sjekk-bestilling
