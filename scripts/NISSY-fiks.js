@@ -13,7 +13,8 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.5.7'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.5.8'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
 
@@ -562,11 +563,13 @@
      ====================================================== */
 
   let activeWaiters = {
-    filter: null,
     cancel: null,
     search: null,
     assign: null
   };
+
+  // Flag som konsumeres av neste rfilter-XHR når den åpner
+  let _rfilterOpenPoppPending = false;
 
   let columnChangeDebounceTimer = null;
   const COLUMN_CHANGE_DEBOUNCE = 3000; // 3 sekunder debounce
@@ -578,8 +581,10 @@
     this._requestUrl = url;
 
     if (url.includes('ajax-dispatch?did=all&')) {
-      if (url.includes('vfilter=') || url.includes('rfilter=')) {
-        this._requestType = 'filter';
+      if (url.includes('rfilter=')) {
+        this._requestType = 'rfilter';
+        this._openPoppAfterLoad = _rfilterOpenPoppPending;
+        _rfilterOpenPoppPending = false;
       } else if (url.includes('search=none')) {
         this._requestType = 'cancel';
       } else if (url.includes('search=')) {
@@ -599,7 +604,14 @@
     if (this._requestType) {
       const requestType = this._requestType;
 
+      const openPoppAfterLoad = this._openPoppAfterLoad;
       this.addEventListener("load", () => {
+        if (requestType === 'rfilter') {
+          if (openPoppAfterLoad) {
+            openPopp("-1");
+          }
+          return;
+        }
         const waiter = activeWaiters[requestType];
         if (waiter) {
           clearTimeout(waiter.timeout);
@@ -641,16 +653,16 @@
      DEL 4: FILTER-HÅNDTERING
      ====================================================== */
 
-  // Selects som skal kjøre clear + waitForAjax + openPopp
+  // Selects som skal kjøre clear + waitForAjax + openPopp (pågående oppdrag kan kollapse ved filterbytte)
   const SELECTS_FULL_ACTION = [
-    "filter-resurser",
-    "filter-ventende-oppdrag"
+    "filter-resurser"
   ];
 
   // Selects som KUN skal kjøre clear
   const SELECTS_CLEAR_ONLY = [
     "show-vopp-columns",
     "hide-vopp-columns",
+    "filter-ventende-oppdrag",
     "filter-ventende-oppdrag-gruppe",
     "filter-resurser-gruppe",
     "show-popp-columns",
@@ -671,13 +683,10 @@
       clearSelection();
       return;
     }
-  
+
     if (SELECTS_FULL_ACTION.includes(select.name)) {
       clearSelection();
-  
-      waitForAjaxThen("filter", () => {
-        openPopp("-1");
-      });
+      _rfilterOpenPoppPending = true;
     }
   }
 
