@@ -107,6 +107,20 @@
   
   console.log('✅ NISSY AMK DEV lastet!');
 
+  // Patch versjonsnummer til -dev (venter på NISSY-fiks sin footer-timeout på 400ms)
+  setTimeout(() => {
+    const ver = window.__nissyScriptVersion;
+    if (!ver || ver.endsWith('-dev')) return;
+    const parts = ver.split('.');
+    parts[2] = String(Number(parts[2]) + 1);
+    const devVer = parts.join('.') + '-dev';
+    const vLink = document.querySelector('#nissy-fiks-about a');
+    if (vLink) vLink.textContent = 'v' + devVer;
+    const vStrong = document.querySelector('#nissy-about-popup strong');
+    if (vStrong) vStrong.textContent = 'NISSY powered by JavaScript v' + devVer;
+    window.__nissyScriptVersion = devVer;
+  }, 600);
+
   // ============================================================
   // LEGG TIL DIVERSE KNAPPER ØVERST OG SKJUL FILTER
   // ============================================================
