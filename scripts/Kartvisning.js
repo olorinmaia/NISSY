@@ -773,7 +773,7 @@
           method: 'POST',
           headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
           body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]] }),
-          signal: AbortSignal.timeout(8000)
+          signal: AbortSignal.timeout(4000)
         })
         .then(function (r) { return r.json(); })
         .then(function (d) {
@@ -786,7 +786,7 @@
       function fetchDurationOSRM(lonA, latA, lonB, latB) {
         return fetch('https://router.project-osrm.org/route/v1/driving/' +
           lonA + ',' + latA + ';' + lonB + ',' + latB + '?overview=false',
-          { signal: AbortSignal.timeout(5000) })
+          { signal: AbortSignal.timeout(4000) })
         .then(function (r) { return r.json(); })
         .then(function (d) { return d.routes && d.routes[0] ? d.routes[0].duration : null; });
       }
@@ -811,7 +811,7 @@
             method: 'POST',
             headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
             body: JSON.stringify({ coordinates: points }),
-            signal: AbortSignal.timeout(8000)
+            signal: AbortSignal.timeout(4000)
           })
           .then(function (r) { return r.json(); })
           .then(function (d) {
@@ -824,7 +824,7 @@
         function viaOSRM() {
           const coords = points.map(function (p) { return p[0] + ',' + p[1]; }).join(';');
           return fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=false',
-            { signal: AbortSignal.timeout(5000) })
+            { signal: AbortSignal.timeout(4000) })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             const legs = data.routes && data.routes[0] ? data.routes[0].legs : null;
@@ -1099,7 +1099,7 @@
         function routeViaOsrm() {
           const coords = currentWaypoints.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
           fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson&steps=true', {
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(4000)
           })
           .then(function (r) { return r.json(); })
           .then(function (data) {
@@ -1126,7 +1126,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': '${ORS_API_KEY}' },
             body: JSON.stringify({ coordinates: coords }),
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(4000)
           })
           .then(function (r) { return r.json(); })
           .then(function (data) {
