@@ -584,9 +584,6 @@
         this._requestType = 'rfilter';
         this._openPoppAfterLoad = _rfilterOpenPoppPending;
         _rfilterOpenPoppPending = false;
-        console.log(`[NISSY] XHR open: rfilter → openPopp=${this._openPoppAfterLoad}`, url);
-      } else if (url.includes('vfilter=')) {
-        console.log(`[NISSY] XHR open: vfilter (ingen waiter)`, url);
       } else if (url.includes('search=none')) {
         this._requestType = 'cancel';
       } else if (url.includes('search=')) {
@@ -609,9 +606,7 @@
       const openPoppAfterLoad = this._openPoppAfterLoad;
       this.addEventListener("load", () => {
         if (requestType === 'rfilter') {
-          console.log(`[NISSY] XHR load: rfilter → openPopp=${openPoppAfterLoad}`, this._requestUrl);
           if (openPoppAfterLoad) {
-            console.log(`[NISSY] openPopp kalt etter rfilter`);
             openPopp("-1");
           }
           return;
@@ -684,13 +679,11 @@
     if (!select || select.tagName !== "SELECT") return;
   
     if (SELECTS_CLEAR_ONLY.includes(select.name)) {
-      console.log(`[NISSY] Select "${select.name}" → clear only (ingen waiter)`);
       clearSelection();
       return;
     }
 
     if (SELECTS_FULL_ACTION.includes(select.name)) {
-      console.log(`[NISSY] Select "${select.name}" → clear + rfilter flag`);
       clearSelection();
       _rfilterOpenPoppPending = true;
     }
