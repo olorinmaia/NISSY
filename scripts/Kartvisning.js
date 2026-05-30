@@ -1341,7 +1341,7 @@
                   const ventMin = nesteAvgangMin - ankomstFerjeMin;
                   if (ventMin > VENT_GRENSE) {
                     maxVentMin = Math.max(maxVentMin, ventMin);
-                    if (validLL(r.b.hentested)) {
+                    if (validLL(r.b.hentested) && advarsler.length === 0) {
                       const _adjMin = ventMin - VENT_MIN;
                       if (_adjMin > 0) {
                         foreslåttHent[r.b.reqId] = minTil(klarMin + _adjMin);
@@ -1351,11 +1351,6 @@
                   }
                   if (ventMin >= 0 && ventMin < VENT_MIN) {
                     tooShortVentMin = tooShortVentMin < 0 ? ventMin : Math.min(tooShortVentMin, ventMin);
-                    if (klarMin !== null && validLL(r.b.hentested)) {
-                      const _shortAdj = VENT_MIN - ventMin;
-                      foreslåttHent[r.b.reqId] = minTil(klarMin - _shortAdj);
-                      refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
-                    }
                   }
                 }
               });
@@ -1376,8 +1371,8 @@
                   }
                 }
               }
-              if (vehicleVentMin >= 0 && vehicleVentMin < VENT_MIN && tooShortVentMin < 0) {
-                tooShortVentMin = vehicleVentMin;
+              if (vehicleVentMin >= 0 && vehicleVentMin < VENT_MIN) {
+                if (tooShortVentMin < 0) tooShortVentMin = vehicleVentMin;
                 if (advarsler.length === 0) {
                   const _shortAdj = VENT_MIN - vehicleVentMin;
                   forwards.forEach(function(r) {
@@ -1387,6 +1382,19 @@
                       refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
                     }
                   });
+                  if (startTid !== null) {
+                    returs.forEach(function(r) {
+                      if (!validLL(r.b.hentested)) return;
+                      let _wpIdx = 0, _wpDist = Infinity;
+                      currentWaypoints.forEach(function(wp, idx) {
+                        const d = haversine({ lat: wp.lat, lon: wp.lng }, r.b.hentested);
+                        if (d < _wpDist) { _wpDist = d; _wpIdx = idx; }
+                      });
+                      const _carArrival = startTid + _cumSecAtWp[_wpIdx] / 60;
+                      foreslåttHent[r.b.reqId] = minTil(Math.round(_carArrival - _shortAdj));
+                      refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
+                    });
+                  }
                 }
               }
 
