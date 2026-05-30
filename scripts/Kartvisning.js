@@ -1007,8 +1007,10 @@
 
       function drawRoute(isRedraw) {
         if (!routeOn || currentWaypoints.length < 2) return;
+        if (!isRedraw) setRouteInfo('⏳ Beregner rute…');
 
         const fallback = function () {
+          setRouteInfo(null);
           const poly = L.polyline(currentWaypoints.map(function (w) { return [w.lat, w.lng]; }),
             { color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8,6' }).addTo(map);
           routeControl = { remove: function () { map.removeLayer(poly); } };
