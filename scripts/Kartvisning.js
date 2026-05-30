@@ -1095,7 +1095,7 @@
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50] });
-          sjekkFerger(legs, polys);
+          sjekkFerger(legs, polys, _cumSecAtWp);
         }
 
         function routeViaOsrm() {
@@ -1155,7 +1155,7 @@
         resetFerjeMarkers();
       }
 
-      function sjekkFerger(legs, polys) {
+      function sjekkFerger(legs, polys, _cumSecAtWp) {
         const RADIUS_M = 400;
 
         let startTid = null, startDato = null;
@@ -1226,7 +1226,8 @@
         }
 
         function sjekkLeveringViaFerge(boardLeie, boardFm, exitLeie, crossingMin, nesteAvgangMin, boardAnkomstMin, bookings, boardFirstIdx) {
-          const VENT_GRENSE = 20;
+          const VENT_GRENSE = 30;
+          const VENT_MIN = 10;
           const kandidater = bookings.filter(function (b) {
             if (!validLL(b.leveringssted) || parseMin(b.oppmote) === null) return false;
             let closestDelIdx = 0, closestDelDist = Infinity;
@@ -1299,6 +1300,7 @@
               const advarsler = [];
               let maxDiff = 0;
               let maxVentMin = 0;
+              let tooShortVentMin = -1;
 
               forwards.forEach(function (r, i) {
                 const cumSec = forwardSecs[i];
@@ -1313,12 +1315,15 @@
                   maxDiff = Math.max(maxDiff, diff);
                   advarsler.push('<span style="color:#c62828;font-size:11px">⚠️ ' + (r.b.pasientNavn || '?') +
                     ': levering ~' + minTil(estimertMin) + ' (<b>' + diff + ' min for sent</b>, oppmøte ' + minTil(oppmoteMin) + ')</span>');
-                  if (minutterTidligere !== null && minutterTidligere > 0 && validLL(r.b.hentested)) {
-                    const hKlarMin = parseMin(r.b.pasientKlar);
-                    if (hKlarMin !== null) {
-                      foreslåttHent[r.b.reqId] = minTil(hKlarMin - minutterTidligere);
-                      refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
-                    }
+                  if (minutterTidligere !== null && minutterTidligere > 0 && validLL(r.b.hentested) && startTid !== null) {
+                    let _wpIdx = 0, _wpDist = Infinity;
+                    currentWaypoints.forEach(function(wp, idx) {
+                      const d = haversine({ lat: wp.lat, lon: wp.lng }, r.b.hentested);
+                      if (d < _wpDist) { _wpDist = d; _wpIdx = idx; }
+                    });
+                    const _carArrival = startTid + _cumSecAtWp[_wpIdx] / 60;
+                    foreslåttHent[r.b.reqId] = minTil(Math.round(_carArrival - minutterTidligere));
+                    refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
                   }
                 }
               });
@@ -1334,11 +1339,58 @@
                 if (r.boardSec !== null && klarMin !== null) {
                   const ankomstFerjeMin = klarMin + Math.round(r.boardSec / 60);
                   const ventMin = nesteAvgangMin - ankomstFerjeMin;
-                  if (ventMin > VENT_GRENSE) maxVentMin = Math.max(maxVentMin, ventMin);
+                  if (ventMin > VENT_GRENSE) {
+                    maxVentMin = Math.max(maxVentMin, ventMin);
+                    if (validLL(r.b.hentested)) {
+                      const _adjMin = ventMin - VENT_MIN;
+                      if (_adjMin > 0) {
+                        foreslåttHent[r.b.reqId] = minTil(klarMin + _adjMin);
+                        refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
+                      }
+                    }
+                  }
+                  if (ventMin >= 0 && ventMin < VENT_MIN) {
+                    tooShortVentMin = tooShortVentMin < 0 ? ventMin : Math.min(tooShortVentMin, ventMin);
+                    if (klarMin !== null && validLL(r.b.hentested)) {
+                      const _shortAdj = VENT_MIN - ventMin;
+                      foreslåttHent[r.b.reqId] = minTil(klarMin - _shortAdj);
+                      refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
+                    }
+                  }
                 }
               });
 
-              if (!advarsler.length && maxVentMin === 0) return;
+              const vehicleVentMin = nesteAvgangMin - boardAnkomstMin;
+              if (vehicleVentMin > VENT_GRENSE) {
+                maxVentMin = Math.max(maxVentMin, vehicleVentMin);
+                if (advarsler.length === 0) {
+                  const _fwdAdj = vehicleVentMin - VENT_MIN;
+                  if (_fwdAdj > 0) {
+                    forwards.forEach(function(r) {
+                      const _fKl = parseMin(r.b.pasientKlar);
+                      if (_fKl !== null && validLL(r.b.hentested)) {
+                        foreslåttHent[r.b.reqId] = minTil(_fKl + _fwdAdj);
+                        refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
+                      }
+                    });
+                  }
+                }
+              }
+              if (vehicleVentMin >= 0 && vehicleVentMin < VENT_MIN && tooShortVentMin < 0) {
+                tooShortVentMin = vehicleVentMin;
+                if (advarsler.length === 0) {
+                  const _shortAdj = VENT_MIN - vehicleVentMin;
+                  forwards.forEach(function(r) {
+                    const _fKl = parseMin(r.b.pasientKlar);
+                    if (_fKl !== null && validLL(r.b.hentested)) {
+                      foreslåttHent[r.b.reqId] = minTil(_fKl - _shortAdj);
+                      refreshMarker(coordKey(r.b.hentested.lat, r.b.hentested.lon));
+                    }
+                  });
+                }
+              }
+
+              if (!advarsler.length && maxVentMin === 0 && tooShortVentMin < 0) return;
               const tooltip = boardFm.getTooltip();
               if (!tooltip) return;
               const alleLinjer = advarsler.slice();
@@ -1347,9 +1399,14 @@
                 if (minutterTidligere !== null && minutterTidligere > 0) {
                   alleLinjer.push('<span style="color:#e65100;font-size:11px">⬆ Hent <b>' + minutterTidligere + ' min</b> tidligere → rekker ' + minTil(prevAvgangMin) + '-fergen</span>');
                 }
+              } else if (tooShortVentMin >= 0) {
+                const manglerMin = VENT_MIN - tooShortVentMin;
+                boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⚠️ ' + tooShortVentMin + 'min', '#c62828'));
+                alleLinjer.push('<span style="color:#c62828;font-size:11px">⚠️ Ankommer ~' + tooShortVentMin + ' min før avgang – hent <b>' + manglerMin + ' min</b> tidligere for ' + VENT_MIN + ' min buffer</span>');
               } else if (maxVentMin > 0) {
+                const _adjMin = maxVentMin - VENT_MIN;
                 boardFm.setIcon(makeFerjeIcon(boardLeie, { avgang: minTil(nesteAvgangMin) }, '⏱ ' + maxVentMin + 'min', '#e65100'));
-                alleLinjer.push('<span style="color:#e65100;font-size:11px">⏱ Ankommer ~' + maxVentMin + ' min før neste avgang</span>');
+                alleLinjer.push('<span style="color:#e65100;font-size:11px">⏱ Ankommer ~' + maxVentMin + ' min for tidlig – hent <b>' + _adjMin + ' min</b> senere for ' + VENT_MIN + ' min buffer</span>');
               }
               boardFm.setTooltipContent((tooltip.getContent() || '') +
                 '<hr style="border:none;border-top:1px solid #bbdefb;margin:4px 0">' + alleLinjer.join('<br>'));
