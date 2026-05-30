@@ -748,7 +748,7 @@
                       color: #333;
                       font-family: 'Courier New', monospace;
                     "
-                    title="Redigerbart felt for beregning. Endringen lagres IKKE i systemet, men brukes kun til å beregne hentetid."
+                    title="Oppmøtetid brukt for beregning av hentetid. Lagres ikke i bestillingen."
                   >
                 ` : `
                   <div style="
@@ -1994,10 +1994,84 @@
     // Beregn om alle bestillinger er returer (trengs for spacer-styling)
     const allAreReturer = sortedBestillinger.every(b => {
       if (!b.oppmotetid) return false; // Ingen oppmøtetid = ikke retur
-      
-      return b.existingTime === b.oppmotetid || 
+
+      return b.existingTime === b.oppmotetid ||
              (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''));
     });
+
+    // Bestillinger med redigerbar oppmøtetid (reiser til behandling, ikke returer)
+    const beregnAlleBestillinger = sortedBestillinger.filter(b => {
+      const isRetur = b.oppmotetid && (
+        b.existingTime === b.oppmotetid ||
+        (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''))
+      );
+      return b.oppmotetid && !isRetur;
+    });
+
+    // Tidligste oppmøtetid blant disse brukes som default i felles-feltet
+    // (bruker for-løkke istedenfor reduce — NISSY overstyrer Array.prototype.reduce)
+    let tidligsteOppmotetid = '';
+    for (let _i = 0; _i < beregnAlleBestillinger.length; _i++) {
+      const _opp = String(beregnAlleBestillinger[_i].oppmotetid || '');
+      if (_opp && (!tidligsteOppmotetid || _opp.replace(':', '') < tidligsteOppmotetid.replace(':', ''))) {
+        tidligsteOppmotetid = _opp;
+      }
+    }
+
+    const fellesOppmotetidHtml = beregnAlleBestillinger.length > 1 ? `
+      <div style="
+        background: #f0f7ff;
+        border: 1px solid #90caf9;
+        border-left: 4px solid #1976d2;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      ">
+        <span style="font-size: 12px; font-weight: 600; color: #1565c0; flex-shrink: 0;">
+          🔄 Felles oppmøtetid:
+        </span>
+        <span
+          id="opptime_felles"
+          data-original="${tidligsteOppmotetid}"
+          contenteditable="true"
+          style="
+            padding: 4px 8px;
+            border: 2px solid #ffc107;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 60px;
+            display: inline-block;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            background: #fffbf0;
+            color: #333;
+            outline: none;
+            cursor: text;
+          "
+          title="Felles oppmøtetid for beregning av hentetid. Endrer ikke oppmøtetid i bestillingene."
+        >${tidligsteOppmotetid}</span>
+        <button
+          id="beregnAlleButton"
+          style="
+            padding: 5px 14px;
+            background: #17a2b8;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+          "
+          title="Beregner hentetid for alle reiser til behandling basert på felles oppmøtetid."
+        >🧮 Beregn alle</button>
+      </div>
+    ` : '';
 
     // Bygg HTML for hver bestilling
     const bestillingRows = sortedBestillinger.map((b, index) => {
@@ -2135,7 +2209,7 @@
                       color: #333;
                       font-family: 'Courier New', monospace;
                     "
-                    title="Redigerbart felt for beregning. Endringen lagres IKKE i systemet, men brukes kun til å beregne hentetid."
+                    title="Oppmøtetid brukt for beregning av hentetid. Lagres ikke i bestillingen."
                   >
                 ` : `
                   <div style="
@@ -2260,6 +2334,8 @@
       </div>
 
       ${samkjortWarningHtml}
+
+      ${fellesOppmotetidHtml}
 
       <div id="bestillingerContainer" style="
         max-height: 550px;
@@ -2408,6 +2484,95 @@
       }
     };
     
+    // Event handler for "Beregn alle" knappen
+    const beregnAlleButton = popup.querySelector("#beregnAlleButton");
+    const fellesOppInput = popup.querySelector("#opptime_felles");
+
+    if (beregnAlleButton && fellesOppInput) {
+      // Velg alt innhold ved fokus
+      fellesOppInput.addEventListener('focus', () => {
+        const range = document.createRange();
+        range.selectNodeContents(fellesOppInput);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+
+      fellesOppInput.addEventListener('blur', (e) => {
+        let value = e.target.textContent.replace(/[^\d]/g, '');
+        if (value.length === 0) {
+          e.target.textContent = e.target.getAttribute('data-original') || '';
+          return;
+        }
+        if (value.length === 1) e.target.textContent = '0' + value + ':00';
+        else if (value.length === 2) e.target.textContent = value + ':00';
+        else if (value.length === 3) e.target.textContent = value.slice(0, 2) + ':' + value.slice(2) + '0';
+        else e.target.textContent = value.slice(0, 2) + ':' + value.slice(2, 4);
+      });
+
+      fellesOppInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); fellesOppInput.blur(); beregnAlleButton.click(); }
+      });
+
+      beregnAlleButton.onclick = async () => {
+        fellesOppInput.blur();
+
+        let digits = fellesOppInput.textContent.replace(/[^\d]/g, '');
+        let fellesTid = tidligsteOppmotetid;
+        if (digits.length >= 4) fellesTid = digits.slice(0, 2) + ':' + digits.slice(2, 4);
+        else if (digits.length === 3) fellesTid = digits.slice(0, 2) + ':' + digits.slice(2) + '0';
+        else if (digits.length === 2) fellesTid = digits + ':00';
+        else if (digits.length === 1) fellesTid = '0' + digits + ':00';
+
+        if (!isValidTime(fellesTid)) {
+          showErrorToast('⚠️ Ugyldig felles oppmøtetid – skriv i format HH:MM');
+          return;
+        }
+
+        // Sett alle opptime-felt til felles verdi
+        // (bruker for-løkke — NISSY kan overstyre Array.prototype.forEach)
+        for (let _j = 0; _j < beregnAlleBestillinger.length; _j++) {
+          const _b = beregnAlleBestillinger[_j];
+          const displayId = _b.uniqueId || _b.id;
+          const oppInput = popup.querySelector(`#opptime_${displayId}`);
+          if (oppInput) {
+            oppInput.value = fellesTid;
+            oppInput.style.borderColor = '#ffc107';
+            oppInput.style.background = '#fffbf0';
+          }
+        }
+
+        beregnAlleButton.disabled = true;
+        beregnAlleButton.style.opacity = '0.7';
+        beregnAlleButton.style.cursor = 'wait';
+
+        for (let i = 0; i < beregnAlleBestillinger.length; i++) {
+          const b = beregnAlleBestillinger[i];
+          const displayId = b.uniqueId || b.id;
+          beregnAlleButton.textContent = `⏳ Beregner ${i + 1} av ${beregnAlleBestillinger.length}…`;
+
+          const inputElement = popup.querySelector(`#time_${displayId}`);
+          const calcButton = popup.querySelector(`.calc-time-btn[data-id="${displayId}"]`);
+          if (inputElement && calcButton) {
+            await autoCalculatePickupTime(b, inputElement, calcButton, popup);
+          }
+        }
+
+        const rebuiltSorted = rebuildBestillingsList(sortedBestillinger, popup, confirmButton);
+
+        beregnAlleButton.disabled = false;
+        beregnAlleButton.style.opacity = '1';
+        beregnAlleButton.style.cursor = 'pointer';
+        beregnAlleButton.textContent = '🧮 Beregn alle';
+
+        const firstRebuilt = rebuiltSorted[0];
+        if (firstRebuilt) {
+          const firstRebuiltInput = popup.querySelector(`#time_${firstRebuilt.uniqueId || firstRebuilt.id}`);
+          if (firstRebuiltInput) { firstRebuiltInput.focus(); firstRebuiltInput.select(); }
+        }
+      };
+    }
+
     // Attach event listeners til alle felt
     attachEventListeners(sortedBestillinger, popup, confirmButton);
     
