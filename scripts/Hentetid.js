@@ -255,19 +255,43 @@
     
     // Mønster: "Gatenavn 123A, 1234 Poststed"
     const match = addressLine.match(/^(.+?)\s+(\d+)([A-Za-z]?),?\s+(\d{4})\s+(.+?)$/);
-    
-    if (!match) {
-      console.warn("Kunne ikke parse adresse:", addressLine);
-      return null;
+
+    if (match) {
+      return {
+        gatenavn: match[1].trim(),
+        husnummer: match[2],
+        husbokstav: match[3] || "",
+        postnummer: match[4],
+        poststed: match[5].trim()
+      };
     }
-    
-    return {
-      gatenavn: match[1].trim(),
-      husnummer: match[2],
-      husbokstav: match[3] || "",
-      postnummer: match[4],
-      poststed: match[5].trim()
-    };
+
+    // Fallback: "Gatenavn, 1234 Poststed" — gatenavn uten husnummer
+    const noNumberMatch = addressLine.match(/^(.+?),\s+(\d{4})\s+(.+?)$/);
+    if (noNumberMatch) {
+      return {
+        gatenavn: noNumberMatch[1].trim(),
+        husnummer: "",
+        husbokstav: "",
+        postnummer: noNumberMatch[2],
+        poststed: noNumberMatch[3].trim()
+      };
+    }
+
+    // Fallback: postnummer og poststed, ev. med ledende komma/mellomrom, f.eks. "7970 Kolvereid" eller ", 7970 Kolvereid"
+    const postalMatch = addressLine.match(/[,\s]*(\d{4})\s+(.+?)$/);
+    if (postalMatch) {
+      return {
+        gatenavn: "",
+        husnummer: "",
+        husbokstav: "",
+        postnummer: postalMatch[1],
+        poststed: postalMatch[2].trim()
+      };
+    }
+
+    console.warn("Kunne ikke parse adresse:", addressLine);
+    return null;
   }
 
   // ============================================================

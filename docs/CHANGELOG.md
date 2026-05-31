@@ -16,6 +16,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - 🕐 **Hentetid (Alt+E)**
   - **Beregn alle mot felles oppmøtetid** – ny rad øverst i popup når det er flere reiser til behandling: skriv inn én felles oppmøtetid og klikk «🧮 Beregn alle» for å beregne hentetid for alle bestillingene på én gang. Standardverdien settes automatisk til den tidligste oppmøtetiden blant bestillingene
+  - **Bedre støtte for ufullstendige adresser** – beregn-knappen fungerer nå også når behandlingsstedet bare har gatenavn uten nummer, eller bare postnummer og poststed – samme som NISSY sin egen beregn-knapp
 
 - 🗺️ **Kartvisning**
   - Forbedret logikk for forslag til ny hentetid for å nå riktig ferge til og fra behandling
