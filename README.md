@@ -44,7 +44,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
   - **Beregn alle mot felles oppmøtetid** – ved flere reiser til behandling kan du sette én felles oppmøtetid og beregne alle hentetider med ett klikk. Oppmøtetiden lagres ikke i bestillingene.
   - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/5201ecf7-cb29-41f4-ac07-4b672ed02bf0" />
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/ff8e576f-85ce-44e7-b1cc-4f4b9da8cc96" />
 
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
