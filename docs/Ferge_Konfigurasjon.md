@@ -1,6 +1,6 @@
 # Konfigurere fergeruter for Kartvisning
 
-Kartvisning støtter automatisk fergeberegning langs kjøreruten. Når en rute passerer nær et fergeleie, beregner scriptet neste avgang basert på estimert ankomsttid, legger til overfartstid og viser ⚠️-advarsel dersom estimert leveringstid er etter avtalt oppmøtetid. For å aktivere fergeberegning for din region sender du inn konfigurasjon med rutetabellene.
+Kartvisning støtter automatisk fergeberegning langs kjøreruten. Når en rute passerer nær et fergeleie, beregner scriptet neste avgang basert på estimert ankomsttid, legger til overfartstid og viser ⚠️-advarsel dersom estimert leveringstid er etter avtalt oppmøtetid. For å aktivere fergeberegning for ditt kontor sender du inn konfigurasjon med rutetabellene.
 
 ---
 
