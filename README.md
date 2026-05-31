@@ -42,7 +42,7 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
 
 - 🕐 **Hentetid (Alt+E)** 
   - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
-  - Kan beregne hentetid mot en annen oppmøtetid, men ny oppmøtetid lagres ikke om du glemmer å endre tilbake.
+  - **Beregn alle mot felles oppmøtetid** – ved flere reiser til behandling kan du sette én felles oppmøtetid og beregne alle hentetider med ett klikk. Oppmøtetiden lagres ikke i bestillingene.
   - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/5201ecf7-cb29-41f4-ac07-4b672ed02bf0" />
 
