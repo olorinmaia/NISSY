@@ -1625,6 +1625,9 @@ window.addEventListener('beforeunload', () => {
                   address = entry4010.hent?.address || null;
                 } else if (nodeType4010 === '1804') {
                   address = entry4010.lever?.address || null;
+                } else {
+                  // TDS bruker nodeType 1801 (generisk) for bomtur – fall tilbake til hentenoden
+                  address = entry4010.hent?.address || null;
                 }
               }
               

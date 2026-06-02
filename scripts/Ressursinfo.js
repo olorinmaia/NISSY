@@ -827,6 +827,15 @@ async function runResourceInfo() {
           address = orderInfo.address;
           estimatedTime = orderInfo.estimatedTime;
           name = orderInfo.name;
+        } else if (nodeType !== '1803' && nodeType !== '1804') {
+          // TDS bruker nodeType 1801 (generisk) for bomtur – fall tilbake til hentenoden (1803)
+          const fallbackKey = `${bookingId}-1803`;
+          if (orderMap.has(fallbackKey)) {
+            const orderInfo = orderMap.get(fallbackKey);
+            address = orderInfo.address;
+            estimatedTime = orderInfo.estimatedTime;
+            name = orderInfo.name;
+          }
         }
 
         results.push({
