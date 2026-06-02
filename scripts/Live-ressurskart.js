@@ -1365,14 +1365,26 @@ window.addEventListener('beforeunload', () => {
         if (!node4010) continue;
         
         const geo = node4010.querySelector("addressNode > geographicLocation");
-        const candidateLat = geo?.getAttribute("lat");
-        const candidateLon = geo?.getAttribute("long");
-        
+        let candidateLat, candidateLon;
+        if (geo) {
+          if (geo.getAttribute('typeOfCoordinate') === 'UTM') {
+            const utmZone = parseInt(geo.getAttribute('zone')) || 33;
+            const wgs = utmToLatLon(parseFloat(geo.getAttribute('long')), parseFloat(geo.getAttribute('lat')), utmZone);
+            if (wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5) {
+              candidateLat = String(wgs.lat);
+              candidateLon = String(wgs.lon);
+            }
+          } else {
+            candidateLat = geo.getAttribute("lat");
+            candidateLon = geo.getAttribute("long");
+          }
+        }
+
         if (!candidateLat || !candidateLon) {
           console.log(`⏭️ 4010 #${i + 1} mangler koordinater (SUTI override) – prøver eldre`);
           continue;
         }
-        
+
         // Funnet et 4010 med koordinater
         eventType = pickup.getAttribute("eventType");
         timestamp = node4010.querySelector("timesNode > time")?.getAttribute("time") || null;
@@ -1418,12 +1430,27 @@ window.addEventListener('beforeunload', () => {
                 }
               }
             }
+            // TDS-format: sjåfør under resourceInformation (contactType="2201")
+            if (!phoneNumber) {
+              const tdsPhone = xmlDoc3003.querySelector('resourceInformation > driver > contactInfoDriver > contactInfo[contactType="2201"]');
+              if (tdsPhone) phoneNumber = tdsPhone.getAttribute("contactInfo")?.trim() || null;
+            }
             // Hent kjøretøyposisjon ved oppdragsbekreftelse
             const startLoc = xmlDoc3003.querySelector('vehiclestartLocation');
             if (startLoc) {
               const slat = startLoc.getAttribute('lat');
               const slon = startLoc.getAttribute('long');
-              if (slat && slon) dispatchCoord = { lat: parseFloat(slat), lon: parseFloat(slon) };
+              if (slat && slon) {
+                if (startLoc.getAttribute('typeOfCoordinate') === 'UTM') {
+                  const utmZone = parseInt(startLoc.getAttribute('zone')) || 33;
+                  const wgs = utmToLatLon(parseFloat(slon), parseFloat(slat), utmZone);
+                  if (wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5) {
+                    dispatchCoord = { lat: wgs.lat, lon: wgs.lon };
+                  }
+                } else {
+                  dispatchCoord = { lat: parseFloat(slat), lon: parseFloat(slon) };
+                }
+              }
             }
             // Hent avsender-org for Løyveregister-lenke
             const orgSenderIdOrg = xmlDoc3003.querySelector('orgSender > idOrg');
@@ -1598,6 +1625,9 @@ window.addEventListener('beforeunload', () => {
                   address = entry4010.hent?.address || null;
                 } else if (nodeType4010 === '1804') {
                   address = entry4010.lever?.address || null;
+                } else {
+                  // TDS bruker nodeType 1801 (generisk) for bomtur – fall tilbake til hentenoden
+                  address = entry4010.hent?.address || null;
                 }
               }
               

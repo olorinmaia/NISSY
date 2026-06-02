@@ -511,9 +511,30 @@ async function runResourceInfo() {
   function formatBookingId(id) {
     // Hvis ID er kortere enn 7 tegn, vis hele
     if (id.length <= 7) return id;
-    
+
     // Ellers vis ... + siste 4
     return `...${id.slice(-4)}`;
+  }
+
+  function utmToLatLon(easting, northing, zone) {
+    const k0 = 0.9996, a = 6378137, e2 = 0.00669437999014;
+    const x = easting - 500000, y = northing;
+    const e12 = e2 / (1 - e2);
+    const M = y / k0;
+    const mu = M / (a * (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256));
+    const e1 = (1 - Math.sqrt(1-e2)) / (1 + Math.sqrt(1-e2));
+    const p1 = mu + e1*(3/2 - 27*e1*e1/32)*Math.sin(2*mu)
+              + e1*e1*(21/16 - 55*e1*e1/32)*Math.sin(4*mu)
+              + e1*e1*e1*(151/96)*Math.sin(6*mu);
+    const sp1 = Math.sin(p1), cp1 = Math.cos(p1), tp1 = Math.tan(p1);
+    const N1 = a / Math.sqrt(1 - e2*sp1*sp1);
+    const R1 = a*(1-e2) / Math.pow(1-e2*sp1*sp1, 1.5);
+    const T1 = tp1*tp1, C1 = e12*cp1*cp1;
+    const D = x / (N1*k0);
+    const lat = p1 - N1*tp1/R1*(D*D/2 - D*D*D*D*(5+3*T1+10*C1-4*C1*C1-9*e12)/24);
+    const lon0 = (zone*6 - 183) * Math.PI/180;
+    const lon = lon0 + (D - D*D*D*(1+2*T1+C1)/6) / cp1;
+    return { lat: lat*180/Math.PI, lon: lon*180/Math.PI };
   }
 
   /* ==========================
@@ -652,10 +673,18 @@ async function runResourceInfo() {
         if (!dispatchCoord) {
           const startLoc = xmlDoc.querySelector('vehiclestartLocation');
           if (startLoc) {
-            const lat = startLoc.getAttribute('lat');
-            const lon = startLoc.getAttribute('long');
-            if (lat && lon) {
-              dispatchCoord = { lat: parseFloat(lat), lon: parseFloat(lon) };
+            const slat = startLoc.getAttribute('lat');
+            const slon = startLoc.getAttribute('long');
+            if (slat && slon) {
+              if (startLoc.getAttribute('typeOfCoordinate') === 'UTM') {
+                const utmZone = parseInt(startLoc.getAttribute('zone')) || 33;
+                const wgs = utmToLatLon(parseFloat(slon), parseFloat(slat), utmZone);
+                if (wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5) {
+                  dispatchCoord = { lat: wgs.lat, lon: wgs.lon };
+                }
+              } else {
+                dispatchCoord = { lat: parseFloat(slat), lon: parseFloat(slon) };
+              }
             }
           }
         }
@@ -704,6 +733,14 @@ async function runResourceInfo() {
                 foundPhone = phoneNode.getAttribute("contactInfo").trim();
               }
             }
+          }
+        }
+
+        // TDS-format: sjåfør under resourceInformation (contactType="2201")
+        if (!foundPhone) {
+          const tdsPhone = xmlDoc.querySelector('resourceInformation > driver > contactInfoDriver > contactInfo[contactType="2201"]');
+          if (tdsPhone && tdsPhone.hasAttribute("contactInfo")) {
+            foundPhone = tdsPhone.getAttribute("contactInfo").trim();
           }
         }
 
@@ -757,8 +794,20 @@ async function runResourceInfo() {
         const timestamp = timeNode?.getAttribute("time") || "Ukjent";
 
         const geo = node.querySelector("addressNode > geographicLocation");
-        const lat = geo?.getAttribute("lat") || "";
-        const lon = geo?.getAttribute("long") || "";
+        let lat = "", lon = "";
+        if (geo) {
+          if (geo.getAttribute('typeOfCoordinate') === 'UTM') {
+            const utmZone = parseInt(geo.getAttribute('zone')) || 33;
+            const wgs = utmToLatLon(parseFloat(geo.getAttribute('long')), parseFloat(geo.getAttribute('lat')), utmZone);
+            if (wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5) {
+              lat = String(wgs.lat);
+              lon = String(wgs.lon);
+            }
+          } else {
+            lat = geo.getAttribute("lat") || "";
+            lon = geo.getAttribute("long") || "";
+          }
+        }
 
         const idOrderNode = node.querySelector("subOrderContent > idOrder");
         const bookingId = idOrderNode?.getAttribute("id") || "Ukjent";
@@ -778,6 +827,15 @@ async function runResourceInfo() {
           address = orderInfo.address;
           estimatedTime = orderInfo.estimatedTime;
           name = orderInfo.name;
+        } else if (nodeType !== '1803' && nodeType !== '1804') {
+          // TDS bruker nodeType 1801 (generisk) for bomtur – fall tilbake til hentenoden (1803)
+          const fallbackKey = `${bookingId}-1803`;
+          if (orderMap.has(fallbackKey)) {
+            const orderInfo = orderMap.get(fallbackKey);
+            address = orderInfo.address;
+            estimatedTime = orderInfo.estimatedTime;
+            name = orderInfo.name;
+          }
         }
 
         results.push({

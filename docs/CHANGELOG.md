@@ -10,6 +10,20 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.6.1] - 02.06.2026
+
+### Ressursinfo, Live-ressurskart, Send-SMS: Støtte for TDS-taksameter
+
+- 📋 **Ressursinfo og 📡 **Live-ressurskart**
+  - Lagt til støtte for uthenting av telefonnummer til sjåfør og tidspunkt/koordinater for SUTI-meldinger fra taksameterleverandøren TDS
+
+- 📱 **Send-SMS (Alt+C)**
+  - **Telefonnummer fra TDS** – forhåndsutfyller sjåfør-SMS-nummeret korrekt for TDS-ressurser
+
+> Alle endringene er fallbacks – andre taksameterleverandørers meldinger påvirkes ikke.
+
+---
+
 ## 🔧 [4.6.0] - 01.06.2026
 
 ### Hentetid: Felles oppmøtetid og beregn alle – Kartvisning: Diverse forbedringer
