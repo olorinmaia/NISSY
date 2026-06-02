@@ -253,16 +253,16 @@
       bestillingsBtn.id = 'nissy-bestilling-btn';
       bestillingsBtn.className = 'nissy-header-btn';
       bestillingsBtn.type = 'button';
-      bestillingsBtn.title = 'Åpne foretrukket bestillingsmodul. Trykk Alt+H for "Hent rekvisisjon"';
-      bestillingsBtn.textContent = '📝 Bestillingsmodul (Alt+N)';
+      bestillingsBtn.title = 'Åpne foretrukket bestillingsmodul (Alt+N). Trykk Alt+H for "Hent rekvisisjon"';
+      bestillingsBtn.textContent = '📝 Bestillingsmodul';
       bestillingsBtn.addEventListener('click', () => triggerHotkey('n'));
 
       const adminBtn = document.createElement('button');
       adminBtn.id = 'nissy-admin-btn';
       adminBtn.className = 'nissy-header-btn';
       adminBtn.type = 'button';
-      adminBtn.title = 'Åpne adminmodul';
-      adminBtn.textContent = '⚙️ Adminmodul (Alt+A)';
+      adminBtn.title = 'Åpne adminmodul (Alt+A)';
+      adminBtn.textContent = '⚙️ Adminmodul';
       adminBtn.addEventListener('click', () => triggerHotkey('a'));
 
       const loggBtn = document.createElement('button');
@@ -278,8 +278,8 @@
       liveKartBtn.className = 'nissy-header-btn';
       liveKartBtn.type = 'button';
       liveKartBtn.disabled = true;
-      liveKartBtn.title = 'Viser siste hendelse og plassering i kart med tilhørende info for merkede ressurser. Oppdateres automatisk om vindu ikke lukkes';
-      liveKartBtn.textContent = '📡Live Ressurskart (Alt+Z)';
+      liveKartBtn.title = 'Viser siste hendelse og plassering i kart med tilhørende info for merkede ressurser. Oppdateres automatisk om vindu ikke lukkes (Alt+Z)';
+      liveKartBtn.textContent = '📡 Live Ressurskart';
       liveKartBtn.addEventListener('click', () => triggerHotkey('z'));
 
       function triggerHotkey(key) {
