@@ -1979,6 +1979,11 @@
           if (ph) return ph.getAttribute("contactInfo")?.trim() || null;
         }
       }
+
+      // TDS-format: sjåfør under resourceInformation (contactType="2201")
+      const tdsPhone = xmlDoc.querySelector('resourceInformation > driver > contactInfoDriver > contactInfo[contactType="2201"]');
+      if (tdsPhone) return tdsPhone.getAttribute("contactInfo")?.trim() || null;
+
       return null;
     } catch (e) {
       console.error("[SendSMS] fetchSjaaforTelefon feil:", e);
