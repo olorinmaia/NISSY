@@ -153,7 +153,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 3. Popup viser:
   - Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
   - Henter data fra SUTI-meldinger som allerede er lastet i NISSY
-  - Støtter alle kjente meldingstyper fra ITF/Cencom/Norgestaxi:
+  - Støtter alle kjente meldingstyper fra ITF/Cencom/Norgestaxi/TDS:
     - **5021** – Auto-posisjon (periodiske GPS-posisjoner fra bilen underveis)
     - **4010** – Bekreftelse på hentet/levert/bomtur/bil ved node
     - **3003** – Oppdrag bekreftet av sjåfør (med sjåførmobil)
