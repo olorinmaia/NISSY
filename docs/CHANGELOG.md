@@ -14,11 +14,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ### Ressursinfo, Live-ressurskart, Send-SMS: Støtte for TDS-taksameter
 
-- 📋 **Ressursinfo og 📡 **Live-ressurskart**
-  - Lagt til støtte for uthenting av telefonnummer til sjåfør og tidspunkt/koordinater for SUTI-meldinger fra taksameterleverandøren TDS
+- 🚕 **Ressursinfo og 📡 Live-ressurskart**
+  - Lagt til støtte for uthenting av telefonnummer til sjåfør og tidspunkt/koordinater for 3003/4010 SUTI-meldinger fra taksameterleverandøren TDS
 
-- 📱 **Send-SMS (Alt+C)**
-  - **Telefonnummer fra TDS** – forhåndsutfyller sjåfør-SMS-nummeret korrekt for TDS-ressurser
+- 📱 **Send-SMS**
+  - **Telefonnummer fra TDS** – Henter ut sjåfør-telefonnummer korrekt fra 3003-meldinger for TDS-ressurser
 
 > Alle endringene er fallbacks – andre taksameterleverandørers meldinger påvirkes ikke.
 
@@ -28,7 +28,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ### Hentetid: Felles oppmøtetid og beregn alle – Kartvisning: Diverse forbedringer
 
-- 🕐 **Hentetid (Alt+E)**
+- 🕐 **Hentetid**
   - **Beregn alle mot felles oppmøtetid** – ny rad øverst i popup når det er flere reiser til behandling: skriv inn én felles oppmøtetid og klikk «🧮 Beregn alle» for å beregne hentetid for alle bestillingene på én gang. Standardverdien settes automatisk til den tidligste oppmøtetiden blant bestillingene
   - **Bedre støtte for ufullstendige adresser** – beregn-knappen fungerer nå også når behandlingsstedet bare har gatenavn uten nummer, eller bare postnummer og poststed – samme som NISSY sin egen beregn-knapp
 
