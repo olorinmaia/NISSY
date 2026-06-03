@@ -195,9 +195,6 @@
     "Kommunefysioterapi Smøla, 6570 Smøla": "Østsideveien 126, 6570 Smøla",
 
     // Diverse adresser 
-    "Forradalsvegen 231, 7520 Hegra": "Fv28 231, 7520 Hegra",
-    "Bjønndalsvegen 54A, 7670 Inderøy": "63.843515, 11.120222",
-    "Allheimveien 12, 7882 Nordli": "64.467132, 13.573297",
     "Brit&Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Brit&amp;Brits, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
     "Brit&amp;Brits/Fys. Heia, 7800 Namsos": "Brit & Brits Fysioterapi, 7800 Namsos",
@@ -211,8 +208,6 @@
     "Skaun fysio/Fysio. Raquel Dulot Dela Cruz, 7353 Børsa": "Børsa fysioterapi AS, Lensmannsekra 3, 7353 Børsa",
     "Skaun fysio/Fysioterapeut Ida Regine Thorstensen, 7353 Børsa": "Børsa fysioterapi AS, Lensmannsekra 3, 7353 Børsa",
     "./Dagrehab kurbad, 7500 Stjørdal": "Breidablikkvegen 3, 7500 Stjørdal",
-    "Seterbakkvegen 5, 7796 FOLLAFOSS": "Seterbakkveien 5, 7796 FOLLAFOSS",
-    "Synnesvegen 279, 7960 Salsbruket": "64.81815371052468, 11.902412511524009",
     "Namsskogan fysikalske/Fys. Domås, 7890 Namsskogan": "Storholmveien 6, 7890 Namsskogan",
     "Midtbyen logoped, 7606 Levanger": "Moafjæra 8C, 7606 Levanger",
     "Namdalseid fys., 7750 Namdalseid": "Gløttvegen 2, 7750 Namdalseid",
@@ -339,66 +334,15 @@
   }
 
   // ============================================================
-  // GOOGLE MAPS CONSENT-HÅNDTERING
-  // Google Maps krever at bruker godtar vilkår første gang
-  // ============================================================
-  function ensureGoogleConsent(callback) {
-    // Sjekk om bruker allerede har godtatt vilkår (lagret i sessionStorage)
-    if (sessionStorage.getItem("gmapsConsentOK") === "1") {
-      callback(true);
-      return;
-    }
-  
-    // Vis instruksjon til bruker
-    alert(
-      "Google Maps må åpnes én gang for å godta vilkår.\n\n" +
-      "Godta vilkår, lukk vinduet – trykk Alt+Q igjen."
-    );
-    
-    // Åpne Google Maps i nytt vindu
-    const googleMapsWindow = window.open(
-      "https://www.google.no/maps",
-      "_blank",
-      "width=800,height=600"
-    );
-  
-    // Sjekk om popup ble blokkert
-    if (!googleMapsWindow) {
-      alert("Popup blokkert – tillat popup og prøv igjen.");
-      callback(false);
-      return;
-    }
-  
-    // Poll for å sjekke om vinduet er lukket
-    const checkInterval = setInterval(() => {
-      if (googleMapsWindow.closed) {
-        clearInterval(checkInterval);
-        // Marker at bruker har godtatt vilkår
-        sessionStorage.setItem("gmapsConsentOK", "1");
-      }
-    }, 500);
-    
-    // Returner false siden bruker må godta først
-    callback(false);
-  }
-
-  // ============================================================
   // HOTKEY REGISTRERING: ALT+Q
   // ============================================================
-  document.addEventListener("keydown", (e) => {
+  document.addEventListener("keydown", async (e) => {
     // Sjekk om ALT+Q er trykket
     if (!(e.altKey && e.key.toLowerCase() === "q")) return;
     e.preventDefault();
 
-    // Sjekk Google Maps consent først
-    ensureGoogleConsent(async (consentOK) => {
-      if (!consentOK) {
-        // Bruker må godta vilkår først
-        return;
-      }
-
-      // ============================================================
-      // FINN MERKEDE RADER
+    // ============================================================
+    // FINN MERKEDE RADER
       // ============================================================
       const TARGET_BG = "148, 169, 220"; // Bakgrunnsfarge for merkede rader
       
@@ -458,9 +402,9 @@
         // Legg til waypoints hvis det er flere enn 2 adresser
         if (addressList.length > 2) {
           const waypoints = addressList
-            .slice(1, -1) // Ta alle utenom første og siste
+            .slice(1, -1)
             .map(encodeURIComponent)
-            .join("|");
+            .join("%7C");
           url += "&waypoints=" + waypoints;
         }
         
@@ -713,7 +657,6 @@
         `width=${gmWidth},height=${gmHeight},left=${gmLeft},top=${gmTop},resizable=yes,scrollbars=yes`
       );
       if (!mapsWin) showErrorToast("Popup blokkert – tillat popup og prøv igjen");
-    });
   });
 
   console.log("✅ Rutekalkulering-script lastet");

@@ -2110,7 +2110,7 @@ window.updateEventData = function(newEvent) {
     bookingLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
-        // Åpne NISSY admin-linker uten consent-sjekk
+        // Åpne NISSY admin-linker i nytt vindu
         const width = Math.floor(window.innerWidth / 2);
         const height = Math.floor(window.innerHeight * 0.9);
         window.open(
@@ -2121,7 +2121,7 @@ window.updateEventData = function(newEvent) {
       });
     });
     
-    // Løyveregister-link (åpnes i nytt vindu uten consent-sjekk)
+    // Løyveregister-link (åpnes i nytt vindu)
     const loyveLinks = popup.querySelectorAll("a[href^='https://pasientreiser.tronder.taxi/Loyver/Oversikt']");
     loyveLinks.forEach(link => {
       link.addEventListener("click", e => {
