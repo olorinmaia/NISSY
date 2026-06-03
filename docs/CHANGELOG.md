@@ -10,6 +10,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.6.2] - 04.06.2026
+
+### Rutekalkulering: Fjernet Google Maps consent-flyt
+
+- 🧭 **Rutekalkulering**
+  - Google Maps åpner nå direkte uten forhåndssamtykke-steg – samtykke håndteres av Google selv via `continue`-parameteren om nødvendig
+
+---
+
 ## 🔧 [4.6.1] - 02.06.2026
 
 ### Ressursinfo, Live-ressurskart, Send-SMS: Støtte for TDS-taksameter

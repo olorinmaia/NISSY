@@ -103,11 +103,9 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+Q`
-3. Første gang: Godta Google Maps vilkår, lukk vinduet, trykk `ALT+Q` igjen
-4. Google Maps åpnes med rute for alle merkede bestillinger
+3. Google Maps åpnes med rute for alle merkede bestillinger
 
 **Tips:**
-- Hvis feilmelding når Google maps åpnes, åpne maps.google.com i ny fane og godta vilkår eller åpne en singel bestilling
 - Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps; adresser slik de står i NISSY benyttes som fallback.
 - Fungerer både for ventende og pågående oppdrag
 - Filtrerer automatisk ut bestillinger som er markert som "Framme" og "Ikke møtt"
@@ -325,7 +323,6 @@ Legger til:
 ### Google Maps åpner ikke
 
 - Sjekk at popup ikke er blokkert av nettleseren
-- Godta Google Maps vilkår første gang, åpne Google Maps manuelt i nettleser
 - Sjekk at du har merket bestillinger før du trykker ALT+Q
 
 ## 💡 Tips og triks
