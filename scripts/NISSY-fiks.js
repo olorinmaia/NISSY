@@ -1081,10 +1081,10 @@
             ` : ''}
           </div>
           <div id="nissy-fiks-about">
-            <span>Script <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">v${SCRIPT_VERSION}</a></span>
-            <button id="nissy-about-btn" title="Om prosjektet NISSY-JavaScript">ℹ</button>
+            <span>Scripts <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">v${SCRIPT_VERSION}</a></span>
+            <button id="nissy-about-btn" title="Om prosjektet NISSY Scripts">ℹ</button>
             <div id="nissy-about-popup" style="display:none">
-              <div style="margin-bottom:2px"><strong>NISSY powered by JavaScript v${SCRIPT_VERSION}</strong></div>
+              <div style="margin-bottom:2px"><strong>NISSY Scripts v${SCRIPT_VERSION}</strong></div>
               <a href="https://github.com/olorinmaia/NISSY" target="_blank" rel="noopener">GitHub</a><br>
               <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">Endringslogg</a><br>
               Utviklet av: Alf Einar Johnsen / <a href="mailto:aej@hnt.no">aej@hnt.no</a>

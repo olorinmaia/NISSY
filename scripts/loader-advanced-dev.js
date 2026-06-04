@@ -124,7 +124,7 @@
     const vLink = document.querySelector('#nissy-fiks-about a');
     if (vLink) vLink.textContent = 'v' + devVer;
     const vStrong = document.querySelector('#nissy-about-popup strong');
-    if (vStrong) vStrong.textContent = 'NISSY powered by JavaScript v' + devVer;
+    if (vStrong) vStrong.textContent = 'NISSY Scripts v' + devVer;
     window.__nissyScriptVersion = devVer;
   }, 600);
 

@@ -162,7 +162,7 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
   - Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
   - Manuell oppdateringsknapp tilgjengelig
   - Clustering av markører ved utzoomet visning, spiderfying ved klikk
-  - All databehandling skjer lokalt i nettleseren – ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester
+
 
 ### ⌛ NISSY-fiks
 
