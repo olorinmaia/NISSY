@@ -209,6 +209,89 @@
   }
 
   // ============================================================
+  // SPINNER-OVERLAY MED FREMDRIFT OG AVBRYT
+  // ============================================================
+  function visVenterOverlay(cancelRef) {
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      backdropFilter: 'blur(2px)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999999,
+    });
+
+    const spinner = document.createElement('div');
+    Object.assign(spinner.style, {
+      width: '50px',
+      height: '50px',
+      border: '6px solid #ddd',
+      borderTop: '6px solid #dc3545',
+      borderRadius: '50%',
+      animation: 'sjekkPlakatSpinner 0.8s linear infinite',
+      marginBottom: '20px',
+    });
+
+    const styleTag = document.createElement('style');
+    styleTag.textContent = `
+      @keyframes sjekkPlakatSpinner {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(styleTag);
+
+    const tekst = document.createElement('div');
+    tekst.textContent = 'Henter plakat-data…';
+    Object.assign(tekst.style, {
+      color: 'white',
+      fontSize: '20px',
+      fontWeight: '600',
+      textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+    });
+
+    const hint = document.createElement('div');
+    hint.textContent = 'Trykk ESC for å avbryte';
+    Object.assign(hint.style, {
+      color: 'rgba(255,255,255,0.7)',
+      fontSize: '13px',
+      marginTop: '8px',
+    });
+
+    overlay.appendChild(spinner);
+    overlay.appendChild(tekst);
+    overlay.appendChild(hint);
+    document.body.appendChild(overlay);
+
+    function escClose(e) {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        styleTag.remove();
+        document.removeEventListener('keydown', escClose);
+        cancelRef.cancelled = true;
+        window.__sjekkPlakatActive = false;
+      }
+    }
+    document.addEventListener('keydown', escClose);
+
+    return {
+      fjern: () => {
+        if (overlay.isConnected) overlay.remove();
+        if (styleTag.isConnected) styleTag.remove();
+        document.removeEventListener('keydown', escClose);
+      },
+      settTekst: (txt) => { tekst.textContent = txt; }
+    };
+  }
+
+  // ============================================================
   // FJERN FRITEKST FRA BESTILLING
   // ============================================================
   async function removeNotesFromRequisition(requisitionId, reknr) {
@@ -868,9 +951,18 @@
 
     console.log(`🔍 Fant ${allPosters.length} røde plakater, henter fritekst...`);
 
+    const cancelRef = { cancelled: false };
+    const { fjern: fjernSpinner, settTekst } = visVenterOverlay(cancelRef);
+    const total = allPosters.length;
+
     const results = [];
 
-    for (const poster of allPosters) {
+    for (let i = 0; i < allPosters.length; i++) {
+      if (cancelRef.cancelled) break;
+
+      settTekst(`Henter plakat-data… ${i + 1}/${total}`);
+
+      const poster = allPosters[i];
       const xmlDoc = await fetchRequisitionData(poster.requisitionId);
       const freetext = parseFreetextFromXML(xmlDoc);
 
@@ -886,6 +978,10 @@
         });
       }
     }
+
+    fjernSpinner();
+
+    if (cancelRef.cancelled) return null;
 
     const problematic = results.filter(r => r.isProblematic);
     const normal = results.filter(r => !r.isProblematic);

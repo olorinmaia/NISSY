@@ -929,7 +929,7 @@
       console.error("[SendSMS] fetchTelefon (showSendSMS) feil:", e);
     }
 
-    // Fallback: hent fra rekvisisjonsvisning
+    // Fallback: hent fra rekvisisjonsvisning (plakat)
     try {
       const url2 = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${encodeURIComponent(rid)}`;
       const resp2 = await fetch(url2, { credentials: "include" });
@@ -952,10 +952,13 @@
   // Ventende: title-attributt på tr[name=rid] i #ventendeoppdrag
   // Pågående: searchStatus?nr= i question.gif onclick for aktuell rid
   // ============================================================
-  function hentRekvnrFraRid(rid) {
+  async function hentRekvnrFraRid(rid) {
     // Ventende: title="rekvnr" på raden
     const vRow = document.querySelector(`#ventendeoppdrag tr[name="${rid}"]`);
-    if (vRow) return vRow.getAttribute("title") || null;
+    if (vRow) {
+      const rekvnr = vRow.getAttribute("title");
+      if (rekvnr) return rekvnr;
+    }
 
     // Pågående: finn riktig row-image via posisjon (indeks) av statusImg i sin td,
     // søk deretter question.gif i samme-indekserte row-image i siste td.
@@ -994,6 +997,17 @@
           }
         }
       }
+    }
+
+    // Fallback: hent fra plakat (showreq) – brukes bl.a. når ?-ikon er midlertidig skjult pga SUTI-oppdateringer
+    try {
+      const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${encodeURIComponent(rid)}`;
+      const resp = await fetch(url, { credentials: "include" });
+      const html = await resp.text();
+      const m = html.match(/class="reqv_field">Rekvisisjon\s+(\d+)<\/td>/i);
+      if (m?.[1]) return m[1];
+    } catch (e) {
+      console.error("[SendSMS] hentRekvnrFraRid (showreq) feil:", e);
     }
     return null;
   }
@@ -1192,7 +1206,7 @@
         // Logg SMS
         if (typeof window.nissyLoggSMS === "function") {
           const rid    = info.id.replace(/^[A-Z]-/i, "");
-          const rekvnr = hentRekvnrFraRid(rid);
+          const rekvnr = await hentRekvnrFraRid(rid);
           const malIdx = parseInt(malSelect.value, 10);
           const malNavn = (!isNaN(malIdx) && SMS_MALER[malIdx]) ? SMS_MALER[malIdx].navn : "Fritekst";
           window.nissyLoggSMS([{ reqId: rid, title: rekvnr || rid, mal: malNavn }]);
@@ -1734,16 +1748,17 @@
       // Logg vellykkede SMS-sendinger
       if (typeof window.nissyLoggSMS === "function" && antallSendt > 0) {
         const malNavn = harMal ? SMS_MALER[malIdx].navn : "Fritekst";
-        const loggDetails = gyldige
+        const loggDetails = await Promise.all(gyldige
           .filter((_, gi) => {
             const stCell = document.getElementById(`__smsSt_${items.indexOf(gyldige[gi])}`);
             return stCell?.innerHTML.includes("✅");
           })
-          .map(item => {
+          .map(async item => {
             const rid    = item.info.id.replace(/^[A-Z]-/i, "");
-            const rekvnr = hentRekvnrFraRid(rid);
+            const rekvnr = await hentRekvnrFraRid(rid);
             return { reqId: rid, title: rekvnr || rid, mal: malNavn };
-          });
+          })
+        );
         if (loggDetails.length > 0) window.nissyLoggSMS(loggDetails);
       }
     });

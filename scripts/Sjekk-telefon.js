@@ -26,12 +26,7 @@
         }
     }
 
-// Regulært uttrykk for gyldig telefonnummer
-    // Aksepterer: 
-    // - 12345678 (8 siffer)
-    // - +4712345678 (+ og 10 siffer)
-    // - 12 34 56 78 (8 siffer med mellomrom)
-    // - +47 12345678 (+ og 10 siffer med mellomrom etter landkode)
+    // Aksepterer: 8 siffer, +10 siffer, 8 siffer med mellomrom, +47 + 8 siffer med mellomrom
     const VALID_PHONE_REGEX = /^(\d{8}|[+]\d{10}|\d{2}\s\d{2}\s\d{2}\s\d{2}|[+]\d{2}\s\d{8})$/;
 
     // Funksjon for å vente på at openPopp AJAX-kallet er ferdig
@@ -60,24 +55,26 @@
     }
 
     // Funksjon for å vise/skjule kolonner
-    async function togglePhoneColumns(show) {
+    // includeNameColumn: vis/skjul også Pnavn (brukes kun hvis den var skjult fra start)
+    async function togglePhoneColumns(show, includeNameColumn = false) {
         const action = show ? 'showcol' : 'hidecol';
         const urls = [
             `/planlegging/ajax-dispatch?did=all&action=p${action}&cid=patientPhone`,
             `/planlegging/ajax-dispatch?did=all&action=v${action}&cid=patientPhone`
         ];
-
-        let completed = 0;
+        if (includeNameColumn) {
+            urls.push(
+                `/planlegging/ajax-dispatch?did=all&action=p${action}&cid=patientName`,
+                `/planlegging/ajax-dispatch?did=all&action=v${action}&cid=patientName`
+            );
+        }
 
         const promises = urls.map(url => {
             return new Promise((resolve) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url, true);
                 xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        completed++;
-                        resolve();
-                    }
+                    if (xhr.readyState === 4) resolve();
                 };
                 xhr.send();
             });
@@ -85,7 +82,6 @@
 
         await Promise.all(promises);
 
-        // Kjør openPopp for å oppdatere data etter kolonneendring
         if (typeof openPopp === 'function') {
             const ventPromise = ventPåOpenPopp();
             openPopp('-1');
@@ -93,33 +89,86 @@
         }
     }
 
-    // Funksjon for å finne kolonne-indeks for Ptlf
-    function findPhoneColumnIndex(table) {
-        const headers = table.querySelectorAll('thead th');
-        for (let i = 0; i < headers.length; i++) {
-            if (headers[i].textContent.trim() === 'Ptlf') {
-                return i;
+    // Spinner-overlay mens kolonner vises og data hentes
+    function visVenterOverlay(cancelRef) {
+        const overlay = document.createElement('div');
+        Object.assign(overlay.style, {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0,0,0,0.45)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 999999,
+        });
+
+        const spinner = document.createElement('div');
+        Object.assign(spinner.style, {
+            width: '50px',
+            height: '50px',
+            border: '6px solid #ddd',
+            borderTop: '6px solid #007ACC',
+            borderRadius: '50%',
+            animation: 'sjekkTelefonSpinner 0.8s linear infinite',
+            marginBottom: '20px',
+        });
+
+        const styleTag = document.createElement('style');
+        styleTag.textContent = `
+            @keyframes sjekkTelefonSpinner {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(styleTag);
+
+        const tekst = document.createElement('div');
+        tekst.textContent = 'Henter telefonnummer… Trykk ESC for å avbryte';
+        Object.assign(tekst.style, {
+            color: 'white',
+            fontSize: '20px',
+            fontWeight: '600',
+            textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+        });
+
+        overlay.appendChild(spinner);
+        overlay.appendChild(tekst);
+        document.body.appendChild(overlay);
+
+        function escClose(e) {
+            if (e.key === 'Escape') {
+                overlay.remove();
+                styleTag.remove();
+                document.removeEventListener('keydown', escClose);
+                cancelRef.cancelled = true;
+                window.__sjekkTelefonActive = false;
             }
         }
-        return -1;
+        document.addEventListener('keydown', escClose);
+
+        return () => {
+            overlay.remove();
+            styleTag.remove();
+            document.removeEventListener('keydown', escClose);
+        };
     }
 
-    // Funksjon for å finne kolonne-indeks for Pnavn
-    function findNameColumnIndex(table) {
+    function findColumnIndex(table, name) {
         const headers = table.querySelectorAll('thead th');
         for (let i = 0; i < headers.length; i++) {
-            if (headers[i].textContent.trim() === 'Pnavn') {
-                return i;
-            }
+            if (headers[i].textContent.trim() === name) return i;
         }
         return -1;
     }
 
     // Funksjon for å validere telefonnummer
     function isValidPhone(phone) {
-        if (!phone || phone.trim() === '' || phone === '&nbsp;') {
-            return false;
-        }
+        if (!phone || phone.trim() === '') return false;
         return VALID_PHONE_REGEX.test(phone.trim());
     }
 
@@ -134,8 +183,8 @@
         }
 
         const parentTable = table.closest('table');
-        const phoneColIndex = findPhoneColumnIndex(parentTable);
-        const nameColIndex = findNameColumnIndex(parentTable);
+        const phoneColIndex = findColumnIndex(parentTable, 'Ptlf');
+        const nameColIndex = findColumnIndex(parentTable, 'Pnavn');
 
         if (phoneColIndex === -1) {
             console.warn('Fant ikke Ptlf-kolonnen i ventende oppdrag');
@@ -192,8 +241,8 @@
         }
 
         const parentTable = targetTable.closest('table');
-        const phoneColIndex = findPhoneColumnIndex(parentTable);
-        const nameColIndex = findNameColumnIndex(parentTable);
+        const phoneColIndex = findColumnIndex(parentTable, 'Ptlf');
+        const nameColIndex = findColumnIndex(parentTable, 'Pnavn');
 
         if (phoneColIndex === -1) {
             console.warn('Fant ikke Ptlf-kolonnen i pågående oppdrag');
@@ -403,12 +452,10 @@
                     this.style.transform = 'translateY(0)';
                 };
                 searchButton.onclick = async function() {
-                  // Lukk modal og fjern kolonner
+                  document.removeEventListener('keydown', escHandler);
                   overlay.remove();
-                  // Frigjør sperre når modal lukkes via søk-knapp
                   window.__sjekkTelefonActive = false;
-                  await togglePhoneColumns(false);
-                  
+
                   const searchTypeSelect = document.getElementById('searchType');
                   if (searchTypeSelect) {
                     searchTypeSelect.value = 'smart';
@@ -495,12 +542,18 @@
         `;
         closeButton.onmouseover = function() { this.style.background = '#0056b3'; };
         closeButton.onmouseout = function() { this.style.background = '#007bff'; };
-        closeButton.onclick = async function() {
+
+        const escHandler = function(e) {
+            if (e.key === 'Escape') {
+                closeButton.click();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+
+        closeButton.onclick = function() {
+            document.removeEventListener('keydown', escHandler);
             overlay.remove();
-            // Frigjør sperre når modal lukkes
             window.__sjekkTelefonActive = false;
-            // Skjul telefon-kolonnene når modal lukkes
-            await togglePhoneColumns(false);
         };
         modal.appendChild(closeButton);
 
@@ -514,13 +567,6 @@
             }
         };
 
-        // Lukk ved ESC-tast
-        const escHandler = function(e) {
-            if (e.key === 'Escape') {
-                closeButton.click();
-                document.removeEventListener('keydown', escHandler);
-            }
-        };
         document.addEventListener('keydown', escHandler);
     }
 
@@ -528,22 +574,34 @@
     async function runPhoneCheck() {
         console.log('Starter telefonnummer validering...');
 
-        // Avbryt eventuelt aktivt søk før vi begynner
         if (typeof cancelSearch === 'function') {
             cancelSearch();
         }
 
-        // Vis telefon-kolonnene og vent på at openPopp er ferdig
-        await togglePhoneColumns(true);
+        // Sjekk om Pnavn er synlig før vi starter — skjules igjen etterpå bare hvis vi måtte vise den
+        const nameWasHidden = ![...document.querySelectorAll('#ventendeoppdrag thead th, #pagaendeoppdrag thead th')]
+            .some(th => th.textContent.trim() === 'Pnavn');
 
-        // Samle resultater
+        const cancelRef = { cancelled: false };
+        const fjernSpinner = visVenterOverlay(cancelRef);
+
+        await togglePhoneColumns(true, nameWasHidden);
+
+        if (cancelRef.cancelled) {
+            await togglePhoneColumns(false, nameWasHidden);
+            return;
+        }
+
         const ventendeResults = checkVentendeOppdrag();
         const paagaaendeResults = checkPaagaaendeOppdrag();
         const allResults = [...ventendeResults, ...paagaaendeResults];
 
         console.log('Fant ' + allResults.length + ' bestillinger med ugyldige telefonnummer');
 
-        // Vis resultater
+        // Skjul kolonner mens spinner fortsatt dekker bakgrunnen
+        await togglePhoneColumns(false, nameWasHidden);
+        fjernSpinner();
+
         showResults(allResults);
     }
 
