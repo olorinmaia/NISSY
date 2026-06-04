@@ -1,8 +1,11 @@
-# NISSY V13.37 🚀
+# NISSY Scripts 🚀
 
-Her ligger en rekke javascript som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system der utviklingen har stagnert i påvente av erstattersystem.
-Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mer nyttig informasjon til planleggingen ved få tastetrykk. 
-Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakkene ved hjelp av bokmerke. De plasseres da som knapper i NISSY Planlegging-vinduet + snarveier.
+Her ligger en rekke scripts som fikser bugs, gir ny funksjonalitet og masse snarveier til et gammelt system der utviklingen har stagnert i påvente av erstattersystem.
+Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mer nyttig informasjon til planleggingen ved få tastetrykk.
+
+**Slik fungerer det:** Scriptene lastes inn via et [bokmerke](#-installasjon) i nettleseren. Når man trykker på bokmerket mens innlogget i NISSY Planlegging, hentes tilhørende script fra GitHub og injiseres direkte i den eksisterende webapplikasjonen. Alt kjører i nettleseren, på toppen av NISSY, med den innloggede brukerens eksisterende sesjon.
+
+All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Unntaket er ruteberegning i enkelte scripts, der koordinater for hente- og leveringsadresser sendes til ORS/OSRM (open source rutetjenester) uten identifiserende informasjon.
 
 ## 📦 Innhold
 
@@ -107,7 +110,6 @@ Anbefalt måte å bruke disse scriptene på er å installere ett av script-pakke
   - Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
   - Manuell oppdateringsknapp tilgjengelig
   - Clustering av markører ved utzoomet visning, spiderfying ved klikk
-  - All databehandling skjer lokalt i nettleseren – ingen persondata, løyvenummer eller koordinater sendes til eksterne tjenester
   - <img width="1000" alt="image" src="https://github.com/user-attachments/assets/8791cebc-a07e-41b8-9388-638b16771b53" />
 
 - 📝 **Bestillingsmodul (Alt+N)**
