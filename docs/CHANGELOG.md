@@ -19,6 +19,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Viser spinner-overlay mens telefon-kolonner vises og data hentes – særlig merkbart ved mange bestillinger
   - Kolonner skjules igjen bak spinneren før resultat-modalen åpnes, ikke ved lukking av modal – unngår forstyrrende kolonne-endringer
   - Trykk ESC under henting for å avbryte – kolonner ryddes opp automatisk
+  - Pnavn-kolonnen vises automatisk under sjekken hvis den var skjult, og skjules igjen etterpå – scriptet fungerer nå uavhengig av hvilke kolonner som er synlige
 
 - 🚩 **Sjekk-plakat**
   - Viser spinner-overlay med fremdriftsteller (f.eks. «Henter plakat-data… 4/12») mens fritekst hentes fra server

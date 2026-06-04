@@ -55,12 +55,19 @@
     }
 
     // Funksjon for å vise/skjule kolonner
-    async function togglePhoneColumns(show) {
+    // includeNameColumn: vis/skjul også Pnavn (brukes kun hvis den var skjult fra start)
+    async function togglePhoneColumns(show, includeNameColumn = false) {
         const action = show ? 'showcol' : 'hidecol';
         const urls = [
             `/planlegging/ajax-dispatch?did=all&action=p${action}&cid=patientPhone`,
             `/planlegging/ajax-dispatch?did=all&action=v${action}&cid=patientPhone`
         ];
+        if (includeNameColumn) {
+            urls.push(
+                `/planlegging/ajax-dispatch?did=all&action=p${action}&cid=patientName`,
+                `/planlegging/ajax-dispatch?did=all&action=v${action}&cid=patientName`
+            );
+        }
 
         const promises = urls.map(url => {
             return new Promise((resolve) => {
@@ -571,13 +578,17 @@
             cancelSearch();
         }
 
+        // Sjekk om Pnavn er synlig før vi starter — skjules igjen etterpå bare hvis vi måtte vise den
+        const nameWasHidden = ![...document.querySelectorAll('#ventendeoppdrag thead th, #pagaendeoppdrag thead th')]
+            .some(th => th.textContent.trim() === 'Pnavn');
+
         const cancelRef = { cancelled: false };
         const fjernSpinner = visVenterOverlay(cancelRef);
 
-        await togglePhoneColumns(true);
+        await togglePhoneColumns(true, nameWasHidden);
 
         if (cancelRef.cancelled) {
-            await togglePhoneColumns(false);
+            await togglePhoneColumns(false, nameWasHidden);
             return;
         }
 
@@ -588,7 +599,7 @@
         console.log('Fant ' + allResults.length + ' bestillinger med ugyldige telefonnummer');
 
         // Skjul kolonner mens spinner fortsatt dekker bakgrunnen
-        await togglePhoneColumns(false);
+        await togglePhoneColumns(false, nameWasHidden);
         fjernSpinner();
 
         showResults(allResults);
