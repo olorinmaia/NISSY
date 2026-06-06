@@ -487,7 +487,7 @@ let activePlanStopGroupList = null;
 let activeVehicleData = null;
 let userToggledOff = false;
 let activeRouteControl = null;
-let routeEnabled = localStorage.getItem('liveMapShowRoute') === 'true';
+let routeEnabled = localStorage.getItem('liveMapShowRoute') !== 'false';
 
 function removeActiveRoute() {
   if (!activeRouteControl) return;
