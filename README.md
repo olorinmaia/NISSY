@@ -188,6 +188,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Sjekker alle bestillinger på valgt filter og lar deg søke opp disse for å rette opp for: 
     - Duplikater, flere enn 2 bestillinger, flere bestillinger med samme fra- eller til-adresse
     - Om de har forskjellig dato på hentetid og leveringstid
+    - Om turer på pågående oppdrag med flere bestillinger har ulik dato på hentetid
     - Om hentetid er senere enn leveringstid (kun til behandling)
     - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
     - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling

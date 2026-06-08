@@ -10,7 +10,8 @@
 //   → Konfigurerbart: CHECK_TO_TREATMENT / CHECK_FROM_TREATMENT
 // - Retur-tidsfeil: Retur-hentetid lik eller før oppmøtetid på reisen til behandling
 // - Problematiske spesielle behov: Kombinasjoner som ERS+RB som skaper problemer
-// 
+// - Tur-datofeil: Turer (pågående oppdrag) med flere bestillinger som har ulik dato
+//
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
 // ================================================================================
 
@@ -277,6 +278,23 @@
       }
     }
     return -1;
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Finn turnummer for en tur via ressurs-tabellen
+  // ============================================================
+  /**
+   * Tur-ID (f.eks. "13526715") er felles for raden i pågående oppdrag (id="P-13526715")
+   * og raden i ressurs-tabellen (id="Rxxx13526715"). Turnummeret ligger i et
+   * onclick-attributt på formen searchStatus?id=4209103 i ressurs-raden.
+   */
+  function findTurnummer(tripId) {
+    const resourceRow = document.getElementById(`Rxxx${tripId}`);
+    if (!resourceRow) return '';
+    const img = resourceRow.querySelector('img[onclick*="searchStatus?id="]');
+    if (!img) return '';
+    const match = img.getAttribute('onclick')?.match(/searchStatus\?id=(\d+)/);
+    return match ? match[1] : '';
   }
 
   function extractVentendeData() {
@@ -630,6 +648,121 @@
     return mismatches;
   }
 
+  // ============================================================
+  // SJEKK: Turer med flere bestillinger som har ulik dato
+  // Fanger opp turer (rader i pågående oppdrag) med mer enn 1 bestilling
+  // der bestillingene ikke har samme dato på hentetid – tyder på at
+  // bestillinger fra forskjellige dager feilaktig er satt på samme tur.
+  // ============================================================
+  function findTripDateMismatches() {
+    const container = document.querySelector('#pagaendeoppdrag');
+    if (!container) return [];
+
+    const table = container.querySelector('table');
+    if (!table) return [];
+
+    const rows = [...container.querySelectorAll('tr[id^="P-"]')];
+    if (rows.length === 0) return [];
+
+    const navnIndex = findColumnIndex(table, 'Pnavn');
+    const startIndex = findColumnIndex(table, 'Start');
+    const oppIndex = findColumnIndex(table, 'Oppm');
+    const fraIndex = findColumnIndex(table, 'Fra');
+    const tilIndex = findColumnIndex(table, 'Til');
+    const statusIndex = findColumnIndex(table, 'Status');
+    const toggleIndex = findColumnIndex(table, 'T');
+    const behovIndex = findColumnIndex(table, 'Behov');
+
+    const mismatches = [];
+
+    for (const row of rows) {
+      const cells = [...row.querySelectorAll('td')];
+
+      const hasMultipleBookings = cells.some(cell =>
+        cell.querySelector('div.even.row-image') || cell.querySelector('div.odd.row-image')
+      );
+      if (!hasMultipleBookings) continue;
+
+      const navnDivs = cells[navnIndex]?.querySelectorAll('div.row-image') || [];
+      if (navnDivs.length < 2) continue; // Trenger minst 2 bestillinger på turen
+
+      const hentetidDivs = cells[startIndex]?.querySelectorAll('div.row-image') || [];
+      const leveringstidDivs = cells[oppIndex]?.querySelectorAll('div.row-image') || [];
+      const fraDivs = cells[fraIndex]?.querySelectorAll('div.row-image') || [];
+      const tilDivs = cells[tilIndex]?.querySelectorAll('div.row-image') || [];
+      const statusDivs = cells[statusIndex]?.querySelectorAll('div.row-image') || [];
+      const behovDivs = cells[behovIndex]?.querySelectorAll('div.row-image') || [];
+      const imgContainers = cells[toggleIndex]?.querySelectorAll('div.row-image') || [];
+      const actionContainers = cells[cells.length - 1]?.querySelectorAll('div.row-image') || [];
+
+      const items = [];
+      for (let i = 0; i < navnDivs.length; i++) {
+        let reknr = '';
+
+        if (actionContainers[i]) {
+          const questionImg = actionContainers[i].querySelector('img[onclick*="searchStatus"]');
+          if (questionImg) {
+            const onclick = questionImg.getAttribute('onclick');
+            const reknrMatch = onclick?.match(/nr=(\d+)/);
+            if (reknrMatch) reknr = reknrMatch[1];
+          }
+        }
+        if (!reknr && imgContainers[i]) {
+          const questionImg = imgContainers[i].querySelector('img[onclick*="searchStatus"]');
+          if (questionImg) {
+            const onclick = questionImg.getAttribute('onclick');
+            const reknrMatch = onclick?.match(/nr=(\d+)/);
+            if (reknrMatch) reknr = reknrMatch[1];
+          }
+        }
+
+        let status = '';
+        if (statusDivs[i]) {
+          const statusText = statusDivs[i].textContent.trim();
+          if (statusText.toLowerCase().includes('ikke møtt')) {
+            status = 'ikke møtt';
+          }
+        }
+
+        items.push({
+          reknr,
+          navn: navnDivs[i]?.textContent.trim() || '',
+          hentetid: hentetidDivs[i]?.textContent.trim() || '',
+          leveringstid: leveringstidDivs[i]?.textContent.trim() || '',
+          fra: fraDivs[i]?.textContent.trim() || '',
+          til: tilDivs[i]?.textContent.trim() || '',
+          behov: behovDivs[i]?.textContent.trim() || '',
+          type: 'Pågående',
+          status
+        });
+      }
+
+      // Sjekk om bestillingene på turen har ulik dato på hentetid.
+      // NISSY viser tidspunkt uten dato (f.eks. "14:14") når datoen er i dag,
+      // og med dato (f.eks. "10.06 16:00") når den ikke er det. En sentinel-
+      // verdi for "i dag" gjør at vi også fanger opp blandinger av "i dag"
+      // og en eksplisitt (annen) dato – ikke bare ulike eksplisitte datoer.
+      const TODAY_SENTINEL = 'I_DAG';
+      const dates = new Set(items.map(it => extractDate(it.hentetid) || TODAY_SENTINEL));
+      if (dates.size < 2) continue;
+
+      // Marker alle bestillingene slik at hentetid fremheves i resultat-tabellen
+      items.forEach(it => { it.tripDateMismatch = true; });
+
+      const tripId = (row.getAttribute('name') || row.id || '').replace(/^P-/, '');
+      const turnummer = findTurnummer(tripId);
+
+      mismatches.push({
+        navn: `Turnummer ${turnummer || tripId}`,
+        items,
+        reason: 'Bestillinger på samme tur har ulik dato',
+        turnummer: turnummer || tripId
+      });
+    }
+
+    return mismatches;
+  }
+
   function findProblematicNeeds() {
     const ventendeData = extractVentendeData();
     const pagaendeData = extractPagaendeData();
@@ -883,7 +1016,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -910,10 +1043,10 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length;
 
     // Beregn Reknr-bredde én gang basert på alle grupper, slik at alle tabeller er like brede
-    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime];
+    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches];
     const reknrWidth = allGroups.some(dup => dup.items.some(item => item.status)) ? 165 : 110;
     
     let html = `
@@ -946,6 +1079,9 @@
       if (dateMismatches.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">📅 ${dateMismatches.length} bestilling${dateMismatches.length === 1 ? '' : 'er'} med ulik dato på hentetid og leveringstid</div>`;
       }
+      if (tripDateMismatches.length > 0) {
+        html += `<div style="background: #ffe5d0; color: #7a3e00; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #fd7e14;">🚐📅 ${tripDateMismatches.length} tur${tripDateMismatches.length === 1 ? '' : 'er'} med bestillinger som har ulik dato</div>`;
+      }
       if (timeLogicErrors.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⏰ ${timeLogicErrors.length} bestilling${timeLogicErrors.length === 1 ? '' : 'er'} hvor hentetid er senere enn leveringstid</div>`;
       }
@@ -975,6 +1111,11 @@
       if (dateMismatches.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">📅 Bestillinger med datofeil (hentetid ≠ leveringstid)</h3>';
         html += renderDuplicates(dateMismatches, 'date', reknrWidth);
+      }
+
+      if (tripDateMismatches.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🚐📅 Turer med bestillinger som har ulik dato</h3>';
+        html += renderDuplicates(tripDateMismatches, 'tripdate', reknrWidth);
       }
 
       if (countDuplicates.length > 0) {
@@ -1023,6 +1164,15 @@
         searchInPlanningByReqNr(reknr);
       });
     });
+
+    const searchTurnummerButtons = modalDiv.querySelectorAll('.nissy-search-turnummer-btn');
+    searchTurnummerButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const turnummer = btn.getAttribute('data-turnummer');
+        // Smart-søk tar imot fritekst, så samme søkefunksjon kan brukes for turnummer
+        searchInPlanningByReqNr(turnummer);
+      });
+    });
   }
 
   function renderDuplicates(duplicates, type, reknrWidth) {
@@ -1036,18 +1186,26 @@
       'problematic': '#dc3545',
       'timelogic': '#dc3545',
       'returnbeforeout': '#dc3545',
-      'shorttravel': '#dc3545'
+      'shorttravel': '#dc3545',
+      'tripdate': '#fd7e14'
     };
     
     const color = colorMap[type] || '#6c757d';
     
     for (const dup of duplicates) {
-      // Bestem om vi skal søke på navn eller rekvisisjonsnummer
-      const isSingleBooking = dup.items.length === 1;
-      const searchAttr = isSingleBooking 
-        ? `data-reknr="${dup.items[0].reknr}"` 
-        : `data-navn="${dup.navn}"`;
-      const buttonClass = isSingleBooking ? 'nissy-search-reknr-btn' : 'nissy-search-btn';
+      // Bestem om vi skal søke på turnummer, navn eller rekvisisjonsnummer
+      let searchAttr;
+      let buttonClass;
+      if (type === 'tripdate') {
+        searchAttr = `data-turnummer="${dup.turnummer || ''}"`;
+        buttonClass = 'nissy-search-turnummer-btn';
+      } else {
+        const isSingleBooking = dup.items.length === 1;
+        searchAttr = isSingleBooking
+          ? `data-reknr="${dup.items[0].reknr}"`
+          : `data-navn="${dup.navn}"`;
+        buttonClass = isSingleBooking ? 'nissy-search-reknr-btn' : 'nissy-search-btn';
+      }
 
       html += `
         <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
@@ -1083,7 +1241,7 @@
         
         const hentetidDate = extractDate(item.hentetid);
         const leveringstidDate = extractDate(item.leveringstid);
-        const dateMismatch = hentetidDate !== leveringstidDate;
+        const dateMismatch = hentetidDate !== leveringstidDate || item.tripDateMismatch === true;
         
         const hentetidStyle = dateMismatch ? 'color: #dc3545; font-weight: 600;' : 'color: #495057;';
         const leveringstidStyle = dateMismatch ? 'color: #dc3545; font-weight: 600;' : 'color: #495057;';
@@ -1129,7 +1287,8 @@
     const timeLogicErrors = findTimeLogicErrors();
     const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
     const shortTravelTime = findShortTravelTime();
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime);
+    const tripDateMismatches = findTripDateMismatches();
+    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches);
   } catch (error) {
     // Feil under kolonnevalidering eller datainnhenting
     // Feilmelding er allerede vist via showErrorToast()
