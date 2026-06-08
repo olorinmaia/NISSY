@@ -11,6 +11,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.6.4] - 08.06.2026
+
+### Sjekk-bestilling: Ny sjekk for turer med ulik dato
+
+- 🔍 **Sjekk-bestilling**
+  - Ny sjekk: Finner turer (pågående oppdrag) med flere bestillinger som har ulik dato på hentetid – fanger opp tilfeller der bestillinger fra forskjellige dager feilaktig er satt på samme tur
+
+---
+
 ## 🔧 [4.6.3] - 05.06.2026
 
 ### Sjekk-telefon/Sjekk-plakat: Spinner under datahenting
