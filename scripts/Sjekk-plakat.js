@@ -205,6 +205,10 @@
       box.append(text, btnOk, btnCancel);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
+
+      // Sett fokus på OK-knappen slik at Enter bekrefter dialogen
+      // (uten dette beholder "Fjern fritekst"-knappen fokus, og Enter åpner dialogen på nytt)
+      btnOk.focus();
     });
   }
 
