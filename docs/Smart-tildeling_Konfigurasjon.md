@@ -18,6 +18,8 @@ Avtale-ID-ene finnes på tre måter:
 
 Åpne rapporten **RmR 10 Avtaleoversikt** i RADAR. Rapporten lister alle avtaler for ditt kontor. Bruk verdiene i kolonnen **OmrådeId** som avtale-ID-er i mappingen.
 
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/f095b295-b025-4a32-a385-d4f01d445835" />
+
 ### Alternativ B – Via URL i NISSY Admin
 
 Åpne en avtale i administrasjonsbildet og se på URL-en:
