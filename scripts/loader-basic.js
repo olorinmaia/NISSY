@@ -257,9 +257,9 @@
       loggBtn.id = 'nissy-logg-btn';
       loggBtn.className = 'nissy-header-btn';
       loggBtn.type = 'button';
-      loggBtn.title = 'Åpne handlingslogg (Alt+L)';
+      loggBtn.title = 'Åpne handlingslogg (Alt+J)';
       loggBtn.textContent = '📋 Handlingslogg';
-      loggBtn.addEventListener('click', () => triggerHotkey('l'));
+      loggBtn.addEventListener('click', () => triggerHotkey('j'));
 
       const liveKartBtn = document.createElement('button');
       liveKartBtn.id = 'nissy-livekart-btn';

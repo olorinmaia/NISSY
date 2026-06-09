@@ -22,7 +22,7 @@ NISSY Basic er perfekt for deg som:
 - 📝 **[Bestillingsmodul](#-bestillingsmodul-altn)** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
 - ⚙️ **[Adminmodul](#️-adminmodul-alta)** - (Alt+A) Åpner admin-modulen i en pop-up modal over planleggingsvinduet som husker siste besøkte side eller ny fane basert på preferanse.
 - ✖️ **[Avbestilling](#️-avbestilling-altk)** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
-- 📋 **[Handlingslogg](#-handlingslogg-altl)** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
+- 📋 **[Handlingslogg](#-handlingslogg-altj)** - (Alt+J) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
 - 🔔 **[Overvåk-Ventende](#-overvåk-ventende)** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - 📱 **[Send-SMS](#-send-sms-altc)** - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag. Send SMS til sjåfør ved å høyreklikke på løyve, henter automatisk nummer fra 3003.
 - 🖱️ **[Hurtigmeny](#️-hurtigmeny)** - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene. Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
@@ -265,7 +265,7 @@ Lar deg merke bestillinger/turer og trykke på snarvei Alt+K for å masse-avbest
 - Filtrerer bort status "Akseptert" hvis ressursnavn ikke slutter på minst 5 siffer etter siste "-" for å unngå avbestilling av tur etter 3003 men før 4010-1701.
 - Advarsel før du avbestiller og en liste over hvilke ressurser som vil bli avbestilt.
 
-### 📋 **Handlingslogg (Alt+L)** 
+### 📋 **Handlingslogg (Alt+J)** 
 
 Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
 Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.

@@ -609,7 +609,7 @@
         if (btn) btn.click();
         else console.warn('[Hurtigmeny] Fant ikke #nissy-monitor-btn');
       }),
-      item('📋', 'Handlingslogg',    'Alt+L', () => triggerAlt('l')),
+      item('📋', 'Handlingslogg',    'Alt+J', () => triggerAlt('j')),
       sep(),
       item('📖', 'Brukerveiledning', null, () => {
         const btn = document.getElementById('nissy-help-btn');

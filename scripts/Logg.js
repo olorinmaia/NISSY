@@ -1050,7 +1050,7 @@
   }
 
   /**
-   * Lytt på Alt+S (Smart-tildeling), Alt+T (Tilordning 2.0) og Alt+L (Vis logg)
+   * Lytt på Alt+S (Smart-tildeling), Alt+T (Tilordning 2.0) og Alt+J (Vis logg)
    */
   function setupKeyboardListener() {
     document.addEventListener('keydown', (e) => {
@@ -1058,14 +1058,14 @@
       if (e.altKey && (e.key === 's' || e.key === 'S')) {
         onAssignClick(e);
       }
-      
+
       // Alt+T - Tilordning 2.0
       if (e.altKey && (e.key === 't' || e.key === 'T')) {
         onAssignClick(e);
       }
-      
-      // Alt+L - Vis logg
-      if (e.altKey && (e.key === 'l' || e.key === 'L')) {
+
+      // Alt+J - Vis logg
+      if (e.altKey && (e.key === 'j' || e.key === 'J')) {
         e.preventDefault(); // Forhindre browser default
         showLoggPopup();
       }

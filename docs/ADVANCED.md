@@ -13,7 +13,7 @@
 - 🔠 **[Rek-knapper](#-rek-knapper-altr)** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
 - 📝 **[Bestillingsmodul](#-bestillingsmodul-altn)** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
 - ⚙️ **[Adminmodul](#️-adminmodul-alta)** - (Alt+A) Åpner admin-modulen i en pop-up modal over planleggingsvinduet som husker siste besøkte side eller ny fane basert på preferanse.
-- 📋 **[Handlingslogg](#-handlingslogg-altl)** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
+- 📋 **[Handlingslogg](#-handlingslogg-altj)** - (Alt+J) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
 - 🔔 **[Overvåk-Ventende](#-overvåk-ventende)** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - ✖️ **[Avbestilling.js](#️-avbestilling-altk)** - (Alt+K) Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 - 🚐 **[Samkjøring](#-samkjøring-altx)** -  (Alt+X) Merk bestillinger på ventende oppdrag, velg aktuelle filter og trykk på knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter. Hvis ingenting merkes søkes det innad på ventende oppdrag.
@@ -285,7 +285,7 @@ Merk bestillinger på ventende oppdrag eller en ressurs på pågående oppdrag, 
   - Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
    - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
 
-### 📋 **Handlingslogg (Alt+L)** 
+### 📋 **Handlingslogg (Alt+J)** 
 
 Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
 Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.

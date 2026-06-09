@@ -11,6 +11,18 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.6.5] - 09.06.2026
+
+### Smart-tildeling: Riktig avtale ved sortering på annen kolonne enn hentetid
+
+- 🪄 **Smart-tildeling**
+  - **Fiks: Avtale-oppslag bruker nå alltid bestillingen med tidligst hentetid** – tidligere ble første rad i DOM(HTML)-rekkefølgen brukt, noe som ga feil avtale når tabellen var sortert på f.eks. oppmøtetid
+  - Hentetid- og oppmøtetid-kolonnene detekteres dynamisk (samme metode som Hentetid.js), slik at logikken fungerer uavhengig av kolonnerekkefølge
+  - Passasjertellingen bruker nå også de dynamiske kolonneindeksene
+- 📋 **Handlingslogg**
+  - Endret snarvei til Alt+J. Tidligere var snarvei Alt+L som kolliderte med Windows+L som låser PC om man bommer på hurtigtasten.
+---
+
 ## 🔧 [4.6.4] - 08.06.2026
 
 ### Sjekk-bestilling: Ny sjekk for turer med ulik dato
@@ -601,7 +613,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 📋 **Handlingslogg**
   - Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
   - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
-  - Installeres som en knapp over ventende oppdrag. Snarvei: Alt+L.
+  - Installeres som en knapp over ventende oppdrag. Snarvei: Alt+J.
 - ⌛ **NISSY-fiks**
   - Ved søk etter rekvisisjonsnummer velges nå raden på ventende eller pågående oppdrag.
 - 🚐 **Samkjøring**

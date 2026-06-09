@@ -142,7 +142,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
    - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3ebda51d-813d-49e8-9592-3888c40e0719" />
 
-- 📋 **Handlingslogg (Alt+L)** 
+- 📋 **Handlingslogg (Alt+J)** 
   - Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
   - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/060daa07-6149-48ac-9cb5-d373b25eeaf9" />
