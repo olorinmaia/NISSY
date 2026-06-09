@@ -12,9 +12,15 @@ For å få full utnytte av Smart-tildeling for ditt kontor må du sende inn diss
 
 ## Steg 1 – Finn avtale-ID-er
 
-Avtale-ID-ene finnes på to måter:
+Avtale-ID-ene finnes på tre måter:
 
-### Alternativ A – Via URL i NISSY Admin
+### Alternativ A – Via RADAR-rapport (anbefalt)
+
+Åpne rapporten **RmR 10 Avtaleoversikt** i RADAR. Rapporten lister alle avtaler for ditt kontor. Bruk verdiene i kolonnen **OmrådeId** som avtale-ID-er i mappingen.
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/f095b295-b025-4a32-a385-d4f01d445835" />
+
+### Alternativ B – Via URL i NISSY Admin
 
 Åpne en avtale i administrasjonsbildet og se på URL-en:
 
@@ -24,7 +30,7 @@ https://nissy6.pasientreiser.nhn.no/administrasjon/admin/editContractArea?id=891
 
 Her er `id=8914` avtale-ID-en.
 
-### Alternativ B – Via kildekoden i NISSY Planlegging
+### Alternativ C – Via kildekoden i NISSY Planlegging
 
 Høyreklikk i avtalelisten → «Undersøk/Inspiser». Kan også trykke CTRL+SHIFT+C og merke rad. Finn rader med mønsteret `id="T-XXXX" name="XXXX"`:
 
