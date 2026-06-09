@@ -331,23 +331,28 @@
   //            Ledsagere legges alltid til i tillegg
   // FORBEDRET: Returer som skjer samtidig med normale turer telles sammen
   // ============================================================
-  function countMaxOverlappingPassengers(rows) {
+  function countMaxOverlappingPassengers(rows, pickupColIndex = -1, deliveryColIndex = -1) {
     const trips = [];
-    
+
     // Samle alle turer med tider og passasjerantall
     for (const row of rows) {
       const cells = [...row.querySelectorAll("td")];
       let pickupCell, deliveryCell;
-      
-      // Sjekk om det er en navnekolonne
-      const hasNameColumn = cells[1] && !/\d{2}:\d{2}/.test(cells[1].textContent);
-      
-      if (hasNameColumn) {
-        pickupCell = cells[2];
-        deliveryCell = cells[3];
+
+      if (pickupColIndex !== -1 && deliveryColIndex !== -1) {
+        // Bruk dynamisk kolonneindeks
+        pickupCell = cells[pickupColIndex];
+        deliveryCell = cells[deliveryColIndex];
       } else {
-        pickupCell = cells[1];
-        deliveryCell = cells[2];
+        // Heuristikk: sjekk om det er en navnekolonne
+        const hasNameColumn = cells[1] && !/\d{2}:\d{2}/.test(cells[1].textContent);
+        if (hasNameColumn) {
+          pickupCell = cells[2];
+          deliveryCell = cells[3];
+        } else {
+          pickupCell = cells[1];
+          deliveryCell = cells[2];
+        }
       }
       
       let pickupTime = pickupCell ? parseTime(pickupCell.textContent.trim()) : null;
@@ -457,7 +462,16 @@
     return maxOverlap;
   }
 
-
+  // ============================================================
+  // HJELPEFUNKSJON: Finn kolonneindeks basert på header-link
+  // ============================================================
+  function findColumnIndex(tableSelector, headerLink) {
+    const headers = document.querySelectorAll(`${tableSelector} thead th`);
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].querySelector(`a[href*="${headerLink}"]`)) return i;
+    }
+    return -1;
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Finn merkede avtaler i #transportorer tabellen
@@ -626,7 +640,12 @@
     }
     
     const vids = rows.map(row => row.getAttribute("name")).filter(Boolean);
-    const maxOverlappingPassengers = countMaxOverlappingPassengers(rows);
+
+    // Finn kolonneindekser dynamisk (som Hentetid.js gjør)
+    const reiseTidColIndex = findColumnIndex('.ventendeoppdrag', 'tripStartDate');
+    const oppTidColIndex = findColumnIndex('.ventendeoppdrag', 'tripTreatmentDate');
+
+    const maxOverlappingPassengers = countMaxOverlappingPassengers(rows, reiseTidColIndex, oppTidColIndex);
     
     showToast(
       `Smart-tildeler ${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"}...\n` +
@@ -933,8 +952,20 @@
     // Tildel til avtale med RB/ERS eller passasjer-regler
     // ============================================================
     
-    // Bruk første bestilling for å finne avtale
-    const baseVid = vids[0];
+    // Velg bestillingen med tidligst hentetid som grunnlag for avtale-oppslag
+    let baseVid = vids[0];
+    if (reiseTidColIndex !== -1 && rows.length > 1) {
+      let earliestTime = Infinity;
+      for (const row of rows) {
+        const cells = [...row.querySelectorAll('td')];
+        const time = parseTime(cells[reiseTidColIndex]?.textContent ?? '');
+        if (time !== null && time < earliestTime) {
+          earliestTime = time;
+          baseVid = row.getAttribute('name');
+        }
+      }
+    }
+
     const formData = new URLSearchParams();
     formData.append("sourceList[]", baseVid);
     
@@ -972,7 +1003,7 @@
       // Sjekk om første bestilling mangler avtale
       if (!data.agreementId || data.agreementId.trim() === "") {
         updateToast(
-          `✗ Første bestilling (${display.requisitionName}) mangler avtale.\n` +
+          `✗ Bestillingen med tidligst hentetid (${display.requisitionName}) mangler avtale.\n` +
           `Kan ikke tildele.`
         );
         hideToast(5000);
