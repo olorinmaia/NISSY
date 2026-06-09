@@ -19,7 +19,7 @@ NISSY AMK er perfekt for deg som:
 - 🗺️ **[Kartvisning](#️-kartvisning-altw)** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
 - 📝 **[Bestillingsmodul](#-bestillingsmodul-altn)** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
 - ⚙️ **[Adminmodul](#️-adminmodul-alta)** - (Alt+A) Åpner admin-modulen i en pop-up modal over planleggingsvinduet som husker siste besøkte side eller ny fane basert på preferanse.
-- 📋 **[Handlingslogg](#-handlingslogg-altl)** - (Alt+L) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
+- 📋 **[Handlingslogg](#-handlingslogg-altj)** - (Alt+J) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
 - 📱 **[Send-SMS](#-send-sms-altc)** - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag. Send SMS til sjåfør ved å høyreklikke på løyve, henter automatisk nummer fra 3003.
 - 🖱️ **[Hurtigmeny](#️-hurtigmeny)** - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene. Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
 - 🌙 **Darkmode** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
@@ -210,7 +210,7 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 Trykk på Alt+A for å åpne admin-modulen (lar deg velge om du foretrekker pop-up eller ny fane for denne modulen).
 Fanger opp "?"-linker i planleggingsvinduet og søker frem tur/bestilling velger øverste rad og scroller ned til resultatet automatisk
 
-### 📋 **Handlingslogg (Alt+L)** 
+### 📋 **Handlingslogg (Alt+J)** 
 
 Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
 Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
