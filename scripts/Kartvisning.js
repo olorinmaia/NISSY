@@ -230,6 +230,7 @@
       9714: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjY1ZTViM2I5NmEzYTRiN2E4NTQwYjg1NzUwMTBiZGU4IiwiaCI6Im11cm11cjY0In0=', // runes
      76648: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImJjNTUyOGVhNzNkNzQ5OTU4ZTI2NTlmMzk0MzQyNmMwIiwiaCI6Im11cm11cjY0In0=', // jormik
      97668: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRkMjA1YjBlNDNjZDQxODU4ZGVkMzA1NjExYzAyZjVjIiwiaCI6Im11cm11cjY0In0=', // ebeu
+    144731: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjNkNmFlODQ5MGVhZTQ1MmVhMDMzNTlkYzA3NjQ3MjY3IiwiaCI6Im11cm11cjY0In0=', // tveisi
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
