@@ -26,7 +26,7 @@ Her er `id=8914` avtale-ID-en.
 
 ### Alternativ B – Via kildekoden i NISSY Planlegging
 
-Høyreklikk i avtalelisten → «Inspiser». Finn rader med mønsteret `id="T-XXXX" name="XXXX"`:
+Høyreklikk i avtalelisten → «Undersøk/Inspiser». Kan også trykke CTRL+SHIFT+C og merke rad. Finn rader med mønsteret `id="T-XXXX" name="XXXX"`:
 
 ```html
 <tr id="T-8914" name="8914" ...><td ...>Meråker-L - Meråker / 1-3 pas (Omr 1)</td></tr>
