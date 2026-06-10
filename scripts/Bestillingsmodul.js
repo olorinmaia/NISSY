@@ -891,11 +891,19 @@
     /**
      * Åpner en direkte URL i modal (brukes for Hent rekvisisjon)
      */
-    async function openDirectUrl(url) {
+    async function openDirectUrl(url, overrideReqId = null) {
         try {
-            // Lukk eventuelt åpne modaler først
-            await closeAll();
-            
+            // Hent fødselsnummer for valgt bestilling. Bruk oppgitt reqId (f.eks. fra
+            // høyreklikk på en spesifikk rad) hvis angitt, ellers merket ventende oppdrag.
+            const reqId = overrideReqId || getSelectedRequisition();
+            const ssnPromise = reqId ? fetchSSN(reqId) : Promise.resolve(null);
+
+            // Lagre merkede rader slik at de gjenopprettes når modalen lukkes
+            saveSelectedRows();
+
+            // Rydd eventuelt åpne modaler uten å kjøre exit/openPopp (unødvendig her)
+            cleanupDom();
+
             // Steg 1: Nullstill modul
             await resetModule();
             
@@ -923,15 +931,18 @@
             document.body.appendChild(overlay);
             document.body.appendChild(modal);
             activeModals = [modal];
-            
+
             // Aktiver modal-modus
             enableModalMode();
 
             const iframe = modal.querySelector('iframe');
-            
+
             // Håndter F5 på modal-nivå
             modal.addEventListener('keydown', handleF5, true);
-            
+
+            // Flag for å unngå gjentatt autofyll/søk ved senere lasting av iframe
+            let autoFillPerformed = false;
+
             // Prøv å håndtere F5 inne i iframe når det laster
             iframe.addEventListener('load', function() {
                 try {
@@ -964,6 +975,24 @@
                             if (e.key === 'Alt' && _iframeAltAlone) { e.preventDefault(); }
                             _iframeAltAlone = false;
                         }, true);
+
+                        // Autofyll fødselsnummer og søk frem rekvisisjon (kun ved merket ventende oppdrag)
+                        if (!autoFillPerformed) {
+                            autoFillPerformed = true;
+                            ssnPromise.then(ssn => {
+                                if (!ssn) return;
+                                setTimeout(() => {
+                                    try {
+                                        const ssnInput = iframeDoc.getElementById('ssn');
+                                        const searchBtn = iframeDoc.getElementById('query_by_ssn');
+                                        if (ssnInput && searchBtn) {
+                                            ssnInput.value = ssn;
+                                            searchBtn.click();
+                                        }
+                                    } catch (e) {}
+                                }, 150);
+                            });
+                        }
 
                     }
                 } catch (e) {
@@ -1009,8 +1038,25 @@
                 return reqId;
             }
         }
-        
+
         return null;
+    }
+
+    /**
+     * Hent fødselsnummer fra plakat for gitt rekvisisjons-ID
+     */
+    async function fetchSSN(rid) {
+        try {
+            const url = `/planlegging/ajax-dispatch?update=false&action=showreq&rid=${rid}`;
+            const resp = await fetch(url, { credentials: 'same-origin' });
+            const buf  = await resp.arrayBuffer();
+            const text = new TextDecoder('iso-8859-1').decode(buf);
+            const m = text.match(/F.dselsnummer:<\/td>\s*<td[^>]*class="reqv_value"[^>]*>(\d+)<\/td>/);
+            return m?.[1] || null;
+        } catch (e) {
+            console.error('[BM] fetchSSN feil:', e);
+            return null;
+        }
     }
 
     let _errorToast = null;
@@ -1698,6 +1744,7 @@
         },
         openReditInModal,
         openDirectUrl,
+        openHentRekvisisjon: (reqId = null) => openDirectUrl(CONFIG.hentRekUrl, reqId),
         openMeetingplace
     };
 
