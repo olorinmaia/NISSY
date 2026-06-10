@@ -51,7 +51,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
   - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
-  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling, [M] Møteplass og [P] Rediger person.
+  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling, [M] Møteplass, [P] Rediger person og [B] Hent bestillinger.
     - <img width="500" alt="image" src="https://github.com/user-attachments/assets/0ca8396a-2f5e-4073-8b9d-4a438bb8960f" />
   - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
@@ -121,6 +121,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
+  - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket bestilling på ventende oppdrag og søker den frem i "Hent rekvisisjon"-bildet. Tilgjengelig i hurtigmeny som "Hent bestillinger" og som [B]-knapp i Rek-knapper (også for pågående oppdrag).
 
 - ⚙️ **Adminmodul (Alt+A)**
   - Lar deg velge om du ønsker å åpne admin-modul i pop-up iframe eller ny fane. For pop-up husker den siste besøkte side.

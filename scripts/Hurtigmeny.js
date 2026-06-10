@@ -326,6 +326,14 @@
       item('🔍', 'Søk i admin', null, () => {
         row.querySelector('[onclick*="searchStatus"]')?.click();
       }, true),
+      item('📥', 'Hent bestillinger', 'Alt+H', () => {
+        const rid = row.id.replace(/^[A-Z]-/i, '');
+        if (window.Bestillingsmodul?.openHentRekvisisjon) {
+          window.Bestillingsmodul.openHentRekvisisjon(rid);
+        } else {
+          triggerAlt('h');
+        }
+      }, true),
       item('👤', 'Rediger person', null, async () => {
         const rid = row.id.replace(/^[A-Z]-/i, '');
         const ssn = await fetchSSN(rid);

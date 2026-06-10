@@ -227,6 +227,7 @@ Viser hurtigknapper på merkede rader.
 | **M** | Møteplass - splitt bestilling |
 | **K** | Kopier bestilling |
 | **T** | Lag retur og link sammen |
+| **B** | Hent bestillinger |
 | **R** | Rediger |
 
 **Tips:**
@@ -243,6 +244,7 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 - Fanger opp trykk på Møteplass og "K"-knappen i planleggingsvinduet og åpner disse via scriptet.
 - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides (gjelder ikke hvis modul åpnes i ny fane).
 - Fikser gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket bestilling på ventende oppdrag og søker den frem i "Hent rekvisisjon"-bildet. Tilgjengelig i hurtigmeny som "Hent bestillinger" og som [B]-knapp i Rek-knapper (også for pågående oppdrag).
 
 ### ⚙️ Adminmodul (ALT+A)
 

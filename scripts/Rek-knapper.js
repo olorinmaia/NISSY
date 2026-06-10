@@ -31,6 +31,9 @@
   const getMeetingplaceMode = () => sessionStorage.getItem(MEETINGPLACE_MODE_KEY);
   const saveMeetingplaceMode = (mode) => sessionStorage.setItem(MEETINGPLACE_MODE_KEY, mode);
 
+  // URL for "Hent rekvisisjon" (samme som Alt+H i Bestillingsmodul.js)
+  const HENT_REK_URL = '/rekvisisjon/requisition/confirmGetRequisition';
+
   function showMeetingplaceModeChoice(onChoose) {
     const overlay = document.createElement('div');
     Object.assign(overlay.style, {
@@ -624,7 +627,7 @@
     // ÅPNE MODAL MED IFRAME
     // Brukes for å vise redigering, hendelseslogg, etc.
     // ============================================================
-    const openModal = ({ url = null, requisitionNumber = null, isEditButton = false, isReturnButton = false } = {}) => {
+    const openModal = ({ url = null, requisitionNumber = null, isEditButton = false, isReturnButton = false, ssn = null } = {}) => {
       const modal = document.getElementById("iframeModal");
       const iframe = document.getElementById("iframeModalContent");
 
@@ -703,6 +706,7 @@
 
         // Sett fokus på iframe etter lasting slik at snarveier virker uten klikk
         if (!isEditButton) {
+          let ssnAutoFillPerformed = false;
           iframe.onload = function() {
             try {
               iframe.contentWindow.focus();
@@ -713,6 +717,21 @@
                   cancelBtn.removeAttribute('onclick');
                   cancelBtn.addEventListener('click', () => closeModal());
                 }
+              }
+              // Autofyll fødselsnummer og søk frem rekvisisjon (B-knappen)
+              if (ssn && !ssnAutoFillPerformed) {
+                ssnAutoFillPerformed = true;
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                setTimeout(() => {
+                  try {
+                    const ssnInput = iframeDoc.getElementById('ssn');
+                    const searchBtn = iframeDoc.getElementById('query_by_ssn');
+                    if (ssnInput && searchBtn) {
+                      ssnInput.value = ssn;
+                      searchBtn.click();
+                    }
+                  } catch (e) {}
+                }, 150);
               }
             } catch (e) {}
           };
@@ -1057,6 +1076,7 @@
             K: "Kopier bestilling",
             R: "Rediger bestilling",
             T: "Lag returbestilling",
+            B: "Hent bestillinger",
           }[label] || "";
 
           // Klikk-handler
@@ -1113,6 +1133,14 @@
                 }
                 openModal({ url: `/administrasjon/admin/editPatient?ssn=${ssn}` });
               });
+            } else if (label === "B") {
+              fetchSSN(reqId).then(ssn => {
+                if (!ssn) {
+                  showErrorToast("Kunne ikke hente fødselsnummer for denne bestillingen.");
+                  return;
+                }
+                resetIframe().then(() => openModal({ url: HENT_REK_URL, ssn }));
+              });
             } else {
               // Andre knapper: Åpne direkte URL
               const urlMap = {
@@ -1140,6 +1168,7 @@
         const btnM = createButton("M");
         const btnK = createButton("K");
         const btnT = createButton("T");
+        const btnB = createButton("B");
         const btnR = createButton("R");
 
         // Legg til i containeren
@@ -1150,6 +1179,7 @@
         btnContainer.appendChild(btnM);
         btnContainer.appendChild(btnK);
         btnContainer.appendChild(btnT);
+        btnContainer.appendChild(btnB);
         btnContainer.appendChild(btnR);
       });
 
