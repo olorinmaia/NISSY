@@ -24,6 +24,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Ny knapp **[B] "Hent bestillinger"** – henter fødselsnummer for valgt bestilling og søker den frem i Hent rekvisisjon. Fungerer også per bestilling på pågående oppdrag
 - 🪄 **Smart-tildeling**
   - Lagt til avtalemapping for **Pasientreiser Helse Bergen**
+- 🗺️ **Kartvisning**
+  - **Fergeberegning** – lagt til rutetabeller for 10 fergestrekninger i Pasientreiser Helse Bergen sitt område: Sløvåg/Leirvåg, Krokeide/Hufthamar, Hatvik/Venjaneset, Masfjordnes/Duesund, Halhjem/Våge, Halhjem/Sandvikvåg, Jondal/Tørvikbygd, Kvanndal/Utne, Lavik/Oppedal og Fedje/Sævrøy
 
 ---
 
