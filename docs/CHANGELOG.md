@@ -11,6 +11,22 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.7.0] - 11.06.2026
+
+### Hent bestillinger: Autofyller fødselsnummer og autosøker - Bergen-mapping for Smart-tildeling
+
+- 📝 **Bestillingsmodul**
+  - **Alt+H ("Hent rekvisisjon")** henter nå automatisk fødselsnummer for merket bestilling på ventende oppdrag, fyller ut fødselsnummer-feltet og søker frem resultatet
+  - Merkede rader gjenopprettes automatisk etter at Hent rekvisisjon-vinduet lukkes
+- 🖱️ **Hurtigmeny**
+  - Nytt meny-valg "Hent bestillinger" på ventende oppdrag (tilsvarer Alt+H), henter alltid fødselsnummeret for bestillingen det høyreklikkes på, selv om andre rader er merket
+- 🔠 **Rek-knapper**
+  - Ny knapp **[B] "Hent bestillinger"** – henter fødselsnummer for valgt bestilling og søker den frem i Hent rekvisisjon. Fungerer også per bestilling på pågående oppdrag
+- 🪄 **Smart-tildeling**
+  - Lagt til avtalemapping for **Pasientreiser Helse Bergen**
+
+---
+
 ## 🔧 [4.6.5] - 09.06.2026
 
 ### Smart-tildeling: Riktig avtale ved sortering på annen kolonne enn hentetid
