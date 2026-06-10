@@ -13,7 +13,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.7.0] - 11.06.2026
 
-### Hent bestillinger: Autofyller fødselsnummer og autosøker - Bergen-mapping for Smart-tildeling
+### Hent bestillinger: Autofyller fødselsnummer og autosøker - Helse Bergen: Nye fergeruter i Kartvisning og mapping i Smart-tildeling
 
 - 📝 **Bestillingsmodul**
   - **Alt+H ("Hent rekvisisjon")** henter nå automatisk fødselsnummer for merket bestilling på ventende oppdrag, fyller ut fødselsnummer-feltet og søker frem resultatet
