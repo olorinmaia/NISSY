@@ -356,25 +356,16 @@
     avbestilling:    () => !!window.__avbestillingHotkeyInstalled,
   };
 
-  // ── Sjekk om minst én merket pågående-rad har ressurs med status Tildelt ──
-  function hasTildeltPaagaende() {
-    const selectedRows = document.querySelectorAll('#pagaendeoppdrag tr[style*="rgb(148, 169, 220)"]');
-    for (const row of selectedRows) {
-      const resourceId = row.getAttribute('name');
-      const statusCell = document.getElementById(`Rxxxstatusxxx${resourceId}`);
-      if (statusCell?.textContent.trim() === 'Tildelt') return true;
-    }
-    return false;
-  }
-
   function paagaaendeMeny(row) {
     return [
       ...clipboardSection(),
       ...(scriptLoaded.liveRessurskart() ? [item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z'))] : []),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
+      ...(scriptLoaded.samkjoring() || (scriptLoaded.smartTildeling() && countSelected('ventende') > 0) ? [sep()] : []),
       ...(scriptLoaded.samkjoring()      ? [item('🚐', 'Samkjøring',       'Alt+X', () => triggerAlt('x'))] : []),
+      ...(scriptLoaded.smartTildeling() && countSelected('ventende') > 0 ? [item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s'))] : []),
       sep(),
-      ...(scriptLoaded.hentetid() && hasTildeltPaagaende() ? [item('🕐', 'Hentetid', 'Alt+E', () => triggerAlt('e'))] : []),
+      ...(scriptLoaded.hentetid() ? [item('🕐', 'Hentetid', 'Alt+E', () => triggerAlt('e'))] : []),
       ...(scriptLoaded.rekKnapper() ? [item('🔠', 'Rek-knapper', 'Alt+R', () => triggerAlt('r'))] : []),
       ...(scriptLoaded.hentetid() || scriptLoaded.rekKnapper() ? [sep()] : []),
       ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c')), sep()] : []),
@@ -424,6 +415,8 @@
       ...clipboardSection(),
       ...(scriptLoaded.liveRessurskart() ? [item('📡', 'Live Ressurskart', 'Alt+Z', () => triggerAlt('z'))] : []),
       item('🚕', 'Ressursinfo',      'Alt+D', () => triggerAlt('d')),
+      ...((scriptLoaded.smartTildeling() && countSelected('ventende') > 0) ? [sep()] : []),
+      ...(scriptLoaded.smartTildeling() && countSelected('ventende') > 0 ? [item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s'))] : []),
       sep(),
       ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) && scriptLoaded.sendSMS() ? [
         item('📱', 'Send SMS til sjåfør', null, () => {

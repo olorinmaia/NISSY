@@ -7,7 +7,8 @@
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node --version; npm --version)",
       "PowerShell(node --check \"scripts\\\\Hentetid.js\")",
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node --check \"scripts\\\\Hentetid.js\"; if \\($?\\) { Write-Output \"Syntax OK\" })",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node --check \"scripts\\\\Hurtigmeny.js\"; if \\($?\\) { Write-Output \"Syntax OK\" })"
     ]
   }
 }
