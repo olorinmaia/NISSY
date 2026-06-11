@@ -199,8 +199,11 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 
 ### 🕐 Hentetid (ALT+E)
 
-Lar deg merke bestillinger på ventende og pågående oppdrag (kun status tildelt) for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
+Lar deg merke bestillinger på ventende og pågående oppdrag for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
 "Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Rutekalkulering" åpner bestillingene i Google maps. "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
+
+**Pågående oppdrag med status ≠ "Tildelt":**
+Disse kan ikke redigeres her, men vises i stedet som info-kort nederst i pop-upen (navn, adresse, hentetid, oppmøtetid, status og "H"-knapp), slik at du får oversikt over alt som er merket. Hvis ingen av de merkede ressursene har status "Tildelt", vises kun info-kort og en "Lukk"-knapp.
 
 **Beregn alle mot felles oppmøtetid:**
 Når det er flere reiser til behandling vises en ekstra rad øverst i pop-upen med et tidsfelt og knappen «🧮 Beregn alle». Skriv inn ønsket oppmøtetid (foreslår automatisk den tidligste blant bestillingene) og klikk knappen – alle hentetider beregnes på én gang. Oppmøtetiden brukes kun til beregning og lagres ikke i bestillingene. Etter beregning sorteres listen automatisk og fokus flyttes til første hentetid-felt, klar for justering eller lagring med Enter.
@@ -244,7 +247,7 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 - Fanger opp trykk på Møteplass og "K"-knappen i planleggingsvinduet og åpner disse via scriptet.
 - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides (gjelder ikke hvis modul åpnes i ny fane).
 - Fikser gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
-- **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket bestilling på ventende oppdrag og søker den frem i "Hent rekvisisjon"-bildet. Tilgjengelig i hurtigmeny som "Hent bestillinger" og som [B]-knapp i Rek-knapper (også for pågående oppdrag).
+- **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag, og som [B]-knapp i Rek-knapper.
 
 ### ⚙️ Adminmodul (ALT+A)
 

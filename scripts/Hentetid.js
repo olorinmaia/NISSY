@@ -1537,6 +1537,22 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hendelseslogg-knapper for info-kort (read-only)
+  // ============================================================
+  function attachInfoLogListeners(infoBestillinger, popup) {
+    infoBestillinger.forEach(b => {
+      const logBtn = popup.querySelector(`#infoBestillingerContainer .show-log-btn[data-id="${b.id}"]`);
+      if (logBtn) {
+        logBtn.onclick = async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          await showLogPopover(logBtn, b.id);
+        };
+      }
+    });
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Finn alle merkede rader (V-, P- og Rxxx)
   // ============================================================
   function getAllSelectedRows() {
@@ -1865,7 +1881,7 @@
   // ============================================================
   // HJELPEFUNKSJON: Parse bestillingsinformasjon (PÅGÅENDE)
   // ============================================================
-  function parsePaagaaendeRow(row, startTimeIndex, oppTidIndex, nameIndex, fromIndex, toIndex, statusIndex) {
+  function parsePaagaaendeRow(row, startTimeIndex, oppTidIndex, nameIndex, fromIndex, toIndex, statusIndex, infoOnly = false) {
     const rowId = row.getAttribute("name") || row.id.replace(/^P-/, "");
     const ts = getTsFromPaagaaende(row);
     
@@ -1880,12 +1896,12 @@
     if (divs.length === 0) {
       // Enkelt-bestilling (ingen <div> struktur)
       const status = getStatus(row, statusIndex);
-      
-      // Ignorer hvis ikke "Tildelt"
-      if (status !== "Tildelt") {
+
+      // Ignorer hvis ikke "Tildelt" (med mindre vi kun vil ha info-data)
+      if (!infoOnly && status !== "Tildelt") {
         return [];
       }
-      
+
       const id = getIdFromPaagaaende(row);
       const name = (nameIndex !== -1 && cells[nameIndex]) ? getCellText(cells[nameIndex]) : '(ukjent)';
       
@@ -1919,6 +1935,7 @@
         toAddress,
         existingTime,
         oppmotetid,
+        status,
         row,
         source: 'pågående',
         rowClass: null
@@ -1945,9 +1962,9 @@
         // Hent status for denne bestillingen
         const statusDiv = statusDivs[i];
         const status = statusDiv ? statusDiv.textContent.trim() : '';
-        
-        // Ignorer hvis ikke "Tildelt"
-        if (status !== "Tildelt") {
+
+        // Ignorer hvis ikke "Tildelt" (med mindre vi kun vil ha info-data)
+        if (!infoOnly && status !== "Tildelt") {
           continue;
         }
         
@@ -1980,6 +1997,7 @@
           toAddress,
           existingTime,
           oppmotetid,
+          status,
           row,
           source: 'pågående',
           rowClass: tDiv.className, // Behold for debugging
@@ -1994,13 +2012,20 @@
   // ============================================================
   // POPUP: Rediger hentetid for flere bestillinger
   // ============================================================
-  function showTimeEditPopup(bestillinger, allSelectedRows) {
+  function showTimeEditPopup(bestillinger, allSelectedRows, infoBestillinger = []) {
     isPopupOpen = true;
-    
+
     const { overlay, popup } = createPopupBase("620px");
 
     // Sorter bestillinger initialt
     const sortedBestillinger = sortBestillingerByTime(bestillinger, null);
+
+    // Sorter info-bestillinger (kun visning) på hentetid
+    const sortedInfo = infoBestillinger.slice().sort((a, b) => {
+      const ta = (a.existingTime || '').replace(':', '');
+      const tb = (b.existingTime || '').replace(':', '');
+      return ta.localeCompare(tb);
+    });
 
     // Tell antall fra hver kilde
     const ventendeCount = bestillinger.filter(b => b.source === 'ventende').length;
@@ -2032,7 +2057,18 @@
       return b.oppmotetid && !isRetur;
     });
 
-    // Tidligste oppmøtetid blant disse brukes som default i felles-feltet
+    // Info-bestillinger (status ≠ Tildelt) som også er reiser til behandling – brukes for
+    // å finne tidligste oppmøtetid på tvers av alt som er merket (se helheten), men kan
+    // ikke beregnes/endres her.
+    const infoBeregnRelevant = sortedInfo.filter(b => {
+      const isRetur = b.oppmotetid && (
+        b.existingTime === b.oppmotetid ||
+        (b.existingTime && b.oppmotetid && b.existingTime.replace(':', '') >= b.oppmotetid.replace(':', ''))
+      );
+      return b.oppmotetid && !isRetur;
+    });
+
+    // Tidligste oppmøtetid blant disse (inkl. info-bestillinger) brukes som default i felles-feltet
     // (bruker for-løkke istedenfor reduce — NISSY overstyrer Array.prototype.reduce)
     let tidligsteOppmotetid = '';
     for (let _i = 0; _i < beregnAlleBestillinger.length; _i++) {
@@ -2041,8 +2077,14 @@
         tidligsteOppmotetid = _opp;
       }
     }
+    for (let _i = 0; _i < infoBeregnRelevant.length; _i++) {
+      const _opp = String(infoBeregnRelevant[_i].oppmotetid || '');
+      if (_opp && (!tidligsteOppmotetid || _opp.replace(':', '') < tidligsteOppmotetid.replace(':', ''))) {
+        tidligsteOppmotetid = _opp;
+      }
+    }
 
-    const fellesOppmotetidHtml = beregnAlleBestillinger.length > 1 ? `
+    const fellesOppmotetidHtml = (beregnAlleBestillinger.length >= 1 && (beregnAlleBestillinger.length + infoBeregnRelevant.length) > 1) ? `
       <div style="
         background: #f0f7ff;
         border: 1px solid #90caf9;
@@ -2279,7 +2321,127 @@
     `;
     }).join('');
 
-    const samkjortAdvarsel = detectSamkjortWarning(bestillinger);
+    // Bygg HTML for info-kort (pågående oppdrag med status ≠ Tildelt, kun visning)
+    const infoRows = sortedInfo.map((b, index) => {
+      const displayName = truncateText(b.name, MAX_NAME_LENGTH);
+      const displayFrom = truncateText(cleanAddressSuffixes(b.fromAddress), MAX_ADDRESS_LENGTH);
+      const displayTo = truncateText(cleanAddressSuffixes(b.toAddress), MAX_ADDRESS_LENGTH);
+
+      return `
+      <div style="
+        background: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'};
+        padding: 6px 10px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        border: 1px dashed #ced4da;
+        opacity: 0.85;
+      ">
+        <div style="
+          display: grid;
+          grid-template-columns: 0.8fr 1.3fr auto;
+          gap: 15px;
+          align-items: center;
+        ">
+          <div style="overflow: hidden; min-width: 0;">
+            <div style="
+              font-size: 13px;
+              font-weight: 600;
+              color: #333;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            " title="${b.name}">
+              ${displayName}
+            </div>
+            <div style="font-size: 10px; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Status: ${b.status || 'ukjent'}</div>
+          </div>
+          <div style="
+            font-size: 12px;
+            color: #666;
+            line-height: 1.3;
+            overflow: hidden;
+          " title="${cleanAddressSuffixes(b.fromAddress)} → ${cleanAddressSuffixes(b.toAddress)}">
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayFrom}</div>
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">→ ${displayTo}</div>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <div>
+              <div style="
+                font-size: 9px;
+                color: #666;
+                margin-bottom: 2px;
+                text-align: center;
+              ">Hentetid</div>
+              <div style="
+                padding: 6px 8px;
+                border: 2px solid #ccc;
+                border-radius: 4px;
+                font-size: 15px;
+                font-weight: 600;
+                width: 60px;
+                text-align: center;
+                background: #f8f8f8;
+                color: #666;
+                font-family: 'Courier New', monospace;
+              ">${b.existingTime || '–'}</div>
+            </div>
+            ${b.oppmotetid ? `
+              <div>
+                <div style="
+                  font-size: 9px;
+                  color: #666;
+                  margin-bottom: 2px;
+                  text-align: center;
+                ">Oppmøte</div>
+                <div style="
+                  padding: 6px 8px;
+                  border: 2px solid #ccc;
+                  border-radius: 4px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  width: 60px;
+                  text-align: center;
+                  background: #f8f8f8;
+                  color: #666;
+                  font-family: 'Courier New', monospace;
+                ">${b.oppmotetid}</div>
+              </div>
+            ` : ''}
+            <button
+              class="show-log-btn"
+              data-id="${b.id}"
+              style="
+                width: 22px;
+                padding: 0;
+                text-align: center;
+                background: #e9ecef;
+                color: #555;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                height: 20px;
+                line-height: 18px;
+                align-self: flex-end;
+                margin-bottom: 2px;
+                flex-shrink: 0;
+              "
+              title="Hendelseslogg for bestilling"
+            >H</button>
+          </div>
+        </div>
+      </div>
+    `;
+    }).join('');
+
+    // Advarselen er kun nyttig hvis brukeren faktisk kan justere hentetid på minst
+    // én redigerbar reise til behandling (utgående) – ellers er det ingenting å gi mer tid på.
+    const harRedigerbarUtgaende = bestillinger.some(b => {
+      if (!b.existingTime || !b.oppmotetid) return false;
+      return b.existingTime.replace(':', '') < b.oppmotetid.replace(':', '');
+    });
+    const samkjortAdvarsel = harRedigerbarUtgaende ? detectSamkjortWarning([...bestillinger, ...sortedInfo]) : null;
     const samkjortWarningHtml = samkjortAdvarsel ? `
       <div style="
         background: #fff8e1;
@@ -2301,7 +2463,7 @@
     popup.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h2 style="margin: 0; font-size: 18px; color: #333;">
-          🕐 Endre hentetid
+          ${sortedBestillinger.length > 0 ? '🕐 Endre hentetid' : 'ℹ️ Bestillinger på valgte ressurser'}
         </h2>
         <div style="display: flex; gap: 8px;">
           <button 
@@ -2354,9 +2516,13 @@
         font-size:12px;
         color:#1565c0;
       ">
-        <strong>${bestillinger.length} bestillinger valgt</strong>${sourceInfo} - Juster hentetid individuelt
+        ${sortedBestillinger.length > 0
+          ? `<strong>${bestillinger.length} bestillinger valgt</strong>${sourceInfo} - Juster hentetid individuelt${sortedInfo.length > 0 ? `<br>+ ${sortedInfo.length} ${sortedInfo.length === 1 ? 'bestilling vises' : 'bestillinger vises'} kun til informasjon (status ≠ Tildelt)` : ''}`
+          : `Ingen av de merkede ressursene har status "Tildelt" – hentetid kan derfor ikke endres her. Bestillingene vises under til informasjon.`
+        }
       </div>
 
+      ${sortedBestillinger.length > 0 ? `
       ${samkjortWarningHtml}
 
       ${fellesOppmotetidHtml}
@@ -2369,7 +2535,7 @@
       ">
         ${bestillingRows}
       </div>
-      
+
       <div style="
         background:#fff3cd;
         border:1px solid #ffc107;
@@ -2381,10 +2547,26 @@
       ">
         💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Trykk 🧮 for automatisk beregning.<br>Rediger oppmøtetid for å beregne mot et annet tidspunkt. Tab = neste felt. Enter = lagre/beregn.
       </div>
-      
+      ` : ''}
+
+      ${sortedInfo.length > 0 ? `
+      <div style="font-size:12px; font-weight:600; color:#666; margin:0 0 6px;">
+        ℹ️ Andre bestillinger på valgte ressurser (status ≠ Tildelt – kun visning)
+      </div>
+      <div id="infoBestillingerContainer" style="
+        max-height: none;
+        overflow-y: auto;
+        margin-bottom: 10px;
+        padding-right: 4px;
+      ">
+        ${infoRows}
+      </div>
+      ` : ''}
+
       <div style="display:flex; gap:10px; justify-content:center;">
-        <button 
-          id="confirmChange" 
+        ${sortedBestillinger.length > 0 ? `
+        <button
+          id="confirmChange"
           style="
             padding:10px 24px;
             background:#28a745;
@@ -2398,9 +2580,10 @@
         >
           💾 Lagre
         </button>
-        
-        <button 
-          id="cancelChange" 
+        ` : ''}
+
+        <button
+          id="cancelChange"
           style="
             padding:10px 24px;
             background:#95a5a6;
@@ -2412,7 +2595,7 @@
             font-weight:600;
           "
         >
-          Avbryt
+          ${sortedBestillinger.length > 0 ? 'Avbryt' : 'Lukk'}
         </button>
       </div>
       
@@ -2433,7 +2616,18 @@
     `;
 
     document.body.appendChild(popup);
-    
+
+    // Vis scrollbar i info-tabellen kun hvis det er 9 eller flere bestillinger
+    const infoContainer = popup.querySelector('#infoBestillingerContainer');
+    if (infoContainer && sortedInfo.length > 8) {
+      const firstInfoRow = infoContainer.firstElementChild;
+      if (firstInfoRow) {
+        const rowStyle = getComputedStyle(firstInfoRow);
+        const rowHeight = firstInfoRow.getBoundingClientRect().height + parseFloat(rowStyle.marginBottom || '0');
+        infoContainer.style.maxHeight = `${Math.round(rowHeight * 8)}px`;
+      }
+    }
+
     const statusBox = popup.querySelector("#changeStatus");
     const confirmButton = popup.querySelector("#confirmChange");
     const showMapButton = popup.querySelector("#showMapButton");
@@ -2508,6 +2702,7 @@
       }
     };
     
+    if (sortedBestillinger.length > 0) {
     // Event handler for "Beregn alle" knappen
     const beregnAlleButton = popup.querySelector("#beregnAlleButton");
     const fellesOppInput = popup.querySelector("#opptime_felles");
@@ -2610,6 +2805,7 @@
         firstInput.select();
       }
     }, 100);
+    }
 
     let changesSaved = false;
 
@@ -2659,6 +2855,7 @@
       }
     };
 
+    if (sortedBestillinger.length > 0) {
     confirmButton.onclick = async () => {
       // Sorter visuelt før validering hvis rekkefølgen ikke er kronologisk
       const currentlySorted = sortBestillingerByTime(bestillinger, popup);
@@ -2807,6 +3004,14 @@
         }
       });
     };
+    }
+
+    attachInfoLogListeners(sortedInfo, popup);
+
+    if (sortedBestillinger.length === 0) {
+      const lukkButton = popup.querySelector("#cancelChange");
+      setTimeout(() => lukkButton?.focus(), 100);
+    }
 
     popup.querySelector("#cancelChange").onclick = closePopup;
     overlay.onclick = closePopup;
@@ -2957,35 +3162,17 @@
     const ventendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("V-"));
     const paagaaendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("P-"));
 
-    // VALIDERING: Sjekk status fra Ressurser-tabellen for pågående oppdrag
+    // Sjekk status fra Ressurser-tabellen for pågående oppdrag
     const paagaaendeWithTildelt = paagaaendeRows.filter(row => {
       const resourceId = row.getAttribute("name") || row.id.replace(/^P-/, "");
-      const status = getResourceStatus(resourceId);
-      
-      if (!status) return false;
-      
-      return status === 'Tildelt';
+      return getResourceStatus(resourceId) === 'Tildelt';
     });
-    
-    // Hvis noen ressurser ble filtrert bort, vis advarsel
-    if (paagaaendeWithTildelt.length === 0 && paagaaendeRows.length > 0) {
-      const statuses = paagaaendeRows.map(row => {
-        const resourceId = row.getAttribute("name") || row.id.replace(/^P-/, "");
-        const status = getResourceStatus(resourceId);
-        const cells = row.querySelectorAll('td');
-        const resourceName = cells[1]?.textContent.trim() || resourceId;
-        return `${resourceName}: ${status || 'ikke funnet'}`;
-      }).join(', ');
-      
-      showErrorToast(`❌ Ingen av de merkede ressursene har status "Tildelt". Status: ${statuses}`);
-      
-      // Hvis det BARE er pågående (ingen ventende), stopp helt
-      if (ventendeRows.length === 0) {
-        return;
-      }
-      // Ellers fortsett med bare ventende oppdrag
-    }
-    
+
+    // Resten vises kun som info-kort (status ≠ Tildelt)
+    const paagaaendeNonTildelt = paagaaendeRows.filter(row => !paagaaendeWithTildelt.includes(row));
+
+    let editablePaagaaendeRows = paagaaendeWithTildelt;
+
     if (paagaaendeWithTildelt.length > 1) {
       const resourceNames = paagaaendeWithTildelt.map(r => {
         const cells = r.querySelectorAll('td');
@@ -3012,22 +3199,15 @@
       }
       
       // Bruk kun valgt ressurs
-      paagaaendeRows.length = 0;
-      paagaaendeRows.push(paagaaendeWithTildelt[selectedIndex]);
-      
-      // Oppdater allSelectedRows til å kun inneholde valgt ressurs + eventuelle ventende
-      allSelectedRows.length = 0;
-      allSelectedRows.push(...ventendeRows, ...paagaaendeRows);
-    } else if (paagaaendeWithTildelt.length === 1) {
-      // Kun én ressurs med Tildelt - bruk den
-      paagaaendeRows.length = 0;
-      paagaaendeRows.push(paagaaendeWithTildelt[0]);
-      
-      allSelectedRows.length = 0;
-      allSelectedRows.push(...ventendeRows, ...paagaaendeRows);
+      editablePaagaaendeRows = [paagaaendeWithTildelt[selectedIndex]];
     }
 
+    // Oppdater allSelectedRows: ventende + redigerbar(e) pågående + info-pågående
+    allSelectedRows.length = 0;
+    allSelectedRows.push(...ventendeRows, ...editablePaagaaendeRows, ...paagaaendeNonTildelt);
+
     let allBestillinger = [];
+    let infoBestillinger = [];
 
     // Prosesser ventende oppdrag
     if (ventendeRows.length > 0) {
@@ -3056,8 +3236,8 @@
       allBestillinger.push(...ventendeBestillinger);
     }
 
-    // Prosesser pågående oppdrag (kun hvis det finnes ressurser med Tildelt)
-    if (paagaaendeRows.length > 0 && paagaaendeWithTildelt.length > 0) {
+    // Prosesser pågående oppdrag (redigerbare og/eller info-kort)
+    if (paagaaendeRows.length > 0) {
       const startTimeIndex = findColumnIndex('#pagaendeoppdrag', 'tripStartTime');
       const oppTidIndex = findColumnIndex('#pagaendeoppdrag', 'tripTreatmentDate');
       const nameIndex = findColumnIndex('#pagaendeoppdrag', 'patientName');
@@ -3081,18 +3261,23 @@
         return;
       }
       
-      paagaaendeRows.forEach(row => {
+      editablePaagaaendeRows.forEach(row => {
         const bestillinger = parsePaagaaendeRow(row, startTimeIndex, oppTidIndex, nameIndex, fromIndex, toIndex, statusIndex);
         allBestillinger.push(...bestillinger);
       });
+
+      paagaaendeNonTildelt.forEach(row => {
+        const bestillinger = parsePaagaaendeRow(row, startTimeIndex, oppTidIndex, nameIndex, fromIndex, toIndex, statusIndex, true);
+        infoBestillinger.push(...bestillinger);
+      });
     }
 
-    if (allBestillinger.length === 0) {
+    if (allBestillinger.length === 0 && infoBestillinger.length === 0) {
       showErrorToast("🕐 Vennligst marker bestillinger eller én tur med status tildelt og trykk på Hentetid-knappen eller Alt+E igjen.");
       return;
     }
 
-    showTimeEditPopup(allBestillinger, allSelectedRows);
+    showTimeEditPopup(allBestillinger, allSelectedRows, infoBestillinger);
   }
 
   console.log("✅ Hentetid-script lastet");

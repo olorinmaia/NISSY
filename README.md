@@ -44,7 +44,8 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
 
 - 🕐 **Hentetid (Alt+E)** 
-  - Lar deg merke bestillinger og turer (status tildelt) og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
+  - Lar deg merke bestillinger og turer og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
+  - Pågående oppdrag med status ≠ "Tildelt" vises som info-kort til orientering, men kan ikke redigeres her.
   - **Beregn alle mot felles oppmøtetid** – ved flere reiser til behandling kan du sette én felles oppmøtetid og beregne alle hentetider med ett klikk. Oppmøtetiden lagres ikke i bestillingene.
   - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/ff8e576f-85ce-44e7-b1cc-4f4b9da8cc96" />
@@ -121,7 +122,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
-  - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket bestilling på ventende oppdrag og søker den frem i "Hent rekvisisjon"-bildet. Tilgjengelig i hurtigmeny som "Hent bestillinger" og som [B]-knapp i Rek-knapper (også for pågående oppdrag).
+  - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag, og som [B]-knapp i Rek-knapper.
 
 - ⚙️ **Adminmodul (Alt+A)**
   - Lar deg velge om du ønsker å åpne admin-modul i pop-up iframe eller ny fane. For pop-up husker den siste besøkte side.
