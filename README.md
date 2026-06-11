@@ -121,7 +121,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
-  - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket bestilling på ventende oppdrag og søker den frem i "Hent rekvisisjon"-bildet. Tilgjengelig i hurtigmeny som "Hent bestillinger" og som [B]-knapp i Rek-knapper (også for pågående oppdrag).
+  - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag, og som [B]-knapp i Rek-knapper.
 
 - ⚙️ **Adminmodul (Alt+A)**
   - Lar deg velge om du ønsker å åpne admin-modul i pop-up iframe eller ny fane. For pop-up husker den siste besøkte side.

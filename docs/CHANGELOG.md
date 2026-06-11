@@ -11,6 +11,19 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.7.1] - 12.06.2026
+
+### Hent bestillinger: Støtte for pågående oppdrag
+
+- 📝 **Bestillingsmodul**
+  - **Alt+H ("Hent rekvisisjon")** fungerer nå også for merkede pågående oppdrag, ikke bare ventende
+  - Hvis flere ulike personer er merket, vises en valgpopup der du velger hvem det skal hentes bestillinger for
+  - Pasientnavn-kolonnen finnes nå dynamisk for både ventende og pågående oppdrag, uavhengig av brukerens valgte kolonnerekkefølge
+- 🖱️ **Hurtigmeny**
+  - Nytt meny-valg "Hent bestillinger" (Alt+H) på pågående oppdrag
+
+---
+
 ## 🔧 [4.7.0] - 11.06.2026
 
 ### Hent bestillinger: Autofyller fødselsnummer og autosøker - Helse Bergen: Nye fergeruter i Kartvisning og mapping i Smart-tildeling

@@ -264,6 +264,8 @@
 
             .bestillingsmodul-content {
                 padding: 20px 24px;
+                max-height: 60vh;
+                overflow-y: auto;
             }
 
             .bestillingsmodul-option {
@@ -783,6 +785,7 @@
             option.addEventListener('mouseenter', () => {
                 options.forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
+                option.focus();
                 selectedIndex = index;
             });
         });
@@ -1028,7 +1031,7 @@
     function getSelectedRequisition() {
         // Finn alle rader som er selected (blå bakgrunn)
         const selectedRows = document.querySelectorAll('tr[style*="background-color: rgb(148, 169, 220)"]');
-        
+
         // Finn første ventende oppdrag (V- prefiks)
         for (const row of selectedRows) {
             const id = row.id;
@@ -1040,6 +1043,233 @@
         }
 
         return null;
+    }
+
+    /**
+     * Finner kolonneindeks basert på header-link, slik at Pnavn-kolonnen
+     * finnes uavhengig av brukerens valgte kolonnerekkefølge.
+     */
+    function findColumnIndex(tableSelector, headerLink) {
+        const headers = document.querySelectorAll(`${tableSelector} thead th`);
+        for (let i = 0; i < headers.length; i++) {
+            const link = headers[i].querySelector(`a[href*="${headerLink}"]`);
+            if (link) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Henter bestillinger (reqId + pasientnavn) fra en merket rad.
+     * Ventende (V-) har alltid én bestilling. Pågående (P-) kan ha flere
+     * samkjørte bestillinger, hver med sitt eget popp_-bilde og sin egen
+     * div.row-image per kolonne. Pnavn-kolonnens posisjon finnes dynamisk,
+     * siden brukeren kan endre kolonnerekkefølgen.
+     */
+    function getBookingsFromRow(row) {
+        const id = row.id || '';
+        const cells = Array.from(row.querySelectorAll('td'));
+
+        if (id.startsWith('V-')) {
+            const reqId = id.substring(2);
+            const nameIndex = findColumnIndex('.ventendeoppdrag', 'patientName');
+            const pasient = cells[nameIndex]?.textContent.trim();
+            return [{ reqId, pasient }];
+        }
+
+        if (id.startsWith('P-')) {
+            const images = row.querySelectorAll('img[id^="popp_"]');
+            const nameIndex = findColumnIndex('#pagaendeoppdrag', 'patientName');
+
+            // Ved samkjørte bestillinger ligger verdiene for hver bestilling i
+            // egne div.row-image (i rekkefølge) innenfor samme celle.
+            const cellText = (cellIndex, bookingIndex) => {
+                const cell = cells[cellIndex];
+                if (!cell) return '';
+                const subRows = cell.querySelectorAll('div.row-image');
+                if (subRows.length === 0) return cell.textContent.trim();
+                return subRows[bookingIndex]?.textContent.trim() || '';
+            };
+
+            return Array.from(images).map((img, index) => {
+                const reqId = img.id.replace('popp_', '');
+                const pasient = nameIndex !== -1 ? cellText(nameIndex, index) : '';
+                return { reqId, pasient };
+            });
+        }
+
+        return [];
+    }
+
+    /**
+     * Henter alle merkede bestillinger fra ventende (V-) og pågående (P-) oppdrag.
+     */
+    function getMarkedBookings() {
+        const selectedRows = document.querySelectorAll('tr[style*="background-color: rgb(148, 169, 220)"]');
+        const bookings = [];
+
+        selectedRows.forEach(row => {
+            const id = row.id || '';
+            if (id.startsWith('V-') || id.startsWith('P-')) {
+                bookings.push(...getBookingsFromRow(row));
+            }
+        });
+
+        return bookings;
+    }
+
+    /**
+     * Lar brukeren velge hvilken av flere merkede personer det skal søkes
+     * frem bestillinger for. Viser navn for hver person, med
+     * tastaturnavigasjon (piltaster/Tab, Enter, Escape).
+     * @returns {Promise<string|'cancelled'>} - valgt reqId, eller 'cancelled'
+     */
+    function showBookingChoicePopup(bookings) {
+        return new Promise(resolve => {
+            injectStyles();
+
+            const overlay = document.createElement('div');
+            overlay.className = 'bestillingsmodul-overlay';
+            activeOverlay = overlay;
+
+            const modal = document.createElement('div');
+            modal.className = 'bestillingsmodul-modal bestillingsmodul-selection-modal';
+
+            const optionsHtml = bookings.map((b, index) => `
+                <div class="bestillingsmodul-option${index === 0 ? ' selected' : ''}" data-value="${b.reqId}" tabindex="0">
+                    <div class="bestillingsmodul-option-radio"></div>
+                    <div class="bestillingsmodul-option-content">
+                        <p class="bestillingsmodul-option-label">${b.pasient || `Bestilling ${b.reqId}`}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            modal.innerHTML = `
+                <button class="bestillingsmodul-close" aria-label="Lukk">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="bestillingsmodul-header">
+                    <h2 class="bestillingsmodul-title">📥 Hent bestillinger</h2>
+                    <p class="bestillingsmodul-subtitle">Velg hvilken person du ønsker å hente bestillinger for.</p>
+                </div>
+                <div class="bestillingsmodul-content">
+                    ${optionsHtml}
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+            activeModals = [modal];
+            enableModalMode();
+
+            const options = modal.querySelectorAll('.bestillingsmodul-option');
+            let selectedIndex = 0;
+
+            const dismiss = (result) => {
+                if (activeOverlay) { activeOverlay.remove(); activeOverlay = null; }
+                modal.remove();
+                activeModals = [];
+                disableModalMode();
+                document.removeEventListener('keydown', keyHandler);
+                resolve(result);
+            };
+
+            options.forEach((option, index) => {
+                option.addEventListener('click', () => dismiss(option.dataset.value));
+                option.addEventListener('mouseenter', () => {
+                    options.forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    option.focus();
+                    selectedIndex = index;
+                });
+            });
+
+            const closeBtn = modal.querySelector('.bestillingsmodul-close');
+            closeBtn.addEventListener('click', (e) => { e.stopPropagation(); dismiss('cancelled'); });
+            overlay.addEventListener('click', () => dismiss('cancelled'));
+            modal.addEventListener('click', (e) => e.stopPropagation());
+
+            const keyHandler = (e) => {
+                if (e.key === 'ArrowDown' || e.key === 'Tab') {
+                    e.preventDefault();
+                    options[selectedIndex].classList.remove('selected');
+                    selectedIndex = (selectedIndex + 1) % options.length;
+                    options[selectedIndex].classList.add('selected');
+                    options[selectedIndex].focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    options[selectedIndex].classList.remove('selected');
+                    selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+                    options[selectedIndex].classList.add('selected');
+                    options[selectedIndex].focus();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    dismiss(options[selectedIndex].dataset.value);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    dismiss('cancelled');
+                }
+            };
+            document.addEventListener('keydown', keyHandler);
+            options[0].focus();
+        });
+    }
+
+    /**
+     * Slår sammen bestillinger for samme person til én, siden de gir samme
+     * treff ved SSN-søk.
+     */
+    function dedupBookingsByPerson(bookings) {
+        const persons = [];
+        const seen = new Set();
+        for (const b of bookings) {
+            if (!seen.has(b.pasient)) {
+                seen.add(b.pasient);
+                persons.push(b);
+            }
+        }
+        return persons;
+    }
+
+    /**
+     * Finner reqId for "Hent bestillinger" basert på en liste bestillinger.
+     * Flere bestillinger for samme person slås sammen til én. Viser
+     * valgpopup hvis flere ulike personer er involvert.
+     * @returns {Promise<string|null|'cancelled'>} - reqId, null hvis listen er
+     * tom, eller 'cancelled' hvis brukeren avbryter valget.
+     */
+    async function resolveReqIdForBookings(bookings) {
+        if (bookings.length === 0) return null;
+
+        const persons = dedupBookingsByPerson(bookings);
+
+        if (persons.length === 1) return persons[0].reqId;
+
+        return showBookingChoicePopup(persons);
+    }
+
+    /**
+     * Finner reqId for Alt+H ("Hent bestillinger") basert på merkede rader på
+     * ventende og/eller pågående oppdrag.
+     * @returns {Promise<string|null|'cancelled'>} - reqId, null hvis ingenting
+     * er merket, eller 'cancelled' hvis brukeren avbryter valget.
+     */
+    async function resolveHentBestillingerReqId() {
+        return resolveReqIdForBookings(getMarkedBookings());
+    }
+
+    /**
+     * Håndterer Alt+H ("Hent bestillinger"): finner riktig bestilling basert på
+     * merking (med valg-popup ved behov) og åpner Hent rekvisisjon.
+     */
+    async function openHentBestillingerAuto() {
+        const reqId = await resolveHentBestillingerReqId();
+        if (reqId === 'cancelled') return;
+        openDirectUrl(CONFIG.hentRekUrl, reqId);
     }
 
     /**
@@ -1160,6 +1390,7 @@
             option.addEventListener('mouseenter', () => {
                 options.forEach(o => o.classList.remove('selected'));
                 option.classList.add('selected');
+                option.focus();
                 selectedIndex = index;
             });
         });
@@ -1372,7 +1603,7 @@
         // Alt+H for Hent rekvisisjon
         else if (e.altKey && e.key.toLowerCase() === 'h') {
             e.preventDefault();
-            openDirectUrl(CONFIG.hentRekUrl);
+            openHentBestillingerAuto();
         }
         // Alt+M for Møteplass
         else if (e.altKey && e.key.toLowerCase() === 'm') {
@@ -1460,12 +1691,12 @@
     }
 
     /**
-     * Lagrer IDs til merkede ventende-bestillinger (V-) og ressurser (Rxxx)
+     * Lagrer IDs til merkede ventende-bestillinger (V-) og pågående oppdrag (P-).
      * Kalles rett før modal åpnes, mens radene fortsatt er synlige.
      */
     function saveSelectedRows() {
         window._bestillingsmodulSavedRows = new Set();
-        document.querySelectorAll('tr[id^="V-"], tr[id^="Rxxx"]').forEach(row => {
+        document.querySelectorAll('tr[id^="V-"], tr[id^="P-"]').forEach(row => {
             const bg = window.getComputedStyle(row).backgroundColor;
             if (bg === 'rgb(148, 169, 220)') {
                 window._bestillingsmodulSavedRows.add(row.id);

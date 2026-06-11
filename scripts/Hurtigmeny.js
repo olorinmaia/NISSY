@@ -389,6 +389,7 @@
         if (qBtn) qBtn.click();
         else console.warn('[Hurtigmeny] Fant ikke admin-link for ressurs:', ressursId);
       }, true),
+      item('📥', 'Hent bestillinger', 'Alt+H', () => triggerAlt('h')),
       ...(scriptLoaded.avbestilling() ? [sep()] : []),
       ...(scriptLoaded.avbestilling() ? [item('✖️', 'Avbestilling', 'Alt+K', () => triggerAlt('k'))] : []),
     ];
