@@ -2342,7 +2342,7 @@
           gap: 15px;
           align-items: center;
         ">
-          <div>
+          <div style="overflow: hidden; min-width: 0;">
             <div style="
               font-size: 13px;
               font-weight: 600;
@@ -2353,7 +2353,7 @@
             " title="${b.name}">
               ${displayName}
             </div>
-            <div style="font-size: 10px; color: #999;">Status: ${b.status || 'ukjent'}</div>
+            <div style="font-size: 10px; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Status: ${b.status || 'ukjent'}</div>
           </div>
           <div style="
             font-size: 12px;
