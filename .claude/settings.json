@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node --check \"c:\\\\Users\\\\alfei\\\\OneDrive\\\\Documents\\\\GitHub\\\\NISSY\\\\scripts\\\\Hentetid.js\")",
+      "PowerShell(Get-Command node, npx, python, python3 -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

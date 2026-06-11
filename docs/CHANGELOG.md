@@ -11,16 +11,22 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.7.1] - 12.06.2026
+## 🔧 [4.7.5] - 12.06.2026
 
-### Hent bestillinger: Støtte for pågående oppdrag
+### Hentetid: Viser ikke-tildelte pågående oppdrag som info-kort i stedet for feilmelding - Hent bestillinger: Støtte for pågående oppdrag - Fergeruter for St. Olavs hospital
 
+- 🕐 **Hentetid**
+  - Pågående oppdrag uten status "Tildelt" vises nå som read-only info-kort i popup (med hendelseslogg-knapp), i stedet for kun en feilmelding
+  - Felles oppmøtetid og samkjøringsadvarsel tar med disse info-bestillingene i beregningen
 - 📝 **Bestillingsmodul**
   - **Alt+H ("Hent rekvisisjon")** fungerer nå også for merkede pågående oppdrag, ikke bare ventende
   - Hvis flere ulike personer er merket, vises en valgpopup der du velger hvem det skal hentes bestillinger for
   - Pasientnavn-kolonnen finnes nå dynamisk for både ventende og pågående oppdrag, uavhengig av brukerens valgte kolonnerekkefølge
 - 🖱️ **Hurtigmeny**
   - Nytt meny-valg "Hent bestillinger" (Alt+H) på pågående oppdrag
+- 🗺️ **Kartvisning**
+  - **Fergeberegning** – lagt til rutetabeller for 3 fergestrekninger i St. Olavs hospital HF sitt område: Flakk/Rørvik, Valset/Brekstad og Storfosna/Garten
+  - Støtte for valgfri fredagsspesifikk rutetabell, med fallback til man-fre, for fergestrekninger med avvikende fredagsavganger
 
 ---
 
