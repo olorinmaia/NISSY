@@ -13,7 +13,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.7.5] - 12.06.2026
 
-### Hentetid: Viser ikke-tildelte pågående oppdrag som info-kort i stedet for feilmelding - Hent bestillinger: Støtte for pågående oppdrag - Fergeruter for St. Olavs hospital
+### Hentetid: Viser pågående oppdrag med status ≠ "Tildelt" som info-kort i stedet for feilmelding - Hent bestillinger: Støtte for pågående oppdrag - Fergeruter for St. Olavs hospital
 
 - 🕐 **Hentetid**
   - Pågående oppdrag uten status "Tildelt" vises nå som read-only info-kort i popup (med hendelseslogg-knapp), i stedet for kun en feilmelding
