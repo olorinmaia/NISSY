@@ -1591,6 +1591,14 @@
         if (marker.getTooltip()) marker.setTooltipContent(groupTooltip(g));
       }
 
+      // Fjerner ferge-baserte leverings-/hentetidsestimater fra forrige rute
+      // (relevant ved bytte av rutetjeneste – ny rute kan velge en annen ferge eller ingen ferge)
+      function resetEstimates() {
+        Object.keys(estimertLev).forEach(function (k) { delete estimertLev[k]; });
+        Object.keys(foreslåttHent).forEach(function (k) { delete foreslåttHent[k]; });
+        Object.keys(markersByKey).forEach(refreshMarker);
+      }
+
       function renderBookings(filtered) {
         currentFiltered = filtered;
         currentMarkerLayers.forEach(function (l) { map.removeLayer(l); });
@@ -2400,7 +2408,7 @@
           _routingEngine = _routingEngine === 'ors' ? 'osrm' : 'ors';
           sessionStorage.setItem(ROUTING_ENGINE_KEY, _routingEngine);
           updateEngineBtn();
-          if (routeOn && currentWaypoints.length >= 2) { removeRoute(); drawRoute(); }
+          if (routeOn && currentWaypoints.length >= 2) { resetEstimates(); removeRoute(); drawRoute(); }
         });
       }
 
