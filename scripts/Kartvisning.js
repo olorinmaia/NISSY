@@ -211,6 +211,7 @@
     'Pasientreiser Sør-Trøndelag': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQ5MDM5NzZiMjAwYjRmY2I5MmFhNjUyNjJjOWU2OGI5IiwiaCI6Im11cm11cjY0In0=',
     'Pasientreiser Helse Bergen': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRlZjdjZTY4MzQ1ZDRhYmM4NzIxZDU1ZTcxMzIxNjBmIiwiaCI6Im11cm11cjY0In0=',
     'Reisekontoret - Nordlandssykehuset HF': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImEwNjQ2MDUxMjQ0ZTQ5ZDQ5MzJjYzIyYTJkZmIxNDEzIiwiaCI6Im11cm11cjY0In0=',
+    'Pasientreiser Finnmarkssykehuset HF': 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImM2NGZkYTY2NzQ5OTRiYWNiM2I1Nzk1YWU3YjUxNjE4IiwiaCI6Im11cm11cjY0In0=',
   };
   // Personlige nøkler: brukerens egen kvote brukes fremfor kontorets.
   // Legg til id (fra popup/changePassword?id=XXXXX) → nøkkel.
@@ -240,8 +241,6 @@
   const _currentUserId = _userIdMatch ? parseInt(_userIdMatch[1], 10) : null;
   const ORS_API_KEY = ORS_USER_KEYS[_currentUserId] || ORS_KEYS[_currentOffice] || null;
   const orsEnabled = !!ORS_API_KEY;
-  // 'ors' eller 'osrm' — avgjør hvilken tjeneste som er primær for fergepipelinen
-  const FERRY_ROUTING = 'ors';
   const orsReturReqs = orsEnabled;
 
   // ── Kart-vindu HTML (data sendes via window.opener) ───────
@@ -264,12 +263,13 @@
     }
     #header h1 { font-size:17px; font-weight:600; }
     #controls { display:flex; gap:10px; align-items:center; }
-    #routeToggleBtn, #labelToggleBtn, #frammeToggleBtn {
+    #routeToggleBtn, #labelToggleBtn, #frammeToggleBtn, #routingEngineToggleBtn {
       padding:6px 14px; background:#CFECF5; color:#025671;
       border:none; border-radius:4px; font-weight:600; cursor:pointer;
       transition:all 0.2s; font-size:13px;
     }
     #routeToggleBtn.av, #labelToggleBtn.av, #frammeToggleBtn.av { background:rgba(255,255,255,0.2); color:#fff; opacity:0.7; }
+    #routingEngineToggleBtn.disabled { opacity:0.4; cursor:not-allowed; }
     .icon-label { display:flex; flex-direction:column; align-items:center; margin-top:1px;
       text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }
     .icon-label-time { display:flex; gap:3px; font-size:10px; font-weight:700; white-space:nowrap; line-height:1.2; }
@@ -322,6 +322,7 @@
     <div id="controls">
       <button id="labelToggleBtn" title="Vis/skjul tid og adresse på ikoner">ℹ️ Info på ikon</button>
       <button id="routeToggleBtn" title="Beregnet kjørerute via ORS/OSRM">📐 Beregnet rute</button>
+      <button id="routingEngineToggleBtn">🧭 ORS</button>
       <div id="routeInfo" style="display:none;font-size:13px;padding:5px 12px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
       <button id="frammeToggleBtn" style="display:none;" title="Vis/skjul Framme og Ikke møtt-bestillinger">Utført (0)</button>
       <div id="status">Laster kart…</div>
@@ -1403,8 +1404,14 @@
       // ── Routing-hjelpere for fergepipeline ───────────────────
       const _orsEnabled    = ${orsEnabled};
       const _orsKey        = '${ORS_API_KEY}';
-      const _ferryRouting  = '${FERRY_ROUTING}';
       const _orsReturReqs  = ${orsReturReqs};
+
+      // Rutetjeneste ('ors' eller 'osrm') – valgt av bruker, lagret i sessionStorage
+      // (gjelder kun dette kartvinduet til det lukkes, ikke permanent)
+      const ROUTING_ENGINE_KEY = 'kartvisningRoutingEngine';
+      let _routingEngine = _orsEnabled
+        ? (sessionStorage.getItem(ROUTING_ENGINE_KEY) === 'osrm' ? 'osrm' : 'ors')
+        : 'osrm';
 
       const ORS_CACHE_DAYS = 7;
       function _orsCacheKey(lonA, latA, lonB, latB) {
@@ -1451,8 +1458,8 @@
       }
 
       function fetchSegmentDuration(lonA, latA, lonB, latB) {
-        const primary   = _ferryRouting === 'ors' ? fetchDurationORS  : fetchDurationOSRM;
-        const secondary = _ferryRouting === 'ors' ? fetchDurationOSRM : fetchDurationORS;
+        const primary   = _routingEngine === 'ors' ? fetchDurationORS  : fetchDurationOSRM;
+        const secondary = _routingEngine === 'ors' ? fetchDurationOSRM : fetchDurationORS;
         return primary(lonA, latA, lonB, latB)
           .then(function (sec) {
             if (sec !== null) return sec;
@@ -1492,8 +1499,8 @@
             return legs.map(function (leg) { cum += leg.duration; return cum; });
           });
         }
-        const primary   = _ferryRouting === 'ors' ? viaORS  : viaOSRM;
-        const secondary = _ferryRouting === 'ors' ? viaOSRM : viaORS;
+        const primary   = _routingEngine === 'ors' ? viaORS  : viaOSRM;
+        const secondary = _routingEngine === 'ors' ? viaOSRM : viaORS;
         return primary()
           .then(function (res) {
             if (res) return res;
@@ -1780,7 +1787,7 @@
           .catch(function () { fallback(); });
         }
 
-        if (!${orsEnabled}) { routeViaOsrm(); return; }
+        if (_routingEngine === 'osrm') { routeViaOsrm(); return; }
 
         const coords = currentWaypoints.map(function (w) { return [w.lng, w.lat]; });
         fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson', {
@@ -2374,6 +2381,28 @@
         if (routeOn) { drawRoute(); btn.classList.remove('av'); }
         else { removeRoute(); btn.classList.add('av'); }
       });
+
+      // Knapp – rutetjeneste (ORS/OSRM)
+      const engineBtn = document.getElementById('routingEngineToggleBtn');
+      function updateEngineBtn() {
+        if (!_orsEnabled) {
+          engineBtn.textContent = '🧭 OSRM';
+          engineBtn.classList.add('disabled');
+          engineBtn.title = 'Rutetjeneste: OSRM. ORS krever en API-nøkkel – se brukerveiledningen for å opprette egen nøkkel';
+          return;
+        }
+        engineBtn.textContent = _routingEngine === 'ors' ? '🧭 ORS' : '🧭 OSRM';
+        engineBtn.title = 'Rutetjeneste: ' + (_routingEngine === 'ors' ? 'ORS' : 'OSRM') + ' – klikk for å bytte';
+      }
+      updateEngineBtn();
+      if (_orsEnabled) {
+        engineBtn.addEventListener('click', function () {
+          _routingEngine = _routingEngine === 'ors' ? 'osrm' : 'ors';
+          sessionStorage.setItem(ROUTING_ENGINE_KEY, _routingEngine);
+          updateEngineBtn();
+          if (routeOn && currentWaypoints.length >= 2) { removeRoute(); drawRoute(); }
+        });
+      }
 
       // Knapp – labels (tid + adresse på ikoner)
       let showLabels = true;
