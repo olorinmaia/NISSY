@@ -331,6 +331,50 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hent dato fra raden i NISSY planlegging
+  // Brukes til å sette dato-feltet ved retur (T-knappen) når
+  // NISSY ikke fyller det ut selv (kun "klar fra"-feltet vises).
+  // Returnerer {day, month} hvis raden viser "dd.mm tt:mm", ellers
+  // null (betyr "i dag" – NISSY viser kun klokkeslett da).
+  // ============================================================
+  function extractRowDate(row) {
+    const match = row.textContent.match(/(\d{2})\.(\d{2})\s+\d{2}:\d{2}/);
+    if (!match) return null;
+    return { day: parseInt(match[1], 10), month: parseInt(match[2], 10) };
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Fyll inn dato-feltet ("Pasient klar fra") hvis det
+  // er tomt, basert på datoen hentet fra raden (eller dagens dato).
+  // ============================================================
+  function fillPickupDateIfEmpty(doc, rowDate) {
+    try {
+      const pickupDateField = doc.getElementById("pickupDate");
+      if (!pickupDateField || pickupDateField.value.trim()) return;
+
+      const now = new Date();
+      let day, month, year = now.getFullYear();
+
+      if (rowDate) {
+        day = rowDate.day;
+        month = rowDate.month;
+        // Rull over til neste år hvis datoen ligger langt tilbake i tid
+        // (f.eks. ved nyttårsskifte)
+        const candidate = new Date(year, month - 1, day);
+        const diffDays = (now - candidate) / (1000 * 60 * 60 * 24);
+        if (diffDays > 180) year += 1;
+      } else {
+        day = now.getDate();
+        month = now.getMonth() + 1;
+      }
+
+      const pad = (n) => String(n).padStart(2, '0');
+      pickupDateField.value = `${pad(day)}.${pad(month)}.${String(year).slice(-2)}`;
+      pickupDateField.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (err) {}
+  }
+
+  // ============================================================
   // HJELPEFUNKSJONER: REISEMÅTE-FIX
   // Henter reisemåte fra plakat og setter den automatisk hvis feltet er blankt
   // ============================================================
@@ -439,6 +483,7 @@
 
     // Initialiser globale variabler
     window.lastEditedReqId = null;
+    window.lastEditedRowDate = null;
     window.lastModalButton = null;
     window.popupObserver = null;
     window.escapeHandler = null;
@@ -796,6 +841,7 @@
                 
                 // makeReturn() trigger en ny sidelasting — vent på onload
                 if (isReturnButton) {
+                  const rowDate = window.lastEditedRowDate;
                   iframe.onload = function() {
                     iframe.onload = null;
                     try {
@@ -807,11 +853,15 @@
                             win.getComputedStyle(redigerBtn).display !== "none" &&
                             win.getComputedStyle(redigerBtn).visibility !== "hidden") {
                           redigerBtn.click();
-                          setTimeout(() => focusPickupTime(doc, win), 50);
+                          setTimeout(() => {
+                            fillPickupDateIfEmpty(doc, rowDate);
+                            focusPickupTime(doc, win);
+                          }, 50);
                         } else {
+                          fillPickupDateIfEmpty(doc, rowDate);
                           focusPickupTime(doc, win);
                         }
-                      //Ekstra tid for å sikre at makeReturn har fullført alle DOM-endringer før vi prøver å finne og klikke på rediger-knappen  
+                      //Ekstra tid for å sikre at makeReturn har fullført alle DOM-endringer før vi prøver å finne og klikke på rediger-knappen
                       }, 200);
                     } catch (err) {}
                   };
@@ -1087,6 +1137,7 @@
             window.lastEditedVognloepId = (label === 'R' && !isVentende)
               ? (row.getAttribute('name') || row.id.replace(/^[PV]-/, ''))
               : null;
+            window.lastEditedRowDate = extractRowDate(row);
 
             // Sjekk for advarsel ved redigering av pågående oppdrag
             if (label === "R") {
