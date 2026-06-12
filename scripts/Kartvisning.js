@@ -2410,6 +2410,7 @@
         routeOn = !routeOn;
         if (routeOn) { drawRoute(); btn.classList.remove('av'); }
         else { removeRoute(); btn.classList.add('av'); }
+        engineBtn.style.display = routeOn ? '' : 'none';
       });
 
       // Knapp – rutetjeneste (ORS/OSRM)
