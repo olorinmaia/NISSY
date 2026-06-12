@@ -575,6 +575,8 @@
 
                         fixTilbakeLink(iframeDoc);
 
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
+
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -996,6 +998,8 @@
                                 }, 150);
                             });
                         }
+
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
 
                     }
                 } catch (e) {
@@ -1647,12 +1651,12 @@
             if (link.href.includes('/rekvisisjon/requisition/redit')) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 // Åpne i modal istedenfor ny fane
                 openReditInModal(link.href);
             }
             // Sjekk for generell requisition-lenke (helselogo.gif)
-            else if (link.href.includes('/rekvisisjon/requisition/') && 
+            else if (link.href.includes('/rekvisisjon/requisition/') &&
                      !link.href.includes('redit')) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1688,6 +1692,102 @@
         } catch (err) {
             console.error('Error focusing pickupTime:', err);
         }
+    }
+
+    /**
+     * Henter "Oppm. dato" (4. kolonne) fra en rad i returrekvisisjon-listen.
+     * Format: "dd.mm.åå hh:mm" → returnerer {day, month, year}, eller null
+     * hvis kolonnen ikke inneholder en dato.
+     */
+    function extractOppmDato(row) {
+        const cells = row.querySelectorAll('td');
+        const text = cells[3]?.textContent.trim() || '';
+        const m = text.match(/(\d{2})\.(\d{2})\.(\d{2})/);
+        if (!m) return null;
+        return { day: m[1], month: m[2], year: m[3] };
+    }
+
+    /**
+     * Fyller inn dato-feltet ("Pasient klar fra") hvis det er tomt, basert på
+     * datoen fra "Oppm. dato"-kolonnen for raden [T] ble trykket på, eller
+     * dagens dato hvis ingen dato ble funnet.
+     */
+    function fillPickupDateIfEmpty(doc, dateObj) {
+        try {
+            const pickupDateField = doc.getElementById('pickupDate');
+            if (!pickupDateField || pickupDateField.value.trim()) return;
+
+            let day, month, year;
+            if (dateObj) {
+                ({ day, month, year } = dateObj);
+            } else {
+                const now = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                day = pad(now.getDate());
+                month = pad(now.getMonth() + 1);
+                year = String(now.getFullYear()).slice(-2);
+            }
+
+            pickupDateField.value = `${day}.${month}.${year}`;
+            pickupDateField.dispatchEvent(new Event('change', { bubbles: true }));
+        } catch (err) {}
+    }
+
+    /**
+     * Setter opp [T] ("Generer returrekvisisjon")-håndtering for en iframe:
+     * Fanger opp klikk på [T]-lenker og henter datoen fra "Oppm. dato"-kolonnen.
+     * Når siden deretter laster (returbestillingen), klikkes "Rediger klar fra"
+     * (hvis synlig), dato-feltet fylles inn fra [T]-raden hvis det er tomt, og
+     * fokus settes på "klar fra"-feltet med auto-scroll.
+     * Kalles på nytt for hver iframe-load; pendingReturnDate lagres på selve
+     * iframe-elementet for å overleve mellom load-eventene.
+     *
+     * @param {boolean} alwaysFocus - Hvis true, kjøres scroll/fokus (og evt.
+     * klikk på "Rediger klar fra") på ALLE lastinger, ikke bare etter [T]-klikk
+     * (brukes for redit-lenker, hvor dette alltid har skjedd). Dato fylles
+     * uansett kun inn når siden ble lastet som følge av et [T]-klikk.
+     */
+    function setupReturnAutoFill(iframe, iframeDoc, iframeWin, alwaysFocus = false) {
+        iframeDoc.addEventListener('click', (e) => {
+            const link = e.target.closest('a[title="Generer returrekvisisjon"]');
+            if (!link) return;
+            const row = link.closest('tr');
+            iframe._pendingReturnDate = row ? extractOppmDato(row) : null;
+        }, true);
+
+        setTimeout(() => {
+            const returnDate = iframe._pendingReturnDate;
+            iframe._pendingReturnDate = undefined;
+
+            // Scroll/fokus (og evt. klikk på "Rediger klar fra") kjøres alltid
+            // for redit-lenker (alwaysFocus), eller når denne siden ble lastet
+            // som følge av et [T]-klikk (returrekvisisjon)
+            if (returnDate === undefined && !alwaysFocus) return;
+
+            const redigerBtn = iframeDoc.getElementById('redigerKlarFra');
+            // Dato fylles kun inn når siden ble lastet som følge av et [T]-klikk
+            const fillDate = () => {
+                if (returnDate !== undefined) fillPickupDateIfEmpty(iframeDoc, returnDate);
+            };
+            if (redigerBtn) {
+                const style = iframeWin.getComputedStyle(redigerBtn);
+                if (style.display !== 'none' && style.visibility !== 'hidden') {
+                    redigerBtn.click();
+                    setTimeout(() => {
+                        fillDate();
+                        focusPickupTime(iframeDoc, iframeWin);
+                    }, 50);
+                } else {
+                    // Knappen er skjult, bare fokuser på feltet
+                    fillDate();
+                    focusPickupTime(iframeDoc, iframeWin);
+                }
+            } else {
+                // Knappen finnes ikke, bare fokuser på feltet
+                fillDate();
+                focusPickupTime(iframeDoc, iframeWin);
+            }
+        }, 100);
     }
 
     /**
@@ -1879,7 +1979,7 @@
                 try {
                     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                     const iframeWin = iframe.contentWindow;
-                    
+
                     if (iframeDoc && iframeWin) {
                         // Håndter F5 inne i iframe
                         const iframeF5Handler = (e) => {
@@ -1892,7 +1992,7 @@
                                 return false;
                             }
                         };
-                        
+
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
 
@@ -1911,24 +2011,8 @@
 
                         // Sjekk og rett opp blankt Reisemåte-felt
                         if (rid) fixTransportType(iframeDoc, rid);
-                        
-                        // Klikk på "Rediger klar fra" knappen hvis den finnes og er synlig
-                        setTimeout(() => {
-                            const redigerBtn = iframeDoc.getElementById('redigerKlarFra');
-                            if (redigerBtn) {
-                                const style = iframeWin.getComputedStyle(redigerBtn);
-                                if (style.display !== 'none' && style.visibility !== 'hidden') {
-                                    redigerBtn.click();
-                                    setTimeout(() => focusPickupTime(iframeDoc, iframeWin), 50);
-                                } else {
-                                    // Knappen er skjult, bare fokuser på feltet
-                                    focusPickupTime(iframeDoc, iframeWin);
-                                }
-                            } else {
-                                // Knappen finnes ikke, bare fokuser på feltet
-                                focusPickupTime(iframeDoc, iframeWin);
-                            }
-                        }, 100);
+
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, true);
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
