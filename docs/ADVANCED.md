@@ -7,7 +7,7 @@
 - 🚕 **[Ressursinfo](#-ressursinfo-altd)** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 📡 **[Live ressurskart](#-live-ressurskart-altz)** - (Alt+Z) Åpner et interaktivt kart som viser siste kjente posisjon, hendelse samt annen nyttig info for alle merkede ressurser.
 - 🧭 **[Rutekalkulering](#-rutekalkulering-altq)** - (Alt+Q) Åpne rute i Google Maps
-- 🗺️ **[Kartvisning](#️-kartvisning-altw)** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
+- 🗺️ **[Kartvisning](#️-kartvisning-altw)** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – erstatter NISSY sin innebygde kartvisning
 - 🪄 **[Smart-tildeling](#-smart-tildel-alts)** - (Alt+S / Alt+T) Planlegge bestillinger uten å måtte velge avtaler i NISSY. Kan også tildele til merket ressurs eller avtale.
 - 🕐 **[Hentetid](#-hentetid-alte)** - (Alt+E) Rediger/beregn hentetid på merkede bestillinger på ventende oppdrag og turer med status tildelt på pågående oppdrag.
 - 🔠 **[Rek-knapper](#-rek-knapper-altr)** - (Alt+R) Gir hurtigknapper på bestillinger i ventende/pågående oppdrag. Trykk ESC for å lukke manuelt.
@@ -98,12 +98,13 @@ Navn: `NISSY-Avansert`
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+W`
 
-- Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+- Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Kartvisning»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
 - Pop-up vindu åpnes ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
 - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
 - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
 - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
   - Jeg har ingen direkte styring over ruten som velges, noen ganger vil ikke den forventede ruten velges, men beregning på tid/km vil som regel være ca riktig uansett og bedre enn ingen beregning
+- **Rutetjeneste (🧭 ORS/OSRM)**: Knapp i header for å velge rutetjeneste – valget brukes for både kjørerute og fergeberegning. Gjelder kun til kartvinduet lukkes, neste Alt+W nullstiller til standardvalg (ORS hvis API-nøkkel finnes, ellers OSRM). Krever ORS API-nøkkel for å kunne velge ORS – uten nøkkel er knappen deaktivert og kun OSRM brukes
 - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
 - **Fergeberegning** – rutetabeller for alle ferger i Nord-Trøndelag er konfigurert. Se [veiledning for å konfigurere fergeruter](Ferge_Konfigurasjon.md) for mal og instruksjoner for oppsett
     - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
@@ -162,8 +163,6 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
 - Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
 - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
-- Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering).
-- "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
 - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
   - 12 siffer → Rekvisisjonsnummer
   - 11 siffer → Personnummer
@@ -210,7 +209,7 @@ Tilordner hver bestilling til sin egen avtale (individuelt). Ingen begrensning p
 ### 🕐 Hentetid (ALT+E)
 
 Lar deg merke bestillinger på ventende og pågående oppdrag for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
-"Vis i kart" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Rutekalkulering" åpner bestillingene i Google maps. "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
+"🗺️ Kartvisning" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Rutekalkulering" åpner bestillingene i Google maps. "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
 
 **Pågående oppdrag med status ≠ "Tildelt":**
 Disse kan ikke redigeres her, men vises i stedet som info-kort nederst i pop-upen (navn, adresse, hentetid, oppmøtetid, status og "H"-knapp), slik at du får oversikt over alt som er merket. Hvis ingen av de merkede ressursene har status "Tildelt", vises kun info-kort og en "Lukk"-knapp.

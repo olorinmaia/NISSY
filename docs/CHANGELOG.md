@@ -11,6 +11,21 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.0] - 12.06.2026
+
+### Kartvisning: Mulighet til å velge rutetjeneste (ORS/OSRM) - Loadere: Send SMS og Kartvisning har fått egne knapper i kontrollpanelet - Globale SMS-maler
+
+- 🗺️ **Kartvisning**
+  - Ny knapp for å velge rutetjeneste (ORS/OSRM) – valget lagres og brukes for både kjørerute og fergeberegning. Krever ORS API-nøkkel, ellers vises kun OSRM. Nyttig hvis standardvalg ORS viser "feil" rute og ønsker å se hva OSRM ruter.
+- 🧩 **Loadere (Advanced, Basic, AMK)**
+  - Nye knapper **📱 Send SMS (Alt+C)** og **🗺️ Kartvisning (Alt+W)** er lagt til i kontrollpanelet for alle loadere
+  - Originale **Send SMS**- og **Vis i kart**-knapper er skjult siden de er erstattet av de nye knappene
+  - Kontrollpanelet er reorganisert slik at resten av knappene flytter seg opp og fyller den ledige plassen optimalt
+- 📱 **Send SMS**
+  - Globale maler – Send SMS fungerer nå for alle kontorer, med fallback til globale SMS-maler der kontoret ikke har konfigurert egne
+
+---
+
 ## 🔧 [4.7.5] - 12.06.2026
 
 ### Hentetid: Viser pågående oppdrag med status ≠ "Tildelt" som info-kort i stedet for feilmelding - Hent bestillinger: Støtte for pågående oppdrag - Fergeruter for St. Olavs hospital

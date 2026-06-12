@@ -24,8 +24,6 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
   - Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
-  - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
-  - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
   - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
     - 12 siffer → Rekvisisjonsnummer
     - 11 siffer → Personnummer
@@ -65,13 +63,14 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Filtrerer automatisk ut bestillinger med status «Framme» og "Ikke møtt".
 
 - 🗺️ **Kartvisning**
-  - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+  - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Kartvisning»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
   - Pop-up vindu åpnes ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
   - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
   - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
   - Tooltip med pasientnavn og tidspunkt ved mouse-over
   - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
     - Jeg har ingen direkte kontroll over ruten som velges, noen ganger vil ikke forventet rute velges, men beregning vil være ca riktig uansett
+  - **Rutetjeneste (🧭 ORS/OSRM)**: Knapp i header for å velge rutetjeneste – valget brukes for både kjørerute og fergeberegning. Gjelder kun til kartvinduet lukkes, neste Alt+W nullstiller til standardvalg (ORS hvis API-nøkkel finnes, ellers OSRM). Krever ORS API-nøkkel for å kunne velge ORS – uten nøkkel er knappen deaktivert og kun OSRM brukes
   - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
