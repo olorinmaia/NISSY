@@ -1,6 +1,14 @@
 # Konfigurere SMS-maler for Send-SMS
 
-Send-SMS-funksjonen støtter kontor-spesifikke maler som automatisk fyller inn pasientnavn, adresser og tidspunkt fra bestillingsdata. For å få aktivert maler for ditt kontor må du sende inn ønsket konfigurasjon.
+Send-SMS-funksjonen støtter kontor-spesifikke maler som automatisk fyller inn pasientnavn, adresser og tidspunkt fra bestillingsdata.
+
+## Globale standardmaler
+
+Alle kontor får automatisk et sett med generelle standardmaler («Hentetidspunkt», «Endret hentetidspunkt», «Planlagt reise til behandling», «Ring oss tilbake», «Forsinkelse» m.fl.), signert «Hilsen Pasientreiser». Disse passer for de fleste kontor og krever ingen konfigurasjon.
+
+Send-SMS-funksjonen (Alt+C) erstatter dermed NISSYs egen SMS-funksjon for alle kontor, ikke bare de med egne maler. 
+
+Ønsker dere egne, kontorspesifikke maler (f.eks. med lokalt telefonnummer, flyplass-maler eller egen signatur) i stedet for standardmalene, må dette konfigureres – se under.
 
 ---
 
@@ -168,3 +176,9 @@ Send den tilpassede blokken (og kontorets navn) til **aej@hnt.no**, på Teams, e
 - `\n` lager linjeskift i meldingsteksten.
 - `autoVelgHvis` kan brukes til å automatisk velge en mal basert på f.eks. adressen: `autoVelgHvis: (info) => /flyplass|lufthavn/i.test(info.fraAdresse)`
 - Sjåfør-SMS (`sjaafor`) sendes via høyreklikk på ressurs i ressurskolonnen.
+
+---
+
+## Viktig – alt-eller-ingenting
+
+Så snart et kontor får sin egen oppføring, brukes **ikke** lenger de globale standardmalene for dette kontoret – heller ikke for mal-typer kontoret ikke har fylt ut. Dere må derfor konfigurere **alle tre mal-typer** (`bestilling`, `fritekst` og `sjaafor`) selv, selv om noen av dem bare skal inneholde de samme malene som standardoppsettet. Mangler en type helt, blir nedtrekkslisten for den typen tom.
