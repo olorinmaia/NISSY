@@ -248,6 +248,7 @@ Viser hurtigknapper på merkede rader.
 - Knappene følger med ved scrolling
 - Automatisk høydetilpasning til rad-bilder
 - Fikser gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- Fikser gammel NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når [T] ("Lag retur") brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
 
 ### 📝 Bestillingsmodul (ALT+N)
 
@@ -257,6 +258,7 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 - Fanger opp trykk på Møteplass og "K"-knappen i planleggingsvinduet og åpner disse via scriptet.
 - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides (gjelder ikke hvis modul åpnes i ny fane).
 - Fikser gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- Fikser gammel NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når "Generer returrekvisisjon" ([T]) brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
 - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag, og som [B]-knapp i Rek-knapper.
 
 ### ⚙️ Adminmodul (ALT+A)

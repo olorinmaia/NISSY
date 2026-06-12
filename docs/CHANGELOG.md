@@ -11,9 +11,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.8.0] - 12.06.2026
+## 🔧 [4.8.0] - 15.06.2026
 
-### Kartvisning: Mulighet til å velge rutetjeneste (ORS/OSRM) - Loadere: Send SMS og Kartvisning har fått egne knapper i kontrollpanelet - Globale SMS-maler
+### Kartvisning: Mulighet til å velge rutetjeneste (ORS/OSRM) - Loadere: Send SMS og Kartvisning har fått egne knapper i kontrollpanelet - Globale SMS-maler - Rek-knapper/Bestillingsmodul: [T] fyller nå automatisk inn dato på returbestilling
 
 - 🗺️ **Kartvisning**
   - Ny knapp for å velge rutetjeneste (ORS/OSRM) – valget lagres og brukes for både kjørerute og fergeberegning. Krever ORS API-nøkkel, ellers vises kun OSRM. Nyttig hvis standardvalg ORS viser "feil" rute og ønsker å se hva OSRM ruter.
@@ -24,6 +24,9 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Kontrollpanelet er reorganisert slik at resten av knappene flytter seg opp og fyller den ledige plassen optimalt
 - 📱 **Send SMS**
   - Send SMS fungerer nå for alle kontorer, globale SMS-maler benyttes når det ikke er konfigurert kontor-spesifikke maler
+- 🔠 **Rek-knapper** / 📝 **Bestillingsmodul**
+  - Fikser gammel NISSY-bug hvor dato for "Pasient klar fra" ikke ble fylt inn automatisk når [T] ("Lag retur"/"Generer returrekvisisjon") brukes for å lage en linket returbestilling
+  - Dato hentes nå automatisk fra "Oppm. dato" på den opprinnelige bestillingen og fylles inn hvis feltet er tomt, og siden scrolles/fokuserer automatisk på "klar fra"-feltet
 
 ---
 
