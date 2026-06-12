@@ -1443,8 +1443,18 @@
         })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          const sec = d.routes && d.routes[0] ? d.routes[0].summary.duration : null;
-          if (sec !== null) _orsCacheSet(key, sec);
+          const route = d.routes && d.routes[0];
+          if (!route) return null;
+          // Kjent ORS-feil: Hurtigruten (kystferje) brukes som kjørbar vei. Se GIScience/openrouteservice#2299
+          const harHurtigruten = (route.segments || []).some(function (seg) {
+            return (seg.steps || []).some(function (step) { return step.name === 'Hurtigruten'; });
+          });
+          if (harHurtigruten) {
+            console.warn('[Kartvisning] fetchDurationORS: rute inkluderer "Hurtigruten" som veisegment (kjent ORS-feil, se GIScience/openrouteservice#2299). Hopper over ORS-resultat, faller tilbake til OSRM.');
+            return null;
+          }
+          const sec = route.summary.duration;
+          _orsCacheSet(key, sec);
           return sec;
         });
       }
@@ -1795,7 +1805,9 @@
           .catch(function () { fallback(); });
         }
 
-        if (_routingEngine === 'osrm') { routeViaOsrm(); return; }
+        if (_routingEngine === 'osrm') {
+          routeViaOsrm(); return;
+        }
 
         const coords = currentWaypoints.map(function (w) { return [w.lng, w.lat]; });
         fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson', {
@@ -1807,9 +1819,19 @@
           .then(function (r) { return r.json(); })
           .then(function (data) {
             const feature = data.features && data.features[0];
-            if (!feature) { routeViaOsrm(); return; }
+            if (!feature) { console.warn('[Kartvisning] ORS-respons mangler feature, faller tilbake til OSRM.'); routeViaOsrm(); return; }
             const allCoords = feature.geometry.coordinates;
             const wayPts = feature.properties.way_points;
+            const segAnomali = feature.properties.segments.some(function (seg, i) {
+              // Kjent ORS-feil: Hurtigruten (kystferje) brukes som kjørbar vei. Se GIScience/openrouteservice#2299
+              if ((seg.steps || []).some(function (step) { return step.name === 'Hurtigruten'; })) {
+                console.warn('[Kartvisning] ORS-rute inkluderer "Hurtigruten" som veisegment for delstrekning ' + i +
+                  ' (kjent ORS-feil, se GIScience/openrouteservice#2299). Faller tilbake til OSRM.');
+                return true;
+              }
+              return false;
+            });
+            if (segAnomali) { routeViaOsrm(); return; }
             const legs = feature.properties.segments.map(function (seg, i) {
               const sliced = allCoords.slice(wayPts[i], wayPts[i + 1] + 1);
               const steps = (seg.steps || []).map(function (step) {
@@ -1820,7 +1842,7 @@
             });
             applyLegs(legs, feature.properties.summary.distance, feature.properties.summary.duration);
           })
-          .catch(function () { routeViaOsrm(); });
+          .catch(function (err) { console.warn('[Kartvisning] ORS-forespørsel feilet, faller tilbake til OSRM.', err); routeViaOsrm(); });
       }
 
       function removeRoute() {
