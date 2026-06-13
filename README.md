@@ -153,11 +153,11 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - 📱 **Send-SMS (Alt+C)**
   - Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
   - "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
-  - Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
-  - Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+  - Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+  - Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
   - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
   - Logger SMS-utsendelser i Handlingslogg.
-  - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+  - Tilgjengelig for alle kontor – kontor uten egne konfigurerte maler bruker globale standardmaler (med henvisning til 05515). Ta kontakt for å konfigurere kontorspesifikke maler for ditt kontor.
   - Se [veiledning for å konfigurere SMS-maler](docs/SMS_Maler.md) for mal og instruksjoner for oppsett.
   - <img width="300" alt="image" src="https://github.com/user-attachments/assets/0f0780f4-e2cd-4c6a-a66e-e82704673130" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/e48215bb-a6b6-4f08-8697-152a7c61a32a" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/4400471f-a0da-4ed5-848c-2b0d9376f560" />
 
@@ -310,6 +310,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+Z` | Live ressurskart |
 | `ALT+R` | Rek-knapper |
 | `ALT+N` | Bestillingsmodul |
+| `ALT+H` | Hent bestillinger |
 | `ALT+A` | Adminmodul |
 | `ALT+M` | Møteplass |
 | `ALT+K` | Avbestilling av turer/bestillinger |

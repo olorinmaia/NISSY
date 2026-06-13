@@ -305,11 +305,11 @@ Start og stopp scriptet ved å trykke på knappen over ventende oppdrag.
 ### 📱 **Send-SMS (Alt+C)**
 Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
 "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
-- Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
-- Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+- Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+- Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
 - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
 - Logger SMS-utsendelser i Handlingslogg.
-- Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+- Tilgjengelig for alle kontor – kontor uten egne konfigurerte maler bruker globale standardmaler (med henvisning til 05515). Ta kontakt for å konfigurere kontorspesifikke maler for ditt kontor.
 - Se [veiledning for å konfigurere SMS-maler](SMS_Maler.md) for mal og instruksjoner for oppsett.
 
 ### 🖱️ **Hurtigmeny**
