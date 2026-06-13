@@ -16,7 +16,7 @@ NISSY AMK er perfekt for deg som:
 - 🚕 **[Ressursinfo](#-ressursinfo-altd)** - (Alt+D) Viser detaljert ressursinformasjon - tlfnr. sjåfør, faktiske tider og koordinater, faktisk kjørerute.
 - 📡 **[Live ressurskart](#-live-ressurskart-altz)** - (Alt+Z) Åpner et interaktivt kart som viser siste kjente posisjon, hendelse samt annen nyttig info for alle merkede ressurser.
 - 🧭 **[Rutekalkulering](#-rutekalkulering-altq)** - (Alt+Q) Åpne rute i Google Maps
-- 🗺️ **[Kartvisning](#️-kartvisning-altw)** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp og erstatter NISSY sin innebygde kartvisning
+- 🗺️ **[Kartvisning](#️-kartvisning-altw)** - (Alt+W) Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – erstatter NISSY sin innebygde kartvisning
 - 📝 **[Bestillingsmodul](#-bestillingsmodul-altn)** - (Alt+N) Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
 - ⚙️ **[Adminmodul](#️-adminmodul-alta)** - (Alt+A) Åpner admin-modulen i en pop-up modal over planleggingsvinduet som husker siste besøkte side eller ny fane basert på preferanse.
 - 📋 **[Handlingslogg](#-handlingslogg-altj)** - (Alt+J) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
@@ -114,12 +114,13 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 1. Merk én eller flere bestillinger (klikk på radene)
 2. Trykk `ALT+W`
 
-- Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+- Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Kartvisning»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
 - Pop-up vindu åpnes ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
 - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
 - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
 - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
   - Jeg har ingen direkte styring over ruten som velges, noen ganger vil ikke den forventede ruten velges, men beregning på tid/km vil som regel være ca riktig uansett og bedre enn ingen beregning
+- **Rutetjeneste (🧭 ORS/OSRM)**: Knapp i header for å velge rutetjeneste – valget brukes for både kjørerute og fergeberegning. Gjelder kun til kartvinduet lukkes, neste Alt+W nullstiller til standardvalg (ORS hvis API-nøkkel finnes, ellers OSRM). Krever ORS API-nøkkel for å kunne velge ORS – uten nøkkel er knappen deaktivert og kun OSRM brukes
 - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
 - **Fergeberegning** – rutetabeller for alle ferger i Nord-Trøndelag er konfigurert. Se [veiledning for å konfigurere fergeruter](Ferge_Konfigurasjon.md) for mal og instruksjoner for oppsett
     - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
@@ -177,8 +178,6 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
 - Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
 - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass. 
-- Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering).
-- "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
 - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
   - 12 siffer → Rekvisisjonsnummer
   - 11 siffer → Personnummer
@@ -204,6 +203,7 @@ Dette lagres i sesjonen, nullstilles når nettleser lukkes helt. Merk en bestill
 - Fanger opp trykk på Møteplass og "K"-knappen i planleggingsvinduet og åpner disse via scriptet.
 - Fikser gammel NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides (gjelder ikke hvis modul åpnes i ny fane).
 - Fikser gammel NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- Fikser gammel NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når "Generer returrekvisisjon" ([T]) brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
 - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag.
 
 ### ⚙️ Adminmodul (ALT+A)
@@ -219,11 +219,11 @@ Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du n
 ### 📱 **Send-SMS (Alt+C)**
 Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
 "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
-- Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
-- Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+- Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+- Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
 - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
 - Logger SMS-utsendelser i Handlingslogg.
-- Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+- Tilgjengelig for alle kontor – kontor uten egne konfigurerte maler bruker globale standardmaler (med henvisning til 05515). Ta kontakt for å konfigurere kontorspesifikke maler for ditt kontor.
 - Se [veiledning for å konfigurere SMS-maler](SMS_Maler.md) for mal og instruksjoner for oppsett.
 
 ### 🖱️ **Hurtigmeny**

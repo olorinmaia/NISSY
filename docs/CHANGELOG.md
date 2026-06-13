@@ -11,6 +11,25 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.0] - 15.06.2026
+
+### Kartvisning: Mulighet til å velge rutetjeneste (ORS/OSRM) - Loadere: Send SMS og Kartvisning har fått egne knapper i kontrollpanelet - Globale SMS-maler - Rek-knapper/Bestillingsmodul: [T] fyller nå automatisk inn dato på returbestilling
+
+- 🗺️ **Kartvisning**
+  - Ny knapp for å velge rutetjeneste (ORS/OSRM) – valget lagres og brukes for både kjørerute og fergeberegning. Krever ORS API-nøkkel, ellers vises kun OSRM. Nyttig hvis standardvalg ORS viser "feil" rute og ønsker å se hva OSRM ruter.
+  - Omgår en kjent ORS-feil der Hurtigruten (kystferje) brukes som kjørbar vei og gir helt urealistiske ruter/estimater – faller automatisk tilbake til OSRM når dette oppdages
+- 🧩 **Loadere (Advanced, Basic, AMK)**
+  - Nye knapper **📱 Send SMS (Alt+C)** og **🗺️ Kartvisning (Alt+W)** er lagt til i kontrollpanelet for alle loadere
+  - Originale **Send SMS**- og **Vis i kart**-knapper er skjult siden de er erstattet av de nye knappene
+  - Kontrollpanelet er reorganisert slik at resten av knappene flytter seg opp og fyller den ledige plassen optimalt
+- 📱 **Send SMS**
+  - Send SMS fungerer nå for alle kontorer, globale SMS-maler benyttes når det ikke er konfigurert kontor-spesifikke maler
+- 🔠 **Rek-knapper** / 📝 **Bestillingsmodul**
+  - Fikser gammel NISSY-bug hvor dato for "Pasient klar fra" ikke ble fylt inn automatisk når [T] ("Lag retur"/"Generer returrekvisisjon") brukes for å lage en linket returbestilling
+  - Dato hentes nå automatisk fra "Oppm. dato" på den opprinnelige bestillingen og fylles inn hvis feltet er tomt, og siden scrolles/fokuserer automatisk på "klar fra"-feltet
+
+---
+
 ## 🔧 [4.7.5] - 12.06.2026
 
 ### Hentetid: Viser pågående oppdrag med status ≠ "Tildelt" som info-kort i stedet for feilmelding - Hent bestillinger: Støtte for pågående oppdrag - Fergeruter for St. Olavs hospital
@@ -544,7 +563,6 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
   - Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
   - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
-  - Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
   - Støtter Kopier / Klipp ut / Lim inn.
   - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
 

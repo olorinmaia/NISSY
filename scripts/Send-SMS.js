@@ -9,30 +9,93 @@
     return;
   }
 
-  // ── Kontor-tilgang ───────────────────────────────────────────
-  const SEND_SMS_OFFICES = [
-    'Pasientreiser Nord-Trøndelag',
-    'Kontoret for pasientreiser, Ålesund',
-    'Pasientreiser Sør-Trøndelag',
-    'Reisekontoret - Nordlandssykehuset HF',
-    'Pasientreiser Helse Bergen',
-    // Legg til flere kontorer her etter hvert
-  ];
+  // ── Kontor ───────────────────────────────────────────────────
   const _officeCell  = document.querySelector('.topframe_small');
   const _officeMatch = _officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _office      = _officeMatch?.[1]?.trim() || null;
-  if (!_office || !SEND_SMS_OFFICES.includes(_office)) {
-    console.log(`ℹ️ SendSMS ikke tilgjengelig for kontor: ${_office || '(ukjent)'} – mapper Alt+C til NISSY-knappen`);
-    document.addEventListener("keydown", (e) => {
-      if (e.altKey && e.key.toLowerCase() === "c") {
-        const btn = document.getElementById("buttonSendSMS");
-        if (btn) { e.preventDefault(); btn.click(); }
-      }
-    });
-    return;
-  }
 
   window.__sendSMSActive = true;
+
+  // ============================================================
+  // GLOBALE STANDARDMALER
+  //
+  // Brukes for kontor som IKKE har en egen oppføring i MALER_PER_KONTOR.
+  // Kontor som har en egen oppføring må konfigurere alle tre mal-typer
+  // selv – det blandes ikke med de globale malene under.
+  // ============================================================
+
+  const GLOBAL_MALER = {
+
+    bestilling: [
+      {
+        navn: "Hentetidspunkt",
+        tekst: (info) =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Endret hentetidspunkt",
+        tekst: (info) =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Planlagt reise til behandling",
+        tekst: (info) =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Ring oss tilbake",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Forsinkelse",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nHilsen Pasientreiser.`,
+      },
+    ],
+
+    fritekst: [
+      {
+        navn: "Hentetidspunkt",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting kl. TT:MM.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Endret hentetidspunkt",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til kl. TT:MM.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Ring oss tilbake",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Forsinkelse",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Tildelt bestilling i ventetiden",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nHilsen Pasientreiser.`,
+      },
+    ],
+
+    sjaafor: [
+      {
+        navn: "Tildelt bestilling i ventetiden",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nHilsen Pasientreiser.`,
+      },
+      {
+        navn: "Ring oss tilbake",
+        tekst: () =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nHilsen Pasientreiser.`,
+      },
+    ],
+
+  };
 
   // ============================================================
   // MALER PER KONTOR
@@ -51,6 +114,9 @@
   //   info.fraAdresse   – f.eks. "Brubakken 15, 7608 Levanger"
   //   info.tilAdresse   – f.eks. "St. Olavs Hospital, 7006 Trondheim"
   // autoVelgHvis(info): valgfri – returnerer true for å auto-velge malen
+  //
+  // Kontor uten egen oppføring her bruker GLOBAL_MALER (se over) for
+  // alle tre mal-typer.
   // ============================================================
 
   const MALER_PER_KONTOR = {
@@ -595,11 +661,12 @@
 
   };
 
-  // Hent maler for innlogget kontor
-  const _kontorMaler    = MALER_PER_KONTOR[_office] || {};
-  const SMS_MALER         = _kontorMaler.bestilling || [];
-  const SMS_MALER_FRITEKST = _kontorMaler.fritekst  || [];
-  const SMS_MALER_SJAAFOR  = _kontorMaler.sjaafor   || [];
+  // Hent maler for innlogget kontor.
+  // Kontor uten egen oppføring i MALER_PER_KONTOR bruker GLOBAL_MALER.
+  const _kontorMaler       = MALER_PER_KONTOR[_office] || GLOBAL_MALER;
+  const SMS_MALER          = _kontorMaler.bestilling || [];
+  const SMS_MALER_FRITEKST = _kontorMaler.fritekst   || [];
+  const SMS_MALER_SJAAFOR  = _kontorMaler.sjaafor    || [];
   // ============================================================
   // ============================================================
   const MAX_TEGN           = 640;
@@ -2355,48 +2422,6 @@
       openSendSMSPopup();
     }
   });
-
-  // Intercept NISSY sin Send SMS-knapp via event delegation.
-  // NISSY-fiks gjenoppretter tbody.innerHTML og ødelegger direktelistenere,
-  // så vi lytter på document i capture-fasen for å fange klikk uansett.
-  document.addEventListener("click", (e) => {
-    if (e.target?.id === "buttonSendSMS") {
-      e.stopImmediatePropagation();
-      openSendSMSPopup();
-    }
-  }, true);
-
-  // Hold Send SMS-knappen alltid aktivert.
-  // NISSY-fiks gjenskaper kontrollpanel-tbody med en setTimeout-forsinkelse,
-  // så vi venter med en engangs-observer til tabellen faktisk finnes i DOM
-  // før vi kobler oss til den lettere tbody-observeren.
-  function observerSmsKnapp(knapp) {
-    new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        if (m.target.disabled) m.target.disabled = false;
-      }
-    }).observe(knapp, { attributes: true, attributeFilter: ["disabled"] });
-  }
-
-  function kobleSmsObserver() {
-    const tbody = document.querySelector("table[data-nissy-simplified] tbody");
-    if (!tbody) return false;
-    new MutationObserver(() => {
-      const knapp = document.getElementById("buttonSendSMS");
-      if (knapp) observerSmsKnapp(knapp);
-    }).observe(tbody, { childList: true });
-    const knapp = document.getElementById("buttonSendSMS");
-    if (knapp) observerSmsKnapp(knapp);
-    return true;
-  }
-
-  if (!kobleSmsObserver()) {
-    // Tabellen finnes ikke ennå – vent på at NISSY-fiks setter den opp
-    const _ventObserver = new MutationObserver(() => {
-      if (kobleSmsObserver()) _ventObserver.disconnect();
-    });
-    _ventObserver.observe(document.body, { childList: true, subtree: true });
-  }
 
   console.log("✅ SendSMS lastet – Alt+C for å sende SMS");
 })();

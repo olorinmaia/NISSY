@@ -24,8 +24,6 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
   - Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
-  - Fanger opp "Vis i kart"-popupvindu og forbedrer størrelse og plassering (samme som Rutekalkulering)
-  - "Vis i kart"-knapp grås ikke lenger ut ved mer enn 5 merkede bestillinger – ingen begrensning på antall.
   - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
     - 12 siffer → Rekvisisjonsnummer
     - 11 siffer → Personnummer
@@ -58,6 +56,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
   - Svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+  - Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når [T] ("Lag retur") brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
 
 - 🧭 **Rutekalkulering (Alt+Q)**
   - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
@@ -65,13 +64,14 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Filtrerer automatisk ut bestillinger med status «Framme» og "Ikke møtt".
 
 - 🗺️ **Kartvisning**
-  - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Vis i kart»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+  - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Kartvisning»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
   - Pop-up vindu åpnes ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
   - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
   - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
   - Tooltip med pasientnavn og tidspunkt ved mouse-over
   - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
     - Jeg har ingen direkte kontroll over ruten som velges, noen ganger vil ikke forventet rute velges, men beregning vil være ca riktig uansett
+  - **Rutetjeneste (🧭 ORS/OSRM)**: Knapp i header for å velge rutetjeneste – valget brukes for både kjørerute og fergeberegning. Gjelder kun til kartvinduet lukkes, neste Alt+W nullstiller til standardvalg (ORS hvis API-nøkkel finnes, ellers OSRM). Krever ORS API-nøkkel for å kunne velge ORS – uten nøkkel er knappen deaktivert og kun OSRM brukes
   - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
     - Leveringstid vises med `~`-prefiks på markør og i tooltip
     - Automatisk fallback til luftlinje-estimat ved timeout eller feil
@@ -120,6 +120,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
   - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides. (gjelder ikke når modul åpnes i ny fane)
   - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+  - Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når "Generer returrekvisisjon" ([T]) brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
   - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
   - Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
   - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag, og som [B]-knapp i Rek-knapper.
@@ -152,11 +153,11 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - 📱 **Send-SMS (Alt+C)**
   - Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
   - "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
-  - Kontor-spesifikke maler med automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
-  - Støtter tre mal-typer per kontor: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+  - Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+  - Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
   - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
   - Logger SMS-utsendelser i Handlingslogg.
-  - Tilgjengelig kun for Pasientreiser Nord-Trøndelag i første omgang. Ta kontakt for å konfigurere kontorspesifikke maler for og tilgjengeliggjøre for ditt kontor.
+  - Tilgjengelig for alle kontor – kontor uten egne konfigurerte maler bruker globale standardmaler (med henvisning til 05515). Ta kontakt for å konfigurere kontorspesifikke maler for ditt kontor.
   - Se [veiledning for å konfigurere SMS-maler](docs/SMS_Maler.md) for mal og instruksjoner for oppsett.
   - <img width="300" alt="image" src="https://github.com/user-attachments/assets/0f0780f4-e2cd-4c6a-a66e-e82704673130" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/e48215bb-a6b6-4f08-8697-152a7c61a32a" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/4400471f-a0da-4ed5-848c-2b0d9376f560" />
 
@@ -164,7 +165,6 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
   - Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
   - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
-  - Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
   - Støtter Kopier / Klipp ut / Lim inn.
   - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
   - <img width="200" alt="image" src="https://github.com/user-attachments/assets/3f6d6dd2-69d7-4f53-aadf-8dfc52591d92" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/b2bfe108-22ea-4bce-98f9-72b3e1b9b8c7" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/c1d70557-4dcb-4e35-b0a5-22da016fc649" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/00835359-f1f7-46eb-b67a-3b60364f7787" />
@@ -309,6 +309,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+Z` | Live ressurskart |
 | `ALT+R` | Rek-knapper |
 | `ALT+N` | Bestillingsmodul |
+| `ALT+H` | Hent bestillinger |
 | `ALT+A` | Adminmodul |
 | `ALT+M` | Møteplass |
 | `ALT+K` | Avbestilling av turer/bestillinger |

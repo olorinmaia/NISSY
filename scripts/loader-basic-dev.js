@@ -435,13 +435,23 @@
           </td>
         </tr>
         <tr class="nissy-script-row">
-          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 2px;">
             <input type="button" value="📝 Bestillingsmodul (Alt+N)" class="bigbutton nissy-script-btn"
                    data-hotkey="n" title="Åpne foretrukket bestillingsmodul. Trykk Alt+H for 'Hent rekvisisjon'">
           </td>
-          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 2px;">
             <input id="nissy-btn-ressursinfo" type="button" value="🚕 Ressursinfo (Alt+D)" class="bigbutton nissy-script-btn"
                    data-hotkey="d" title="Vis telefonnummer til sjåfør, faktiske/planlagte tider, koordinater m.m. for merket ressurs">
+          </td>
+        </tr>
+        <tr class="nissy-script-row">
+          <td valign="top" align="left" style="padding-top: 2px; padding-bottom: 5px;">
+            <input id="nissy-btn-send-sms" type="button" value="📱 Send SMS (Alt+C)" class="bigbutton nissy-script-btn"
+                   data-hotkey="c" title="Send SMS til merkede bestillinger på ventende/pågående oppdrag eller til sjåfør for merket ressurs">
+          </td>
+          <td valign="top" align="right" style="padding-top: 2px; padding-bottom: 5px;">
+            <input id="nissy-btn-kartvisning" type="button" value="🗺️ Kartvisning (Alt+W)" class="bigbutton nissy-script-btn"
+                   data-hotkey="w" title="Vis hente- og leveringskoordinater i kart med beregnet rute og kjøretid for merkede bestillinger">
           </td>
         </tr>
       `;
@@ -466,9 +476,10 @@
             { id: 'nissy-btn-rek-knapper',     enabled: hasSource || hasPaagaaende },
             { id: 'nissy-btn-rutekalkulering', enabled: hasSource || hasPaagaaende },
             { id: 'nissy-btn-ressursinfo',     enabled: hasRessurs },
-            { id: 'buttonShowMap',             enabled: hasSource || hasPaagaaende },
+            { id: 'nissy-btn-send-sms',        enabled: true },
+            { id: 'nissy-btn-kartvisning',     enabled: hasSource || hasPaagaaende },
             { id: 'nissy-btn-alenebil',        enabled: hasSource },
-            { id: 'nissy-livekart-btn',         enabled: hasRessurs },
+            { id: 'nissy-livekart-btn',        enabled: hasRessurs },
           ];
 
           rules.forEach(({ id, enabled }) => {
@@ -519,6 +530,52 @@
       setTimeout(addCustomButtons, 300);
     }
   })();
+
+  // ============================================================
+  // REORGANISER KONTROLLPANEL
+  // Skjul Send SMS/Vis i kart (erstattet av custom knapper over)
+  // og flytt resten av høyre kolonne opp én rad, slik at alt tar
+  // én rad i høyden: Blank → Send SMS-raden, Smart-søk → Vis i
+  // kart-raden, søkefelt → Møteplass-raden, Søk/Nullstill →
+  // søkefelt-raden. Venstre kolonne (Tildel oppdrag,
+  // Tilordningsstøtte, Møteplass) ligger urørt.
+  // Kjøres etter NISSY-fiks (300ms) – bruk 500ms for å garantere rekkefølge
+  // ============================================================
+  setTimeout(() => {
+    const sendSmsBtn     = document.getElementById('buttonSendSMS');
+    const showMapBtn     = document.getElementById('buttonShowMap');
+    const blankBtn       = document.getElementById('buttonClearSelection');
+    const searchTypeEl   = document.getElementById('searchType');
+    const searchPhraseEl = document.getElementById('searchPhrase');
+    const searchBtnEl    = document.getElementById('buttonSearch');
+
+    const sendSmsTd      = sendSmsBtn?.closest('td');
+    const showMapTd      = showMapBtn?.closest('td');
+    const searchTypeTd   = searchTypeEl?.closest('td');
+    const searchPhraseTd = searchPhraseEl?.closest('td');
+    const searchBtnTd    = searchBtnEl?.closest('td');
+
+    if (!sendSmsTd || !showMapTd || !blankBtn || !searchTypeTd || !searchPhraseTd || !searchBtnTd) {
+      console.warn('⚠️ Reorganisering: fant ikke alle knapper');
+      return;
+    }
+
+    // Skjul originale knapper som er erstattet av custom knapper
+    sendSmsBtn.style.display = 'none';
+    showMapBtn.style.display = 'none';
+
+    // Flytt høyre kolonne opp én rad
+    sendSmsTd.appendChild(blankBtn);
+
+    showMapTd.innerHTML = '';
+    showMapTd.appendChild(searchTypeEl);
+
+    while (searchPhraseTd.firstChild) searchTypeTd.appendChild(searchPhraseTd.firstChild);
+
+    while (searchBtnTd.firstChild) searchPhraseTd.appendChild(searchBtnTd.firstChild);
+
+    console.log('✅ Kontrollpanel reorganisert for Basic');
+  }, 500);
 
   // ============================================================
   // VIS SNARVEI-POPUP (eller toast hvis "ikke vis igjen" er valgt)
