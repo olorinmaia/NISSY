@@ -563,7 +563,6 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
   - Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
   - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
-  - Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
   - Støtter Kopier / Klipp ut / Lim inn.
   - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
 

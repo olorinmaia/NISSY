@@ -165,7 +165,6 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
   - Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
   - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
-  - Skjuler "Hentetid" fra pågående-meny når merket ressurs ikke har status Tildelt.
   - Støtter Kopier / Klipp ut / Lim inn.
   - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
   - <img width="200" alt="image" src="https://github.com/user-attachments/assets/3f6d6dd2-69d7-4f53-aadf-8dfc52591d92" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/b2bfe108-22ea-4bce-98f9-72b3e1b9b8c7" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/c1d70557-4dcb-4e35-b0a5-22da016fc649" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/00835359-f1f7-46eb-b67a-3b60364f7787" />
