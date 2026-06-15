@@ -68,7 +68,8 @@
     'Send-SMS.js',
     'Logg.js',
     'Darkmode.js',
-    'Kartvisning.js'
+    'Kartvisning.js',
+    'Zisson-click2call.js'
   ];
   
   window.__nissyDarkmodeDefaultOn = true;
