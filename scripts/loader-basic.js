@@ -311,7 +311,7 @@
           return;
         }
         const w = window.open('', 'nissy-snarveier',
-          'width=460,height=860,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no');
+          'width=380,height=680,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no');
         if (!w) return;
         window._nissySnarveierWin = w;
         const html = `<!DOCTYPE html><html lang="no"><head>

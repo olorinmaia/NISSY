@@ -27,6 +27,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Avhuk alle/ingen med ett klikk via avkryssingsfeltet i tabellhodet; avhuk-alle gjelder kun synlige (filtrerte) rader
   - Tekstfilter og klikk-sortering på kolonneoverskriftene for å finne og organisere turer raskt
   - Kun avhukede turer bestilles opp når du trykker Start; knappen i toppen oppdateres med antall valgte turer
+- 🗺️ **Kartvisning**
+  - Begrenser innzoom til nivå 15 (~1-2 km kontekst) ved tett grupperte koordinater, slik at omgivelsene forblir synlige
 
 ---
 
