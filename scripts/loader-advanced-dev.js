@@ -130,6 +130,68 @@
   }, 600);
 
   // ============================================================
+  // DELT INNHOLD: Tastatursnarveier + lenker
+  // nissySnarveierliste: brukes i snarveiervindu (F2)
+  // nissyPopupKort: brukes i startup-popup
+  // ============================================================
+  const nissySnarveierliste = `
+    <h3 style="margin: 0 0 8px 0; color: #555;">⌨️ Tastatursnarveier:</h3>
+    <div style="font-size: 13px; color: #666; line-height: 1.7;">
+      <strong>Grunnleggende:</strong><br>
+      • F1 → Brukerveiledning<br>
+      • F2 → Tastatursnarveier (dette vinduet)<br>
+      • ALT+F → Fokus søkefelt<br>
+      • ENTER (i søkefelt) → Søk<br>
+      • ESC → Nullstill søk + fokus søkefelt<br>
+      • F5 → Refresher alle bestillinger/turer og åpner alle turer<br>
+      • CTRL+1 → Fokus filter ventende oppdrag<br>
+      • CTRL+2 → Fokus filter ressurser<br>
+      • ALT+B → Blank<br>
+      • ALT+P → Merk alle ressurser pågående oppdrag<br>
+      • ALT+V → Merk alle bestillinger ventende oppdrag<br>
+      • ALT+H → Hent rekvisisjon<br>
+      • ALT+M → Møteplass<br>
+      <br>
+      <strong>Avanserte funksjoner:</strong><br>
+      • ALT+S → Smart-tildeling<br>
+      • ALT+T → Tilordningsstøtte 2.0<br>
+      • ALT+X → Samkjøring<br>
+      • ALT+E → Hentetid<br>
+      • ALT+R → Rek-knapper (ESC lukker)<br>
+      • ALT+Q → Rutekalkulering (Google Maps)<br>
+      • ALT+W → Kartvisning<br>
+      • ALT+K → Avbestilling<br>
+      • ALT+D → Ressursinfo<br>
+      • ALT+N → Bestillingsmodul<br>
+      • ALT+A → Adminmodul<br>
+      • ALT+J → Handlingslogg<br>
+      • ALT+Z → Live ressurskart<br>
+      • ALT+C → Send SMS<br>
+    </div>`;
+
+  const nissyPopupKort = `
+    <div style="padding: 12px; background: #f5f0ff; border-left: 4px solid #7c6cd9; border-radius: 4px;">
+      <strong>⌨️ Tastatursnarveier:</strong><br>
+      <a href="#" onclick="window.nissyShowSnarveier?.(); return false;"
+         style="color: #7c6cd9; text-decoration: none; font-weight: bold;">Vis tastatursnarveier →</a>
+    </div>
+    <div style="margin-top: 10px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
+      <strong>📖 Brukerveiledning:</strong><br>
+      <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/ADVANCED.md" target="_blank"
+         style="color: #4a90e2; text-decoration: none; font-weight: bold;">Åpne ADVANCED.md →</a>
+    </div>
+    <div style="margin-top: 10px; padding: 12px; background: #f0fff8; border-left: 4px solid #27ae60; border-radius: 4px;">
+      <strong>📖 Fullstendig dokumentasjon:</strong><br>
+      <a href="https://github.com/olorinmaia/NISSY/blob/dev/README.md" target="_blank"
+         style="color: #27ae60; text-decoration: none; font-weight: bold;">Åpne README.md →</a>
+    </div>
+    <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
+      <strong>📝 Endringslogg:</strong><br>
+      <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" target="_blank"
+         style="color: #e2934a; text-decoration: none; font-weight: bold;">Åpne CHANGELOG.md →</a>
+    </div>`;
+
+  // ============================================================
   // LEGG TIL DIVERSE KNAPPER ØVERST OG SKJUL FILTER
   // ============================================================
   (() => {
@@ -258,8 +320,34 @@
       helpBtn.className = 'nissy-header-btn';
       helpBtn.href = 'https://github.com/olorinmaia/NISSY/blob/dev/docs/ADVANCED.md';
       helpBtn.target = '_blank';
-      helpBtn.title = 'Åpne brukerveiledning for NISSY Advanced';
-      helpBtn.textContent = '📖 Brukerveiledning';
+      helpBtn.title = 'Åpne brukerveiledning for NISSY Advanced (F1)';
+      helpBtn.textContent = '📖 Hjelp';
+
+      window.nissyShowSnarveier = function() {
+        if (window._nissySnarveierWin && !window._nissySnarveierWin.closed) {
+          window._nissySnarveierWin.focus();
+          return;
+        }
+        const w = window.open('', 'nissy-snarveier',
+          'width=460,height=910,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no');
+        if (!w) return;
+        window._nissySnarveierWin = w;
+        const html = `<!DOCTYPE html><html lang="no"><head>
+<meta charset="UTF-8"><title>NISSY – Snarveier</title>
+<style>* { box-sizing: border-box; } body { font-family: Arial, sans-serif; margin: 0; padding: 14px 16px; background: white; }</style>
+</head><body>${nissySnarveierliste}</body></html>`;
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+      };
+
+      const snarveierBtn = document.createElement('button');
+      snarveierBtn.id = 'nissy-snarveier-btn';
+      snarveierBtn.className = 'nissy-header-btn';
+      snarveierBtn.type = 'button';
+      snarveierBtn.title = 'Vis tastatursnarveier (F2)';
+      snarveierBtn.textContent = '⌨️ Snarveier';
+      snarveierBtn.addEventListener('click', () => window.nissyShowSnarveier());
 
       const bestillingsBtn = document.createElement('button');
       bestillingsBtn.id = 'nissy-bestilling-btn';
@@ -310,6 +398,7 @@
       firstTd.appendChild(monitorBtn);
       firstTd.appendChild(darkmodeBtn);
       firstTd.appendChild(helpBtn);
+      firstTd.appendChild(snarveierBtn);
       firstTd.appendChild(bestillingsBtn);
       firstTd.appendChild(adminBtn);
       firstTd.appendChild(loggBtn);
@@ -332,7 +421,12 @@
 
       // Sjekk status hvert 2. sekund
       setInterval(updateMonitorButtonStatus, 2000);
-      
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'F1') { e.preventDefault(); helpBtn.click(); }
+        if (e.key === 'F2') { e.preventDefault(); window.nissyShowSnarveier?.(); }
+      });
+
       console.log("✅ Knapper i header installert");
     }
 
@@ -619,55 +713,7 @@
         <p style="background: #fff3cd; padding: 8px; border-radius: 4px; color: #856404; font-weight: bold; margin: 0 0 15px 0;">
           ⚠️ DEV VERSION - Test branch
         </p>
-        <h3 style="margin: 15px 0 8px 0; color: #555;">⌨️ Tastatursnarveier:</h3>
-        <div style="font-size: 13px; color: #666;">
-          <strong>Grunnleggende:</strong><br>
-          • ALT+F → Fokus søkefelt<br>
-          • ENTER (i søkefelt) → Søk<br>
-          • ESC → Nullstill søk + fokus søkefelt<br>
-          • F5 → Refresher alle bestillinger/turer og åpner alle turer<br>
-          • CTRL+1 → Fokus filter ventende oppdrag<br>
-          • CTRL+2 → Fokus filter ressurser<br>
-          • ALT+B → Blank<br>
-          • ALT+P → Merk alle ressurser pågående oppdrag<br>
-          • ALT+V → Merk alle bestillinger ventende oppdrag<br>
-          • ALT+H → Hent rekvisisjon<br>
-          • ALT+M → Møteplass<br>
-          <br>
-          <strong>Avanserte funksjoner:</strong><br>
-          • ALT+S → Smart-tildeling<br>
-          • ALT+T → Tilordningsstøtte 2.0<br>
-          • ALT+X → Samkjøring<br>
-          • ALT+E → Hentetid<br>
-          • ALT+R → Rek-knapper (ESC lukker)<br>
-          • ALT+Q → Rutekalkulering (Google Maps)<br>
-          • ALT+W → Kartvisning<br>
-          • ALT+K → Avbestilling<br>
-          • ALT+D → Ressursinfo<br>
-          • ALT+N → Bestillingsmodul<br>
-          • ALT+A → Adminmodul<br>
-          • ALT+L → Handlingslogg<br>
-          • ALT+Z → Live ressurskart<br>
-          • ALT+C → Send SMS<br>
-        </div>
-
-        <div style="margin-top: 20px; padding: 12px; background: #f0f8ff; border-left: 4px solid #4a90e2; border-radius: 4px;">
-          <strong>📖 Fullstendig dokumentasjon:</strong><br>
-          <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/ADVANCED.md" 
-             target="_blank" 
-             style="color: #4a90e2; text-decoration: none; font-weight: bold;">
-            Åpne ADVANCED.md →
-          </a>
-        </div>
-        
-        <div style="margin-top: 10px; padding: 12px; background: #f7f6f4; border-left: 4px solid #e2934a; border-radius: 4px;">
-          <strong>📝 Endringslogg:</strong><br>
-          <a href="https://github.com/olorinmaia/NISSY/blob/dev/docs/CHANGELOG.md" 
-             target="_blank" 
-             style="color: #e2934a; text-decoration: none; font-weight: bold;">
-            Åpne CHANGELOG.md →
-          </a>
-        </div>
+        ${nissyPopupKort}
 
         <div style="display:flex;gap:8px;margin-top:20px;">
           <button id="closeNissyPopup" style="
