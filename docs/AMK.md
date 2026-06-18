@@ -22,15 +22,15 @@ NISSY AMK er perfekt for deg som:
 - 📋 **[Handlingslogg](#-handlingslogg-altj)** - (Alt+J) Logger handlinger som tildeling, avbestilling, fjerning, avplanlegging.
 - 📱 **[Send-SMS](#-send-sms-altc)** - (Alt+C) Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag. Send SMS til sjåfør ved å høyreklikke på løyve, henter automatisk nummer fra 3003.
 - 🖱️ **[Hurtigmeny](#️-hurtigmeny)** - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene. Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
-- 🌙 **Darkmode** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
+- 🌙 **[Darkmode](#-darkmode)** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
 - 🔔 **[Overvåk-Ventende](#-overvåk-ventende)** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
-- 🚗 **Alenebil** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
-- 🤖 **Auto-Bestill** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
-- 🔍 **Sjekk-Bestilling** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og dato/tidsfeil, lar deg søke opp disse for å rette opp.
-- 🚩 **Sjekk-Plakat** - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først. Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
-- 📞 **Sjekk-Telefon** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
-- 📊 **Statistikk** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
-- 🚖 **Trøndertaxi-løyve** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
+- 🚗 **[Alenebil](#-alenebil)** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
+- 🤖 **[Auto-Bestill](#-auto-bestill)** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+- 🔍 **[Sjekk-Bestilling](#-sjekk-bestilling)** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og dato/tidsfeil, lar deg søke opp disse for å rette opp.
+- 🚩 **[Sjekk-Plakat](#-sjekk-plakat)** - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først. Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
+- 📞 **[Sjekk-Telefon](#-sjekk-telefon)** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- 📊 **[Statistikk](#-statistikk)** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+- 🚖 **[Trøndertaxi-løyve](#-trøndertaxi-løyve)** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 
 ## 📥 Installasjon
 
@@ -232,6 +232,47 @@ Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle modul
 - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
 - Støtter Kopier / Klipp ut / Lim inn.
 - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
+
+### 🌙 Darkmode
+Aktiveres og deaktiveres via hurtigmeny eller kontrollpanelet i bunnen av NISSY-vinduet. Mørkere fargetema som prøver å holde seg "tro" til NISSY-stilen.
+
+### 🚗 Alenebil
+Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert i bestillingsmodulen.
+- Tilgjengelig via hurtigmeny eller kontrollpanelet
+
+### 🤖 Auto-Bestill
+Pop-up vindu for å bestille opp alle turer med status Tildelt [B] på valgt filter med 0,25 sekunders mellomrom.
+- Viser en sammenleggbar liste over alle aktuelle turer med **Ressurs** og **Starttid**
+- Alle turer er avhuket som standard; enkeltvis avhukking, filtrering og sortering lar deg ekskludere spesifikke turer
+- Kun avhukede turer bestilles opp når du trykker **Start**
+- Tilgjengelig via hurtigmeny eller kontrollpanelet
+
+### 🔍 Sjekk-Bestilling
+Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikke deg inn på for å rette opp:
+- Duplikater og turer med mer enn 2 bestillinger
+- Flere bestillinger med samme fra- eller til-adresse
+- Ulik dato på hentetid og leveringstid
+- Turer på pågående oppdrag med flere bestillinger der datoen på hentetid er ulik
+- Hentetid er senere enn leveringstid (kun til behandling)
+- Returer med tidligere eller lik hentetid enn oppmøtetid for samme behandlingssted
+- Reisetid mellom 1–9 minutter på reiser til behandling
+- Problematisk kombinasjon av spesielle behov (RB+ERS, LB+LF m.fl.)
+
+### 🚩 Sjekk-Plakat
+Finn alle røde plakater med fritekst på valgt filter – plakater med flaggede ord vises øverst.
+
+Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
+
+### 📞 Sjekk-Telefon
+Sjekker alle bestillinger på valgt filter for manglende telefonnummer og viser de i en liste du kan klikke deg inn på for å rette opp.
+
+### 📊 Statistikk
+Beregner i en pop-up antall bestillinger på ventende/pågående oppdrag og «samkjøringsgrad» basert på valgte filter.
+
+### 🚖 Trøndertaxi-løyve
+Åpner Trøndertaxi sitt løyveregister for merket ressurs.
+- Kopierer løyvenummer fra merket ressurs i NISSY Planlegging eller fra «Footer» i CTRL
+- Fungerer kun for ressurser som tilhører Trøndertaxi
 
 ## ❓ Feilsøking
 

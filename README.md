@@ -184,7 +184,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - 🚗 **Alenebil**
   - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill**
-  - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+  - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom. Viser en sammenleggbar liste over alle aktuelle turer (Ressurs og Starttid) der du kan velge bort turer du ikke ønsker å bestille opp.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/bba0705e-e731-4d40-a6dc-9a0eb7f2a169" />
 - 🔍 **Sjekk-Bestilling**
   - Sjekker alle bestillinger på valgt filter og lar deg søke opp disse for å rette opp for: 

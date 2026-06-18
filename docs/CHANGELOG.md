@@ -11,6 +11,19 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.2] - 19.06.2026
+
+### Auto-Bestill: Visning og filtrering av turer før bestilling
+
+- 🤖 **Auto-Bestill**
+  - Ny sammenleggbar turliste i panelet som viser alle turer som skal bestilles opp med kolonnene **Ressurs** og **Starttid**
+  - Alle turer er avhuket som standard – enkeltvis avhukking lar deg ekskludere spesifikke turer fra bestillingen
+  - Avhuk alle/ingen med ett klikk via avkryssingsfeltet i tabellhodet; avhuk-alle gjelder kun synlige (filtrerte) rader
+  - Tekstfilter og klikk-sortering på kolonneoverskriftene for å finne og organisere turer raskt
+  - Kun avhukede turer bestilles opp når du trykker Start; knappen i toppen oppdateres med antall valgte turer
+
+---
+
 ## 🔧 [4.8.1] - 18.06.2026
 
 ### Sjekk-telefon: Hent bestillinger-knapp og besøkt-tilstand på handlingsknapper
