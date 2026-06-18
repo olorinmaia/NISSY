@@ -23,7 +23,7 @@
 - 🚗 **[Alenebil](#-alenebil)** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **[Auto-Bestill](#-auto-bestill)** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
 - 🔍 **[Sjekk-Bestilling](#-sjekk-bestilling)** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og dato/tidsfeil, lar deg søke opp disse for å rette opp.
-- 🚩 **[Sjekk-Plakat](#-sjekk-plakat)** - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først. Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
+- 🚩 **[Sjekk-Plakat](#-sjekk-plakat)** - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
 - 📞 **[Sjekk-Telefon](#-sjekk-telefon)** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
 - 📊 **[Statistikk](#-statistikk)** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
 - 🚖 **[Trøndertaxi-løyve](#-trøndertaxi-løyve)** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
@@ -34,6 +34,8 @@
 
 | Snarvei | Funksjon |
 |---------|----------|
+| `F1` | Åpne brukerveiledning (ny fane) |
+| `F2` | Åpne tastatursnarveier (nytt vindu, kan flyttes til annen skjerm) |
 | `ALT+F` | Fokus søkefelt (marker eksisterende tekst) |
 | `ENTER` (i søkefelt) | Utfør søk |
 | `ESC` | Nullstill søk og sett fokus tilbake til søkefelt |
@@ -67,7 +69,7 @@
 | `ALT+A` | Adminmodul |
 | `ALT+K` | Avbestilling av merkede turer/bestillinger |
 | `ALT+X` | Søk etter samkjøringsforslag |
-| `ALT+L` | Handlingslogg |
+| `ALT+J` | Handlingslogg |
 | `ALT+C` | Send-SMS |
 
 ## 📥 Installasjon

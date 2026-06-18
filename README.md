@@ -278,6 +278,8 @@ Snarveiene hører til de ulike script-pakkene.
 ### Del 0: Grunnleggende
 | Snarvei | Funksjon |
 |---------|----------|
+| `F1` | Åpne brukerveiledning (ny fane) |
+| `F2` | Åpne tastatursnarveier (nytt vindu, kan flyttes til annen skjerm) |
 | `ALT+F` | Fokus søkefelt |
 | `Enter` (i søkefelt) | Utfør søk |
 | `ESC` | Nullstill søk + fokus søkefelt |
@@ -315,7 +317,7 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+K` | Avbestilling av turer/bestillinger |
 | `ALT+E` | Hentetid |
 | `ALT+X` | Samkjøring |
-| `ALT+L` | Handlingslogg |
+| `ALT+J` | Handlingslogg |
 | `ALT+C` | Send-SMS |
 
 ## 🐛 Kjente feil / ofte stilte spørsmål
