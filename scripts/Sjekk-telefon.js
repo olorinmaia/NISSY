@@ -336,7 +336,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 10000;
+            z-index: 9990;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -348,7 +348,7 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            max-width: 600px;
+            max-width: 800px;
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -379,8 +379,8 @@
             const tipsList = document.createElement('ol');
             tipsList.style.cssText = 'margin: 8px 0 0 0; padding-left: 20px; line-height: 1.7;';
             tipsList.innerHTML =
-                '<li>Klikk <strong>Rediger person</strong> → legg til mobilnummer og lagre</li>' +
-                '<li>Klikk <strong>Søk i planlegging</strong> → rediger aktuelle bestillinger og legg til mobilnummer på ønsket plass → lagre</li>' +
+                '<li>Klikk <strong>Rediger person</strong> → legg til kontaktinfo og lagre</li>' +    
+                '<li>Klikk <strong>Hent bestillinger</strong> eller <strong>Søk i planlegging</strong> → rediger bestillingen(e) og legg til kontaktinfo på riktig sted → lagre</li>' +
                 '<li>Kjør Sjekk-telefon på nytt for å bekrefte at alle er rettet</li>';
             tips.appendChild(tipsSummary);
             tips.appendChild(tipsList);
@@ -404,14 +404,16 @@
                 `;
 
                 const textContainer = document.createElement('div');
-                
+                textContainer.style.cssText = 'display: flex; align-items: baseline; flex: 1; min-width: 0; margin-right: 12px;';
+
                 const nameSpan = document.createElement('span');
                 nameSpan.textContent = result.name;
-                nameSpan.style.cssText = 'font-weight: bold; color: #333;';
+                nameSpan.title = result.name;
+                nameSpan.style.cssText = 'font-weight: bold; color: #333; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: none;';
 
                 const phoneSpan = document.createElement('span');
                 phoneSpan.textContent = ' - ' + result.phone;
-                phoneSpan.style.cssText = result.phone === 'Mangler' ? 'color: #dc3545;' : 'color: #856404;';
+                phoneSpan.style.cssText = 'flex-shrink: 0; white-space: nowrap; ' + (result.phone === 'Mangler' ? 'color: #dc3545;' : 'color: #856404;');
 
                 textContainer.appendChild(nameSpan);
                 textContainer.appendChild(phoneSpan);
@@ -435,7 +437,8 @@
                     font-size: 13px;
                     font-weight: 500;
                     white-space: nowrap;
-                    margin-left: 10px;
+                    min-width: 160px;
+                    justify-content: center;
                     box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
                     transition: all 0.2s ease;
                     display: flex;
@@ -472,6 +475,70 @@
                   }
                 };
 
+                // Hent bestillinger-knapp
+                const hentButton = document.createElement('button');
+                hentButton.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span data-check style="vertical-align: middle; display: inline-block; width: 0; min-width: 0; overflow: hidden;">✓</span><span style="vertical-align: middle;">Hent bestillinger</span>
+                `;
+                hentButton.style.cssText = `
+                    background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    min-width: 160px;
+                    justify-content: center;
+                    box-shadow: 0 2px 4px rgba(111, 66, 193, 0.2);
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                `;
+                hentButton.onmouseover = function() {
+                    if (this._visited) {
+                        this.style.background = 'linear-gradient(135deg, #374151 0%, #4b5563 100%)';
+                        this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                    } else {
+                        this.style.background = 'linear-gradient(135deg, #5a329e 0%, #7142cc 100%)';
+                        this.style.boxShadow = '0 4px 8px rgba(111, 66, 193, 0.3)';
+                    }
+                    this.style.transform = 'translateY(-1px)';
+                };
+                hentButton.onmouseout = function() {
+                    if (this._visited) {
+                        this.style.background = 'linear-gradient(135deg, #4b5563 0%, #6b7280 100%)';
+                        this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    } else {
+                        this.style.background = 'linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%)';
+                        this.style.boxShadow = '0 2px 4px rgba(111, 66, 193, 0.2)';
+                    }
+                    this.style.transform = 'translateY(0)';
+                };
+                hentButton.onclick = function() {
+                    if (!this._visited) {
+                        this._visited = true;
+                        this.style.background = 'linear-gradient(135deg, #4b5563 0%, #6b7280 100%)';
+                        this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                        const check = this.querySelector('[data-check]');
+                        if (check) { check.style.width = 'auto'; check.style.marginRight = '4px'; }
+                    }
+                    const rid = result.reqId;
+                    if (!rid) { alert('Kunne ikke finne rekvisisjons-ID for denne bestillingen.'); return; }
+                    if (window.Bestillingsmodul?.openHentRekvisisjon) {
+                        window.Bestillingsmodul.openHentRekvisisjon(rid);
+                    } else {
+                        alert('Bestillingsmodul er ikke lastet inn.');
+                    }
+                };
+
                 // Rediger person-knapp
                 const editButton = document.createElement('button');
                 editButton.innerHTML = `
@@ -479,7 +546,7 @@
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                    <span style="vertical-align: middle;">Rediger person</span>
+                    <span data-check style="vertical-align: middle; display: inline-block; width: 0; min-width: 0; overflow: hidden;">✓</span><span style="vertical-align: middle;">Rediger person</span>
                 `;
                 editButton.style.cssText = `
                     background: linear-gradient(135deg, #047CA1 0%, #0599c8 100%);
@@ -491,22 +558,41 @@
                     font-size: 13px;
                     font-weight: 500;
                     white-space: nowrap;
+                    min-width: 160px;
+                    justify-content: center;
                     box-shadow: 0 2px 4px rgba(4, 124, 161, 0.2);
                     transition: all 0.2s ease;
                     display: flex;
                     align-items: center;
                 `;
                 editButton.onmouseover = function() {
-                    this.style.background = 'linear-gradient(135deg, #035f7c 0%, #047CA1 100%)';
-                    this.style.boxShadow = '0 4px 8px rgba(4, 124, 161, 0.3)';
+                    if (this._visited) {
+                        this.style.background = 'linear-gradient(135deg, #374151 0%, #4b5563 100%)';
+                        this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                    } else {
+                        this.style.background = 'linear-gradient(135deg, #035f7c 0%, #047CA1 100%)';
+                        this.style.boxShadow = '0 4px 8px rgba(4, 124, 161, 0.3)';
+                    }
                     this.style.transform = 'translateY(-1px)';
                 };
                 editButton.onmouseout = function() {
-                    this.style.background = 'linear-gradient(135deg, #047CA1 0%, #0599c8 100%)';
-                    this.style.boxShadow = '0 2px 4px rgba(4, 124, 161, 0.2)';
+                    if (this._visited) {
+                        this.style.background = 'linear-gradient(135deg, #4b5563 0%, #6b7280 100%)';
+                        this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    } else {
+                        this.style.background = 'linear-gradient(135deg, #047CA1 0%, #0599c8 100%)';
+                        this.style.boxShadow = '0 2px 4px rgba(4, 124, 161, 0.2)';
+                    }
                     this.style.transform = 'translateY(0)';
                 };
                 editButton.onclick = async function() {
+                    if (!this._visited) {
+                        this._visited = true;
+                        this.style.background = 'linear-gradient(135deg, #4b5563 0%, #6b7280 100%)';
+                        this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                        const check = this.querySelector('[data-check]');
+                        if (check) { check.style.width = 'auto'; check.style.marginRight = '4px'; }
+                    }
                     const rid = result.reqId;
                     if (!rid) { alert('Kunne ikke finne rekvisisjons-ID for denne bestillingen.'); return; }
                     const ssn = await fetchSSN(rid);
@@ -516,8 +602,9 @@
 
                 const buttonContainer = document.createElement('div');
                 buttonContainer.style.cssText = 'display: flex; gap: 8px; flex-shrink: 0;';
-                buttonContainer.appendChild(searchButton);
                 buttonContainer.appendChild(editButton);
+                buttonContainer.appendChild(hentButton);
+                buttonContainer.appendChild(searchButton);
 
                 item.appendChild(textContainer);
                 item.appendChild(buttonContainer);
