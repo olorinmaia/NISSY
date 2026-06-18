@@ -185,7 +185,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
 - 🤖 **Auto-Bestill**
   - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom. Viser en sammenleggbar liste over alle aktuelle turer (Ressurs og Starttid) der du kan velge bort turer du ikke ønsker å bestille opp.
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/bba0705e-e731-4d40-a6dc-9a0eb7f2a169" />
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/5cea60e7-e146-44bb-abce-cec5c14eed47" />
 - 🔍 **Sjekk-Bestilling**
   - Sjekker alle bestillinger på valgt filter og lar deg søke opp disse for å rette opp for: 
     - Duplikater, flere enn 2 bestillinger, flere bestillinger med samme fra- eller til-adresse
@@ -202,7 +202,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
 - 📞 **Sjekk-Telefon**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/545d6093-74d8-4766-8b9d-5e7047fbf5ee" />
+  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/7b0bb542-abcb-43ed-a873-f191ef18d832" />
 - 📊 **Statistikk**
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0e1684da-dc52-49c4-9b3d-9f08c126c100" />
