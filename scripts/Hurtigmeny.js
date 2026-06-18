@@ -613,10 +613,15 @@
       }),
       item('📋', 'Handlingslogg',    'Alt+J', () => triggerAlt('j')),
       sep(),
-      item('📖', 'Brukerveiledning', null, () => {
+      item('📖', 'Brukerveiledning', 'F1', () => {
         const btn = document.getElementById('nissy-help-btn');
         if (btn) btn.click();
         else console.warn('[Hurtigmeny] Fant ikke #nissy-help-btn');
+      }),
+      item('⌨️', 'Tastatursnarveier', 'F2', () => {
+        const btn = document.getElementById('nissy-snarveier-btn');
+        if (btn) btn.click();
+        else window.nissyShowSnarveier?.();
       }),
     ];
   }

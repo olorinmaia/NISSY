@@ -11,6 +11,25 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.5] - 19.06.2026
+
+### Loadere: Snarveiervindu og F1/F2-snarveier – Auto-Bestill: Turliste med filtrering
+
+- 🧩 **Loadere (Advanced, Basic, AMK)**
+  - Ny knapp **⌨️ Snarveier (F2)** i header – åpner et eget fritt-bevegelig nettleservindu med komplett liste over tastatursnarveier; vinduet kan flyttes til en annen fysisk skjerm
+  - Ny kortform **📖 Hjelp (F1)** erstatter den lengre «Brukerveiledning»-knappen i header
+  - F1 åpner brukerveiledning, F2 åpner snarveiervinduet – hvis vinduet allerede er åpent, fokuseres det i stedet for å åpne et nytt
+  - Ny **⌨️ Snarveier**-knapp i Hurtigmeny som åpner det samme snarveiervinduet
+  - Oppstartsvinduet er forkortet fra en lang snarveisliste til fire klikkbare kort: **Tastatursnarveier**, **Brukerveiledning** (ADVANCED/BASIC/AMK.md), **Fullstendig dokumentasjon** (README.md) og **Endringslogg**
+- 🤖 **Auto-Bestill**
+  - Ny sammenleggbar turliste i panelet som viser alle turer som skal bestilles opp med kolonnene **Ressurs** og **Starttid**
+  - Alle turer er avhuket som standard – enkeltvis avhuking lar deg ekskludere spesifikke turer fra bestillingen
+  - Avhuk alle/ingen med ett klikk via avkryssingsfeltet i tabellhodet; avhuk-alle gjelder kun synlige (filtrerte) rader
+  - Tekstfilter og klikk-sortering på kolonneoverskriftene for å finne og organisere turer raskt
+  - Kun avhukede turer bestilles opp når du trykker Start; knappen i toppen oppdateres med antall valgte turer
+
+---
+
 ## 🔧 [4.8.1] - 18.06.2026
 
 ### Sjekk-telefon: Hent bestillinger-knapp og besøkt-tilstand på handlingsknapper
