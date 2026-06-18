@@ -1109,6 +1109,12 @@
     const editButtons = modalDiv.querySelectorAll('.nissy-edit-btn');
     editButtons.forEach(btn => {
       btn.addEventListener('click', () => {
+        if (!btn._visited) {
+          btn._visited = true;
+          btn.style.background = 'linear-gradient(135deg, #4b5563 0%, #6b7280 100%)';
+          const check = btn.querySelector('[data-check]');
+          if (check) { check.style.width = 'auto'; check.style.marginRight = '4px'; }
+        }
         const requisitionId = btn.getAttribute('data-requisitionid');
         openRequisitionModal(requisitionId);
       });
@@ -1172,8 +1178,8 @@
               <div style="font-size: 12px; color: #666;">Reknr: ${reknr || 'N/A'}</div>
             </div>
             <div style="display: flex; gap: 8px;">
-              <button class="nissy-edit-btn" data-requisitionid="${requisitionId}" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap;">
-                ✏️ Rediger
+              <button class="nissy-edit-btn" data-requisitionid="${requisitionId}" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap; display: inline-flex; align-items: center;">
+                ✏️ <span data-check style="display: inline-block; width: 0; min-width: 0; overflow: hidden;">✓</span><span>Rediger</span>
               </button>
       `;
       
