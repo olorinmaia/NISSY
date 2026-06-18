@@ -11,6 +11,19 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.1] - 18.06.2026
+
+### Sjekk-telefon: Hent bestillinger-knapp og besøkt-tilstand på handlingsknapper
+
+- 📞 **Sjekk-telefon**
+  - Ny **Hent bestillinger**-knapp (lilla) per pasient i resultatpopupen – åpner Bestillingsmodul direkte over Sjekk-telefon-vinduet slik at bestillingen kan redigeres uten å lukke oversikten
+  - Knapperekkefølge er endret til **Rediger person → Hent bestillinger → Søk i planlegging**, i tråd med anbefalt fremgangsmåte for å rette manglende kontaktinfo
+  - **Rediger person** og **Hent bestillinger** grås ut og markeres med ✓ etter første klikk, slik at det er lett å se hvilke pasienter som er håndtert – knappene kan fortsatt trykkes på igjen ved behov
+- 🚩 **Sjekk-plakat**
+  - **Rediger**-knappen grås ut og markeres med ✓ etter første klikk, slik at det er lett å se hvilke bestillinger som er åpnet for redigering
+
+---
+
 ## 🔧 [4.8.0] - 15.06.2026
 
 ### Kartvisning: Mulighet til å velge rutetjeneste (ORS/OSRM) - Loadere: Send SMS og Kartvisning har fått egne knapper i kontrollpanelet - Globale SMS-maler - Rek-knapper/Bestillingsmodul: [T] fyller nå automatisk inn dato på returbestilling
