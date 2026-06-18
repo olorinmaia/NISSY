@@ -1686,7 +1686,7 @@
           drawRoute();
         } else {
           if (currentAllLL.length === 1)     map.setView(currentAllLL[0], 14);
-          else if (currentAllLL.length > 1)  map.fitBounds(currentAllLL, { padding: [50, 50] });
+          else if (currentAllLL.length > 1)  map.fitBounds(currentAllLL, { padding: [50, 50], maxZoom: 15 });
         }
 
         updateStatus(filtered);
@@ -1702,7 +1702,7 @@
             { color: '#047CA1', weight: 3, opacity: 0.65, dashArray: '8,6' }).addTo(map);
           routeControl = { remove: function () { map.removeLayer(poly); } };
           if (currentAllLL.length === 1) map.setView(currentAllLL[0], 14);
-          else if (currentAllLL.length > 1) map.fitBounds(currentAllLL, { padding: [50, 50] });
+          else if (currentAllLL.length > 1) map.fitBounds(currentAllLL, { padding: [50, 50], maxZoom: 15 });
         };
 
         function applyLegs(legs, totalDist, totalDur) {
@@ -1781,7 +1781,7 @@
           }
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
-          map.fitBounds(bounds, { padding: [50, 50] });
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
           sjekkFerger(legs, polys, _cumSecAtWp);
         }
 
