@@ -696,6 +696,16 @@
           tekst: (info) =>
             `Dette er en melding som ikke kan besvares.\n\nDrosje til/fra time ${formaterTid(info.oppTid)} kan ikke bestilles av Pasientreiser på grunn av manglende avtale i Kirkenes.\n\nDu kan selv bestille drosje og sende reiseregning til Pasientreiser HF (egenandel kr 171 per vei). Ved bruk av egen bil dekkes kr 3,20 per km samt eventuell parkering. Dersom du ikke kan møte til timen, må du kontakte behandler.\n\nSpørsmål? Ring 05515\n\nHilsen Pasientreiser.`,
         },
+        {
+          navn: "Kirkenes 3 - Prestøyhjemmet",
+          tekst: (info) =>
+            `Dette er en melding som ikke kan besvares.\n\nI morgen blir du hentet med drosje til/fra behandling på Prestøyhjemmet. Drosjen henter deg omtrent ${formaterTid(info.reiseTid)}. Du trenger ikke bestille drosje selv fra Kirkenes Taxi, og du skal ikke betale for transporten.\n\nSpørsmål? Ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Rullestol - manglende avtale",
+          tekst: (info) =>
+            `Dette er en melding som ikke kan besvares.\n\nRullestoldrosje til/fra time ${formaterTid(info.oppTid)} kan ikke bestilles av Pasientreiser på grunn av manglende avtale i ditt område.\n\nDu kan selv bestille transport, legge ut for reisen og sende inn reiseregning. Egenandel er kr 171 per vei. Ved bruk av egen bil dekkes kr 3,20 per km samt eventuelle parkeringsutgifter. Dersom du ikke kan møte til timen, må du kontakte behandler.\n\nSpørsmål? Ring 05515.\n\nHilsen Pasientreiser.`,
+        },
       ],
 
       fritekst: [
