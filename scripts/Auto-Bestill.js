@@ -119,13 +119,14 @@
         }
         .tur-filter-wrap {
             padding: 5px 0 6px;
+            position: relative;
         }
         .tur-filter-input {
             width: 100%;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 5px;
-            padding: 4px 8px;
+            padding: 4px 26px 4px 8px;
             font-size: 12px;
             outline: none;
             font-family: Arial, sans-serif;
@@ -133,8 +134,31 @@
         .tur-filter-input:focus {
             border-color: #3b6fc8;
         }
+        .tur-filter-clear {
+            position: absolute !important;
+            right: 5px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            background: none !important;
+            border: none !important;
+            color: #999 !important;
+            cursor: pointer !important;
+            font-size: 13px !important;
+            padding: 2px 4px !important;
+            line-height: 1 !important;
+            flex: none !important;
+            width: auto !important;
+            font-weight: normal !important;
+            box-shadow: none !important;
+        }
+        .tur-filter-clear:hover {
+            color: #333 !important;
+            background: none !important;
+            transform: translateY(-50%) !important;
+            box-shadow: none !important;
+        }
         .tur-list-container {
-            max-height: 160px;
+            max-height: 280px;
             overflow-y: auto;
             border: 1px solid #e0e0e0;
             border-radius: 6px;
@@ -236,6 +260,7 @@
             <div id="turListWrapper" style="display:none">
                 <div class="tur-filter-wrap">
                     <input type="text" id="turFilter" class="tur-filter-input" placeholder="Filtrer på ressurs...">
+                    <button id="turFilterClear" class="tur-filter-clear" title="Tøm filter" style="display:none">✕</button>
                 </div>
                 <div class="tur-list-container">
                     <table class="tur-table">
@@ -319,12 +344,24 @@
     document.getElementById('thStarttid').addEventListener('click', () => sortTable('starttid'));
 
     // --- FILTER ---
+    const turFilterClear = document.getElementById('turFilterClear');
     document.getElementById('turFilter').addEventListener('input', (e) => {
         const query = e.target.value.trim().toLowerCase();
         tbody.querySelectorAll('.tur-row').forEach(tr => {
             tr.style.display = (!query || tr.dataset.ressurs.includes(query)) ? '' : 'none';
         });
+        turFilterClear.style.display = e.target.value ? 'block' : 'none';
         syncSelectAll();
+        if (!e.target.value) repositionPanel();
+    });
+    turFilterClear.addEventListener('click', () => {
+        const input = document.getElementById('turFilter');
+        input.value = '';
+        turFilterClear.style.display = 'none';
+        tbody.querySelectorAll('.tur-row').forEach(tr => { tr.style.display = ''; });
+        syncSelectAll();
+        repositionPanel();
+        input.focus();
     });
 
     // --- AVHUKINGS-HJELPERE ---
@@ -380,10 +417,22 @@
         if (header && col2) {
             const headerRect = header.getBoundingClientRect();
             const col2Rect = col2.getBoundingClientRect();
+            const listContainer = panel.querySelector('.tur-list-container');
+            const wrapper = document.getElementById('turListWrapper');
+            if (wrapper && wrapper.style.display !== 'none' && listContainer) {
+                // Begrens tabellhøyde slik at panelet ikke går over toppen av skjermen
+                const chromeHeight = panel.offsetHeight - listContainer.offsetHeight;
+                const newMaxHeight = Math.min(280, Math.max(80, headerRect.top - 8 - chromeHeight));
+                listContainer.style.maxHeight = newMaxHeight + 'px';
+            }
+            panel.style.bottom = '';
             panel.style.top = `${headerRect.top - panel.offsetHeight - 1}px`;
             panel.style.left = `${col2Rect.left + (col2Rect.width / 2) - (panel.offsetWidth / 2)}px`;
+            panel.style.right = '';
         } else {
             panel.style.top = "20px";
+            panel.style.bottom = '';
+            panel.style.left = '';
             panel.style.right = "20px";
         }
     }
