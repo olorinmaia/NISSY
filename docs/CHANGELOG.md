@@ -11,6 +11,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.6] - 19.06.2026
+
+### Send SMS: Kontorspesifikke maler for Pasientreiser Finnmarkssykehuset HF
+
+- 📱 **Send SMS**
+  - Lagt til kontorspesifikke SMS-maler for Pasientreiser Finnmarkssykehuset HF
+
+---
+
 ## 🔧 [4.8.5] - 19.06.2026
 
 ### Loadere: Snarveiervindu og F1/F2-snarveier – Auto-Bestill: Turliste med filtrering

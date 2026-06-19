@@ -656,6 +656,91 @@
 
     },
     // ----------------------------------------------------------
+    // Pasientreiser Finnmarkssykehuset HF
+    // ----------------------------------------------------------
+    'Pasientreiser Finnmarkssykehuset HF': {
+
+      bestilling: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Endret hentetidspunkt",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Planlagt reise til behandling",
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise til ${info.tilAdresse} med oppmøte ${formaterTid(info.oppTid)} er planlagt.\nHenting ca. ${formaterTid(info.reiseTid)} fra ${info.fraAdresse}.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Kirkenes - info 1",
+          tekst: (info) =>
+            `Dette er en melding som ikke kan besvares.\n\nTransport til/fra time ${formaterTid(info.oppTid)} er under arbeid. På grunn av manglende avtale i Kirkenes kan vi ikke garantere transport. Du vil bli kontaktet dersom reisen ikke kan gjennomføres.\n\nSpørsmål? Ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Kirkenes - info 2",
+          tekst: (info) =>
+            `Dette er en melding som ikke kan besvares.\n\nDrosje til/fra time ${formaterTid(info.oppTid)} kan ikke bestilles av Pasientreiser på grunn av manglende avtale i Kirkenes.\n\nDu kan selv bestille drosje og sende reiseregning til Pasientreiser HF (egenandel kr 171 per vei). Ved bruk av egen bil dekkes kr 3,20 per km samt eventuell parkering. Dersom du ikke kan møte til timen, må du kontakte behandler.\n\nSpørsmål? Ring 05515\n\nHilsen Pasientreiser.`,
+        },
+      ],
+
+      fritekst: [
+        {
+          navn: "Hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin reise er planlagt med henting kl. TT:MM.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Endret hentetidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDitt hentetidspunkt er endret til kl. TT:MM.\nHentetid kan variere med +/- 15 minutter.\n\nFor spørsmål rundt din reise ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Forsinkelse",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDin transport er dessverre forsinket. Vi beklager ulempene dette medfører.\n\nFor spørsmål ring 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nHilsen Pasientreiser.`,
+        },
+      ],
+
+      sjaafor: [
+        {
+          navn: "Tildelt bestilling i ventetiden",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nDet er tildelt en bestilling på taksameter som ønskes utført i ventetiden.\n\nFor spørsmål kontakt oss på 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Ring oss tilbake",
+          tekst: () =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nHilsen Pasientreiser.`,
+        },
+      ],
+
+    },
+    // ----------------------------------------------------------
     // Legg til nye kontor her:
     // ----------------------------------------------------------
 
