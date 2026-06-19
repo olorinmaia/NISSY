@@ -418,7 +418,7 @@
             timer = setTimeout(runNext, 250);
         } else {
             running = false;
-            startBtn.disabled = false;
+            startBtn.disabled = true;
             stopBtn.disabled = true;
             statusDiv.innerHTML =
                 `<b>✓ Ferdig!</b><br>${dispatches.length} tur${dispatches.length === 1 ? '' : 'er'} er bestilt opp. Lukk panelet for å oppdatere bildet.`;
