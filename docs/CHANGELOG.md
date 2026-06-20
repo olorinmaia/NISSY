@@ -1029,7 +1029,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - ALT+D → Ressursinfo popup
   - Viser alle turer (pågående og ventende)
   - Tidsplan og kapasitetsoversikt
-  - Spesielle krav og ledsagere
+  - Spesielle behov og ledsagere
 
 - **Loader-system** - Script-pakker med ulik innhold avhengig av arbeidsoppgaver
   - loader-basic.js → Inneholder basis-scriptene
