@@ -245,21 +245,22 @@
 
     const base = "/planlegging/ajax-dispatch?did=all&";
 
-    // Hjelpere: sjekk om kolonne finnes i thead (false hvis tabell ikke er i DOM → anvend for sikkerhets skyld)
+    // Hjelpere: ingen thead = tom liste eller ikke i DOM → ukjent tilstand → anvend uansett
     const pT = () => document.getElementById('pagaendeoppdrag');
     const vT = () => document.getElementById('ventendeoppdrag');
+    const hasThead = (el) => !!el?.querySelector('thead');
     const hasLink = (el, sortFn, param) =>
-      el ? !!el.querySelector(`thead th a[href*="${sortFn}('${param}')"]`) : false;
+      !!el?.querySelector(`thead th a[href*="${sortFn}('${param}')"]`);
     const hasText = (el, text) =>
-      el ? [...el.querySelectorAll('thead th')].some(th => th.textContent.trim() === text) : false;
+      [...(el?.querySelectorAll('thead th') || [])].some(th => th.textContent.trim() === text);
 
     const allChanges = [
-      { url: "action=phidecol&cid=availableCapacity",       needed: () => { const t = pT(); return !t || hasText(t, 'Ledig'); } },
-      { url: "action=vhidecol&cid=tripTransportType",       needed: () => { const t = vT(); return !t || hasLink(t, 'sortVentendeOppdragList', 'tripTransportType'); } },
-      { url: "action=pshowcol&cid=tripTreatmentDate",       needed: () => { const t = pT(); return !t || !hasLink(t, 'sortPopp', 'tripTreatmentDate'); } },
-      { url: "action=pshowcol&cid=tripCompanions",          needed: () => { const t = pT(); return !t || !hasText(t, 'Behov'); } },
-      { url: "action=pshowcol&cid=tripSpecialRequirements", needed: () => { const t = pT(); return !t || !hasText(t, 'L'); } },
-      { url: "action=pshowcol&cid=patientName",             needed: () => { const t = pT(); return !t || !hasLink(t, 'sortPopp', 'patientName'); } },
+      { url: "action=phidecol&cid=availableCapacity",       needed: () => { const t = pT(); return !hasThead(t) || hasText(t, 'Ledig'); } },
+      { url: "action=vhidecol&cid=tripTransportType",       needed: () => { const t = vT(); return !hasThead(t) || hasLink(t, 'sortVentendeOppdragList', 'tripTransportType'); } },
+      { url: "action=pshowcol&cid=tripTreatmentDate",       needed: () => { const t = pT(); return !hasThead(t) || !hasLink(t, 'sortPopp', 'tripTreatmentDate'); } },
+      { url: "action=pshowcol&cid=tripCompanions",          needed: () => { const t = pT(); return !hasThead(t) || !hasText(t, 'Behov'); } },
+      { url: "action=pshowcol&cid=tripSpecialRequirements", needed: () => { const t = pT(); return !hasThead(t) || !hasText(t, 'L'); } },
+      { url: "action=pshowcol&cid=patientName",             needed: () => { const t = pT(); return !hasThead(t) || !hasLink(t, 'sortPopp', 'patientName'); } },
     ];
 
     const urlsToRun = allChanges.filter(c => c.needed()).map(c => base + c.url);
