@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.8.6'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.8.7'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -245,37 +245,46 @@
 
     const base = "/planlegging/ajax-dispatch?did=all&";
 
-    const urls = [
-      "action=phidecol&cid=availableCapacity",
-      "action=vhidecol&cid=tripTransportType",
-      "action=pshowcol&cid=tripTreatmentDate",
-      "action=pshowcol&cid=tripCompanions",
-      "action=pshowcol&cid=tripSpecialRequirements",
-      "action=pshowcol&cid=patientName"
+    // Hjelpere: sjekk om kolonne finnes i thead (false hvis tabell ikke er i DOM → anvend for sikkerhets skyld)
+    const pT = () => document.getElementById('pagaendeoppdrag');
+    const vT = () => document.getElementById('ventendeoppdrag');
+    const hasLink = (el, sortFn, param) =>
+      el ? !!el.querySelector(`thead th a[href*="${sortFn}('${param}')"]`) : false;
+    const hasText = (el, text) =>
+      el ? [...el.querySelectorAll('thead th')].some(th => th.textContent.trim() === text) : false;
+
+    const allChanges = [
+      { url: "action=phidecol&cid=availableCapacity",       needed: () => { const t = pT(); return !t || hasText(t, 'Ledig'); } },
+      { url: "action=vhidecol&cid=tripTransportType",       needed: () => { const t = vT(); return !t || hasLink(t, 'sortVentendeOppdragList', 'tripTransportType'); } },
+      { url: "action=pshowcol&cid=tripTreatmentDate",       needed: () => { const t = pT(); return !t || !hasLink(t, 'sortPopp', 'tripTreatmentDate'); } },
+      { url: "action=pshowcol&cid=tripCompanions",          needed: () => { const t = pT(); return !t || !hasText(t, 'Behov'); } },
+      { url: "action=pshowcol&cid=tripSpecialRequirements", needed: () => { const t = pT(); return !t || !hasText(t, 'L'); } },
+      { url: "action=pshowcol&cid=patientName",             needed: () => { const t = pT(); return !t || !hasLink(t, 'sortPopp', 'patientName'); } },
     ];
+
+    const urlsToRun = allChanges.filter(c => c.needed()).map(c => base + c.url);
 
     function xhrGet(url, callback) {
       const xhr = new XMLHttpRequest();
       xhr.open("GET", url, true);
-      xhr.withCredentials = true; 
+      xhr.withCredentials = true;
       xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          callback();
-        }
+        if (xhr.readyState === 4) callback();
       };
       xhr.send();
     }
 
     function runSequentially(list) {
       if (list.length === 0) {
+        window.__nissyColumnsReady = true;
         return;
       }
-
-      const url = base + list.shift();
-      xhrGet(url, () => runSequentially(list));
+      xhrGet(list.shift(), () => runSequentially(list));
     }
 
-    runSequentially(urls.slice());
+    runSequentially(urlsToRun);
+  } else {
+    window.__nissyColumnsReady = true;
   }
 
 /* ======================================================

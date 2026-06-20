@@ -675,6 +675,15 @@
   setTimeout(() => {
     const SKIP_KEY = 'nissy-skip-startup-popup';
 
+    const openPoppWhenReady = () => {
+      if (typeof openPopp !== 'function') return;
+      if (window.__nissyColumnsReady) { openPopp('-1'); return; }
+      const t = setInterval(() => {
+        if (window.__nissyColumnsReady) { clearInterval(t); openPopp('-1'); }
+      }, 50);
+      setTimeout(() => clearInterval(t), 8000);
+    };
+
     if (localStorage.getItem(SKIP_KEY) === '1') {
       const toast = document.createElement('div');
       toast.textContent = '✅ NISSY Basic (DEV) lastet!';
@@ -692,7 +701,7 @@
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
       }, 3000);
-      if (typeof openPopp === 'function') openPopp('-1');
+      openPoppWhenReady();
       return;
     }
 
@@ -746,13 +755,13 @@
 
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
+    openPoppWhenReady();
 
     const closePopup = (skip = false) => {
       if (skip) localStorage.setItem(SKIP_KEY, '1');
       if (popup && popup.parentNode) popup.parentNode.removeChild(popup);
       if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
       document.removeEventListener('keydown', escHandler);
-      if (typeof openPopp === 'function') openPopp('-1');
     };
 
     popup.querySelector('#closeNissyPopup').onclick = () => closePopup(false);
