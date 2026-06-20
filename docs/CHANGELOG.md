@@ -11,6 +11,19 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.7] - 20.06.2026
+
+### Loadere + NISSY-fiks: Mer pålitelig oppstart
+
+- 🧩 **Loadere (Advanced, Basic, AMK)**
+  - Åpner alle turer og refresher bestillinger først når kolonneendringer fra NISSY-fiks er ferdig, uavhengig av om oppstartsvinduet vises eller ikke
+- 🔧 **NISSY-fiks**
+  - Kjører kun kolonneendringer mot server hvis det faktisk er nødvendig – hopper over kall for kolonner som allerede er i ønsket tilstand
+- 🤖 **Auto-Bestill**
+  - Forbedret visning/filtrering av tabell over turer som kan bestilles opp
+
+---
+
 ## 🔧 [4.8.6] - 19.06.2026
 
 ### Send SMS: Kontorspesifikke maler for Pasientreiser Finnmarkssykehuset HF
