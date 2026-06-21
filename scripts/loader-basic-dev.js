@@ -189,11 +189,13 @@
   (() => {
     console.log("🔧 Legger til knapper i header...");
 
-    // Skjul filter i header, ikke i bruk
+    // Skjul filter og 'Nullstill oppsett'-link i header, ikke i bruk og tar opp plass
     const efilter = document.getElementById('efilter');
     if (efilter) {
       efilter.remove();
     }
+    const nullstillLink = document.querySelector('a[onclick*="deleteCookies"]');
+    if (nullstillLink) nullstillLink.remove();
 
     // Skjuler Dynamiske plakater i footer
     const td = document.querySelector('td input#dynamic_poster')?.closest('td');
