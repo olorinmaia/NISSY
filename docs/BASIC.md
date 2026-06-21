@@ -195,7 +195,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 **Viser:**
 - Oppmøtetidspunkt (pågående oppdrag)
 - Ledsagere (pågående oppdrag)
-- Spesielle krav (pågående oppdrag)
+- Spesielle behov (pågående oppdrag)
 - Pasientnavn (pågående oppdrag)
 
 ### 🕐 Hentetid (ALT+E)

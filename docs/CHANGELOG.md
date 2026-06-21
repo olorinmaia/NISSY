@@ -17,6 +17,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - 🧩 **Loadere (Advanced, Basic, AMK)**
   - Åpner alle turer og refresher bestillinger først når kolonneendringer fra NISSY-fiks er ferdig, uavhengig av om oppstartsvinduet vises eller ikke
+  - Fjerner "Nullstill oppsett" fra header, ikke i bruk og tar opp unødvendig plass
 - 🔧 **NISSY-fiks**
   - Kjører kun kolonneendringer mot server hvis det faktisk er nødvendig – hopper over kall for kolonner som allerede er i ønsket tilstand
 - 🤖 **Auto-Bestill**
@@ -1029,7 +1030,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - ALT+D → Ressursinfo popup
   - Viser alle turer (pågående og ventende)
   - Tidsplan og kapasitetsoversikt
-  - Spesielle krav og ledsagere
+  - Spesielle behov og ledsagere
 
 - **Loader-system** - Script-pakker med ulik innhold avhengig av arbeidsoppgaver
   - loader-basic.js → Inneholder basis-scriptene
