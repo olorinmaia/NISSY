@@ -1394,6 +1394,11 @@
               e.stopPropagation();
             }
           }, true);
+          // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
+          const overflowFix = doc.createElement('style');
+          overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; }';
+          if (doc.head) doc.head.appendChild(overflowFix);
+
           // Blokker Alt alene inne i iframe
           let _iframeAltAlone = false;
           win.addEventListener('keydown', function(e) {

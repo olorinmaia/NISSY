@@ -562,6 +562,11 @@
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
 
+                        // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
+                        const overflowFix = iframeDoc.createElement('style');
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; }';
+                        if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
+
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
                         iframeWin.addEventListener('keydown', function(e) {
@@ -969,6 +974,11 @@
                         
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+
+                        // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
+                        const overflowFix = iframeDoc.createElement('style');
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; }';
+                        if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
 
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
@@ -1526,6 +1536,11 @@
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
 
+                        // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
+                        const overflowFix = iframeDoc.createElement('style');
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; }';
+                        if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
+
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
                         iframeWin.addEventListener('keydown', function(e) {
@@ -1995,6 +2010,11 @@
 
                         iframeDoc.addEventListener('keydown', iframeF5Handler, true);
                         iframeWin.addEventListener('keydown', iframeF5Handler, true);
+
+                        // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
+                        const overflowFix = iframeDoc.createElement('style');
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; }';
+                        if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
 
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
