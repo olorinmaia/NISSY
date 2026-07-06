@@ -310,7 +310,7 @@
   // Felt-etiketter som indikerer telefonnummer, f.eks. "Tlf:", "Mob:",
   // "Mob (2):", "Tlf fra EPJ:", "Telefonnummer sjåfør:", "Telefon:",
   // "Mobilnr (2):", "Telefon/mobilnr fra EPJ:"
-  const PHONE_LABEL_RE = /(Tlf|Mob|Telefon)[\wæøåÆØÅ\s().]*:\s*$/i;
+  const PHONE_LABEL_RE = /(Tlf|Mob|Telefon)[^:]*:\s*$/i;
 
   // ============================================================
   // AUTO-INJISER RING-IKON VED [data-phone] I DENNE DOKUMENTET
@@ -391,6 +391,26 @@
   }
 
   // ============================================================
+  // PASIENT-DETALJER I ADMIN – <b>Mobilnr*:</b>, <b>Telefon:</b> e.l.
+  // Mønster: <td><b>Label: </b></td><td colspan="2">nummer</td>
+  // ============================================================
+  function addBoldLabelIcon(b) {
+    b.classList.add('zisson-c2c-done');
+    if (!PHONE_LABEL_RE.test(b.textContent.trim())) return;
+
+    const labelTd = b.closest('td');
+    if (!labelTd) return;
+
+    const valueTd = labelTd.nextElementSibling;
+    if (!valueTd || valueTd.tagName !== 'TD') return;
+
+    valueTd.textContent.split('/').forEach(part => {
+      const phone = extractPhoneFromValue(part);
+      if (phone) valueTd.appendChild(createCallIcon(phone, valueTd.ownerDocument));
+    });
+  }
+
+  // ============================================================
   // ADMINMODUL-IFRAME (.adminmodul-modal iframe) - eget document
   // ============================================================
   function handleIframe(iframe) {
@@ -421,6 +441,12 @@
 
     if (el.matches?.('#reqDetailsBody td:not(.zisson-c2c-done)')) addAdminFieldIcon(el);
     el.querySelectorAll?.('#reqDetailsBody td:not(.zisson-c2c-done)').forEach(addAdminFieldIcon);
+
+    if (el.matches?.('td.fieldname:not(.zisson-c2c-done)')) addAdminFieldIcon(el);
+    el.querySelectorAll?.('td.fieldname:not(.zisson-c2c-done)').forEach(addAdminFieldIcon);
+
+    if (el.matches?.('b:not(.zisson-c2c-done)')) addBoldLabelIcon(el);
+    el.querySelectorAll?.('b:not(.zisson-c2c-done)').forEach(addBoldLabelIcon);
 
     if (el.matches?.('.adminmodul-modal iframe:not(.zisson-c2c-done)')) handleIframe(el);
     el.querySelectorAll?.('.adminmodul-modal iframe:not(.zisson-c2c-done)').forEach(handleIframe);
