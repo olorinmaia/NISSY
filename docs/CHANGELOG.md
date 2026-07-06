@@ -11,6 +11,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.8] - 06.07.2026
+
+### Rek-knapper + Bestillingsmodul: Hindre at lang admin-tekst sprenger modal-bredden
+
+- 🔧 **Rek-knapper** / **Bestillingsmodul**
+  - Injiserer CSS i iframen ved lasting slik at lange administratortekster i bestillingsmodulen brytes til ny linje fremfor å overskride den faste modal-bredden
+
+---
+
 ## 🔧 [4.8.7] - 20.06.2026
 
 ### Loadere + NISSY-fiks: Mer pålitelig oppstart
