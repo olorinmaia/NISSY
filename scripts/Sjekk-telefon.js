@@ -4,9 +4,12 @@
 (function() {
     'use strict';
 
-    // --- SPERRE MOT DUPLIKAT INSTALLASJON (scriptet er preloadet av loaderen) ---
-    if (window.__sjekkTelefonInstalled) return;
-    window.__sjekkTelefonInstalled = true;
+    // --- SPERRE MOT DUPLIKAT KJØRING ---
+    if (window.__sjekkTelefonActive) {
+        console.warn("⚠️ Sjekk-telefon er allerede aktiv - ignorerer ny forespørsel");
+        return;
+    }
+    window.__sjekkTelefonActive = true;
 
     // Hent fødselsnummer fra plakat for gitt rekvisisjons-ID
     async function fetchSSN(rid) {
@@ -689,26 +692,7 @@
         showResults(allResults);
     }
 
-    // --- HOVEDFUNKSJON (ALT+4) ---
-    function triggerSjekkTelefon() {
-        // --- SPERRE MOT DUPLIKAT KJØRING ---
-        if (window.__sjekkTelefonActive) {
-            console.warn("⚠️ Sjekk-telefon er allerede aktiv - ignorerer ny forespørsel");
-            return;
-        }
-        window.__sjekkTelefonActive = true;
-        runPhoneCheck();
-    }
-
-    // --- HOTKEY: ALT+4 ---
-    document.addEventListener('keydown', (e) => {
-        if (e.altKey && e.key === '4') {
-            e.preventDefault();
-            triggerSjekkTelefon();
-        }
-    });
-
-    // Eksporter globalt slik at "Sjekk-Telefon"-knappen kan kalle scriptet momentant
-    window.NissySjekkTelefon = triggerSjekkTelefon;
+    // Kjør sjekken
+    runPhoneCheck();
 
 })();

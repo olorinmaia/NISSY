@@ -80,16 +80,7 @@
     'Send-SMS.js',
     'Logg.js',
     'Darkmode.js',
-    'Kartvisning.js',
-    // Manuelle scripts (knapper nederst i footer via NISSY-fiks) - preloades
-    // slik at de aktiveres momentant ved klikk/hotkey uten ny GitHub-henting
-    'Alenebil.js',
-    'Auto-Bestill.js',
-    'Sjekk-bestilling.js',
-    'Sjekk-plakat.js',
-    'Sjekk-telefon.js',
-    'Statistikk.js',
-    'Trøndertaxi-løyve.js'
+    'Kartvisning.js'
   ];
   
   // ============================================================
@@ -162,8 +153,6 @@
     } catch (err) {
       console.error(`❌ Feil ved lasting av ${script}:`, err);
     }
-    // Liten pause mellom hver henting - unngår 429 Too Many Requests fra GitHub raw-content
-    await new Promise(r => setTimeout(r, 200));
   }
   
   clearTimeout(nissyLoadingSafetyTimer);

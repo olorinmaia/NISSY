@@ -1131,27 +1131,53 @@
         updateNissyManualButtonStates();
       }
 
-      // Koble knapper til de allerede preloadede manuelle scriptene
-      // (scriptene ligger i loaderens script-liste og eksponerer en
-      // window.NissyXxx-funksjon - ingen ny GitHub-lasting ved klikk)
-      const MANUAL_SCRIPT_FNS = {
-        'alenebil': 'NissyAlenebil',
-        'auto-bestill': 'NissyAutoBestill',
-        'sjekk-bestilling': 'NissySjekkBestilling',
-        'sjekk-plakat': 'NissySjekkPlakat',
-        'sjekk-telefon': 'NissySjekkTelefon',
-        'statistikk': 'NissyStatistikk',
-        'trondertaxi-loyve': 'NissyTrondertaxiLoyve'
+      // Koble knapper (og Alt+1..5-snarveier) til manuelle scripts.
+      // Disse hentes fra GitHub og kjøres på nytt hver gang de trykkes -
+      // IKKE preloadet sammen med resten av script-pakken, for å holde
+      // antall scripts i selve pakken lavt (unngår "429 Too Many Requests"
+      // fra GitHub sin raw-content-CDN)
+      const MANUAL_SCRIPT_FILES = {
+        'alenebil': 'Alenebil.js',
+        'auto-bestill': 'Auto-Bestill.js',
+        'sjekk-bestilling': 'Sjekk-bestilling.js',
+        'sjekk-plakat': 'Sjekk-plakat.js',
+        'sjekk-telefon': 'Sjekk-telefon.js',
+        'statistikk': 'Statistikk.js',
+        'trondertaxi-loyve': 'Trøndertaxi-løyve.js'
       };
 
-      document.querySelectorAll('.nissy-manual-btn').forEach(button => {
-        const scriptName = button.getAttribute('data-script');
-        const fnName = MANUAL_SCRIPT_FNS[scriptName];
+      // Dev-loaderne setter window.NISSY_LOADER = '<pakke>-dev'
+      const MANUAL_SCRIPT_BASE = (typeof window.NISSY_LOADER === 'string' && window.NISSY_LOADER.endsWith('-dev'))
+        ? 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/'
+        : 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
 
-        button.onclick = () => {
-          const fn = fnName && window[fnName];
-          if (typeof fn !== 'function') {
-            console.error(`❌ Fant ikke preloadet script for: ${scriptName}`);
+      // Cache på hentet kildekode per script - unngår gjentatte GitHub-kall
+      // for samme script resten av denne side-sesjonen. Reload siden (F5)
+      // for å hente en eventuelt oppdatert versjon på nytt.
+      const MANUAL_SCRIPT_CACHE = {};
+
+      async function runManualScript(scriptName, button) {
+        const scriptFile = MANUAL_SCRIPT_FILES[scriptName];
+        if (!scriptFile) {
+          console.error(`❌ Ukjent manuelt script: ${scriptName}`);
+          return;
+        }
+
+        try {
+          let code = MANUAL_SCRIPT_CACHE[scriptFile];
+          if (!code) {
+            const response = await fetch(MANUAL_SCRIPT_BASE + scriptFile + `?t=${Date.now()}`);
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            code = await response.text();
+            MANUAL_SCRIPT_CACHE[scriptFile] = code;
+          }
+          eval(code);
+        } catch (err) {
+          console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
+
+          if (button) {
             const originalText = button.textContent;
             button.disabled = true;
             button.textContent = '❌ Feil';
@@ -1159,10 +1185,29 @@
               button.textContent = originalText;
               button.disabled = false;
             }, 2000);
-            return;
           }
-          fn();
-        };
+        }
+      }
+
+      document.querySelectorAll('.nissy-manual-btn').forEach(button => {
+        const scriptName = button.getAttribute('data-script');
+        button.onclick = () => runManualScript(scriptName, button);
+      });
+
+      // --- HOTKEYS: ALT+1..5 (samme henting som knappene over) ---
+      const MANUAL_SCRIPT_HOTKEYS = {
+        '1': 'auto-bestill',
+        '2': 'sjekk-bestilling',
+        '3': 'sjekk-plakat',
+        '4': 'sjekk-telefon',
+        '5': 'statistikk'
+      };
+      document.addEventListener('keydown', (e) => {
+        if (!e.altKey) return;
+        const scriptName = MANUAL_SCRIPT_HOTKEYS[e.key];
+        if (!scriptName) return;
+        e.preventDefault();
+        runManualScript(scriptName, document.querySelector(`.nissy-manual-btn[data-script="${scriptName}"]`));
       });
       
       console.log("✅ Manuelle script-knapper installert");

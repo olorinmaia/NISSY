@@ -1,16 +1,11 @@
 // Laget av Alf Einar Johnsen, aej@hnt.no, Pasientreiser Nord-Trøndelag, 20.11.2025
 (function() {
 // ============================================================
-// Auto-Bestilling av turer med status Tildelt [B] (ALT+1)
+// Auto-Bestilling av turer med status Tildelt [B]
 // Åpner en pop-up som lar deg trykke på en knapp for å bestille
 // opp alle turer med 0.25 sekunders mellomrom på valgt filter
 // ============================================================
 
-    // --- SPERRE MOT DUPLIKAT INSTALLASJON (scriptet er preloadet av loaderen) ---
-    if (window.__autoBestillInstalled) return;
-    window.__autoBestillInstalled = true;
-
-    function startAutoBestill() {
     // --- SPERRE MOT DUPLIKAT KJØRING ---
     if (window.__autobestillActive) {
         console.log("⚠️ Auto-bestilling er allerede aktiv! Lukk det eksisterende panelet før du starter på nytt.");
@@ -534,16 +529,5 @@
     startBtn.onclick = startClicking;
     stopBtn.onclick = stopClicking;
     closeBtn.onclick = closePanel;
-    }
 
-    // --- HOTKEY: ALT+1 ---
-    document.addEventListener('keydown', (e) => {
-        if (e.altKey && e.key === '1') {
-            e.preventDefault();
-            startAutoBestill();
-        }
-    });
-
-    // Eksporter globalt slik at "Auto-Bestill"-knappen kan kalle scriptet momentant
-    window.NissyAutoBestill = startAutoBestill;
 })();
