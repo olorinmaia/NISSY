@@ -183,10 +183,10 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/767bffcc-416d-469e-9965-e1ba4020037f" />
 - 🚗 **Alenebil**
   - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
-- 🤖 **Auto-Bestill**
+- 🤖 **Auto-Bestill (Alt+1)**
   - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom. Viser en sammenleggbar liste over alle aktuelle turer (Ressurs og Starttid) der du kan velge bort turer du ikke ønsker å bestille opp.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/5cea60e7-e146-44bb-abce-cec5c14eed47" />
-- 🔍 **Sjekk-Bestilling**
+- 🔍 **Sjekk-Bestilling (Alt+2)**
   - Sjekker alle bestillinger på valgt filter og lar deg søke opp disse for å rette opp for: 
     - Duplikater, flere enn 2 bestillinger, flere bestillinger med samme fra- eller til-adresse
     - Om de har forskjellig dato på hentetid og leveringstid
@@ -196,14 +196,14 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
     - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling
     - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
-- 🚩 **Sjekk-Plakat**
+- 🚩 **Sjekk-Plakat (Alt+3)**
   - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
   - Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
-- 📞 **Sjekk-Telefon**
+- 📞 **Sjekk-Telefon (Alt+4)**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/7b0bb542-abcb-43ed-a873-f191ef18d832" />
-- 📊 **Statistikk**
+- 📊 **Statistikk (Alt+5)**
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0e1684da-dc52-49c4-9b3d-9f08c126c100" />
 - 🚕 **Trøndertaxi-løyve**
@@ -223,11 +223,11 @@ Under er en oversikt over de features som følger med i hver pakke.
 | ⌛ NISSY-fiks | ✅ | ✅ | ✅ |
 | 🔔 Overvåk-Ventende | ✅ | ✅ | ✅ |
 | 🚗 Alenebil | ✅ | ✅ | ✅ |
-| 🤖 Auto-Bestill | ✅ | ✅ | ✅ |
-| 🔍 Sjekk-Bestilling | ✅ | ✅ | ✅ |
-| 🚩 Sjekk-Plakat | ✅ | ✅ | ✅ |
-| 📞 Sjekk-Telefon | ✅ | ✅ | ✅ |
-| 📊 Statistikk | ✅ | ✅ | ✅ |
+| 🤖 Auto-Bestill (ALT+1) | ✅ | ✅ | ✅ |
+| 🔍 Sjekk-Bestilling (ALT+2) | ✅ | ✅ | ✅ |
+| 🚩 Sjekk-Plakat (ALT+3) | ✅ | ✅ | ✅ |
+| 📞 Sjekk-Telefon (ALT+4) | ✅ | ✅ | ✅ |
+| 📊 Statistikk (ALT+5) | ✅ | ✅ | ✅ |
 | 🚖 Trøndertaxi-løyve | ✅ | ✅ | ✅ |
 | 🖱️ Hurtigmeny | ✅ | ✅ | ✅ |
 | 🌙 Darkmode | ✅ | ✅ | ✅ |
@@ -319,6 +319,11 @@ Snarveiene hører til de ulike script-pakkene.
 | `ALT+X` | Samkjøring |
 | `ALT+J` | Handlingslogg |
 | `ALT+C` | Send-SMS |
+| `ALT+1` | Auto-Bestill |
+| `ALT+2` | Sjekk-Bestilling |
+| `ALT+3` | Sjekk-Plakat |
+| `ALT+4` | Sjekk-Telefon |
+| `ALT+5` | Statistikk |
 
 ## 🐛 Kjente feil / ofte stilte spørsmål
 

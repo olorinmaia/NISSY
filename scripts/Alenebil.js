@@ -4,7 +4,11 @@
   // Setter det spesielle behovet "Alenebil" på markerte bestillinger
   // Nyttig når behovet er deaktivert i brukergrensesnittet
   // ============================================================
-  
+
+  // --- SPERRE MOT DUPLIKAT INSTALLASJON (scriptet er preloadet av loaderen) ---
+  if (window.__alenebilInstalled) return;
+  window.__alenebilInstalled = true;
+
   // Bakgrunnsfarge for merkede rader i NISSY
   const SELECTED_BG = "rgb(148, 169, 220)";
 
@@ -263,38 +267,42 @@
   }
 
   // ============================================================
-  // FINN MERKEDE BESTILLINGER
-  // Filtrerer kun ventende oppdrag (V-) med riktig bakgrunnsfarge
+  // HOVEDFUNKSJON
+  // Kalles fra "Alenebil"-knappen (window.NissyAlenebil) hver gang
+  // brukeren trykker den, slik at merkede rader alltid leses på nytt
   // ============================================================
-  const rows = [...document.querySelectorAll("tr")].filter(tr =>
-    getComputedStyle(tr).backgroundColor === SELECTED_BG &&
-    (tr.id || "").startsWith("V-")
-  );
+  function runAlenebil() {
+    // FINN MERKEDE BESTILLINGER
+    // Filtrerer kun ventende oppdrag (V-) med riktig bakgrunnsfarge
+    const rows = [...document.querySelectorAll("tr")].filter(tr =>
+      getComputedStyle(tr).backgroundColor === SELECTED_BG &&
+      (tr.id || "").startsWith("V-")
+    );
 
-  // Sjekk om noen bestillinger er merket
-  if (rows.length === 0) {
-    showErrorToast("🚗 Ingen bestillinger er valgt på ventende oppdrag. Vennligst marker én eller flere og trykk på Alenebil-knappen igjen.");
-    return;
-  }
+    // Sjekk om noen bestillinger er merket
+    if (rows.length === 0) {
+      showErrorToast("🚗 Ingen bestillinger er valgt på ventende oppdrag. Vennligst marker én eller flere og trykk på Alenebil-knappen igjen.");
+      return;
+    }
 
-  // ============================================================
-  // BEKREFTELSESMELDING
-  // Tilpass melding basert på antall merkede bestillinger
-  // ============================================================
-  let confirmText;
-  if (rows.length === 1) {
-    confirmText = `Er du sikker på at du ønsker å sette det spesielle behovet Alenebil ` +
-      `på markert bestilling?`;
-  } else {
-    confirmText = `Er du sikker på at du ønsker å sette det spesielle behovet Alenebil ` +
-      `på de ${rows.length} markerte bestillingene?`;
-  }
+    // ============================================================
+    // BEKREFTELSESMELDING
+    // Tilpass melding basert på antall merkede bestillinger
+    // ============================================================
+    let confirmText;
+    if (rows.length === 1) {
+      confirmText = `Er du sikker på at du ønsker å sette det spesielle behovet Alenebil ` +
+        `på markert bestilling?`;
+    } else {
+      confirmText = `Er du sikker på at du ønsker å sette det spesielle behovet Alenebil ` +
+        `på de ${rows.length} markerte bestillingene?`;
+    }
 
-  // ============================================================
-  // HOVEDLOGIKK
-  // Kjører kun hvis bruker bekrefter
-  // ============================================================
-  showConfirm(confirmText).then(async confirmed => {
+    // ============================================================
+    // KJØR
+    // Kjører kun hvis bruker bekrefter
+    // ============================================================
+    showConfirm(confirmText).then(async confirmed => {
     if (!confirmed) return; // Bruker klikket Nei
 
     // ============================================================
@@ -476,5 +484,9 @@
 
     // Trigger refresh
     openPopp("-1");
-  });
+    });
+  }
+
+  // Eksporter globalt slik at "Alenebil"-knappen kan kalle scriptet momentant
+  window.NissyAlenebil = runAlenebil;
 })();

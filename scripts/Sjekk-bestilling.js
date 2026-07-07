@@ -16,12 +16,9 @@
 // ================================================================================
 
 (() => {
-  // --- SPERRE MOT DUPLIKAT KJØRING ---
-  if (window.__sjekkBestillingActive) {
-    console.warn("⚠️ Sjekk-bestilling er allerede aktiv - ignorerer ny forespørsel");
-    return;
-  }
-  window.__sjekkBestillingActive = true;
+  // --- SPERRE MOT DUPLIKAT INSTALLASJON (scriptet er preloadet av loaderen) ---
+  if (window.__sjekkBestillingInstalled) return;
+  window.__sjekkBestillingInstalled = true;
 
   let modalDiv = null;
   let overlayDiv = null;
@@ -1277,23 +1274,43 @@
   }
 
   // ============================================================
-  // HOVEDKJØRING - wrapped i try-catch for kolonnevalidering
+  // HOVEDFUNKSJON (ALT+2) - wrapped i try-catch for kolonnevalidering
   // ============================================================
-  try {
-    const { duplicates: countDuplicates, excludedKeys } = findDuplicates();
-    const routeDuplicates = findSameRouteDuplicates(excludedKeys);
-    const dateMismatches = findDateMismatches();
-    const problematicNeeds = findProblematicNeeds();
-    const timeLogicErrors = findTimeLogicErrors();
-    const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
-    const shortTravelTime = findShortTravelTime();
-    const tripDateMismatches = findTripDateMismatches();
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches);
-  } catch (error) {
-    // Feil under kolonnevalidering eller datainnhenting
-    // Feilmelding er allerede vist via showErrorToast()
-    // Frigjør sperre og stopp scriptet
-    console.error('Sjekk-bestilling feilet:', error);
-    window.__sjekkBestillingActive = false;
+  function runSjekkBestilling() {
+    // --- SPERRE MOT DUPLIKAT KJØRING ---
+    if (window.__sjekkBestillingActive) {
+      console.warn("⚠️ Sjekk-bestilling er allerede aktiv - ignorerer ny forespørsel");
+      return;
+    }
+    window.__sjekkBestillingActive = true;
+
+    try {
+      const { duplicates: countDuplicates, excludedKeys } = findDuplicates();
+      const routeDuplicates = findSameRouteDuplicates(excludedKeys);
+      const dateMismatches = findDateMismatches();
+      const problematicNeeds = findProblematicNeeds();
+      const timeLogicErrors = findTimeLogicErrors();
+      const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
+      const shortTravelTime = findShortTravelTime();
+      const tripDateMismatches = findTripDateMismatches();
+      showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches);
+    } catch (error) {
+      // Feil under kolonnevalidering eller datainnhenting
+      // Feilmelding er allerede vist via showErrorToast()
+      // Frigjør sperre og stopp scriptet
+      console.error('Sjekk-bestilling feilet:', error);
+      window.__sjekkBestillingActive = false;
+    }
   }
+
+  // --- HOTKEY: ALT+2 ---
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === '2') {
+      e.preventDefault();
+      runSjekkBestilling();
+    }
+  });
+
+  // Eksporter globalt slik at "Sjekk-Bestilling"-knappen kan kalle scriptet momentant
+  window.NissySjekkBestilling = runSjekkBestilling;
 })();

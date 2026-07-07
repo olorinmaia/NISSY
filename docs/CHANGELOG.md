@@ -11,6 +11,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.8.9] - 07.07.2026
+
+### Manuelle scripts: Preloades i script-pakken for momentan respons + nye hurtigtaster
+
+- 🧩 **NISSY-fiks / Loadere (Advanced, Basic, AMK)**
+  - Alenebil, Auto-Bestill, Sjekk-Bestilling, Sjekk-Plakat, Sjekk-Telefon, Statistikk og Trøndertaxi-løyve lastes nå inn i sin helhet sammen med resten av script-pakken, i stedet for å hentes fra GitHub på nytt for hvert knappetrykk. Knappene aktiverer scriptet momentant
+- 🤖 **Auto-Bestill (Alt+1)** / 🔍 **Sjekk-Bestilling (Alt+2)** / 🚩 **Sjekk-Plakat (Alt+3)** / 📞 **Sjekk-Telefon (Alt+4)** / 📊 **Statistikk (Alt+5)**
+  - Nye hurtigtaster, se tooltip på knappene eller F2-snarveivinduet
+
+---
+
 ## 🔧 [4.8.8] - 06.07.2026
 
 ### Rek-knapper + Bestillingsmodul: Hindre at lang admin-tekst sprenger modal-bredden

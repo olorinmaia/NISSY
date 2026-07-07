@@ -2,7 +2,11 @@
   // ============================================================
   // LØYVENUMMER-KOPIERING OG ÅPNING AV TRØNDERTAXI LØYVEREGISTER
   // ============================================================
-  
+
+  // --- SPERRE MOT DUPLIKAT INSTALLASJON (scriptet er preloadet av loaderen) ---
+  if (window.__trondertaxiLoyveInstalled) return;
+  window.__trondertaxiLoyveInstalled = true;
+
   // ============================================================
   // TOAST-MELDING
   // Viser en midlertidig melding nederst på skjermen
@@ -42,121 +46,121 @@
   }
   
   // ============================================================
-  // FINN LØYVENUMMER
-  // Prøver to metoder: 1) Merket rad i NISSY, 2) turFooter i CTRL
+  // HOVEDFUNKSJON
+  // Kalles fra "Trøndertaxi-løyve"-knappen hver gang den trykkes,
+  // slik at merket ressurs/turFooter alltid leses på nytt
   // ============================================================
-  let loyvenummer = null;
-  
-  // ============================================================
-  // METODE 1: MERKET RAD I NISSY
-  // Ser etter rad med bakgrunnsfarge rgb(148, 169, 220)
-  // ============================================================
-  const allMarkedRows = [...document.querySelectorAll("tr")].filter(row =>
-    window.getComputedStyle(row).backgroundColor === "rgb(148, 169, 220)" &&
-       row.id?.startsWith("R")
-                                                                    
-  );
-  
-  if (allMarkedRows.length > 1) {
-    // Flere ressurser er merket - vis valg-dialog
-    const loyvenumre = allMarkedRows
-      .map(row => row.children[1]?.innerText.trim())
-      .filter(Boolean);
-    
-    const choice = prompt(
-      `Du har merket ${allMarkedRows.length} ressurser:\n\n` +
-      loyvenumre.map((lp, i) => `${i + 1}. ${lp}`).join('\n') +
-      `\n\nVelg ressurs (1-${allMarkedRows.length}) eller trykk Avbryt:`,
-      "1"
+  function runTrondertaxiLoyve() {
+    // FINN LØYVENUMMER
+    // Prøver to metoder: 1) Merket rad i NISSY, 2) turFooter i CTRL
+    let loyvenummer = null;
+
+    // METODE 1: MERKET RAD I NISSY
+    // Ser etter rad med bakgrunnsfarge rgb(148, 169, 220)
+    const allMarkedRows = [...document.querySelectorAll("tr")].filter(row =>
+      window.getComputedStyle(row).backgroundColor === "rgb(148, 169, 220)" &&
+         row.id?.startsWith("R")
+
     );
-    
-    // Sjekk om bruker trykket Avbryt
-    if (choice === null) {
-      return;
+
+    if (allMarkedRows.length > 1) {
+      // Flere ressurser er merket - vis valg-dialog
+      const loyvenumre = allMarkedRows
+        .map(row => row.children[1]?.innerText.trim())
+        .filter(Boolean);
+
+      const choice = prompt(
+        `Du har merket ${allMarkedRows.length} ressurser:\n\n` +
+        loyvenumre.map((lp, i) => `${i + 1}. ${lp}`).join('\n') +
+        `\n\nVelg ressurs (1-${allMarkedRows.length}) eller trykk Avbryt:`,
+        "1"
+      );
+
+      // Sjekk om bruker trykket Avbryt
+      if (choice === null) {
+        return;
+      }
+
+      // Valider input
+      const selectedIndex = parseInt(choice) - 1;
+      if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= allMarkedRows.length) {
+        showToast(`Ugyldig valg. Velg et tall mellom 1 og ${allMarkedRows.length}.`, true);
+        return;
+      }
+
+      // Bruk valgt ressurs
+      loyvenummer = loyvenumre[selectedIndex];
+
+    } else if (allMarkedRows.length === 1) {
+      // Kun én ressurs merket
+      loyvenummer = allMarkedRows[0].children[1]?.innerText.trim() || null;
     }
-    
-    // Valider input
-    const selectedIndex = parseInt(choice) - 1;
-    if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= allMarkedRows.length) {
-      showToast(`Ugyldig valg. Velg et tall mellom 1 og ${allMarkedRows.length}.`, true);
-      return;
-    }
-    
-    // Bruk valgt ressurs
-    loyvenummer = loyvenumre[selectedIndex];
-    
-  } else if (allMarkedRows.length === 1) {
-    // Kun én ressurs merket
-    loyvenummer = allMarkedRows[0].children[1]?.innerText.trim() || null;
-  }
-  
-  // ============================================================
-  // METODE 2: TURFOOTER I CTRL (FALLBACK)
-  // Hvis ikke funnet i NISSY, prøv å finne i CTRL sin turFooter
-  // ============================================================
-  if (!loyvenummer) {
-    const footer = document.querySelector("div.turFooter-module__turStatsContent--jEhIv p");
-    
-    if (footer) {
-      // Søk etter mønster: TR-XXXXX
-      const match = footer.innerText.match(/TR-\d+/);
-      if (match) {
-        loyvenummer = match[0];
+
+    // METODE 2: TURFOOTER I CTRL (FALLBACK)
+    // Hvis ikke funnet i NISSY, prøv å finne i CTRL sin turFooter
+    if (!loyvenummer) {
+      const footer = document.querySelector("div.turFooter-module__turStatsContent--jEhIv p");
+
+      if (footer) {
+        // Søk etter mønster: TR-XXXXX
+        const match = footer.innerText.match(/TR-\d+/);
+        if (match) {
+          loyvenummer = match[0];
+        }
       }
     }
-  }
-  
-  // ============================================================
-  // VALIDER OG KOPIER
-  // ============================================================
-  let url;
-  
-  if (!loyvenummer) {
-    // Fant ikke løyvenummer - åpne generell oversikt
-    showToast(
-      "🚖 Fant ikke løyvenummer verken fra markert ressurs i NISSY eller turbehandling i CTRL. Åpner løyveregister til Trøndertaxi..",
-      false // Normal melding (grå bakgrunn)
+
+    // VALIDER OG KOPIER
+    let url;
+
+    if (!loyvenummer) {
+      // Fant ikke løyvenummer - åpne generell oversikt
+      showToast(
+        "🚖 Fant ikke løyvenummer verken fra markert ressurs i NISSY eller turbehandling i CTRL. Åpner løyveregister til Trøndertaxi..",
+        false // Normal melding (grå bakgrunn)
+      );
+      url = "https://pasientreiser.tronder.taxi/Loyver/Oversikt";
+    } else {
+      // Kopier til clipboard
+      navigator.clipboard.writeText(loyvenummer)
+        .then(() => {
+          showToast(`Løyvenummer kopiert: ${loyvenummer}`);
+        })
+        .catch(() => {
+          showToast("Kunne ikke kopiere til clipboard", true);
+        });
+
+      // Åpne med spesifikt løyvenummer
+      url = `https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=${encodeURIComponent(loyvenummer)}`;
+    }
+
+    // ÅPNE TRØNDERTAXI SITT LØYVEREGISTER I NYTT VINDU
+    // Åpner pasientreiser.tronder.taxi/Loyver/Oversikt
+
+    // Finn ledig plass til venstre/høyre for NISSY-vinduet
+    const spaceLeft  = window.screenX;
+    const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
+    const minWidth   = 600;
+    let width, left, top, height;
+    if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
+      width = spaceLeft; left = 0;
+      top = 0; height = window.screen.availHeight;
+    } else if (spaceRight >= minWidth) {
+      width = spaceRight; left = window.screenX + window.outerWidth;
+      top = 0; height = window.screen.availHeight;
+    } else {
+      width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
+      left = 0; top = 0; height = window.screen.availHeight;
+    }
+
+    // Åpne vindu
+    window.open(
+      url,
+      "PasientreiserOversikt", // Vindu-navn (gjenbruker samme vindu hvis allerede åpent)
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
-    url = "https://pasientreiser.tronder.taxi/Loyver/Oversikt";
-  } else {
-    // Kopier til clipboard
-    navigator.clipboard.writeText(loyvenummer)
-      .then(() => {
-        showToast(`Løyvenummer kopiert: ${loyvenummer}`);
-      })
-      .catch(() => {
-        showToast("Kunne ikke kopiere til clipboard", true);
-      });
-    
-    // Åpne med spesifikt løyvenummer
-    url = `https://pasientreiser.tronder.taxi/Loyver/Oversikt?Loyve=${encodeURIComponent(loyvenummer)}`;
-  }
-  
-  // ============================================================
-  // ÅPNE TRØNDERTAXI SITT LØYVEREGISTER I NYTT VINDU
-  // Åpner pasientreiser.tronder.taxi/Loyver/Oversikt
-  // ============================================================
-  
-  // Finn ledig plass til venstre/høyre for NISSY-vinduet
-  const spaceLeft  = window.screenX;
-  const spaceRight = window.screen.availWidth - (window.screenX + window.outerWidth);
-  const minWidth   = 600;
-  let width, left, top, height;
-  if (spaceLeft >= spaceRight && spaceLeft >= minWidth) {
-    width = spaceLeft; left = 0;
-    top = 0; height = window.screen.availHeight;
-  } else if (spaceRight >= minWidth) {
-    width = spaceRight; left = window.screenX + window.outerWidth;
-    top = 0; height = window.screen.availHeight;
-  } else {
-    width = Math.max(minWidth, Math.floor(window.innerWidth / 2));
-    left = 0; top = 0; height = window.screen.availHeight;
   }
 
-  // Åpne vindu
-  window.open(
-    url,
-    "PasientreiserOversikt", // Vindu-navn (gjenbruker samme vindu hvis allerede åpent)
-    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-  );
+  // Eksporter globalt slik at "Trøndertaxi-løyve"-knappen kan kalle scriptet momentant
+  window.NissyTrondertaxiLoyve = runTrondertaxiLoyve;
 })();

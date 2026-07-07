@@ -92,6 +92,11 @@ javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olo
 | `ALT+A` | Adminmodul |
 | `ALT+J` | Handlingslogg |
 | `ALT+C` | Send-SMS |
+| `ALT+1` | Auto-Bestill |
+| `ALT+2` | Sjekk-Bestilling |
+| `ALT+3` | Sjekk-Plakat |
+| `ALT+4` | Sjekk-Telefon |
+| `ALT+5` | Statistikk |
 
 ## 📖 Detaljert brukerveiledning
 
@@ -242,14 +247,14 @@ Aktiveres og deaktiveres via hurtigmeny eller kontrollpanelet i bunnen av NISSY-
 Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert i bestillingsmodulen.
 - Tilgjengelig via hurtigmeny eller kontrollpanelet
 
-### 🤖 Auto-Bestill
+### 🤖 Auto-Bestill (Alt+1)
 Pop-up vindu for å bestille opp alle turer med status Tildelt [B] på valgt filter med 0,25 sekunders mellomrom.
 - Viser en sammenleggbar liste over alle aktuelle turer med **Ressurs** og **Starttid**
 - Alle turer er avhuket som standard; enkeltvis avhukking, filtrering og sortering lar deg ekskludere spesifikke turer
 - Kun avhukede turer bestilles opp når du trykker **Start**
 - Tilgjengelig via hurtigmeny eller kontrollpanelet
 
-### 🔍 Sjekk-Bestilling
+### 🔍 Sjekk-Bestilling (Alt+2)
 Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikke deg inn på for å rette opp:
 - Duplikater og turer med mer enn 2 bestillinger
 - Flere bestillinger med samme fra- eller til-adresse
@@ -260,15 +265,15 @@ Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikk
 - Reisetid mellom 1–9 minutter på reiser til behandling
 - Problematisk kombinasjon av spesielle behov (RB+ERS, LB+LF m.fl.)
 
-### 🚩 Sjekk-Plakat
+### 🚩 Sjekk-Plakat (Alt+3)
 Finn alle røde plakater med fritekst på valgt filter – plakater med flaggede ord vises øverst.
 
 Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
 
-### 📞 Sjekk-Telefon
+### 📞 Sjekk-Telefon (Alt+4)
 Sjekker alle bestillinger på valgt filter for manglende telefonnummer og viser de i en liste du kan klikke deg inn på for å rette opp.
 
-### 📊 Statistikk
+### 📊 Statistikk (Alt+5)
 Beregner i en pop-up antall bestillinger på ventende/pågående oppdrag og «samkjøringsgrad» basert på valgte filter.
 
 ### 🚖 Trøndertaxi-løyve

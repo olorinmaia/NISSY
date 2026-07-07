@@ -7,12 +7,9 @@
 // ================================================================================
 
 (() => {
-  // --- SPERRE MOT DUPLIKAT KJØRING ---
-  if (window.__sjekkPlakatActive) {
-    console.warn("⚠️ Sjekk-plakat er allerede aktiv - ignorerer ny forespørsel");
-    return;
-  }
-  window.__sjekkPlakatActive = true;
+  // --- SPERRE MOT DUPLIKAT INSTALLASJON (scriptet er preloadet av loaderen) ---
+  if (window.__sjekkPlakatInstalled) return;
+  window.__sjekkPlakatInstalled = true;
 
   let modalDiv = null;
   let overlayDiv = null;
@@ -1265,16 +1262,36 @@
   }
 
   // ============================================================
-  // START SCRIPT
+  // HOVEDFUNKSJON (ALT+3)
   // ============================================================
-  (async () => {
-    console.log('🚀 Starter Sjekk-plakat script...');
-    
-    const data = await fetchAllRedPosterData();
-    if (!data) return;
+  function runSjekkPlakat() {
+    // --- SPERRE MOT DUPLIKAT KJØRING ---
+    if (window.__sjekkPlakatActive) {
+      console.warn("⚠️ Sjekk-plakat er allerede aktiv - ignorerer ny forespørsel");
+      return;
+    }
+    window.__sjekkPlakatActive = true;
 
-    console.log(`✅ Ferdig! Fant ${data.all.length} bestillinger med fritekst (${data.problematic.length} problematiske)`);
+    (async () => {
+      console.log('🚀 Starter Sjekk-plakat script...');
 
-    showModal(data);
-  })();
+      const data = await fetchAllRedPosterData();
+      if (!data) return;
+
+      console.log(`✅ Ferdig! Fant ${data.all.length} bestillinger med fritekst (${data.problematic.length} problematiske)`);
+
+      showModal(data);
+    })();
+  }
+
+  // --- HOTKEY: ALT+3 ---
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === '3') {
+      e.preventDefault();
+      runSjekkPlakat();
+    }
+  });
+
+  // Eksporter globalt slik at "Sjekk-Plakat"-knappen kan kalle scriptet momentant
+  window.NissySjekkPlakat = runSjekkPlakat;
 })();

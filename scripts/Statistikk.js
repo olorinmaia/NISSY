@@ -5,12 +5,9 @@
   // valgt filter. Teller ventende/pågående oppdrag.
   // ============================================================
   
-  // --- SPERRE MOT DUPLIKAT KJØRING ---
-  if (window.__statistikkActive) {
-    console.warn("⚠️ Statistikk er allerede aktiv - ignorerer ny forespørsel");
-    return;
-  }
-  window.__statistikkActive = true;
+  // --- SPERRE MOT DUPLIKAT INSTALLASJON (scriptet er preloadet av loaderen) ---
+  if (window.__statistikkInstalled) return;
+  window.__statistikkInstalled = true;
 
   // --- VISUELL VENTER OVERLAY ---
   function visVenterOverlay() {
@@ -259,37 +256,57 @@
     document.body.appendChild(overlay);
   }
 
-  // --- HOVEDFLYT ---
-  (async () => {
-    let fjernVenter = null;
-    let overlayTimer = null;
-    let ajaxFerdig = false;
-
-    if (typeof openPopp === "function") {
-
-      // Start AJAX-venting
-      const vent = ventPåOpenPopp();
-
-      // Start en timeout som først viser overlay etter 150 ms
-      overlayTimer = setTimeout(() => {
-        if (!ajaxFerdig) {
-          fjernVenter = visVenterOverlay();
-        }
-      }, 150);
-
-      openPopp('-1');  // Starter AJAX
-
-      await vent;      // Venter til AJAX ferdig
-      ajaxFerdig = true;
-
-      // Hvis overlay ikke er vist enda – ikke vis den
-      clearTimeout(overlayTimer);
-
-      // Hvis overlay faktisk ble vist – fjern den
-      if (fjernVenter) fjernVenter();
+  // --- HOVEDFUNKSJON (ALT+5) ---
+  function runStatistikk() {
+    // --- SPERRE MOT DUPLIKAT KJØRING ---
+    if (window.__statistikkActive) {
+      console.warn("⚠️ Statistikk er allerede aktiv - ignorerer ny forespørsel");
+      return;
     }
+    window.__statistikkActive = true;
 
-    lagStatistikk();
-  })();
+    (async () => {
+      let fjernVenter = null;
+      let overlayTimer = null;
+      let ajaxFerdig = false;
+
+      if (typeof openPopp === "function") {
+
+        // Start AJAX-venting
+        const vent = ventPåOpenPopp();
+
+        // Start en timeout som først viser overlay etter 150 ms
+        overlayTimer = setTimeout(() => {
+          if (!ajaxFerdig) {
+            fjernVenter = visVenterOverlay();
+          }
+        }, 150);
+
+        openPopp('-1');  // Starter AJAX
+
+        await vent;      // Venter til AJAX ferdig
+        ajaxFerdig = true;
+
+        // Hvis overlay ikke er vist enda – ikke vis den
+        clearTimeout(overlayTimer);
+
+        // Hvis overlay faktisk ble vist – fjern den
+        if (fjernVenter) fjernVenter();
+      }
+
+      lagStatistikk();
+    })();
+  }
+
+  // --- HOTKEY: ALT+5 ---
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === '5') {
+      e.preventDefault();
+      runStatistikk();
+    }
+  });
+
+  // Eksporter globalt slik at "Statistikk"-knappen kan kalle scriptet momentant
+  window.NissyStatistikk = runStatistikk;
 
 })();

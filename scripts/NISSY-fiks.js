@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.8.8'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.8.9'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -1069,19 +1069,19 @@
             <button id="nissy-btn-alenebil" class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
               🚗 Alenebil
             </button>
-            <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
+            <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter (Alt+1)">
               🤖 Auto-Bestill
             </button>
-            <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer">
+            <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer (Alt+2)">
               🔍 Sjekk-Bestilling
             </button>
-            <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først">
+            <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først (Alt+3)">
               🚩 Sjekk-Plakat
             </button>
-            <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
+            <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer (Alt+4)">
               📞 Sjekk-Telefon
             </button>
-            <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter">
+            <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter (Alt+5)">
               📊 Statistikk
             </button>
             ${hasTrøndertaxiAccess() ? `
@@ -1131,65 +1131,37 @@
         updateNissyManualButtonStates();
       }
 
-      // Koble knapper til scripts
+      // Koble knapper til de allerede preloadede manuelle scriptene
+      // (scriptene ligger i loaderens script-liste og eksponerer en
+      // window.NissyXxx-funksjon - ingen ny GitHub-lasting ved klikk)
+      const MANUAL_SCRIPT_FNS = {
+        'alenebil': 'NissyAlenebil',
+        'auto-bestill': 'NissyAutoBestill',
+        'sjekk-bestilling': 'NissySjekkBestilling',
+        'sjekk-plakat': 'NissySjekkPlakat',
+        'sjekk-telefon': 'NissySjekkTelefon',
+        'statistikk': 'NissyStatistikk',
+        'trondertaxi-loyve': 'NissyTrondertaxiLoyve'
+      };
+
       document.querySelectorAll('.nissy-manual-btn').forEach(button => {
         const scriptName = button.getAttribute('data-script');
-        
-        button.onclick = async () => {
-          const originalText = button.textContent;
-          
-          try {
-            const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
-            let scriptFile = '';
-            
-            // Map script navn til filnavn
-            switch(scriptName) {
-              case 'alenebil':
-                scriptFile = 'Alenebil.js';
-                break;
-              case 'auto-bestill':
-                scriptFile = 'Auto-Bestill.js';
-                break;
-              case 'sjekk-bestilling':
-                scriptFile = 'Sjekk-bestilling.js';
-                break;
-              case 'sjekk-plakat':
-                scriptFile = 'Sjekk-plakat.js';
-                break;
-              case 'sjekk-telefon':
-                scriptFile = 'Sjekk-telefon.js';
-                break;
-              case 'statistikk':
-                scriptFile = 'Statistikk.js';
-                break;
-              case 'trondertaxi-loyve':
-                scriptFile = 'Trøndertaxi-løyve.js';
-                break;
-              default:
-                throw new Error(`Ukjent script: ${scriptName}`);
-            }
-            
-            // Last og kjør script
-            const response = await fetch(BASE + scriptFile + `?t=${Date.now()}`);
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            const code = await response.text();
-            eval(code);
-            
-            // Ingen visuell feedback ved suksess
-            
-          } catch (err) {
-            console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
-            
-            // Visuell feedback - kun ved feil
+        const fnName = MANUAL_SCRIPT_FNS[scriptName];
+
+        button.onclick = () => {
+          const fn = fnName && window[fnName];
+          if (typeof fn !== 'function') {
+            console.error(`❌ Fant ikke preloadet script for: ${scriptName}`);
+            const originalText = button.textContent;
             button.disabled = true;
             button.textContent = '❌ Feil';
             setTimeout(() => {
               button.textContent = originalText;
               button.disabled = false;
             }, 2000);
+            return;
           }
+          fn();
         };
       });
       

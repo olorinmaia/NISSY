@@ -51,7 +51,8 @@
   }
 
   const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
-  
+  window.NISSY_LOADER = 'advanced';
+
   const scripts = [
     'NISSY-fiks.js',
     'Smart-tildeling.js',
@@ -68,7 +69,16 @@
     'Send-SMS.js',
     'Logg.js',
     'Darkmode.js',
-    'Kartvisning.js'
+    'Kartvisning.js',
+    // Manuelle scripts (knapper nederst i footer via NISSY-fiks) - preloades
+    // slik at de aktiveres momentant ved klikk/hotkey uten ny GitHub-henting
+    'Alenebil.js',
+    'Auto-Bestill.js',
+    'Sjekk-bestilling.js',
+    'Sjekk-plakat.js',
+    'Sjekk-telefon.js',
+    'Statistikk.js',
+    'Trøndertaxi-løyve.js'
   ];
   
   // ============================================================
@@ -150,6 +160,13 @@
       • ALT+J → Handlingslogg<br>
       • ALT+Z → Live ressurskart<br>
       • ALT+C → Send SMS<br>
+      <br>
+      <strong>Manuelle scripts:</strong><br>
+      • ALT+1 → Auto-Bestill<br>
+      • ALT+2 → Sjekk-Bestilling<br>
+      • ALT+3 → Sjekk-Plakat<br>
+      • ALT+4 → Sjekk-Telefon<br>
+      • ALT+5 → Statistikk<br>
     </div>`;
 
   const nissyPopupKort = `
