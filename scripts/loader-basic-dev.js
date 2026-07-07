@@ -50,6 +50,17 @@
     return;
   }
 
+  // ============================================================
+  // SPERRE MOT DOBBEL-AKTIVERING
+  // Alle scripts er allerede lastet inn og aktive - reload siden (F5)
+  // og trykk på bokmerket på nytt for å laste inn på nytt
+  // ============================================================
+  if (window.__nissyLoaderActivated) {
+    console.warn('⚠️ NISSY script-pakke er allerede aktivert på denne siden. Reload siden (F5) og trykk på bokmerket på nytt for å laste inn på nytt.');
+    return;
+  }
+  window.__nissyLoaderActivated = true;
+
   const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
   window.NISSY_LOADER = 'basic-dev';
 
