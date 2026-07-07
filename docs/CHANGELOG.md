@@ -17,6 +17,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - 🔧 **Rek-knapper** / **Bestillingsmodul**
   - Injiserer CSS i iframen ved lasting slik at lange administratortekster i bestillingsmodulen brytes til ny linje fremfor å overskride den faste modal-bredden
+  - Spesielle behov-labels med dato-intervaller (f.o.m/t.o.m) trunkeres med ellipsis; full tekst inkl. behovsbeskrivelse og datointervall vises i tooltip ved hover
 
 ---
 
