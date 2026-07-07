@@ -102,8 +102,41 @@
     document.head.appendChild(gcScript);
   } catch (e) {}
   
+  // ============================================================
+  // LASTE-OVERLAY: Blokkerer input mens scriptene lastes inn
+  // Kan ikke avbrytes manuelt - fjernes automatisk når lastingen er ferdig
+  // ============================================================
+  const nissyLoadingOverlay = document.createElement('div');
+  Object.assign(nissyLoadingOverlay.style, {
+    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+    backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
+    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+    zIndex: 999999
+  });
+  const nissyLoadingSpinner = document.createElement('div');
+  Object.assign(nissyLoadingSpinner.style, {
+    width: '50px', height: '50px', border: '6px solid #ddd', borderTop: '6px solid #4A81BF',
+    borderRadius: '50%', animation: 'nissyLoaderSpin 0.8s linear infinite', marginBottom: '20px'
+  });
+  const nissyLoadingSpinnerCss = document.createElement('style');
+  nissyLoadingSpinnerCss.textContent = `@keyframes nissyLoaderSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+  document.head.appendChild(nissyLoadingSpinnerCss);
+  const nissyLoadingText = document.createElement('div');
+  nissyLoadingText.textContent = 'Laster inn Advanced script-pakke…';
+  Object.assign(nissyLoadingText.style, {
+    color: 'white', fontSize: '18px', fontWeight: '600', textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+  });
+  nissyLoadingOverlay.appendChild(nissyLoadingSpinner);
+  nissyLoadingOverlay.appendChild(nissyLoadingText);
+  document.body.appendChild(nissyLoadingOverlay);
+  // Sikkerhetsnett: fjern overlay selv om en enkelt script-fetch skulle henge
+  const nissyLoadingSafetyTimer = setTimeout(() => {
+    nissyLoadingOverlay.remove();
+    nissyLoadingSpinnerCss.remove();
+  }, 20000);
+
   console.log('📦 Laster NISSY Advanced...');
-  
+
   for (const script of scripts) {
     try {
       // Hopp over Logg.js hvis den allerede kjører
@@ -118,8 +151,14 @@
     } catch (err) {
       console.error(`❌ Feil ved lasting av ${script}:`, err);
     }
+    // Liten pause mellom hver henting - unngår 429 Too Many Requests fra GitHub raw-content
+    await new Promise(r => setTimeout(r, 200));
   }
   
+  clearTimeout(nissyLoadingSafetyTimer);
+  nissyLoadingOverlay.remove();
+  nissyLoadingSpinnerCss.remove();
+
   console.log('✅ NISSY Advanced lastet!');
 
   // ============================================================
@@ -336,7 +375,7 @@
           return;
         }
         const w = window.open('', 'nissy-snarveier',
-          'width=380,height=740,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no');
+          'width=380,height=880,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no');
         if (!w) return;
         window._nissySnarveierWin = w;
         const html = `<!DOCTYPE html><html lang="no"><head>
