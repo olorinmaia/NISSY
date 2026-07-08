@@ -150,10 +150,6 @@
     }
   }
   
-  clearTimeout(nissyLoadingSafetyTimer);
-  nissyLoadingOverlay.remove();
-  nissyLoadingSpinnerCss.remove();
-
   console.log('✅ NISSY AMK DEV lastet!');
 
   // Patch versjonsnummer til -dev (venter på NISSY-fiks sin footer-timeout på 400ms)
@@ -724,6 +720,10 @@
     };
 
     if (localStorage.getItem(SKIP_KEY) === '1') {
+      clearTimeout(nissyLoadingSafetyTimer);
+      nissyLoadingOverlay.remove();
+      nissyLoadingSpinnerCss.remove();
+
       const toast = document.createElement('div');
       toast.textContent = '✅ NISSY AMK (DEV) lastet! Starter overvåking…';
       Object.assign(toast.style, {
@@ -744,6 +744,10 @@
       openPoppWhenReady();
       return;
     }
+
+    clearTimeout(nissyLoadingSafetyTimer);
+    nissyLoadingOverlay.remove();
+    nissyLoadingSpinnerCss.remove();
 
     const popup = document.createElement('div');
     popup.innerHTML = `

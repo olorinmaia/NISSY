@@ -155,10 +155,6 @@
     }
   }
   
-  clearTimeout(nissyLoadingSafetyTimer);
-  nissyLoadingOverlay.remove();
-  nissyLoadingSpinnerCss.remove();
-
   console.log('✅ NISSY Advanced lastet!');
 
   // ============================================================
@@ -741,6 +737,10 @@
     };
 
     if (localStorage.getItem(SKIP_KEY) === '1') {
+      clearTimeout(nissyLoadingSafetyTimer);
+      nissyLoadingOverlay.remove();
+      nissyLoadingSpinnerCss.remove();
+
       const toast = document.createElement('div');
       toast.textContent = '✅ NISSY Advanced lastet!';
       Object.assign(toast.style, {
@@ -760,6 +760,10 @@
       openPoppWhenReady();
       return;
     }
+
+    clearTimeout(nissyLoadingSafetyTimer);
+    nissyLoadingOverlay.remove();
+    nissyLoadingSpinnerCss.remove();
 
     const popup = document.createElement('div');
     popup.innerHTML = `
