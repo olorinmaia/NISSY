@@ -134,6 +134,8 @@
 
   console.log('📦 Laster NISSY AMK...');
 
+  const failedScripts = [];
+
   for (const script of scripts) {
     try {
       // Hopp over Logg.js hvis den allerede kjører
@@ -141,15 +143,23 @@
         console.log('⏭️ Hopper over Logg.js (allerede aktiv)');
         continue;
       }
-      
+
       const response = await fetch(BASE + script);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const code = await response.text();
       eval(code);
     } catch (err) {
       console.error(`❌ Feil ved lasting av ${script}:`, err);
+      failedScripts.push(script);
     }
   }
-  
+
+  if (failedScripts.length > 0) {
+    console.error(`❌ ${failedScripts.length} script(s) ble ikke lastet inn:`, failedScripts);
+  }
+
   console.log('✅ NISSY AMK lastet!');
 
   // ============================================================
@@ -705,11 +715,35 @@
       setTimeout(() => clearInterval(t), 8000);
     };
 
-    if (localStorage.getItem(SKIP_KEY) === '1') {
-      clearTimeout(nissyLoadingSafetyTimer);
-      nissyLoadingOverlay.remove();
-      nissyLoadingSpinnerCss.remove();
+    clearTimeout(nissyLoadingSafetyTimer);
+    nissyLoadingOverlay.remove();
+    nissyLoadingSpinnerCss.remove();
 
+    // Feilmelding-toast hvis ett eller flere scripts ikke ble lastet inn
+    // (f.eks. 429 fra GitHub) - vises uansett "ikke vis igjen"-valg
+    if (failedScripts.length > 0) {
+      const errorToast = document.createElement('div');
+      errorToast.innerHTML = `❌ ${failedScripts.length} script kunne ikke lastes inn:<br><strong>${failedScripts.join(', ')}</strong><br>Prøv å reloade siden (F5) og aktiver på nytt.`;
+      Object.assign(errorToast.style, {
+        position: 'fixed', bottom: '20px', left: '50%',
+        transform: 'translateX(-50%)', background: '#d9534f',
+        color: '#fff', padding: '12px 24px', borderRadius: '5px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.3)', fontFamily: 'Arial, sans-serif',
+        fontSize: '13px', zIndex: '999999', opacity: '0', textAlign: 'center',
+        maxWidth: '90vw', lineHeight: '1.5',
+        transition: 'opacity 0.3s ease',
+      });
+      document.body.appendChild(errorToast);
+      setTimeout(() => { errorToast.style.opacity = '1'; }, 10);
+      setTimeout(() => {
+        errorToast.style.opacity = '0';
+        setTimeout(() => errorToast.remove(), 300);
+      }, 10000);
+      openPoppWhenReady();
+      return;
+    }
+
+    if (localStorage.getItem(SKIP_KEY) === '1') {
       const toast = document.createElement('div');
       toast.textContent = '✅ NISSY AMK lastet! Starter overvåking…';
       Object.assign(toast.style, {
@@ -730,10 +764,6 @@
       openPoppWhenReady();
       return;
     }
-
-    clearTimeout(nissyLoadingSafetyTimer);
-    nissyLoadingOverlay.remove();
-    nissyLoadingSpinnerCss.remove();
 
     const popup = document.createElement('div');
     popup.innerHTML = `
