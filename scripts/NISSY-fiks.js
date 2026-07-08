@@ -1166,7 +1166,7 @@
         try {
           let code = MANUAL_SCRIPT_CACHE[scriptFile];
           if (!code) {
-            const response = await fetch(MANUAL_SCRIPT_BASE + scriptFile + `?t=${Date.now()}`);
+            const response = await fetch(MANUAL_SCRIPT_BASE + scriptFile);
             if (!response.ok) {
               throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }

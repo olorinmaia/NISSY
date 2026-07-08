@@ -150,7 +150,7 @@
         continue;
       }
       
-      const response = await fetch(BASE + script + `?t=${Date.now()}`);
+      const response = await fetch(BASE + script);
       const code = await response.text();
       eval(code);
     } catch (err) {
