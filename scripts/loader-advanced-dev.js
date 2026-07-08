@@ -61,7 +61,7 @@
   }
   window.__nissyLoaderActivated = true;
 
-  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
+  const BASE = 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/';
   window.NISSY_LOADER = 'advanced-dev';
 
   const scripts = [
@@ -138,7 +138,7 @@
   const nissyLoadingSafetyTimer = setTimeout(() => {
     nissyLoadingOverlay.remove();
     nissyLoadingSpinnerCss.remove();
-  }, 20000);
+  }, 35000);
 
   console.log('📦 Laster NISSY Advanced DEV...');
 

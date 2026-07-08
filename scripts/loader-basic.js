@@ -61,7 +61,7 @@
   }
   window.__nissyLoaderActivated = true;
 
-  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+  const BASE = 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/';
   window.NISSY_LOADER = 'basic';
 
   const scripts = [
@@ -133,7 +133,7 @@
   const nissyLoadingSafetyTimer = setTimeout(() => {
     nissyLoadingOverlay.remove();
     nissyLoadingSpinnerCss.remove();
-  }, 20000);
+  }, 35000);
 
   console.log('📦 Laster NISSY Basic...');
 

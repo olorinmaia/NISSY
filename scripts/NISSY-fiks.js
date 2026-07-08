@@ -1148,8 +1148,8 @@
 
       // Dev-loaderne setter window.NISSY_LOADER = '<pakke>-dev'
       const MANUAL_SCRIPT_BASE = (typeof window.NISSY_LOADER === 'string' && window.NISSY_LOADER.endsWith('-dev'))
-        ? 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/'
-        : 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+        ? 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/'
+        : 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/';
 
       // Cache på hentet kildekode per script - unngår gjentatte GitHub-kall
       // for samme script resten av denne side-sesjonen. Reload siden (F5)
