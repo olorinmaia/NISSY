@@ -61,7 +61,7 @@
   }
   window.__nissyLoaderActivated = true;
 
-  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+  const BASE = 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/';
   window.NISSY_LOADER = 'advanced-dev';
 
   const scripts = [
