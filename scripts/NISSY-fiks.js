@@ -1132,10 +1132,10 @@
       }
 
       // Koble knapper (og Alt+1..5-snarveier) til manuelle scripts.
-      // Disse hentes fra GitHub og kjøres på nytt hver gang de trykkes -
-      // IKKE preloadet sammen med resten av script-pakken, for å holde
-      // antall scripts i selve pakken lavt (unngår "429 Too Many Requests"
-      // fra GitHub sin raw-content-CDN)
+      // Disse hentes on-demand (kun ved bruk, med mellomlagring per
+      // side-økt) - IKKE preloadet sammen med resten av script-pakken,
+      // for å holde antall scripts i selve pakken lavt (unngår "429 Too
+      // Many Requests" fra GitHub sin raw-content-CDN)
       const MANUAL_SCRIPT_FILES = {
         'alenebil': 'Alenebil.js',
         'auto-bestill': 'Auto-Bestill.js',
