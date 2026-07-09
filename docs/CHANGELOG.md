@@ -11,13 +11,22 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.8.9] - 07.07.2026
+## 🔧 [4.9.0] - 10.07.2026
+
+> ⚠️ **Anbefaling: Oppdater bokmerket ditt.** Selve bokmerket har fått en viktig oppdatering i denne versjonen (GitHub/jsDelivr-fallback ved lasting) - Kopiér inn ny bokmerke-kode fra [README](../README.md#-installasjon) eller brukerveiledningen for din pakke. Det gamle bokmerket fungerer fortsatt som før, men uten den nye robustheten før du oppdaterer det.
+
+### Loadere/NISSY-fiks: Fallback mellom GitHub og jsDelivr + robusthet for lasting
+
+- 🛡️ **Loadere (Advanced, Basic, AMK) / NISSY-fiks / Bokmerker**
+  - Prøver alltid GitHub først ved lasting, men faller automatisk tilbake til jsDelivr for hele script-pakken hvis noe feiler. Gjelder script-pakken, manuelle scripts og selve bokmerket
+  - Sperrer mot at et bokmerke som trykkes på nytt (uten at siden er reloadet) prøver å laste inn hele script-pakken igjen. Reload siden for å laste inn på nytt
+  - Viser en tydelig feilmelding (rød toast) hvis ett eller flere scripts ikke lot seg laste inn selv etter jsDelivr-forsøket, med forslag om å reloade siden
+  - Viser en overlay med spinner mens script-pakken lastes inn, siden dette kan ta noen sekunder. Overlayen kan ikke avbrytes manuelt og fjernes automatisk når lastingen er ferdig
 
 ### Manuelle scripts: Nye hurtigtaster + mindre gjentatt GitHub-henting
 
 - 🧩 **NISSY-fiks / Loadere (Advanced, Basic, AMK)**
-  - Alenebil, Auto-Bestill, Sjekk-Bestilling, Sjekk-Plakat, Sjekk-Telefon, Statistikk og Trøndertaxi-løyve hentes fortsatt fra GitHub ved bruk, men kildekoden mellomlagres nå slik at gjentatt bruk av samme script i samme side-økt ikke trigger nye GitHub-kall
-  - Viser en overlay med spinner mens script-pakken lastes inn, siden dette kan ta noen sekunder. Overlayen kan ikke avbrytes manuelt og fjernes automatisk når lastingen er ferdig
+  - Alenebil, Auto-Bestill, Sjekk-Bestilling, Sjekk-Plakat, Sjekk-Telefon, Statistikk og Trøndertaxi-løyve hentes fortsatt fra GitHub/jsDelivr ved bruk, men kildekoden mellomlagres nå slik at gjentatt bruk av samme script i samme sesjon ikke trigger nye kall
 - 🤖 **Auto-Bestill (Alt+1)** / 🔍 **Sjekk-Bestilling (Alt+2)** / 🚩 **Sjekk-Plakat (Alt+3)** / 📞 **Sjekk-Telefon (Alt+4)** / 📊 **Statistikk (Alt+5)**
   - Nye hurtigtaster, se tooltip på knappene eller F2-snarveivinduet
 

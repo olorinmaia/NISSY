@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.8.9'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.9.0'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -1147,7 +1147,11 @@
       };
 
       // Dev-loaderne setter window.NISSY_LOADER = '<pakke>-dev'
-      const MANUAL_SCRIPT_BASE = (typeof window.NISSY_LOADER === 'string' && window.NISSY_LOADER.endsWith('-dev'))
+      const IS_DEV_PACKAGE = typeof window.NISSY_LOADER === 'string' && window.NISSY_LOADER.endsWith('-dev');
+      const MANUAL_SCRIPT_GITHUB_BASE = IS_DEV_PACKAGE
+        ? 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/'
+        : 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+      const MANUAL_SCRIPT_JSDELIVR_BASE = IS_DEV_PACKAGE
         ? 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/'
         : 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/';
 
@@ -1155,6 +1159,25 @@
       // for samme script resten av denne side-sesjonen. Reload siden (F5)
       // for å hente en eventuelt oppdatert versjon på nytt.
       const MANUAL_SCRIPT_CACHE = {};
+
+      // Forsøker GitHub først (rask oppdatering ved push), faller tilbake
+      // til jsDelivr hvis GitHub feiler (f.eks. 429)
+      async function fetchManualScriptText(scriptFile) {
+        try {
+          const response = await fetch(MANUAL_SCRIPT_GITHUB_BASE + scriptFile);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return await response.text();
+        } catch (err) {
+          console.warn(`⚠️ Feil ved henting av ${scriptFile} fra GitHub, prøver jsDelivr:`, err);
+          const response = await fetch(MANUAL_SCRIPT_JSDELIVR_BASE + scriptFile);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return await response.text();
+        }
+      }
 
       async function runManualScript(scriptName, button) {
         const scriptFile = MANUAL_SCRIPT_FILES[scriptName];
@@ -1166,11 +1189,7 @@
         try {
           let code = MANUAL_SCRIPT_CACHE[scriptFile];
           if (!code) {
-            const response = await fetch(MANUAL_SCRIPT_BASE + scriptFile);
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            code = await response.text();
+            code = await fetchManualScriptText(scriptFile);
             MANUAL_SCRIPT_CACHE[scriptFile] = code;
           }
           eval(code);

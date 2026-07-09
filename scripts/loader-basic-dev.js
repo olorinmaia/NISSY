@@ -61,7 +61,13 @@
   }
   window.__nissyLoaderActivated = true;
 
-  const BASE = 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/';
+  // Forsøker GitHub først (rask oppdatering ved push), faller tilbake til
+  // jsDelivr for HELE pakken hvis noe feiler (f.eks. 429). Skript-guardene
+  // (window.__xxxInstalled) gjør at allerede vellykkede scripts trygt kan
+  // lastes inn på nytt uten bivirkninger.
+  const GITHUB_BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/';
+  const JSDELIVR_BASE = 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/';
+  let BASE = GITHUB_BASE;
   window.NISSY_LOADER = 'basic-dev';
 
   const scripts = [
@@ -135,32 +141,49 @@
     nissyLoadingSpinnerCss.remove();
   }, 35000);
 
-  console.log('📦 Laster NISSY Basic DEV...');
+  // stopOnFirstFailure: brukes for GitHub-forsøket - hvis GitHub er
+  // nettverksblokkert (ikke bare 429) kan hver mislykket fetch henge i
+  // mange sekunder (timeout), så vi vil ikke gjøre dette 17-24 ganger før
+  // vi bytter til jsDelivr. jsDelivr-forsøket (fallback) prøver alltid alt.
+  async function loadScriptPass(base, stopOnFirstFailure) {
+    const failures = [];
+    for (const script of scripts) {
+      try {
+        // Hopp over Logg.js hvis den allerede kjører
+        if (script === 'Logg.js' && window.__nissyLoggInstalled) {
+          console.log('⏭️ Hopper over Logg.js (allerede aktiv)');
+          continue;
+        }
 
-  const failedScripts = [];
-
-  for (const script of scripts) {
-    try {
-      // Hopp over Logg.js hvis den allerede kjører
-      if (script === 'Logg.js' && window.__nissyLoggInstalled) {
-        console.log('⏭️ Hopper over Logg.js (allerede aktiv)');
-        continue;
+        const response = await fetch(base + script);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const code = await response.text();
+        eval(code);
+      } catch (err) {
+        console.error(`❌ Feil ved lasting av ${script} (${base}):`, err);
+        failures.push(script);
+        if (stopOnFirstFailure) {
+          console.warn(`⚠️ Stopper videre GitHub-forsøk etter feil på ${script} - bytter til jsDelivr for hele pakken`);
+          break;
+        }
       }
-
-      const response = await fetch(BASE + script);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      const code = await response.text();
-      eval(code);
-    } catch (err) {
-      console.error(`❌ Feil ved lasting av ${script}:`, err);
-      failedScripts.push(script);
     }
+    return failures;
+  }
+
+  console.log('📦 Laster NISSY Basic DEV (GitHub)...');
+  let failedScripts = await loadScriptPass(GITHUB_BASE, true);
+
+  if (failedScripts.length > 0) {
+    console.warn(`⚠️ ${failedScripts.length} script(s) feilet fra GitHub - prøver hele pakken på nytt via jsDelivr`);
+    BASE = JSDELIVR_BASE; // Bytt kilde for evt. senere on-demand-hentinger også
+    failedScripts = await loadScriptPass(JSDELIVR_BASE, false);
   }
 
   if (failedScripts.length > 0) {
-    console.error(`❌ ${failedScripts.length} script(s) ble ikke lastet inn:`, failedScripts);
+    console.error(`❌ ${failedScripts.length} script(s) ble ikke lastet inn (etter jsDelivr-fallback):`, failedScripts);
   }
 
   console.log('✅ NISSY Basic DEV lastet!');

@@ -256,17 +256,17 @@ Velg mellom **AMK**, **Basic** eller **Advanced**
 
 **AMK**
 ```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-amk.js');eval(await s.text());})();
+javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-amk.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-amk.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
 
 **Basic**
 ```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js');eval(await s.text());})();
+javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-basic.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
 
 **Advanced** (OBS! Trenger konfigurasjon for å virke som tiltenkt. Ta kontakt.)
 ```javascript
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-advanced.js');eval(await s.text());})();
+javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-advanced.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-advanced.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
 
 3. Gi bokmerket et navn (f.eks. "NISSY-Basic")
