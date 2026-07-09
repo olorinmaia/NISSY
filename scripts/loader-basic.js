@@ -50,8 +50,26 @@
     return;
   }
 
-  const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
-  
+  // ============================================================
+  // SPERRE MOT DOBBEL-AKTIVERING
+  // Alle scripts er allerede lastet inn og aktive - reload siden (F5)
+  // og trykk på bokmerket på nytt for å laste inn på nytt
+  // ============================================================
+  if (window.__nissyLoaderActivated) {
+    console.warn('⚠️ NISSY script-pakke er allerede aktivert på denne siden. Reload siden (F5) og trykk på bokmerket på nytt for å laste inn på nytt.');
+    return;
+  }
+  window.__nissyLoaderActivated = true;
+
+  // Forsøker GitHub først (rask oppdatering ved push), faller tilbake til
+  // jsDelivr for HELE pakken hvis noe feiler (f.eks. 429). Skript-guardene
+  // (window.__xxxInstalled) gjør at allerede vellykkede scripts trygt kan
+  // lastes inn på nytt uten bivirkninger.
+  const GITHUB_BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+  const JSDELIVR_BASE = 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/';
+  let BASE = GITHUB_BASE;
+  window.NISSY_LOADER = 'basic';
+
   const scripts = [
     'NISSY-fiks.js',
     'Ressursinfo.js',
@@ -90,24 +108,84 @@
     document.head.appendChild(gcScript);
   } catch (e) {}
   
-  console.log('📦 Laster NISSY Basic...');
-  
-  for (const script of scripts) {
-    try {
-      // Hopp over Logg.js hvis den allerede kjører
-      if (script === 'Logg.js' && window.__nissyLoggInstalled) {
-        console.log('⏭️ Hopper over Logg.js (allerede aktiv)');
-        continue;
+  // ============================================================
+  // LASTE-OVERLAY: Blokkerer input mens scriptene lastes inn
+  // Kan ikke avbrytes manuelt - fjernes automatisk når lastingen er ferdig
+  // ============================================================
+  const nissyLoadingOverlay = document.createElement('div');
+  Object.assign(nissyLoadingOverlay.style, {
+    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+    backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)',
+    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+    zIndex: 999999
+  });
+  const nissyLoadingSpinner = document.createElement('div');
+  Object.assign(nissyLoadingSpinner.style, {
+    width: '50px', height: '50px', border: '6px solid #ddd', borderTop: '6px solid #4A81BF',
+    borderRadius: '50%', animation: 'nissyLoaderSpin 0.8s linear infinite', marginBottom: '20px'
+  });
+  const nissyLoadingSpinnerCss = document.createElement('style');
+  nissyLoadingSpinnerCss.textContent = `@keyframes nissyLoaderSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+  document.head.appendChild(nissyLoadingSpinnerCss);
+  const nissyLoadingText = document.createElement('div');
+  nissyLoadingText.textContent = 'Laster inn Basic script-pakke…';
+  Object.assign(nissyLoadingText.style, {
+    color: 'white', fontSize: '18px', fontWeight: '600', textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+  });
+  nissyLoadingOverlay.appendChild(nissyLoadingSpinner);
+  nissyLoadingOverlay.appendChild(nissyLoadingText);
+  document.body.appendChild(nissyLoadingOverlay);
+  // Sikkerhetsnett: fjern overlay selv om en enkelt script-fetch skulle henge
+  const nissyLoadingSafetyTimer = setTimeout(() => {
+    nissyLoadingOverlay.remove();
+    nissyLoadingSpinnerCss.remove();
+  }, 35000);
+
+  // stopOnFirstFailure: brukes for GitHub-forsøket - hvis GitHub er
+  // nettverksblokkert (ikke bare 429) kan hver mislykket fetch henge i
+  // mange sekunder (timeout), så vi vil ikke gjøre dette 17-24 ganger før
+  // vi bytter til jsDelivr. jsDelivr-forsøket (fallback) prøver alltid alt.
+  async function loadScriptPass(base, stopOnFirstFailure) {
+    const failures = [];
+    for (const script of scripts) {
+      try {
+        // Hopp over Logg.js hvis den allerede kjører
+        if (script === 'Logg.js' && window.__nissyLoggInstalled) {
+          console.log('⏭️ Hopper over Logg.js (allerede aktiv)');
+          continue;
+        }
+
+        const response = await fetch(base + script);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const code = await response.text();
+        eval(code);
+      } catch (err) {
+        console.error(`❌ Feil ved lasting av ${script} (${base}):`, err);
+        failures.push(script);
+        if (stopOnFirstFailure) {
+          console.warn(`⚠️ Stopper videre GitHub-forsøk etter feil på ${script} - bytter til jsDelivr for hele pakken`);
+          break;
+        }
       }
-      
-      const response = await fetch(BASE + script);
-      const code = await response.text();
-      eval(code);
-    } catch (err) {
-      console.error(`❌ Feil ved lasting av ${script}:`, err);
     }
+    return failures;
   }
-  
+
+  console.log('📦 Laster NISSY Basic (GitHub)...');
+  let failedScripts = await loadScriptPass(GITHUB_BASE, true);
+
+  if (failedScripts.length > 0) {
+    console.warn(`⚠️ ${failedScripts.length} script(s) feilet fra GitHub - prøver hele pakken på nytt via jsDelivr`);
+    BASE = JSDELIVR_BASE; // Bytt kilde for evt. senere on-demand-hentinger også
+    failedScripts = await loadScriptPass(JSDELIVR_BASE, false);
+  }
+
+  if (failedScripts.length > 0) {
+    console.error(`❌ ${failedScripts.length} script(s) ble ikke lastet inn (etter jsDelivr-fallback):`, failedScripts);
+  }
+
   console.log('✅ NISSY Basic lastet!');
 
   // ============================================================
@@ -146,6 +224,13 @@
       • ALT+J → Handlingslogg<br>
       • ALT+Z → Live ressurskart<br>
       • ALT+C → Send SMS<br>
+      <br>
+      <strong>Manuelle scripts:</strong><br>
+      • ALT+1 → Auto-Bestill<br>
+      • ALT+2 → Sjekk-Bestilling<br>
+      • ALT+3 → Sjekk-Plakat<br>
+      • ALT+4 → Sjekk-Telefon<br>
+      • ALT+5 → Statistikk<br>
     </div>`;
 
   const nissyPopupKort = `
@@ -313,7 +398,7 @@
           return;
         }
         const w = window.open('', 'nissy-snarveier',
-          'width=380,height=680,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no');
+          'width=380,height=820,toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no');
         if (!w) return;
         window._nissySnarveierWin = w;
         const html = `<!DOCTYPE html><html lang="no"><head>
@@ -672,6 +757,34 @@
       }, 50);
       setTimeout(() => clearInterval(t), 8000);
     };
+
+    clearTimeout(nissyLoadingSafetyTimer);
+    nissyLoadingOverlay.remove();
+    nissyLoadingSpinnerCss.remove();
+
+    // Feilmelding-toast hvis ett eller flere scripts ikke ble lastet inn
+    // (f.eks. 429 fra GitHub) - vises uansett "ikke vis igjen"-valg
+    if (failedScripts.length > 0) {
+      const errorToast = document.createElement('div');
+      errorToast.innerHTML = `❌ ${failedScripts.length} script kunne ikke lastes inn:<br><strong>${failedScripts.join(', ')}</strong><br>Prøv å reloade siden (F5) og aktiver på nytt.`;
+      Object.assign(errorToast.style, {
+        position: 'fixed', bottom: '20px', left: '50%',
+        transform: 'translateX(-50%)', background: '#d9534f',
+        color: '#fff', padding: '12px 24px', borderRadius: '5px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.3)', fontFamily: 'Arial, sans-serif',
+        fontSize: '13px', zIndex: '999999', opacity: '0', textAlign: 'center',
+        maxWidth: '90vw', lineHeight: '1.5',
+        transition: 'opacity 0.3s ease',
+      });
+      document.body.appendChild(errorToast);
+      setTimeout(() => { errorToast.style.opacity = '1'; }, 10);
+      setTimeout(() => {
+        errorToast.style.opacity = '0';
+        setTimeout(() => errorToast.remove(), 300);
+      }, 10000);
+      openPoppWhenReady();
+      return;
+    }
 
     if (localStorage.getItem(SKIP_KEY) === '1') {
       const toast = document.createElement('div');

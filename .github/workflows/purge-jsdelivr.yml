@@ -1,0 +1,39 @@
+name: Purge jsDelivr cache
+
+# Purger jsDelivr sin CDN-cache for alle scripts/*.js-filer når noe under
+# scripts/ pushes til main eller dev, slik at jsDelivr ikke trenger å vente
+# på egen naturlig cache-utløp (opptil 12t) før endringen blir synlig.
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'scripts/**'
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Purge scripts/*.js from jsDelivr
+        run: |
+          BRANCH="${GITHUB_REF##*/}"
+          REPO="${{ github.repository }}"
+          FAILED=0
+
+          for FILE in scripts/*.js; do
+            [ -e "$FILE" ] || continue
+            NAME=$(basename "$FILE")
+            ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$NAME")
+            URL="https://purge.jsdelivr.net/gh/${REPO}@${BRANCH}/scripts/${ENCODED}"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+            echo "Purge $NAME@$BRANCH -> HTTP $STATUS"
+            if [ "$STATUS" != "200" ]; then
+              FAILED=1
+            fi
+          done
+
+          if [ "$FAILED" = "1" ]; then
+            echo "::warning::En eller flere jsDelivr-purger feilet - se logg over"
+          fi

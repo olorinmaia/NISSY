@@ -597,14 +597,14 @@
       item('⚙️', 'Adminmodul',       'Alt+A', () => triggerAlt('a')),
       sep(),
       // ── Sjekk-verktøy ────────────────────────────────────────
-      item('🔍', 'Sjekk-Bestilling', null, () => clickManualScript('sjekk-bestilling')),
-      item('🚩', 'Sjekk-Plakat',     null, () => clickManualScript('sjekk-plakat')),
-      item('📞', 'Sjekk-Telefon',    null, () => clickManualScript('sjekk-telefon')),
+      item('🔍', 'Sjekk-Bestilling', 'Alt+2', () => clickManualScript('sjekk-bestilling')),
+      item('🚩', 'Sjekk-Plakat',     'Alt+3', () => clickManualScript('sjekk-plakat')),
+      item('📞', 'Sjekk-Telefon',    'Alt+4', () => clickManualScript('sjekk-telefon')),
       sep(),
       // ── Diverse verktøy ──────────────────────────────────────
       ...(scriptLoaded.sendSMS() ? [item('📱', 'Send SMS', 'Alt+C', () => triggerAlt('c'))] : []),
-      item('🤖', 'Auto-Bestill',     null, () => clickManualScript('auto-bestill')),
-      item('📊', 'Statistikk',       null, () => clickManualScript('statistikk')),
+      item('🤖', 'Auto-Bestill',     'Alt+1', () => clickManualScript('auto-bestill')),
+      item('📊', 'Statistikk',       'Alt+5', () => clickManualScript('statistikk')),
       sep(),
       item('🔔', 'Overvåk-Ventende', null, () => {
         const btn = document.getElementById('nissy-monitor-btn');

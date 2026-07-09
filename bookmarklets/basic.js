@@ -1,1 +1,1 @@
-javascript:(async()=>{const s=await fetch('https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js');eval(await s.text());})();
+javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-basic.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();

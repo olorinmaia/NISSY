@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.8.8'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.9.0'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -1069,19 +1069,19 @@
             <button id="nissy-btn-alenebil" class="nissy-manual-btn" data-script="alenebil" title="Setter behovet 'Alenebil' på en eller flere merkede bestillinger.">
               🚗 Alenebil
             </button>
-            <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter">
+            <button class="nissy-manual-btn" data-script="auto-bestill" title="Åpner et verktøy som lar deg bestille opp alle turer på valgt filter (Alt+1)">
               🤖 Auto-Bestill
             </button>
-            <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer">
+            <button class="nissy-manual-btn" data-script="sjekk-bestilling" title="Sjekk alle bestillinger på valgt filter for duplikater, forskjellig dato på hent og levering og andre feil som kan forårsake problemer (Alt+2)">
               🔍 Sjekk-Bestilling
             </button>
-            <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først">
+            <button class="nissy-manual-btn" data-script="sjekk-plakat" title="Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først (Alt+3)">
               🚩 Sjekk-Plakat
             </button>
-            <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer">
+            <button class="nissy-manual-btn" data-script="sjekk-telefon" title="Sjekk alle bestillinger på valgt filter for manglende/ugyldig telefonnummer (Alt+4)">
               📞 Sjekk-Telefon
             </button>
-            <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter">
+            <button class="nissy-manual-btn" data-script="statistikk" title="Vis statistikk for bestillinger og turer på valgt filter (Alt+5)">
               📊 Statistikk
             </button>
             ${hasTrøndertaxiAccess() ? `
@@ -1131,58 +1131,73 @@
         updateNissyManualButtonStates();
       }
 
-      // Koble knapper til scripts
-      document.querySelectorAll('.nissy-manual-btn').forEach(button => {
-        const scriptName = button.getAttribute('data-script');
-        
-        button.onclick = async () => {
-          const originalText = button.textContent;
-          
-          try {
-            const BASE = 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
-            let scriptFile = '';
-            
-            // Map script navn til filnavn
-            switch(scriptName) {
-              case 'alenebil':
-                scriptFile = 'Alenebil.js';
-                break;
-              case 'auto-bestill':
-                scriptFile = 'Auto-Bestill.js';
-                break;
-              case 'sjekk-bestilling':
-                scriptFile = 'Sjekk-bestilling.js';
-                break;
-              case 'sjekk-plakat':
-                scriptFile = 'Sjekk-plakat.js';
-                break;
-              case 'sjekk-telefon':
-                scriptFile = 'Sjekk-telefon.js';
-                break;
-              case 'statistikk':
-                scriptFile = 'Statistikk.js';
-                break;
-              case 'trondertaxi-loyve':
-                scriptFile = 'Trøndertaxi-løyve.js';
-                break;
-              default:
-                throw new Error(`Ukjent script: ${scriptName}`);
-            }
-            
-            // Last og kjør script
-            const response = await fetch(BASE + scriptFile + `?t=${Date.now()}`);
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            const code = await response.text();
-            eval(code);
-            
-            // Ingen visuell feedback ved suksess
-            
-          } catch (err) {
-            console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
-            
-            // Visuell feedback - kun ved feil
+      // Koble knapper (og Alt+1..5-snarveier) til manuelle scripts.
+      // Disse hentes on-demand (kun ved bruk, med mellomlagring per
+      // side-økt) - IKKE preloadet sammen med resten av script-pakken,
+      // for å holde antall scripts i selve pakken lavt (unngår "429 Too
+      // Many Requests" fra GitHub sin raw-content-CDN)
+      const MANUAL_SCRIPT_FILES = {
+        'alenebil': 'Alenebil.js',
+        'auto-bestill': 'Auto-Bestill.js',
+        'sjekk-bestilling': 'Sjekk-bestilling.js',
+        'sjekk-plakat': 'Sjekk-plakat.js',
+        'sjekk-telefon': 'Sjekk-telefon.js',
+        'statistikk': 'Statistikk.js',
+        'trondertaxi-loyve': 'Trøndertaxi-løyve.js'
+      };
+
+      // Dev-loaderne setter window.NISSY_LOADER = '<pakke>-dev'
+      const IS_DEV_PACKAGE = typeof window.NISSY_LOADER === 'string' && window.NISSY_LOADER.endsWith('-dev');
+      const MANUAL_SCRIPT_GITHUB_BASE = IS_DEV_PACKAGE
+        ? 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/'
+        : 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';
+      const MANUAL_SCRIPT_JSDELIVR_BASE = IS_DEV_PACKAGE
+        ? 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@dev/scripts/'
+        : 'https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/';
+
+      // Cache på hentet kildekode per script - unngår gjentatte GitHub-kall
+      // for samme script resten av denne side-sesjonen. Reload siden (F5)
+      // for å hente en eventuelt oppdatert versjon på nytt.
+      const MANUAL_SCRIPT_CACHE = {};
+
+      // Forsøker GitHub først (rask oppdatering ved push), faller tilbake
+      // til jsDelivr hvis GitHub feiler (f.eks. 429)
+      async function fetchManualScriptText(scriptFile) {
+        try {
+          const response = await fetch(MANUAL_SCRIPT_GITHUB_BASE + scriptFile);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return await response.text();
+        } catch (err) {
+          console.warn(`⚠️ Feil ved henting av ${scriptFile} fra GitHub, prøver jsDelivr:`, err);
+          const response = await fetch(MANUAL_SCRIPT_JSDELIVR_BASE + scriptFile);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return await response.text();
+        }
+      }
+
+      async function runManualScript(scriptName, button) {
+        const scriptFile = MANUAL_SCRIPT_FILES[scriptName];
+        if (!scriptFile) {
+          console.error(`❌ Ukjent manuelt script: ${scriptName}`);
+          return;
+        }
+
+        try {
+          let code = MANUAL_SCRIPT_CACHE[scriptFile];
+          if (!code) {
+            code = await fetchManualScriptText(scriptFile);
+            MANUAL_SCRIPT_CACHE[scriptFile] = code;
+          }
+          eval(code);
+        } catch (err) {
+          console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
+
+          if (button) {
+            const originalText = button.textContent;
             button.disabled = true;
             button.textContent = '❌ Feil';
             setTimeout(() => {
@@ -1190,7 +1205,28 @@
               button.disabled = false;
             }, 2000);
           }
-        };
+        }
+      }
+
+      document.querySelectorAll('.nissy-manual-btn').forEach(button => {
+        const scriptName = button.getAttribute('data-script');
+        button.onclick = () => runManualScript(scriptName, button);
+      });
+
+      // --- HOTKEYS: ALT+1..5 (samme henting som knappene over) ---
+      const MANUAL_SCRIPT_HOTKEYS = {
+        '1': 'auto-bestill',
+        '2': 'sjekk-bestilling',
+        '3': 'sjekk-plakat',
+        '4': 'sjekk-telefon',
+        '5': 'statistikk'
+      };
+      document.addEventListener('keydown', (e) => {
+        if (!e.altKey) return;
+        const scriptName = MANUAL_SCRIPT_HOTKEYS[e.key];
+        if (!scriptName) return;
+        e.preventDefault();
+        runManualScript(scriptName, document.querySelector(`.nissy-manual-btn[data-script="${scriptName}"]`));
       });
       
       console.log("✅ Manuelle script-knapper installert");
