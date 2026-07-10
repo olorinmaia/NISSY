@@ -564,7 +564,7 @@
 
                         // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
                         const overflowFix = iframeDoc.createElement('style');
-                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table { table-layout: fixed !important; width: 100% !important; } #transportRequirements td { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
 
@@ -978,7 +978,7 @@
 
                         // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
                         const overflowFix = iframeDoc.createElement('style');
-                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table { table-layout: fixed !important; width: 100% !important; } #transportRequirements td { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
 
@@ -1540,7 +1540,7 @@
 
                         // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
                         const overflowFix = iframeDoc.createElement('style');
-                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table { table-layout: fixed !important; width: 100% !important; } #transportRequirements td { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
 
@@ -2016,7 +2016,7 @@
 
                         // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
                         const overflowFix = iframeDoc.createElement('style');
-                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table { table-layout: fixed !important; width: 100% !important; } #transportRequirements td { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
+                        overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
 
