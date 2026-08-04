@@ -13,6 +13,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.9.1] - 04.08.2026
 
+### Ressursinfo: Raskere oppslag - henter kun de nyeste vognløpshendelsene
+
+- 🚕 **Ressursinfo (ALT+D)**
+  - Henter nå kun de 5 nyeste vognløpshendelsene ved oppstart i stedet for alle. På vognløp med mange hendelser gir dette et vesentlig raskere oppslag når du bare skal ha tak i mobilnummeret til sjåføren
+  - Ny knapp **"⬇️ Hent N eldre hendelser"** over hendelsestabellen henter resten når du trenger hele historikken. Antallet er nøyaktig, og telles opp uten å hente noe
+  - **"🗺️ Vis kjørerute i kart"** henter automatisk de resterende hendelsene før kartet åpnes, slik at kjøreruta alltid vises komplett
+
 ### Adresser: Fjerner sti-prefiks (./ ../ .../) foran behandlingssteder
 
 - 📱 **Send-SMS** / 🗺️ **Kartvisning** / 🧭 **Rutekalkulering** / 🕐 **Hentetid** / ✖️ **Avbestilling** / 🚐 **Samkjøring** / 🔍 **Sjekk-Bestilling** / 🚩 **Sjekk-Plakat** / 🚕 **Ressursinfo** / 📡 **Live ressurskart**

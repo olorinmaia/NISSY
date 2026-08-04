@@ -150,6 +150,7 @@ javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISS
    - Telefonnummer til sjåfør (kopieres automatisk til utklippstavle)
    - Faktisk kjørerute til bilen (Må være flere enn 1 unike koordinater)
    - Link til løyveregister til Trøndertaxi hvis bilen tilhører de
+   - De 5 nyeste vognløpshendelsene vises med én gang. Knappen "Hent N eldre hendelser" henter resten når du trenger hele historikken, og kjørerute-kartet henter dem automatisk
 
 ### 📡 Live ressurskart (ALT+Z)
 
