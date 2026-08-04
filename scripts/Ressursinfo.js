@@ -2140,15 +2140,15 @@ window.updateEventData = function(newEvent) {
               border-radius: 6px;
               cursor: pointer;
               font-size: 14px;
+              display: none;
             ">
               📋 Kopier
             </button>
             <span id="copyConfirm" style="
               margin-left: 10px;
-              color: #2e7d32;
-              display: none;
+              color: #666;
               font-weight: bold;
-            ">✔️ Kopiert!</span>
+            ">⏳ Kopierer…</span>
           </div>
         </div>
       `;
@@ -2272,38 +2272,40 @@ window.updateEventData = function(newEvent) {
     // Kopier telefonnummer
     const copyBtn = popup.querySelector("#copyPhoneBtn");
     if (copyBtn && phoneNumber) {
+      const confirm = popup.querySelector("#copyConfirm");
+
+      // Knappen starter skjult og vises kun hvis auto-kopiering feiler.
+      // Ellers ville "📋 Kopier" blinket til i de få millisekundene
+      // clipboard-løftet bruker på å resolve.
+      function visKopiert() {
+        copyBtn.style.display = "none";
+        if (!confirm) return;
+        confirm.textContent = "✔️ Kopiert til utklippstavle";
+        confirm.style.color = "#2e7d32";
+      }
+
+      function visKopieringFeilet() {
+        copyBtn.style.display = "";
+        if (!confirm) return;
+        confirm.textContent = "⚠️ Klikk 'Kopier' for å kopiere";
+        confirm.style.color = "#d32f2f";
+      }
+
       // Automatisk kopiering når popup åpnes
       (async () => {
         try {
           await navigator.clipboard.writeText(phoneNumber);
-          // Vis bekreftelse og skjul knapp
-          const confirm = popup.querySelector("#copyConfirm");
-          if (confirm) {
-            copyBtn.style.display = "none";
-            confirm.textContent = "✔️ Kopiert til utklippstavle";
-            confirm.style.color = "#2e7d32";
-            confirm.style.display = "inline";
-          }
+          visKopiert();
         } catch (err) {
-          // Vis advarsel hvis auto-kopiering feiler
-          const confirm = popup.querySelector("#copyConfirm");
-          if (confirm) {
-            confirm.textContent = "⚠️ Klikk 'Kopier' for å kopiere";
-            confirm.style.display = "inline";
-            confirm.style.color = "#d32f2f";
-          }
+          visKopieringFeilet();
         }
       })();
-      
-      // Manuel kopiering via knapp (hvis auto-kopiering feilet)
+
+      // Manuell kopiering via knapp (hvis auto-kopiering feilet)
       copyBtn.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(phoneNumber);
-          const confirm = popup.querySelector("#copyConfirm");
-          copyBtn.style.display = "none";
-          confirm.textContent = "✔️ Kopiert til utklippstavle";
-          confirm.style.color = "#2e7d32";
-          confirm.style.display = "inline";
+          visKopiert();
         } catch (err) {
           alert("Kunne ikke kopiere: " + err);
         }
