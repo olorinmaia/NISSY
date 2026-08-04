@@ -344,16 +344,19 @@ async function runResourceInfo() {
     // kommer først (bl.a. at nyeste 2000 overskriver eldre i orderMap).
     const kronologisk = liste => liste.slice().sort((a, b) => a.timeSort.localeCompare(b.timeSort));
 
-    // 2000 hentes ALLTID i sin helhet. orderMap er en union over alle 2000:
-    // en bestilling som er fjernet fra senere 2000 må fortsatt kunne slås opp,
-    // fordi det kan ligge 4010-hendelser (f.eks. 1709) på den.
-    const rader2000 = kronologisk(sutiRows.filter(r => r.code === '2000'));
-
     // 3003 filtreres IKKE på løyvenr: raden som utløser et løyvebytte står
     // fortsatt med det gamle løyvenummeret - det er de påfølgende radene som
     // får det nye. Filtrering her ville kastet nettopp den raden som
     // inneholder sjåførens telefonnummer.
     const rader3003 = kronologisk(sutiRows.filter(r => r.code === '3003'));
+
+    // Etter første 3003 må ALLE 2000 med. orderMap er en union: en bestilling
+    // som er fjernet fra senere 2000 må fortsatt kunne slås opp, fordi det
+    // kan ligge 4010-hendelser (f.eks. 1709) på den.
+    const rader2000 = velgRelevante2000(
+      kronologisk(sutiRows.filter(r => r.code === '2000')),
+      rader3003
+    );
 
     // 4010 og 5021 kan trygt filtreres på løyvenr fra HTML, slik at vi slipper
     // å hente XML som uansett ville blitt forkastet.
@@ -493,8 +496,11 @@ async function runResourceInfo() {
     // Tell kun hendelser som faktisk ga et resultat - hentedeHendelser
     // inneholder også null for telegram som feilet eller ble forkastet.
     const antallTolket = [...hentedeHendelser.values()].filter(Boolean).length;
+    const hoppetOver2000 = sutiRows.filter(r => r.code === '2000').length - rader2000.length;
     console.log(
-      `📊 Ressursinfo: ${rader2000.length} stk 2000, ${rader3003.length} stk 3003, ` +
+      `📊 Ressursinfo: ${rader2000.length} stk 2000` +
+      (hoppetOver2000 > 0 ? ` (${hoppetOver2000} eldre enn 3003 hoppet over)` : '') +
+      `, ${rader3003.length} stk 3003, ` +
       `${rader4010.length} stk 4010 (hentet ${hentedeHendelser.size}, ga ${antallTolket} hendelser)`
     );
 
@@ -552,7 +558,31 @@ async function runResourceInfo() {
   }
 
   /* ==========================
-     5c. Filtrer rader på løyvenummer
+     5c. Velg hvilke 2000 som må hentes
+     ========================== */
+  // Det kan sendes flere 2000 før transportøren svarer med 3003. Bilen har
+  // aldri sett noe annet enn det SISTE av dem, så eldre beskriver et vognløp
+  // som aldri nådde bilen - ingen 4010 kan referere til en bestilling som kun
+  // fantes der. Etter første 3003 må alle med, siden bestillinger både kan
+  // komme til og forsvinne igjen underveis.
+  //
+  // Begge lister forventes kronologisk sortert (eldste først).
+  function velgRelevante2000(alle2000, alle3003) {
+    // Uten 3003 finnes det ingen bil, og dermed ingen 4010. Behold alt.
+    if (alle3003.length === 0 || !alle3003[0].timeSort) return alle2000;
+
+    const bekreftet = alle3003[0].timeSort;
+
+    // Rader uten lesbart tidspunkt havner i "etter" - da beholder vi dem
+    const foer = alle2000.filter(r => r.timeSort && r.timeSort <= bekreftet);
+    const etter = alle2000.filter(r => !r.timeSort || r.timeSort > bekreftet);
+
+    const sisteFoer = foer.length > 0 ? [foer[foer.length - 1]] : [];
+    return sisteFoer.concat(etter);
+  }
+
+  /* ==========================
+     5d. Filtrer rader på løyvenummer
      ========================== */
   // Brukes kun på 4010/5021. Bytter turen løyve underveis, får radene etter
   // byttet det nye løyvenummeret, og vi slipper å hente XML som ville blitt
