@@ -242,9 +242,14 @@
    * @returns {string} - Adresse uten suffikser
    */
   function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    // Fjern sti-prefiks (./ ../ .../) i STARTEN av adressen
+    // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
     // Fjern space etterfulgt av H eller U og 4 siffer
     // Eksempel: "NAMSOSVEGEN 23 H0201, 7750 NAMDALSEID" → "NAMSOSVEGEN 23, 7750 NAMDALSEID"
-    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
   /**

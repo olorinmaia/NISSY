@@ -313,6 +313,7 @@ Start og stopp scriptet ved å trykke på knappen over ventende oppdrag.
 Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
 "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
 - Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+- Vasker adressene før de settes inn i SMS-en: bolig-/bruksenhetsnummer (H0101 / U0101) og sti-prefiks (`./`, `../`, `.../`) i starten av adressen fjernes, f.eks. ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim".
 - Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
 - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
 - Logger SMS-utsendelser i Handlingslogg.

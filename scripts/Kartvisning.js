@@ -114,9 +114,13 @@
   }
 
   // ── Adresse- og navneformatering ─────────────────────────
+  // Fjerner sti-prefiks (./ ../ .../) i STARTEN av adressen og bolig-/bruksenhetsnummer.
+  // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
   function cleanAddressSuffixes(address) {
     if (!address) return address;
-    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
   function normaliserAdresse(address) {
@@ -171,7 +175,8 @@
           const loc = {
             lat: ll.lat, lon: ll.lon,
             adresse: normaliserAdresse(cleanAddressSuffixes(rawAdresse)),
-            navn: rows['Navn'] || '',
+            // Navn på behandlingssted vises i markørlabel/tooltip og kan ha sti-prefiks (".../BVS 1. ort pol")
+            navn: cleanAddressSuffixes(rows['Navn'] || ''),
             poststed: (rows['Postnr / Sted'] || '').replace(/^\d{4}\s*/, ''),
           };
           if (title === 'Hentested') result.hentested = loc;

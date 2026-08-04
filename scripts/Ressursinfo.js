@@ -31,6 +31,20 @@
   console.log("🚀 Starter Ressursinfo-script");
 
   // ============================================================
+  // HJELPEFUNKSJON: Vask adresser før visning
+  // ============================================================
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    // Fjern sti-prefiks (./ ../ .../) i STARTEN av adressen
+    // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  // ============================================================
   // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
   // ============================================================
   let currentErrorToast = null;
@@ -612,7 +626,7 @@ async function runResourceInfo() {
             }
             
             if (parts.length > 0) {
-              address = parts.join(', ');
+              address = cleanAddressSuffixes(parts.join(', '));
             }
           }
 

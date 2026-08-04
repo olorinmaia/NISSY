@@ -796,9 +796,13 @@
     return str;
   }
 
+  // Fjerner sti-prefiks (./ ../ .../) i STARTEN av adressen og bolig-/bruksenhetsnummer.
+  // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
   function cleanAddressSuffixes(address) {
     if (!address) return address;
-    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
   // Normaliserer adresser fra CAPSLOCK til lesbar form.

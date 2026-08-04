@@ -614,9 +614,13 @@
    */
   function cleanAddressSuffixes(address) {
     if (!address) return '';
-    
+
+    // Fjern sti-prefiks (./ ../ .../) i STARTEN av adressen
+    // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
     // Regex for å fjerne H0123, U0123, L0123 etc. (bokstav + 4 sifre)
-    return address.replace(/\s+[A-Z]\d{4}/g, '');
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[A-Z]\d{4}/g, '');
   }
 
   // ============================================================

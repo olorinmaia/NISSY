@@ -11,6 +11,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.1] - 04.08.2026
+
+### Adresser: Fjerner sti-prefiks (./ ../ .../) foran behandlingssteder
+
+- 📱 **Send-SMS** / 🗺️ **Kartvisning** / 🧭 **Rutekalkulering** / 🕐 **Hentetid** / ✖️ **Avbestilling** / 🚐 **Samkjøring** / 🔍 **Sjekk-Bestilling** / 🚩 **Sjekk-Plakat** / 🚕 **Ressursinfo** / 📡 **Live ressurskart**
+  - Adresser som starter med `./`, `../` eller `.../` (f.eks. ".../BVS 1. ort pol, 7030 Trondheim") vises nå uten prefikset, på samme måte som H0101 / U0101 filtreres bort. Prefikset fjernes kun når det står i starten av adressen – tilsvarende tegn lenger ute i adressen røres ikke
+
+---
+
 ## 🔧 [4.9.0] - 10.07.2026
 
 > ⚠️ **Anbefaling: Oppdater bokmerket ditt.** Selve bokmerket har fått en viktig oppdatering i denne versjonen (GitHub/jsDelivr-fallback ved lasting) - Kopiér inn ny bokmerke-kode fra [README](../README.md#-installasjon) eller brukerveiledningen for din pakke. Det gamle bokmerket fungerer fortsatt som før, men uten den nye robustheten før du oppdaterer det.
