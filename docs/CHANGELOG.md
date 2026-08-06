@@ -11,6 +11,22 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.2] - ??.08.2026
+
+### NISSY-fiks: Merkingen kommer tilbake etter filterbytte
+
+- ⌛ **NISSY-fiks**
+  - Merkingen må fjernes når du bytter filter eller viser/skjuler kolonner, ellers henger NISSY. Nå settes den tilbake automatisk så snart listene er ferdig oppdatert, slik at du slipper å merke opp igjen
+  - Gjelder ventende oppdrag, pågående oppdrag og ressurser – f.eks. en ressurs du har merket for å tildele noe blir stående merket når du bytter filter
+  - Bestillinger, turer og ressurser som er filtrert bort hoppes over. Det som fortsatt vises blir merket på nytt
+
+### Hentetid/Bestillingsmodul/Rek-knapper: Merkede ressurser beholdes
+
+- 🕐 **Hentetid (ALT+E)** / 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)**
+  - Disse scriptene merket opp igjen bestillinger og turer etter at listene ble oppdatert, men merkede ressurser falt ut. Nå beholdes også ressursmerkingen
+
+---
+
 ## 🔧 [4.9.1] - 07.08.2026
 
 ### Ressursinfo: Raskere oppslag - henter kun de nyeste vognløpshendelsene

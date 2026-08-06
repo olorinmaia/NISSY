@@ -491,6 +491,9 @@
     window.scrollHandlers = new Map();
     window.activePopups = new Set();
     window.markedRowIds = new Set();
+    // Merkede ressursrader får ingen hurtigknapper, men merkingen skal
+    // overleve at listene tegnes om (openPopp)
+    window.markedResourceRowIds = new Set();
     window.isVentendeOppdrag = false;
     window.snippetActive = true;
     window.tildelingButtonListeners = [];
@@ -990,6 +993,7 @@
       window.scrollHandlers?.clear();
       window.activePopups?.clear();
       window.markedRowIds?.clear();
+      window.markedResourceRowIds?.clear();
       window.snippetActive = false;
       window.rowObserver?.disconnect();
       
@@ -1282,21 +1286,33 @@
       window.scrollHandlers?.forEach((handler) => window.removeEventListener("scroll", handler, true));
       window.scrollHandlers?.clear();
 
+      // Re-merk en rad ved å kjøre NISSY sin egen selectRow fra onclick
+      const reselectRow = (row) => {
+        if (window.getComputedStyle(row).backgroundColor === TARGET_BG) return;
+        try {
+          const td = row.querySelector('td[onclick*="selectRow"]');
+          if (td) {
+            const match = td.getAttribute("onclick").match(/selectRow\([^)]+\)/);
+            if (match) eval(match[0]);
+          }
+        } catch (err) {}
+      };
+
       // Gjenopprett popups for merkede rader
       window.markedRowIds.forEach((rowId) => {
         const row = document.getElementById(rowId) || document.querySelector(`tr[name="${rowId}"]`);
         if (row) {
-          // Re-merk raden (klikk selectRow)
-          try {
-            const td = row.querySelector('td[onclick*="selectRow"]');
-            if (td) {
-              const match = td.getAttribute("onclick").match(/selectRow\([^)]+\)/);
-              if (match) eval(match[0]);
-            }
-          } catch (err) {}
-
+          reselectRow(row);
           createPopupForRow(row);
         }
+      });
+
+      // Merkede ressurser gjenopprettes etter ventende/pågående: å markere en
+      // pågående rad markerer også tilhørende ressursrad, og da skal den ikke
+      // toggles av igjen (reselectRow hopper over allerede merkede rader)
+      window.markedResourceRowIds?.forEach((rowId) => {
+        const row = document.getElementById(rowId);
+        if (row) reselectRow(row);
       });
     };
 
@@ -1319,6 +1335,10 @@
           window.markedRowIds.add(row.id || row.getAttribute("name"));
           createPopupForRow(row);
           count++;
+        }
+        // Merkede ressurser: ingen hurtigknapper, men merkingen tas vare på
+        else if (bg === TARGET_BG && isInside(row, "resurser") && row.id?.startsWith("Rxxx")) {
+          window.markedResourceRowIds.add(row.id);
         }
       });
 

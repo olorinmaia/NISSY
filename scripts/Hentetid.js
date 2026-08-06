@@ -1599,30 +1599,34 @@
   // HJELPEFUNKSJON: Marker rader på nytt (V-, P- og Rxxx)
   // ============================================================
   function reselectAllRows(selectedRows) {
-    selectedRows.forEach(row => {
-      const rowId = row.id;
-      
-      if (rowId.startsWith('V-')) {
-        if (typeof selectRow === 'function' && typeof g_voppLS !== 'undefined') {
-          try {
-            selectRow(rowId, g_voppLS);
-          } catch (e) {
-            console.warn("Kunne ikke markere ventende oppdrag:", rowId, e);
-          }
-        }
-      } else if (rowId.startsWith('P-')) {
-        // For pågående oppdrag, bruk g_poppLS
-        // MERK: Vi markerer kun P-raden, ikke Rxxx, da de kan oppheve hverandre
-        if (typeof selectRow === 'function' && typeof g_poppLS !== 'undefined') {
-          try {
-            selectRow(rowId, g_poppLS);
-          } catch (e) {
-            console.warn("Kunne ikke markere pågående oppdrag:", rowId, e);
-          }
-        }
+    if (typeof selectRow !== 'function') return;
+
+    const ids = selectedRows.map(row => row.id).filter(Boolean);
+
+    // Ventende/pågående først: å markere en pågående rad markerer også
+    // tilhørende ressursrad (samme ressurs finnes i begge tabeller), og da
+    // skal den ikke toggles av igjen etterpå. Sjekken mot allerede merket
+    // rad nedenfor fanger det opp.
+    const ordered = [
+      ...ids.filter(id => !id.startsWith('Rxxx')),
+      ...ids.filter(id =>  id.startsWith('Rxxx'))
+    ];
+
+    ordered.forEach(rowId => {
+      const ls = rowId.startsWith('V-')   ? window.g_voppLS
+               : rowId.startsWith('P-')   ? window.g_poppLS
+               : rowId.startsWith('Rxxx') ? window.g_resLS
+               : null;
+      if (!ls) return;
+
+      const row = document.getElementById(rowId);
+      if (row && getComputedStyle(row).backgroundColor.replace(/\s+/g, '') === SELECTED_BG.replace(/\s+/g, '')) return;
+
+      try {
+        selectRow(rowId, ls);
+      } catch (e) {
+        console.warn("Kunne ikke markere rad på nytt:", rowId, e);
       }
-      // VIKTIG: Ignorer Rxxx-rader når P-rader finnes, da de kan oppheve hverandre
-      // (samme ressurs kan være merket både i Ressurser og Pågående oppdrag)
     });
   }
 
@@ -3165,6 +3169,9 @@
     // Separer ventende og pågående
     const ventendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("V-"));
     const paagaaendeRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("P-"));
+    // Merkede ressurser brukes ikke til hentetid, men merkingen skal
+    // gjenopprettes sammen med resten når listene tegnes om
+    const ressursRows = allSelectedRows.filter(tr => (tr.id || "").startsWith("Rxxx"));
 
     // Sjekk status fra Ressurser-tabellen for pågående oppdrag
     const paagaaendeWithTildelt = paagaaendeRows.filter(row => {
@@ -3206,9 +3213,9 @@
       editablePaagaaendeRows = [paagaaendeWithTildelt[selectedIndex]];
     }
 
-    // Oppdater allSelectedRows: ventende + redigerbar(e) pågående + info-pågående
+    // Oppdater allSelectedRows: ventende + redigerbar(e) pågående + info-pågående + ressurser
     allSelectedRows.length = 0;
-    allSelectedRows.push(...ventendeRows, ...editablePaagaaendeRows, ...paagaaendeNonTildelt);
+    allSelectedRows.push(...ventendeRows, ...editablePaagaaendeRows, ...paagaaendeNonTildelt, ...ressursRows);
 
     let allBestillinger = [];
     let infoBestillinger = [];
