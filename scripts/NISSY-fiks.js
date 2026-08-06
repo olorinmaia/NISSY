@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.9.1'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.9.2'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -611,6 +611,12 @@
   };
 
   XMLHttpRequest.prototype.send = function(...args) {
+    // Etter filter-/kolonnebytte: hold gjenopprettingen av merking i vente
+    // så lenge det fortsatt kommer ajax-kall
+    if (typeof this._requestUrl === 'string' && this._requestUrl.includes('ajax-dispatch')) {
+      this.addEventListener("load", () => scheduleRestore());
+    }
+
     if (this._requestType) {
       const requestType = this._requestType;
 
@@ -685,16 +691,104 @@
     }
   }
 
+  /* ------------------------------------------------------------------
+     GJENOPPRETTING AV MERKING ETTER FILTER-/KOLONNEBYTTE
+     Merkingen må fjernes før byttet (ellers kan NISSY henge), men radene
+     som fortsatt finnes etterpå markeres på nytt. Vi vet ikke på forhånd
+     hvor mange kall byttet fører til – ventende laster kun sin egen liste,
+     mens ressursbytte i tillegg kjører openPopp – så vi venter til
+     AJAX-trafikken har roet seg, med en absolutt frist som sikkerhetsnett.
+     ------------------------------------------------------------------ */
+
+  const RESTORE_SELECTED_BG   = 'rgb(148, 169, 220)';
+  const RESTORE_QUIET_MS      = 250;   // stillhet etter siste ajax-kall
+  const RESTORE_MAX_WAIT_MS   = 6000;  // sikkerhetsnett
+
+  let pendingRestoreIds    = null;
+  let restoreQuietTimer    = null;
+  let restoreDeadlineTimer = null;
+
+  function getSelectedRowIds() {
+    const rows = document.querySelectorAll(
+      '#ventendeoppdrag tr[id^="V-"], #pagaendeoppdrag tr[id^="P-"], #resurser tr[id^="Rxxx"]'
+    );
+    return Array.from(rows)
+      .filter(row => row.style.backgroundColor === RESTORE_SELECTED_BG)
+      .map(row => row.id);
+  }
+
+  function listSelectionFor(rowId) {
+    if (rowId.startsWith('V-'))   return window.g_voppLS;
+    if (rowId.startsWith('P-'))   return window.g_poppLS;
+    if (rowId.startsWith('Rxxx')) return window.g_resLS;
+    return undefined;
+  }
+
+  function applyPendingRestore() {
+    clearTimeout(restoreQuietTimer);
+    clearTimeout(restoreDeadlineTimer);
+    restoreQuietTimer = restoreDeadlineTimer = null;
+
+    const ids = pendingRestoreIds;
+    pendingRestoreIds = null;
+    if (!ids || typeof selectRow !== 'function') return;
+
+    // Ventende/pågående først: å markere en pågående rad markerer også
+    // tilhørende ressursrad, og da skal vi ikke toggle den av igjen etterpå
+    // (sjekken mot allerede merket rad nedenfor fanger det opp).
+    const ordered = [
+      ...ids.filter(id => !id.startsWith('Rxxx')),
+      ...ids.filter(id =>  id.startsWith('Rxxx'))
+    ];
+
+    let restored = 0;
+    ordered.forEach(id => {
+      const row = document.getElementById(id);
+      // Raden er filtrert bort, eller allerede merket
+      if (!row || row.style.backgroundColor === RESTORE_SELECTED_BG) return;
+      const ls = listSelectionFor(id);
+      if (!ls) return;
+      try {
+        selectRow(id, ls);
+        restored++;
+      } catch (e) {}
+    });
+
+    if (restored) {
+      console.log(`✅ Gjenopprettet merking på ${restored} av ${ids.length} rad(er) etter filterbytte`);
+    }
+  }
+
+  // Kalles fra XHR-lytteren for hvert ajax-dispatch-kall mens en
+  // gjenoppretting venter – siste kall bestemmer når vi markerer på nytt.
+  function scheduleRestore() {
+    if (!pendingRestoreIds) return;
+    clearTimeout(restoreQuietTimer);
+    restoreQuietTimer = setTimeout(applyPendingRestore, RESTORE_QUIET_MS);
+  }
+
+  function armRestore() {
+    const ids = getSelectedRowIds();
+    // Tomt utvalg: behold en eventuell ventende gjenoppretting (den ble
+    // armert av forrige bytte og er ikke kjørt ennå)
+    if (ids.length) pendingRestoreIds = ids;
+    if (!pendingRestoreIds) return;
+    clearTimeout(restoreDeadlineTimer);
+    restoreDeadlineTimer = setTimeout(applyPendingRestore, RESTORE_MAX_WAIT_MS);
+  }
+
   function onSelectChange(e) {
     const select = e.target;
     if (!select || select.tagName !== "SELECT") return;
-  
+
     if (SELECTS_CLEAR_ONLY.includes(select.name)) {
+      armRestore();
       clearSelection();
       return;
     }
 
     if (SELECTS_FULL_ACTION.includes(select.name)) {
+      armRestore();
       clearSelection();
       _rfilterOpenPoppPending = true;
     }
