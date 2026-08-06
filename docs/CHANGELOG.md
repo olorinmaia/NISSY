@@ -30,6 +30,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)**
   - Har du nettleserens eget søkefelt (Ctrl+F) åpent når du jobber i pop-up-modalen, ble ikke fokus satt i **"Navn"**-feltet når du søkte etter behandlingssted. Nå settes markøren i "Navn"-feltet automatisk, så du kan skrive med én gang
   - Teksten som allerede står i feltet markeres samtidig, så du kan skrive rett over et tidligere søk uten å måtte slette/markere først
+  - Det samme gjelder **Fødselsnummer**-feltet i 4-stegs i bestillingsmodulen – markøren står klar der med én gang.
   - Gjelder pop-up-modalen i både 4-stegs og ensides – også fra "R"-linken, Hent rekvisisjon og knappene i Rek-knapper. Åpner du modulen i ny fane, oppstår ikke problemet
 
 ### Bestillingsmodul: "Tilbake"-knappen virker nå også via Hent rekvisisjon

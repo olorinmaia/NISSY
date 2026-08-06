@@ -581,7 +581,7 @@
 
                         fixTilbakeLink(iframeDoc);
 
-                        focusSearchName(iframeDoc, iframeWin);
+                        focusEntryField(iframeDoc, iframeWin);
 
                         setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
 
@@ -1015,7 +1015,7 @@
 
                         fixTilbakeLink(iframeDoc);
 
-                        focusSearchName(iframeDoc, iframeWin);
+                        focusEntryField(iframeDoc, iframeWin);
 
                         setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
 
@@ -1719,29 +1719,36 @@
     }
 
     /**
-     * Hjelpefunksjon: Fokuser på Navn-feltet i "Finn behandlingssted"-søket.
-     * Kjøres kun på findTreatmentCenter-sider (både 4-stegs og Ensides), der
-     * Navn-feltet er første inntastingspunkt. Uten dette blir fokus liggende i
-     * nettleserens Ctrl+F-søkeboks når den er åpen mens modalen brukes.
+     * Hjelpefunksjon: Setter fokus i sidens første inntastingsfelt og markerer
+     * innholdet. Uten dette blir fokus liggende i nettleserens Ctrl+F-søkeboks
+     * når den er åpen mens modalen brukes.
+     *
+     * Gjelder:
+     * - "Finn behandlingssted"-søket (Navn-feltet), både 4-stegs og Ensides
+     * - Fødselsnummer-feltet på første steg i 4-stegs. Ensides har eget felt
+     *   (patientSsnDecrypted) som med vilje ikke røres, siden hele skjemaet
+     *   ligger på én side der.
      */
-    function focusSearchName(doc, win) {
+    function focusEntryField(doc, win) {
         try {
             const iframeWin = win || doc.defaultView;
-            if (!doc.location || !doc.location.pathname.includes('findTreatmentCenter')) return;
-            const nameField = doc.getElementById('name');
-            if (!nameField) return;
+            const isSearchPage = doc.location && doc.location.pathname.includes('findTreatmentCenter');
+            const field = isSearchPage
+                ? doc.getElementById('name')
+                : doc.getElementById('ssnDecrypted');
+            if (!field) return;
             // Samme rAF-mønster som focusPickupTime: vent til siden er ferdig
             // rendret før fokus settes, og én sykel til før select().
             iframeWin.requestAnimationFrame(() => {
                 iframeWin.requestAnimationFrame(() => {
-                    nameField.focus();
+                    field.focus();
                     iframeWin.requestAnimationFrame(() => {
-                        nameField.select();
+                        field.select();
                     });
                 });
             });
         } catch (err) {
-            console.error('Error focusing name:', err);
+            console.error('Error focusing entry field:', err);
         }
     }
 
@@ -2066,7 +2073,7 @@
 
                         fixTilbakeLink(iframeDoc);
 
-                        focusSearchName(iframeDoc, iframeWin);
+                        focusEntryField(iframeDoc, iframeWin);
 
                         // Sjekk og rett opp blankt Reisemåte-felt
                         if (rid) fixTransportType(iframeDoc, rid);
