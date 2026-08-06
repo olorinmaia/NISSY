@@ -11,7 +11,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.9.1] - 04.08.2026
+## 🔧 [4.9.1] - 07.08.2026
 
 ### Ressursinfo: Raskere oppslag - henter kun de nyeste vognløpshendelsene
 
@@ -23,7 +23,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ### Adresser: Fjerner sti-prefiks (./ ../ .../) foran behandlingssteder
 
 - 📱 **Send-SMS** / 🗺️ **Kartvisning** / 🧭 **Rutekalkulering** / 🕐 **Hentetid** / ✖️ **Avbestilling** / 🚐 **Samkjøring** / 🔍 **Sjekk-Bestilling** / 🚩 **Sjekk-Plakat** / 🚕 **Ressursinfo** / 📡 **Live ressurskart**
-  - Adresser som starter med `./`, `../` eller `.../` (f.eks. ".../BVS 1. ort pol, 7030 Trondheim") vises nå uten prefikset, på samme måte som H0101 / U0101 filtreres bort. Prefikset fjernes kun når det står i starten av adressen – tilsvarende tegn lenger ute i adressen røres ikke
+  - Adresser som starter med `./`, `../` eller `.../` (f.eks. ".../BVS 1. ort pol, 7030 Trondheim") vises nå uten prefikset, på samme måte som H0101 / U0101 filtreres bort. Prefikset fjernes kun når det står i starten av adressen
+
+### Bestillingsmodul/Rek-knapper: Forbedret søk etter behandlingssted når Ctrl+F-boksen står åpen
+
+- 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)**
+  - Har du nettleserens eget søkefelt (Ctrl+F) åpent når du jobber i pop-up-modalen, ble ikke fokus satt i **"Navn"**-feltet når du søkte etter behandlingssted. Nå settes markøren i "Navn"-feltet automatisk, så du kan skrive med én gang
+  - Teksten som allerede står i feltet markeres samtidig, så du kan skrive rett over et tidligere søk uten å måtte slette/markere først
+  - Gjelder pop-up-modalen i både 4-stegs og ensides – også fra "R"-linken, Hent rekvisisjon og knappene i Rek-knapper. Åpner du modulen i ny fane, oppstår ikke problemet
 
 ---
 

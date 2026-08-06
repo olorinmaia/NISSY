@@ -581,6 +581,8 @@
 
                         fixTilbakeLink(iframeDoc);
 
+                        focusSearchName(iframeDoc, iframeWin);
+
                         setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
 
                     }
@@ -1010,6 +1012,8 @@
                                 }, 150);
                             });
                         }
+
+                        focusSearchName(iframeDoc, iframeWin);
 
                         setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
 
@@ -1713,6 +1717,33 @@
     }
 
     /**
+     * Hjelpefunksjon: Fokuser på Navn-feltet i "Finn behandlingssted"-søket.
+     * Kjøres kun på findTreatmentCenter-sider (både 4-stegs og Ensides), der
+     * Navn-feltet er første inntastingspunkt. Uten dette blir fokus liggende i
+     * nettleserens Ctrl+F-søkeboks når den er åpen mens modalen brukes.
+     */
+    function focusSearchName(doc, win) {
+        try {
+            const iframeWin = win || doc.defaultView;
+            if (!doc.location || !doc.location.pathname.includes('findTreatmentCenter')) return;
+            const nameField = doc.getElementById('name');
+            if (!nameField) return;
+            // Samme rAF-mønster som focusPickupTime: vent til siden er ferdig
+            // rendret før fokus settes, og én sykel til før select().
+            iframeWin.requestAnimationFrame(() => {
+                iframeWin.requestAnimationFrame(() => {
+                    nameField.focus();
+                    iframeWin.requestAnimationFrame(() => {
+                        nameField.select();
+                    });
+                });
+            });
+        } catch (err) {
+            console.error('Error focusing name:', err);
+        }
+    }
+
+    /**
      * Henter "Oppm. dato" (4. kolonne) fra en rad i returrekvisisjon-listen.
      * Format: "dd.mm.åå hh:mm" → returnerer {day, month, year}, eller null
      * hvis kolonnen ikke inneholder en dato.
@@ -2032,6 +2063,8 @@
                         }, true);
 
                         fixTilbakeLink(iframeDoc);
+
+                        focusSearchName(iframeDoc, iframeWin);
 
                         // Sjekk og rett opp blankt Reisemåte-felt
                         if (rid) fixTransportType(iframeDoc, rid);
