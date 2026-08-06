@@ -32,6 +32,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Teksten som allerede står i feltet markeres samtidig, så du kan skrive rett over et tidligere søk uten å måtte slette/markere først
   - Gjelder pop-up-modalen i både 4-stegs og ensides – også fra "R"-linken, Hent rekvisisjon og knappene i Rek-knapper. Åpner du modulen i ny fane, oppstår ikke problemet
 
+### Bestillingsmodul: "Tilbake"-knappen virker nå også via Hent rekvisisjon
+
+- 📝 **Bestillingsmodul (ALT+H)**
+  - Åpnet du en bestilling via Hent rekvisisjon og gikk videre til søk etter behandlingssted, tok "Tilbake"-knappen deg ikke tilbake dit du kom fra. Fiksen som allerede gjaldt resten av modulen virker nå også her
+
 ---
 
 ## 🔧 [4.9.0] - 10.07.2026

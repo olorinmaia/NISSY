@@ -1013,6 +1013,8 @@
                             });
                         }
 
+                        fixTilbakeLink(iframeDoc);
+
                         focusSearchName(iframeDoc, iframeWin);
 
                         setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
