@@ -95,6 +95,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
   - Faktisk kjørerute plottes med rutekalkulering i Leaflet / OpenStreetMap med ikoner/farger for hver enkelt hendelse.
   - Viser 5021 XML (bilens nåværende posisjon) i vognløpshendelser og bilens faktiske kjørerute.
+  - Viser de 5 nyeste vognløpshendelsene med én gang for raskt oppslag. Knappen "Hent N eldre hendelser" henter resten ved behov, og kjørerute-kartet henter dem automatisk.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/eb88afa0-37d7-44da-8b2f-7769da4384ca" />
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/1b4c8609-fb2f-4329-905d-459de836d08f" />
 - 📡 **Live ressurskart (Alt+Z)**
@@ -154,6 +155,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
   - "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
   - Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+  - Vasker adressene før de settes inn i SMS-en: bolig-/bruksenhetsnummer (H0101 / U0101) og sti-prefiks (`./`, `../`, `.../`) i starten av adressen fjernes, f.eks. ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim".
   - Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
   - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
   - Logger SMS-utsendelser i Handlingslogg.

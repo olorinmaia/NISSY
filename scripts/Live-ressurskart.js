@@ -13,7 +13,21 @@
   }
 
   window.__liveRessurskartHotkeyInstalled = true;
-  
+
+  // ============================================================
+  // HJELPEFUNKSJON: Vask adresser før visning
+  // ============================================================
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    // Fjern sti-prefiks (./ ../ .../) i STARTEN av adressen
+    // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
   // ============================================================
   // TOAST-FEILMELDING
   // ============================================================
@@ -1565,7 +1579,7 @@ window.addEventListener('beforeunload', () => {
                 const pn = addrNode.getAttribute('postalNo') || '';
                 const lo = addrNode.getAttribute('location') || '';
                 const streetPart = an || [st, sn, sl].filter(Boolean).join(' ');
-                return [streetPart, [pn, lo].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+                return cleanAddressSuffixes([streetPart, [pn, lo].filter(Boolean).join(' ')].filter(Boolean).join(', '));
               };
               
               for (const n of xmlDoc2000.querySelectorAll('route > node')) {

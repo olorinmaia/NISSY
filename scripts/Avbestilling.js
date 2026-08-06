@@ -138,9 +138,29 @@
    */
   function cleanAddressSuffixes(address) {
     if (!address) return address;
+    // Fjern sti-prefiks (./ ../ .../) i STARTEN av adressen
+    // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
     // Fjern space etterfulgt av H eller U og 4 siffer
     // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
-    return address.replace(/\s+[HU]\d{4}(?=,)/g, '');
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  /**
+   * Som cleanAddressSuffixes, men for celle-HTML der fra- og til-adresse ligger
+   * i samme streng adskilt med <br>. Vasker hver adresse for seg, og hopper over
+   * eventuelle innledende HTML-tagger slik at sti-prefikset treffes.
+   * @param {string} html - Celle-innhold, f.eks. "Fra-adresse<br>Til-adresse"
+   * @returns {string} - Samme HTML med vaskede adresser
+   */
+  function cleanAddressHtml(html) {
+    if (!html) return html;
+    return html.split(/<br\s*\/?>/i)
+      .map(part => part
+        .replace(/^(\s*(?:<[^>]+>\s*)*)(?:\.+\/)+\s*/, '$1')
+        .replace(/\s+[HU]\d{4}(?=,)/g, ''))
+      .join('<br>');
   }
 
   // ============================================================
@@ -510,7 +530,7 @@
             
             const rawInfo = cells.find(td => td.innerHTML.includes("<br>"))
               ?.innerHTML.trim() ?? "";
-            const cleanedInfo = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " →<br>");
+            const cleanedInfo = cleanAddressHtml(rawInfo).replace(/<br>/g, " →<br>");
             
             // Vis popup for enkelt-avbestilling
             showSingleBestillingPopup({ vid, pasient, info: cleanedInfo, rekvNr });
@@ -829,7 +849,7 @@
         ?.innerHTML.trim() ?? "";
       
       // Rens først for problematiske suffikser, deretter erstatt <br> med pil
-      let info = cleanAddressSuffixes(rawInfo).replace(/<br>/g, " → ");
+      let info = cleanAddressHtml(rawInfo).replace(/<br>/g, " → ");
 
       return { type: 'bestilling', vid, pasient, info, row, rekvNr };
     }

@@ -26,9 +26,83 @@
   // 'road' = Rute langs vei (OSRM routing)
   // 'straight' = Rett luftlinje mellom punkter
   const ROUTING_MODE = 'road'; // Endre til 'straight' for luftlinje
-  const EVENTS_PREVIEW_COUNT = 10;  // Antall nyeste hendelser vist i tabellen som standard
+
+  // Antall nyeste 4010-telegram som hentes ved oppstart.
+  // Resten hentes først når bruker trykker "Hent eldre hendelser" eller kjørerute-knappen.
+  const EVENTS_FETCH_COUNT = 5;
+
+  // Maks antall samtidige XML-forespørsler mot NISSY.
+  // Nettleseren tillater uansett bare ~6 per domene på HTTP/1.1.
+  const FETCH_POOL_SIZE = 5;
 
   console.log("🚀 Starter Ressursinfo-script");
+
+  // ============================================================
+  // HJELPEFUNKSJON: Vask adresser før visning
+  // ============================================================
+  function cleanAddressSuffixes(address) {
+    if (!address) return address;
+    // Fjern sti-prefiks (./ ../ .../) i STARTEN av adressen
+    // Eksempel: ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim"
+    // Fjern space etterfulgt av H eller U og 4 siffer
+    // Eksempel: "Ole Vigs gate 39 H0101, 7500 STJØRDAL" → "Ole Vigs gate 39, 7500 STJØRDAL"
+    return address
+      .replace(/^\s*(?:\.+\/)+\s*/, '')
+      .replace(/\s+[HU]\d{4}(?=,)/g, '');
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Hent flere URL-er parallelt med begrenset kø
+  // ============================================================
+  // Holder maks `limit` forespørsler i lufta samtidig. Returnerer alltid
+  // resultatene i SAMME rekkefølge som input - fullføringsrekkefølgen er
+  // tilfeldig, og flere kallesteder er avhengige av kronologisk rekkefølge
+  // (f.eks. at nyeste 2000 overskriver eldre i orderMap).
+  // URL-er som feiler blir `null` i resultatlisten.
+  async function fetchPool(urls, worker, limit) {
+    if (!urls || urls.length === 0) return [];
+
+    const results = new Array(urls.length).fill(null);
+    let next = 0;
+
+    async function arbeider() {
+      while (next < urls.length) {
+        const i = next++;
+        try {
+          results[i] = await worker(urls[i], i);
+        } catch (e) {
+          console.error("Feil ved henting av XML:", urls[i], e);
+          results[i] = null;
+        }
+      }
+    }
+
+    // IKKE bruk Array.from({length: n}, arbeider) her. NISSY laster et
+    // Prototype.js-lignende bibliotek som overskriver Array.from med sin
+    // egen $A. Den tar kun ETT argument og ignorerer map-funksjonen, så
+    // arbeiderne ville aldri blitt startet - poolen returnerte bare nuller
+    // uten å sende en eneste forespørsel.
+    const antallArbeidere = Math.max(1, Math.min(limit || 5, urls.length));
+    const arbeidere = [];
+    for (let a = 0; a < antallArbeidere; a++) {
+      arbeidere.push(arbeider());
+    }
+
+    await Promise.all(arbeidere);
+    return results;
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Tekstinnhold fra en <td>-celle
+  // ============================================================
+  function cellText(cellHtml) {
+    if (!cellHtml) return '';
+    return cellHtml
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
   // ============================================================
   // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
@@ -260,70 +334,88 @@ async function runResourceInfo() {
       return;
     }
 
-    // Hent 2000, 3003 og 4010 XML-lenker + tidspunkt for 3003
-    // Filtrer på turId (4. <td> fra venstre) for å unngå unødvendig XML-parsing
-    const xml2000Links = [];
-    const xml3003Links = [];
-    const xml4010Links = [];
-    const xml5021Links = [];
-    let time3003 = null;
-    
-    // Split HTML i rader
-    const rows = detailHtml.split('<tr');
-    
-    for (const row of rows) {
-      // Sjekk om raden inneholder riktig turId i 4. <td>
-      // Regex for å finne alle <td> celler og sjekke 4. celle
-      const tdMatches = row.match(/<td[^>]*>.*?<\/td>/g);
-      if (!tdMatches || tdMatches.length < 4) continue;
-      
-      // 4. <td> (indeks 3) skal inneholde turId
-      const turIdCell = tdMatches[3];
-      const turIdMatch = turIdCell.match(/<nobr>(\d+)<\/nobr>/);
-      
-      // Hopp over hvis turId ikke matcher
-      if (!turIdMatch || turIdMatch[1] !== turId) continue;
-      
-      // SUTI-koden (2000, 3003 eller 4010) står i en <td valign="top">
-      // For 2000: <td valign="top">2000
-      // For 3003/4010 (SutiMsgReceived): <td valign="top">3003 eller 4010
-      const sutiTdMatch = row.match(/<td\s+valign="top">(\d+)/);
-      if (!sutiTdMatch) continue;
-      
-      const sutiCode = sutiTdMatch[1];
-      
-      // Finn XML-lenken i samme rad
-      const xmlLinkMatch = row.match(/href="([^"]*sutiXml\?id=\d+)"/);
-      if (xmlLinkMatch) {
-        const url = xmlLinkMatch[1];
-        
-        if (sutiCode === '2000') {
-          xml2000Links.push(url);
-        } else if (sutiCode === '3003') {
-          xml3003Links.push(url);
-          
-          // Hent tidspunktet fra 2. <td> (indeks 1)
-          if (!time3003 && tdMatches.length >= 2) {
-            const timeCell = tdMatches[1];
-            const timeMatch = timeCell.match(/<nobr>(\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2})<\/nobr>/);
-            if (timeMatch) {
-              time3003 = timeMatch[1];
-            }
-          }
-        } else if (sutiCode === '4010') {
-          xml4010Links.push(url);
-        } else if (sutiCode === '5021') {
-          xml5021Links.push(url);
-        }
+    // Les ut alle SUTI-rader fra ressursloggen.
+    // Kolonnene er: 0 Hendelse, 1 Tid, 2 Status, 3 TurNr, 4 Løyvenr, 5 BookingNr,
+    // 6 RekvisisjonsNr, 7 Adapter, 8 Suti kode, 9 Suti attributt, 10 Ansvarlig
+    const sutiRows = parseSutiRows(detailHtml, turId);
+
+    // Kronologisk sortering på tidspunktet i Tid-kolonnen. Vi stoler ikke på
+    // radrekkefølgen i HTML-en - flere steg under er avhengige av at eldste
+    // kommer først (bl.a. at nyeste 2000 overskriver eldre i orderMap).
+    const kronologisk = liste => liste.slice().sort((a, b) => a.timeSort.localeCompare(b.timeSort));
+
+    // 3003 filtreres IKKE på løyvenr: raden som utløser et løyvebytte står
+    // fortsatt med det gamle løyvenummeret - det er de påfølgende radene som
+    // får det nye. Filtrering her ville kastet nettopp den raden som
+    // inneholder sjåførens telefonnummer.
+    const rader3003 = kronologisk(sutiRows.filter(r => r.code === '3003'));
+
+    // Etter første 3003 må ALLE 2000 med. orderMap er en union: en bestilling
+    // som er fjernet fra senere 2000 må fortsatt kunne slås opp, fordi det
+    // kan ligge 4010-hendelser (f.eks. 1709) på den.
+    const rader2000 = velgRelevante2000(
+      kronologisk(sutiRows.filter(r => r.code === '2000')),
+      rader3003
+    );
+
+    // 4010 og 5021 kan trygt filtreres på løyvenr fra HTML, slik at vi slipper
+    // å hente XML som uansett ville blitt forkastet.
+    const rader4010 = kronologisk(filtrerPaaLoyve(sutiRows.filter(r => r.code === '4010'), '4010'));
+    const rader5021 = kronologisk(filtrerPaaLoyve(sutiRows.filter(r => r.code === '5021'), '5021'));
+
+    // Tidspunkt for første 3003 (vises i popup som "ressurs bekreftet")
+    const time3003 = rader3003.length > 0 ? rader3003[0].timeRaw : null;
+
+    // Hent bestillingsdata og telefonnummer parallelt
+    const [
+      { orderMap, agreementInfo },
+      { phoneNumber, senderIdOrg, licensePlate: licensePlate3003, dispatchCoord }
+    ] = await Promise.all([
+      extractOrderData(rader2000.map(r => r.url)),
+      extractPhoneNumber(rader3003.map(r => r.url))
+    ]);
+
+    /* ==========================
+       Hendelses-cache (4010)
+       ========================== */
+    // Kun i minnet, aldri localStorage/sessionStorage - objektene inneholder
+    // navn og adresser. Lever like lenge som popup-en, og forsvinner når
+    // closuren slippes ved lukking.
+    const hentedeHendelser = new Map(); // url -> hendelsesobjekt eller null
+    const hentingPaavei = new Map();    // url -> Promise (hindrer dobbelthenting)
+
+    async function hentHendelser(rader) {
+      const mangler = rader.filter(r => !hentedeHendelser.has(r.url) && !hentingPaavei.has(r.url));
+
+      if (mangler.length > 0) {
+        const jobb = fetchPool(
+          mangler.map(r => r.url),
+          url => parse4010(url, orderMap),
+          FETCH_POOL_SIZE
+        ).then(resultater => {
+          mangler.forEach((rad, i) => {
+            hentedeHendelser.set(rad.url, resultater[i]);
+            hentingPaavei.delete(rad.url);
+          });
+        }).catch(e => {
+          // Rydd opp så et nytt forsøk faktisk kan hente på nytt
+          mangler.forEach(rad => hentingPaavei.delete(rad.url));
+          throw e;
+        });
+
+        mangler.forEach(rad => hentingPaavei.set(rad.url, jobb));
       }
+
+      // Vent også på henting som allerede var i gang fra en annen handling
+      await Promise.all(rader.map(r => hentingPaavei.get(r.url)).filter(Boolean));
     }
 
-    // Parse data
-    const { orderMap, agreementInfo } = await extractOrderData(xml2000Links);
-    const { phoneNumber, senderIdOrg, licensePlate: licensePlate3003, dispatchCoord } = await extractPhoneNumber(xml3003Links);
-    const eventData = await extractEventData(xml4010Links, orderMap);
+    /* ==========================
+       Faste hendelser (3003 + 5021)
+       ========================== */
+    const ekstraHendelser = [];
 
-    // Legg til 3003-hendelse som første event i listen (vises i tabell og kart)
+    // 3003-hendelse: bilens posisjon ved oppdragsbekreftelse
     if (dispatchCoord) {
       let dispatchTimestamp = null;
       if (time3003) {
@@ -333,7 +425,7 @@ async function runResourceInfo() {
           dispatchTimestamp = `${y}-${m}-${d}T${timePart}`;
         } catch (e) {}
       }
-      eventData.events.unshift({
+      ekstraHendelser.push({
         bookingId: null,
         eventType: "3003",
         timestamp: dispatchTimestamp,
@@ -345,18 +437,18 @@ async function runResourceInfo() {
       });
     }
 
-    // Legg til 5021-hendelse (siste auto-posisjon for popup)
-    const latest5021Url = xml5021Links.length > 0 ? xml5021Links[xml5021Links.length - 1] : null;
-    if (latest5021Url) {
+    // 5021-hendelse: siste auto-posisjon
+    const siste5021 = rader5021.length > 0 ? rader5021[rader5021.length - 1] : null;
+    if (siste5021) {
       try {
-        const xmlDoc5021 = await fetchAndParseXML(latest5021Url);
+        const xmlDoc5021 = await fetchAndParseXML(siste5021.url);
         const geo5021 = xmlDoc5021.querySelector('order > route > node > addressNode > geographicLocation');
         const time5021Node = xmlDoc5021.querySelector('order > route > node > timesNode > time');
         const lat5021 = geo5021?.getAttribute('lat');
         const lon5021 = geo5021?.getAttribute('long');
         const timestamp5021 = time5021Node?.getAttribute('time') || null;
         if (lat5021 && lon5021) {
-          eventData.events.push({
+          ekstraHendelser.push({
             bookingId: null,
             eventType: "5021",
             timestamp: timestamp5021,
@@ -372,15 +464,148 @@ async function runResourceInfo() {
       }
     }
 
-    // Sorter alle hendelser kronologisk
-    eventData.events.sort((a, b) => {
-      if (!a.timestamp || a.timestamp === 'Ukjent') return -1;
-      if (!b.timestamp || b.timestamp === 'Ukjent') return 1;
-      return a.timestamp.localeCompare(b.timestamp);
-    });
+    // Setter sammen 3003/5021 med de 4010-hendelsene som er hentet så langt
+    function byggHendelsesliste() {
+      const alle = [...ekstraHendelser];
+      for (const hendelse of hentedeHendelser.values()) {
+        if (hendelse) alle.push(hendelse);
+      }
+      alle.sort((a, b) => {
+        if (!a.timestamp || a.timestamp === 'Ukjent') return -1;
+        if (!b.timestamp || b.timestamp === 'Ukjent') return 1;
+        return a.timestamp.localeCompare(b.timestamp);
+      });
+      return alle;
+    }
+
+    // Hent kun de nyeste 4010 ved oppstart
+    await hentHendelser(rader4010.slice(-EVENTS_FETCH_COUNT));
+
+    // Grensesnitt popup-en bruker til å etterhente resten
+    const hendelseskilde = {
+      antallTotalt: rader4010.length,
+      gjenstaar: () => rader4010.filter(r => !hentedeHendelser.has(r.url)).length,
+      hentAlle: async () => {
+        await hentHendelser(rader4010);
+        return byggHendelsesliste();
+      }
+    };
+
+    const eventData = { events: byggHendelsesliste() };
+
+    // Tell kun hendelser som faktisk ga et resultat - hentedeHendelser
+    // inneholder også null for telegram som feilet eller ble forkastet.
+    const antallTolket = [...hentedeHendelser.values()].filter(Boolean).length;
+    const hoppetOver2000 = sutiRows.filter(r => r.code === '2000').length - rader2000.length;
+    console.log(
+      `📊 Ressursinfo: ${rader2000.length} stk 2000` +
+      (hoppetOver2000 > 0 ? ` (${hoppetOver2000} eldre enn 3003 hoppet over)` : '') +
+      `, ${rader3003.length} stk 3003, ` +
+      `${rader4010.length} stk 4010 (hentet ${hentedeHendelser.size}, ga ${antallTolket} hendelser)`
+    );
 
     // Vis popup
-    showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003);
+    showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003, hendelseskilde);
+  }
+
+  /* ==========================
+     5b. Parse ressursloggen (ajax_reqdetails)
+     ========================== */
+  function parseSutiRows(detailHtml, turId) {
+    const sutiRows = [];
+
+    for (const row of detailHtml.split('<tr')) {
+      // NISSY lukker ikke Suti kode-cellen (<td valign="top">2000 ... [XML]),
+      // og innholdet går over flere linjer. Derfor kan vi ikke lete etter
+      // </td> - en celle avsluttes av det som kommer først av </td>, neste
+      // <td, </tr> eller slutten av raden. Da får alle rader like mange
+      // celler, uansett om de har XML-lenke eller ikke.
+      const celler = [...row.matchAll(/<td[^>]*>([\s\S]*?)(?=<\/td>|<td[^>]*>|<\/tr>|$)/g)]
+        .map(m => m[1]);
+      if (celler.length < 10) continue;
+
+      // TurNr i 4. kolonne - eneste filter som gjelder alle telegramtyper
+      if (cellText(celler[3]) !== turId) continue;
+
+      // SUTI-koden står først i Suti kode-cellen (9. kolonne)
+      const sutiTdMatch = cellText(celler[8]).match(/^(\d+)/);
+      if (!sutiTdMatch) continue;
+
+      const xmlLinkMatch = celler[8].match(/href="([^"]*sutiXml\?id=\d+)"/);
+      if (!xmlLinkMatch) continue;
+
+      // Tid: "04/08/2026 13:13:57" -> "2026-08-04T13:13:57" for sortering
+      const timeRaw = cellText(celler[1]);
+      let timeSort = '';
+      const timeMatch = timeRaw.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}:\d{2}:\d{2})$/);
+      if (timeMatch) {
+        const [, d, m, y, klokke] = timeMatch;
+        timeSort = `${y}-${m}-${d}T${klokke}`;
+      }
+
+      sutiRows.push({
+        code: sutiTdMatch[1],
+        url: xmlLinkMatch[1],
+        timeRaw,
+        timeSort,
+        loyve: cellText(celler[4]),
+        rekvNr: cellText(celler[6]),
+        eventAttr: cellText(celler[9])
+      });
+    }
+
+    return sutiRows;
+  }
+
+  /* ==========================
+     5c. Velg hvilke 2000 som må hentes
+     ========================== */
+  // Det kan sendes flere 2000 før transportøren svarer med 3003. Bilen har
+  // aldri sett noe annet enn det SISTE av dem, så eldre beskriver et vognløp
+  // som aldri nådde bilen - ingen 4010 kan referere til en bestilling som kun
+  // fantes der. Etter første 3003 må alle med, siden bestillinger både kan
+  // komme til og forsvinne igjen underveis.
+  //
+  // Begge lister forventes kronologisk sortert (eldste først).
+  function velgRelevante2000(alle2000, alle3003) {
+    // Uten 3003 finnes det ingen bil, og dermed ingen 4010. Behold alt.
+    if (alle3003.length === 0 || !alle3003[0].timeSort) return alle2000;
+
+    const bekreftet = alle3003[0].timeSort;
+
+    // Rader uten lesbart tidspunkt havner i "etter" - da beholder vi dem
+    const foer = alle2000.filter(r => r.timeSort && r.timeSort <= bekreftet);
+    const etter = alle2000.filter(r => !r.timeSort || r.timeSort > bekreftet);
+
+    const sisteFoer = foer.length > 0 ? [foer[foer.length - 1]] : [];
+    return sisteFoer.concat(etter);
+  }
+
+  /* ==========================
+     5d. Filtrer rader på løyvenummer
+     ========================== */
+  // Brukes kun på 4010/5021. Bytter turen løyve underveis, får radene etter
+  // byttet det nye løyvenummeret, og vi slipper å hente XML som ville blitt
+  // forkastet av løyve-sjekken i parse4010 uansett.
+  function filtrerPaaLoyve(rader, kodeForLogg) {
+    // \s dekker også &nbsp; (U+00A0), som NISSY bruker i tabellcellene
+    const normaliser = s => (s || '').replace(/\s+/g, ' ').trim().toUpperCase();
+    const oensket = normaliser(licensePlate);
+
+    const treff = rader.filter(r => normaliser(r.loyve) === oensket);
+
+    // Sikkerhetsnett: matcher ingenting selv om det finnes rader, er trolig
+    // løyvenummeret i ressurslisten skrevet annerledes enn i ressursloggen.
+    // Da er det bedre å hente alt (som før) enn å vise en tom hendelsesliste.
+    if (treff.length === 0 && rader.length > 0) {
+      console.warn(
+        `⚠️ Ingen ${kodeForLogg}-rader matcher løyvenr "${licensePlate}" ` +
+        `(fant: ${[...new Set(rader.map(r => r.loyve))].join(', ')}). Henter alle i stedet.`
+      );
+      return rader;
+    }
+
+    return treff;
   }
 
   /* ==========================
@@ -544,10 +769,15 @@ async function runResourceInfo() {
     const orderMap = new Map(); // "bookingId-nodeType" -> { address, estimatedTime, name }
     let agreementInfo = null; // Avtale-info fra første 2000 XML
 
-    for (const url of xmlUrls) {
-      try {
-        const xmlDoc = await fetchAndParseXML(url);
+    // Hent alle parallelt, men slå sammen sekvensielt i kronologisk rekkefølge.
+    // orderMap er en UNION over alle 2000 - ingenting slettes. Dermed kan en
+    // bestilling som er fjernet fra senere 2000 fortsatt slås opp, og nyere
+    // 2000 overskriver eldre på samme nøkkel (nyeste planlagte tid/adresse).
+    const xmlDocs = await fetchPool(xmlUrls, url => fetchAndParseXML(url), FETCH_POOL_SIZE);
 
+    for (const xmlDoc of xmlDocs) {
+      if (!xmlDoc) continue;
+      try {
         // Hent avtale-info fra første 2000 XML (kun én gang)
         if (!agreementInfo) {
           const orgReceiver = xmlDoc.querySelector('orgReceiver');
@@ -612,7 +842,7 @@ async function runResourceInfo() {
             }
             
             if (parts.length > 0) {
-              address = parts.join(', ');
+              address = cleanAddressSuffixes(parts.join(', '));
             }
           }
 
@@ -651,17 +881,20 @@ async function runResourceInfo() {
   /* ==========================
      7. Hent telefonnummer (3003)
      ========================== */
+  // xmlUrls forventes i kronologisk rekkefølge (eldste først)
   async function extractPhoneNumber(xmlUrls) {
     let foundPhone = null;
     let senderIdOrg = null;
     let licensePlateFrom3003 = null;
     let dispatchCoord = null;
 
-    for (const url of xmlUrls) {
-      try {
-        const xmlDoc = await fetchAndParseXML(url);
+    const xmlDocs = await fetchPool(xmlUrls, url => fetchAndParseXML(url), FETCH_POOL_SIZE);
 
-        // Hent avsender-info (idOrg id)
+    // ELDSTE FØRST: avsender og posisjon ved oppdragsbekreftelse.
+    // Disse hører sammen med time3003, som også er første 3003.
+    for (const xmlDoc of xmlDocs) {
+      if (!xmlDoc) continue;
+      try {
         if (!senderIdOrg) {
           const orgSenderIdOrg = xmlDoc.querySelector('orgSender > idOrg');
           if (orgSenderIdOrg) {
@@ -669,7 +902,6 @@ async function runResourceInfo() {
           }
         }
 
-        // Hent koordinater fra vehiclestartLocation (hvis finnes)
         if (!dispatchCoord) {
           const startLoc = xmlDoc.querySelector('vehiclestartLocation');
           if (startLoc) {
@@ -688,13 +920,23 @@ async function runResourceInfo() {
             }
           }
         }
+      } catch (e) {
+        console.error("Feil ved parsing av 3003 XML:", e);
+      }
+    }
 
+    // NYESTE FØRST: telefonnummer. Er turen omfordelt til samme løyve flere
+    // ganger, er det den siste bekreftelsen som har sjåføren som faktisk kjører.
+    for (let i = xmlDocs.length - 1; i >= 0; i--) {
+      const xmlDoc = xmlDocs[i];
+      if (!xmlDoc) continue;
+      try {
         // Sjekk at licensePlate matcher
         const refIdVehicle = xmlDoc.querySelector('referencesTo > idVehicle');
         if (refIdVehicle) {
           const refId = refIdVehicle.getAttribute('id');
           if (refId !== licensePlate) continue;
-          
+
           // Lagre løyvenummer fra 3003 XML
           if (!licensePlateFrom3003) {
             licensePlateFrom3003 = refId;
@@ -751,8 +993,8 @@ async function runResourceInfo() {
       }
     }
 
-    return { 
-      phoneNumber: foundPhone, 
+    return {
+      phoneNumber: foundPhone,
       senderIdOrg: senderIdOrg,
       licensePlate: licensePlateFrom3003,
       dispatchCoord: dispatchCoord
@@ -762,109 +1004,84 @@ async function runResourceInfo() {
   /* ==========================
      8. Hent hendelser (4010)
      ========================== */
-  async function extractEventData(xmlUrls, orderMap) {
-    const results = [];
-    let routeCoords = [];
-    let firstBookingId = null;
+  // Henter og tolker ETT 4010-telegram. Returnerer hendelsesobjektet, eller
+  // null hvis telegrammet ikke gir en hendelse (feil løyve, ingen
+  // pickupConfirmation). Kalles fra fetchPool, én URL per kall.
+  async function parse4010(url, orderMap) {
+    const xmlDoc = await fetchAndParseXML(url);
 
-    for (const url of xmlUrls) {
-      try {
-        const xmlDoc = await fetchAndParseXML(url);
+    // Sikkerhetsnett - radene er allerede filtrert på løyvenr i HTML-en
+    const idVeh = xmlDoc.querySelector("referencesTo > idVehicle");
+    if (!idVeh || idVeh.getAttribute("id") !== licensePlate) {
+      console.warn(`4010 hoppet over: løyve "${idVeh?.getAttribute("id")}" i XML, forventet "${licensePlate}"`, url);
+      return null;
+    }
 
-        const idVeh = xmlDoc.querySelector("referencesTo > idVehicle");
-        if (!idVeh || idVeh.getAttribute("id") !== licensePlate) continue;
+    const pickup = xmlDoc.querySelector("pickupConfirmation");
+    if (!pickup) return null;
 
-        // Hent turnummer
-        if (!firstBookingId) {
-          const mainBooking = xmlDoc.querySelector("referencesTo > idOrder");
-          if (mainBooking) {
-            firstBookingId = mainBooking.getAttribute("id");
-          }
+    const eventType = pickup.getAttribute("eventType");
+    const node = pickup.querySelector("nodeConfirmed");
+    if (!node) return null;
+
+    const nodeType = node.getAttribute("nodeType");
+    const timeNode = node.querySelector("timesNode > time");
+    const timestamp = timeNode?.getAttribute("time") || "Ukjent";
+
+    const geo = node.querySelector("addressNode > geographicLocation");
+    let lat = "", lon = "";
+    if (geo) {
+      if (geo.getAttribute('typeOfCoordinate') === 'UTM') {
+        const utmZone = parseInt(geo.getAttribute('zone')) || 33;
+        const wgs = utmToLatLon(parseFloat(geo.getAttribute('long')), parseFloat(geo.getAttribute('lat')), utmZone);
+        if (wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5) {
+          lat = String(wgs.lat);
+          lon = String(wgs.lon);
         }
-
-        const pickup = xmlDoc.querySelector("pickupConfirmation");
-        if (!pickup) continue;
-
-        const eventType = pickup.getAttribute("eventType");
-        const node = pickup.querySelector("nodeConfirmed");
-        if (!node) continue;
-
-        const nodeType = node.getAttribute("nodeType");
-        const timeNode = node.querySelector("timesNode > time");
-        const timestamp = timeNode?.getAttribute("time") || "Ukjent";
-
-        const geo = node.querySelector("addressNode > geographicLocation");
-        let lat = "", lon = "";
-        if (geo) {
-          if (geo.getAttribute('typeOfCoordinate') === 'UTM') {
-            const utmZone = parseInt(geo.getAttribute('zone')) || 33;
-            const wgs = utmToLatLon(parseFloat(geo.getAttribute('long')), parseFloat(geo.getAttribute('lat')), utmZone);
-            if (wgs.lat >= 57.0 && wgs.lat <= 71.5 && wgs.lon >= 4.0 && wgs.lon <= 31.5) {
-              lat = String(wgs.lat);
-              lon = String(wgs.lon);
-            }
-          } else {
-            lat = geo.getAttribute("lat") || "";
-            lon = geo.getAttribute("long") || "";
-          }
-        }
-
-        const idOrderNode = node.querySelector("subOrderContent > idOrder");
-        const bookingId = idOrderNode?.getAttribute("id") || "Ukjent";
-
-        const contentNode = node.querySelector("contents > content[contentType='1001']");
-        const name4010 = contentNode?.getAttribute("name") || "Ukjent";
-
-        // Hent adresse, beregnet tid og navn fra 2000 XML
-        let address = "Ikke funnet";
-        let estimatedTime = "Ikke funnet";
-        let name = name4010; // Fallback til 4010-navn hvis 2000 ikke finnes
-        
-        // Bruk bookingId+nodeType som nøkkel
-        const key = `${bookingId}-${nodeType}`;
-        if (orderMap.has(key)) {
-          const orderInfo = orderMap.get(key);
-          address = orderInfo.address;
-          estimatedTime = orderInfo.estimatedTime;
-          name = orderInfo.name;
-        } else if (nodeType !== '1803' && nodeType !== '1804') {
-          // TDS bruker nodeType 1801 (generisk) for bomtur – fall tilbake til hentenoden (1803)
-          const fallbackKey = `${bookingId}-1803`;
-          if (orderMap.has(fallbackKey)) {
-            const orderInfo = orderMap.get(fallbackKey);
-            address = orderInfo.address;
-            estimatedTime = orderInfo.estimatedTime;
-            name = orderInfo.name;
-          }
-        }
-
-        results.push({
-          bookingId,
-          eventType,
-          timestamp,
-          lat,
-          lon,
-          name,
-          address,
-          estimatedTime
-        });
-
-        // Samle ALLE koordinater først (inkludert 1709)
-        if (lat && lon) {
-          routeCoords.push({ lat, lon, timestamp, eventType });
-        }
-
-      } catch (e) {
-        console.error("Feil ved parsing av 4010 XML:", e);
+      } else {
+        lat = geo.getAttribute("lat") || "";
+        lon = geo.getAttribute("long") || "";
       }
     }
 
-    // Sorter koordinater etter tidspunkt
-    routeCoords.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const idOrderNode = node.querySelector("subOrderContent > idOrder");
+    const bookingId = idOrderNode?.getAttribute("id") || "Ukjent";
+
+    const contentNode = node.querySelector("contents > content[contentType='1001']");
+    const name4010 = contentNode?.getAttribute("name") || "Ukjent";
+
+    // Hent adresse, beregnet tid og navn fra 2000 XML
+    let address = "Ikke funnet";
+    let estimatedTime = "Ikke funnet";
+    let name = name4010; // Fallback til 4010-navn hvis 2000 ikke finnes
+
+    // Bruk bookingId+nodeType som nøkkel
+    const key = `${bookingId}-${nodeType}`;
+    if (orderMap.has(key)) {
+      const orderInfo = orderMap.get(key);
+      address = orderInfo.address;
+      estimatedTime = orderInfo.estimatedTime;
+      name = orderInfo.name;
+    } else if (nodeType !== '1803' && nodeType !== '1804') {
+      // TDS bruker nodeType 1801 (generisk) for bomtur – fall tilbake til hentenoden (1803)
+      const fallbackKey = `${bookingId}-1803`;
+      if (orderMap.has(fallbackKey)) {
+        const orderInfo = orderMap.get(fallbackKey);
+        address = orderInfo.address;
+        estimatedTime = orderInfo.estimatedTime;
+        name = orderInfo.name;
+      }
+    }
 
     return {
-      events: results,
-      bookingId: firstBookingId
+      bookingId,
+      eventType,
+      timestamp,
+      lat,
+      lon,
+      name,
+      address,
+      estimatedTime
     };
   }
 
@@ -1725,9 +1942,83 @@ window.updateEventData = function(newEvent) {
   }
 
   /* ==========================
+     9b. Bygg radene i hendelsestabellen
+     ========================== */
+  // Egen funksjon fordi tabellen tegnes på nytt når bruker etterhenter
+  // eldre hendelser.
+  function buildEventRows(events) {
+    let rader = '';
+
+    for (const r of events) {
+      const { icon, title } = getIconAndTitle(r.eventType);
+      const formattedTime = formatTimestamp(r.timestamp);
+
+      // Escape JSON for data-attributt
+      const eventJson = JSON.stringify(r).replace(/"/g, '&quot;');
+
+      rader += `
+        <tr style="border-bottom: 1px solid #e9ecef; background: white; transition: background-color 0.2s;">
+          <td style="padding: 10px 8px;">
+            ${r.bookingId
+              ? `<a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}"
+               style="color: #1976d2; text-decoration: none; font-weight: 500;"
+               title="Åpne bestilling ${r.bookingId} i NISSY admin">
+              🧾${formatBookingId(r.bookingId)}
+            </a>`
+              : r.eventType === "5021"
+                ? `<span style="color: #7b1fa2; font-size: 13px;" title="Automatisk lokasjon">📡 5021</span>`
+                : `<span style="color: #ff9800; font-size: 13px;" title="Oppdragsbekreftelse fra taxi">🚕 3003</span>`
+            }
+          </td>
+          <td style="
+            padding: 10px 8px;
+            color: #495057;
+            font-size: 12px;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          " title="${r.name}">
+            ${r.name}
+          </td>
+          <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">${r.estimatedTime}</td>
+          <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>
+          <td style="padding: 10px 8px; text-align: right;" title="${title} (${r.eventType})">
+            <span style="display: inline-block; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
+            ${icon}
+            </span>
+          </td>
+          <td style="
+            padding: 10px 8px;
+            color: #495057;
+            font-size: 12px;
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          " title="${r.address}">
+            ${r.address}
+          </td>
+          <td style="padding: 10px 8px;">
+            <a href="#"
+               class="coord-link"
+               data-event="${eventJson}"
+               style="color: #1976d2; text-decoration: none;"
+               title="${title} - Vis i kart">
+              🗺️ Vis i kart
+            </a>
+          </td>
+        </tr>
+      `;
+    }
+
+    return rader;
+  }
+
+  /* ==========================
      10. VIS KOMBINERT POPUP
      ========================== */
-  function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003) {
+  function showCombinedPopup(phoneNumber, eventData, turId, time3003, agreementInfo, senderIdOrg, licensePlate3003, hendelseskilde) {
     const rowRect = row.getBoundingClientRect();
 
     // Overlay
@@ -1849,30 +2140,47 @@ window.updateEventData = function(newEvent) {
               border-radius: 6px;
               cursor: pointer;
               font-size: 14px;
+              display: none;
             ">
               📋 Kopier
             </button>
             <span id="copyConfirm" style="
               margin-left: 10px;
-              color: #2e7d32;
-              display: none;
+              color: #666;
               font-weight: bold;
-            ">✔️ Kopiert!</span>
+            ">⏳ Kopierer…</span>
           </div>
         </div>
       `;
     }
 
     // 4010 HENDELSER SEKSJON
-    if (eventData.events.length > 0) {
+    // Vises også når listen er tom men det finnes uhentede telegram, slik at
+    // bruker fortsatt har knappen for å hente resten.
+    const gjenstaarVedStart = hendelseskilde ? hendelseskilde.gjenstaar() : 0;
+    if (eventData.events.length > 0 || gjenstaarVedStart > 0) {
       html += `
         <div style="margin-bottom: 15px;">
-          <div style="margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 15px;">
             <h3 style="margin: 0; font-size: 16px; color: #333;" title="Hendelser basert informasjon i 2000 og 4010 XML">
               Vognløpshendelser
             </h3>
+            ${gjenstaarVedStart > 0 ? `
+              <button id="fetchAllEventsBtn" style="
+                background: none;
+                border: 1px solid #1976d2;
+                color: #1976d2;
+                border-radius: 5px;
+                padding: 5px 10px;
+                cursor: pointer;
+                font-size: 13px;
+                white-space: nowrap;
+              " title="Henter de ${gjenstaarVedStart} resterende 4010-telegrammene fra NISSY">
+                ⬇️ Hent ${gjenstaarVedStart} eldre ${gjenstaarVedStart === 1 ? 'hendelse' : 'hendelser'}
+              </button>
+            ` : ''}
           </div>
-          
+
           <table style="width: 100%; border-collapse: collapse; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <thead>
               <tr style="background: linear-gradient(to bottom, #f8f9fa, #e9ecef); border-bottom: 2px solid #dee2e6;">
@@ -1885,92 +2193,7 @@ window.updateEventData = function(newEvent) {
                 <th style="padding: 10px 8px; text-align: left; font-weight: 600; color: #495057;" title="Koordinat til der hendelsen ble utført på taksameter">Koordinat</th>
               </tr>
             </thead>
-            <tbody>
-      `;
-
-      const hiddenCount = Math.max(0, eventData.events.length - EVENTS_PREVIEW_COUNT);
-      if (hiddenCount > 0) {
-        html += `
-          <tr id="showOlderRow">
-            <td colspan="7" style="text-align:center;padding:8px;border-bottom:1px solid #e9ecef;background:#f8f9fa;">
-              <button id="showOlderBtn" style="background:none;border:none;color:#1976d2;cursor:pointer;font-size:13px;text-decoration:underline;padding:0;">
-                ▲ Vis ${hiddenCount} eldre hendelser
-              </button>
-            </td>
-          </tr>
-        `;
-      }
-
-      for (let i = 0; i < eventData.events.length; i++) {
-        const r = eventData.events[i];
-        const { icon, title } = getIconAndTitle(r.eventType);
-        const coordText = `Vis i kart`;
-        const formattedTime = formatTimestamp(r.timestamp);
-        const isOlder = i < hiddenCount;
-        const rowClass = isOlder ? "event-older-hidden" : "";
-        const olderStyle = isOlder ? "display:none;" : "";
-
-        // Escape JSON for data-attributt
-        const eventJson = JSON.stringify(r).replace(/"/g, '&quot;');
-
-        html += `
-          <tr class="${rowClass}" style="${olderStyle}border-bottom: 1px solid #e9ecef; background: white; transition: background-color 0.2s;">
-            <td style="padding: 10px 8px;">
-              ${r.bookingId
-                ? `<a href="/administrasjon/admin/searchStatus?nr=${r.bookingId}"
-                 style="color: #1976d2; text-decoration: none; font-weight: 500;"
-                 title="Åpne bestilling ${r.bookingId} i NISSY admin">
-                🧾${formatBookingId(r.bookingId)}
-              </a>`
-                : r.eventType === "5021"
-                  ? `<span style="color: #7b1fa2; font-size: 13px;" title="Automatisk lokasjon">📡 5021</span>`
-                  : `<span style="color: #ff9800; font-size: 13px;" title="Oppdragsbekreftelse fra taxi">🚕 3003</span>`
-              }
-            </td>
-            <td style="
-              padding: 10px 8px;
-              color: #495057;
-              font-size: 12px;
-              max-width: 150px;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            " title="${r.name}">
-              ${r.name}
-            </td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Planlagt tidspunkt fra NISSY. (Bil ved node har ikke planlagt tidspunkt, hent/lever tid brukes)">${r.estimatedTime}</td>
-            <td style="padding: 10px 8px; color: #495057; font-family: monospace; text-align: right;" title="Faktisk tid når hendelsen ble utført på taksameter">${formattedTime}</td>
-            <td style="padding: 10px 8px; text-align: right;" title="${title} (${r.eventType})">
-              <span style="display: inline-block; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px;">
-              ${icon}
-              </span>
-            </td>
-            <td style="
-              padding: 10px 8px;
-              color: #495057;
-              font-size: 12px;
-              max-width: 250px;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            " title="${r.address}">
-              ${r.address}
-            </td>
-            <td style="padding: 10px 8px;">
-              <a href="#"
-                 class="coord-link"
-                 data-event="${eventJson}"
-                 style="color: #1976d2; text-decoration: none;"
-                 title="${title} - Vis i kart">
-                🗺️ ${coordText}
-              </a>
-            </td>
-          </tr>
-        `;
-      }
-
-      html += `
-            </tbody>
+            <tbody id="eventsBody">${buildEventRows(eventData.events)}</tbody>
           </table>
       `;
 
@@ -1995,7 +2218,7 @@ window.updateEventData = function(newEvent) {
         </button>
     `;
     
-    if (eventData.events.length > 0) {
+    if (eventData.events.length > 0 || gjenstaarVedStart > 0) {
       html += `
         <button id="showRouteMap" style="
              padding: 10px 16px;
@@ -2049,64 +2272,118 @@ window.updateEventData = function(newEvent) {
     // Kopier telefonnummer
     const copyBtn = popup.querySelector("#copyPhoneBtn");
     if (copyBtn && phoneNumber) {
+      const confirm = popup.querySelector("#copyConfirm");
+
+      // Knappen starter skjult og vises kun hvis auto-kopiering feiler.
+      // Ellers ville "📋 Kopier" blinket til i de få millisekundene
+      // clipboard-løftet bruker på å resolve.
+      function visKopiert() {
+        copyBtn.style.display = "none";
+        if (!confirm) return;
+        confirm.textContent = "✔️ Kopiert til utklippstavle";
+        confirm.style.color = "#2e7d32";
+      }
+
+      function visKopieringFeilet() {
+        copyBtn.style.display = "";
+        if (!confirm) return;
+        confirm.textContent = "⚠️ Klikk 'Kopier' for å kopiere";
+        confirm.style.color = "#d32f2f";
+      }
+
       // Automatisk kopiering når popup åpnes
       (async () => {
         try {
           await navigator.clipboard.writeText(phoneNumber);
-          // Vis bekreftelse og skjul knapp
-          const confirm = popup.querySelector("#copyConfirm");
-          if (confirm) {
-            copyBtn.style.display = "none";
-            confirm.textContent = "✔️ Kopiert til utklippstavle";
-            confirm.style.color = "#2e7d32";
-            confirm.style.display = "inline";
-          }
+          visKopiert();
         } catch (err) {
-          // Vis advarsel hvis auto-kopiering feiler
-          const confirm = popup.querySelector("#copyConfirm");
-          if (confirm) {
-            confirm.textContent = "⚠️ Klikk 'Kopier' for å kopiere";
-            confirm.style.display = "inline";
-            confirm.style.color = "#d32f2f";
-          }
+          visKopieringFeilet();
         }
       })();
-      
-      // Manuel kopiering via knapp (hvis auto-kopiering feilet)
+
+      // Manuell kopiering via knapp (hvis auto-kopiering feilet)
       copyBtn.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(phoneNumber);
-          const confirm = popup.querySelector("#copyConfirm");
-          copyBtn.style.display = "none";
-          confirm.textContent = "✔️ Kopiert til utklippstavle";
-          confirm.style.color = "#2e7d32";
-          confirm.style.display = "inline";
+          visKopiert();
         } catch (err) {
           alert("Kunne ikke kopiere: " + err);
         }
       });
     }
 
-    // Vis eldre hendelser
-    const showOlderBtn = popup.querySelector('#showOlderBtn');
-    if (showOlderBtn) {
-      showOlderBtn.addEventListener('click', () => {
-        popup.querySelectorAll('.event-older-hidden').forEach(r => { r.style.display = ''; });
-        const showOlderRow = popup.querySelector('#showOlderRow');
-        if (showOlderRow) showOlderRow.style.display = 'none';
+    // Hendelseslisten som vises akkurat nå. Oppdateres når bruker etterhenter.
+    let gjeldendeHendelser = eventData.events;
+
+    // Etterhent resterende 4010. Deles av knappen og kjørerute-kartet.
+    let etterhentingPaagaar = null;
+    async function hentAlleHendelser() {
+      if (!hendelseskilde || hendelseskilde.gjenstaar() === 0) return gjeldendeHendelser;
+      if (etterhentingPaagaar) return etterhentingPaagaar;
+
+      etterhentingPaagaar = (async () => {
+        gjeldendeHendelser = await hendelseskilde.hentAlle();
+
+        // Tegn tabellen på nytt. Kart-lenkene fanges opp av delegeringen under,
+        // så nye rader trenger ingen egne lyttere.
+        const tbody = popup.querySelector('#eventsBody');
+        if (tbody) tbody.innerHTML = buildEventRows(gjeldendeHendelser);
+
+        const knapp = popup.querySelector('#fetchAllEventsBtn');
+        if (knapp) knapp.remove();
+
+        return gjeldendeHendelser;
+      })();
+
+      return etterhentingPaagaar;
+    }
+
+    // Hent eldre hendelser
+    const fetchAllEventsBtn = popup.querySelector('#fetchAllEventsBtn');
+    if (fetchAllEventsBtn) {
+      fetchAllEventsBtn.addEventListener('click', async () => {
+        fetchAllEventsBtn.disabled = true;
+        fetchAllEventsBtn.textContent = '⏳ Henter…';
+        try {
+          await hentAlleHendelser();
+        } catch (e) {
+          console.error('Klarte ikke hente resterende hendelser:', e);
+          fetchAllEventsBtn.disabled = false;
+          fetchAllEventsBtn.textContent = '⚠️ Prøv igjen';
+        }
       });
     }
 
-    const coordLinks = popup.querySelectorAll(".coord-link");
-    coordLinks.forEach(link => {
-      link.addEventListener("click", e => {
-        e.preventDefault();
-        const eventData = JSON.parse(link.getAttribute('data-event'));
-        openSingleEventMap(eventData, licensePlate, turId);
-      });
-    });
+    // Delegering på tbody, slik at radene som tegnes på nytt også virker
+    const eventsBody = popup.querySelector('#eventsBody');
+    if (eventsBody) {
+      eventsBody.addEventListener("click", e => {
+        const coordLink = e.target.closest(".coord-link");
+        if (coordLink) {
+          e.preventDefault();
+          const event = JSON.parse(coordLink.getAttribute('data-event'));
+          openSingleEventMap(event, licensePlate, turId);
+          return;
+        }
 
-    const bookingLinks = popup.querySelectorAll("a[href^='/administrasjon/admin/searchStatus']");
+        const bookingLink = e.target.closest("a[href^='/administrasjon/admin/searchStatus']");
+        if (bookingLink) {
+          e.preventDefault();
+          const width = Math.floor(window.innerWidth / 2);
+          const height = Math.floor(window.innerHeight * 0.9);
+          window.open(
+            bookingLink.href,
+            "_blank",
+            `width=${width},height=${height},left=0,top=50,resizable=yes,scrollbars=yes`
+          );
+        }
+      });
+    }
+
+    // Bestillingslenker UTENFOR tabellen (overskriften). Radene i tabellen
+    // håndteres av delegeringen over - ellers ville de fått to lyttere.
+    const bookingLinks = [...popup.querySelectorAll("a[href^='/administrasjon/admin/searchStatus']")]
+      .filter(link => !link.closest('#eventsBody'));
     bookingLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
@@ -2149,10 +2426,31 @@ window.updateEventData = function(newEvent) {
     });
 
     // Kjørerute-knapp (åpner Leaflet-kart)
+    // Kartet skal vise HELE ruta, så eventuelle uhentede 4010 må hentes først.
     const showRouteMapBtn = popup.querySelector("#showRouteMap");
     if (showRouteMapBtn) {
-      showRouteMapBtn.addEventListener("click", () => {
-        openRouteMap(eventData.events, licensePlate, turId);
+      showRouteMapBtn.addEventListener("click", async () => {
+        const opprinneligTekst = showRouteMapBtn.textContent;
+        const maaEtterhente = hendelseskilde && hendelseskilde.gjenstaar() > 0;
+
+        if (maaEtterhente) {
+          showRouteMapBtn.disabled = true;
+          showRouteMapBtn.textContent = '⏳ Henter hendelser…';
+        }
+
+        try {
+          await hentAlleHendelser();
+        } catch (e) {
+          console.error('Klarte ikke hente resterende hendelser til kartet:', e);
+          showErrorToast('Klarte ikke hente alle hendelser - kartet viser kun det som er hentet.');
+        } finally {
+          if (maaEtterhente) {
+            showRouteMapBtn.disabled = false;
+            showRouteMapBtn.textContent = opprinneligTekst;
+          }
+        }
+
+        openRouteMap(gjeldendeHendelser, licensePlate, turId);
       });
     }
 

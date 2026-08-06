@@ -668,6 +668,29 @@
       iframe.src = "/rekvisisjon/requisition/exit";
     });
 
+    // Hjelpefunksjon: Fokuser på Navn-feltet i "Finn behandlingssted"-søket.
+    // Kjøres kun på findTreatmentCenter-sider (både 4-stegs og Ensides), der
+    // Navn-feltet er første inntastingspunkt. Uten dette blir fokus liggende i
+    // nettleserens Ctrl+F-søkeboks når den er åpen mens modalen brukes.
+    const focusSearchName = (doc, win) => {
+      try {
+        const iframeWin = win || doc.defaultView;
+        if (!doc.location || !doc.location.pathname.includes("findTreatmentCenter")) return;
+        const nameField = doc.getElementById("name");
+        if (!nameField) return;
+        // Samme rAF-mønster som focusPickupTime: vent til siden er ferdig
+        // rendret før fokus settes, og én sykel til før select().
+        iframeWin.requestAnimationFrame(() => {
+          iframeWin.requestAnimationFrame(() => {
+            nameField.focus();
+            iframeWin.requestAnimationFrame(() => {
+              nameField.select();
+            });
+          });
+        });
+      } catch (err) {}
+    };
+
     // ============================================================
     // ÅPNE MODAL MED IFRAME
     // Brukes for å vise redigering, hendelseslogg, etc.
@@ -1410,6 +1433,9 @@
             if (e.key === 'Alt' && _iframeAltAlone) { e.preventDefault(); }
             _iframeAltAlone = false;
           }, true);
+
+          // Sett markøren i Navn-feltet ved søk etter behandlingssted
+          focusSearchName(doc, win);
         } catch (err) {}
       });
 

@@ -581,6 +581,8 @@
 
                         fixTilbakeLink(iframeDoc);
 
+                        focusEntryField(iframeDoc, iframeWin);
+
                         setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
 
                     }
@@ -1010,6 +1012,10 @@
                                 }, 150);
                             });
                         }
+
+                        fixTilbakeLink(iframeDoc);
+
+                        focusEntryField(iframeDoc, iframeWin);
 
                         setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
 
@@ -1713,6 +1719,40 @@
     }
 
     /**
+     * Hjelpefunksjon: Setter fokus i sidens første inntastingsfelt og markerer
+     * innholdet. Uten dette blir fokus liggende i nettleserens Ctrl+F-søkeboks
+     * når den er åpen mens modalen brukes.
+     *
+     * Gjelder:
+     * - "Finn behandlingssted"-søket (Navn-feltet), både 4-stegs og Ensides
+     * - Fødselsnummer-feltet på første steg i 4-stegs. Ensides har eget felt
+     *   (patientSsnDecrypted) som med vilje ikke røres, siden hele skjemaet
+     *   ligger på én side der.
+     */
+    function focusEntryField(doc, win) {
+        try {
+            const iframeWin = win || doc.defaultView;
+            const isSearchPage = doc.location && doc.location.pathname.includes('findTreatmentCenter');
+            const field = isSearchPage
+                ? doc.getElementById('name')
+                : doc.getElementById('ssnDecrypted');
+            if (!field) return;
+            // Samme rAF-mønster som focusPickupTime: vent til siden er ferdig
+            // rendret før fokus settes, og én sykel til før select().
+            iframeWin.requestAnimationFrame(() => {
+                iframeWin.requestAnimationFrame(() => {
+                    field.focus();
+                    iframeWin.requestAnimationFrame(() => {
+                        field.select();
+                    });
+                });
+            });
+        } catch (err) {
+            console.error('Error focusing entry field:', err);
+        }
+    }
+
+    /**
      * Henter "Oppm. dato" (4. kolonne) fra en rad i returrekvisisjon-listen.
      * Format: "dd.mm.åå hh:mm" → returnerer {day, month, year}, eller null
      * hvis kolonnen ikke inneholder en dato.
@@ -2032,6 +2072,8 @@
                         }, true);
 
                         fixTilbakeLink(iframeDoc);
+
+                        focusEntryField(iframeDoc, iframeWin);
 
                         // Sjekk og rett opp blankt Reisemåte-felt
                         if (rid) fixTransportType(iframeDoc, rid);

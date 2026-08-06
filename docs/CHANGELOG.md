@@ -11,6 +11,35 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.1] - 07.08.2026
+
+### Ressursinfo: Raskere oppslag - henter kun de nyeste vognløpshendelsene
+
+- 🚕 **Ressursinfo (ALT+D)**
+  - Henter nå kun de 5 nyeste vognløpshendelsene ved oppstart i stedet for alle. På vognløp med mange hendelser gir dette et vesentlig raskere oppslag når du bare skal ha tak i mobilnummeret til sjåføren
+  - Ny knapp **"⬇️ Hent N eldre hendelser"** over hendelsestabellen henter resten når du trenger hele historikken. Antallet er nøyaktig, og telles opp uten å hente noe
+  - **"🗺️ Vis kjørerute i kart"** henter automatisk de resterende hendelsene før kartet åpnes, slik at kjøreruta alltid vises komplett
+
+### Adresser: Fjerner sti-prefiks (./ ../ .../) foran behandlingssteder
+
+- 📱 **Send-SMS** / 🗺️ **Kartvisning** / 🧭 **Rutekalkulering** / 🕐 **Hentetid** / ✖️ **Avbestilling** / 🚐 **Samkjøring** / 🔍 **Sjekk-Bestilling** / 🚩 **Sjekk-Plakat** / 🚕 **Ressursinfo** / 📡 **Live ressurskart**
+  - Adresser som starter med `./`, `../` eller `.../` (f.eks. ".../BVS 1. ort pol, 7030 Trondheim") vises nå uten prefikset, på samme måte som H0101 / U0101 filtreres bort. Prefikset fjernes kun når det står i starten av adressen
+
+### Bestillingsmodul/Rek-knapper: Forbedret søk etter behandlingssted når Ctrl+F-boksen står åpen
+
+- 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)**
+  - Har du nettleserens eget søkefelt (Ctrl+F) åpent når du jobber i pop-up-modalen, ble ikke fokus satt i **"Navn"**-feltet når du søkte etter behandlingssted. Nå settes markøren i "Navn"-feltet automatisk, så du kan skrive med én gang
+  - Teksten som allerede står i feltet markeres samtidig, så du kan skrive rett over et tidligere søk uten å måtte slette/markere først
+  - Det samme gjelder **Fødselsnummer**-feltet i 4-stegs i bestillingsmodulen – markøren står klar der med én gang.
+  - Gjelder pop-up-modalen i både 4-stegs og ensides – også fra "R"-linken, Hent rekvisisjon og knappene i Rek-knapper. Åpner du modulen i ny fane, oppstår ikke problemet
+
+### Bestillingsmodul: "Tilbake"-knappen virker nå også via Hent rekvisisjon
+
+- 📝 **Bestillingsmodul (ALT+H)**
+  - Åpnet du en bestilling via Hent rekvisisjon og gikk videre til søk etter behandlingssted, tok "Tilbake"-knappen deg ikke tilbake dit du kom fra. Fiksen som allerede gjaldt resten av modulen virker nå også her
+
+---
+
 ## 🔧 [4.9.0] - 10.07.2026
 
 > ⚠️ **Anbefaling: Oppdater bokmerket ditt.** Selve bokmerket har fått en viktig oppdatering i denne versjonen (GitHub/jsDelivr-fallback ved lasting) - Kopiér inn ny bokmerke-kode fra [README](../README.md#-installasjon) eller brukerveiledningen for din pakke. Det gamle bokmerket fungerer fortsatt som før, men uten den nye robustheten før du oppdaterer det.
