@@ -17,8 +17,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - ⌛ **NISSY-fiks**
   - Merkingen må fjernes når du bytter filter eller viser/skjuler kolonner, ellers henger NISSY. Nå settes den tilbake automatisk så snart listene er ferdig oppdatert, slik at du slipper å merke opp igjen
-  - Gjelder ventende oppdrag, pågående oppdrag og ressurser – f.eks. en ressurs du har merket for å tildele noe blir stående merket når du bytter filter
-  - Bestillinger, turer og ressurser som er filtrert bort hoppes over. Det som fortsatt vises blir merket på nytt
+  - Gjelder ventende og pågående oppdrag. Bestillinger og turer som er filtrert bort hoppes over – det som fortsatt vises blir merket på nytt
+  - Merkede ressurser som ikke ligger på pågående oppdrag gjenopprettes ikke.
 
 ### Hentetid/Bestillingsmodul/Rek-knapper: Merkede ressurser beholdes
 

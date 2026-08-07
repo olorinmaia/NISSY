@@ -708,9 +708,11 @@
   let restoreQuietTimer    = null;
   let restoreDeadlineTimer = null;
 
+  // Kun ventende og pågående oppdrag. Ressurser holdes utenfor ved
+  // filterbytte, siden ressurslisten selv er det som endrer seg.
   function getSelectedRowIds() {
     const rows = document.querySelectorAll(
-      '#ventendeoppdrag tr[id^="V-"], #pagaendeoppdrag tr[id^="P-"], #resurser tr[id^="Rxxx"]'
+      '#ventendeoppdrag tr[id^="V-"], #pagaendeoppdrag tr[id^="P-"]'
     );
     return Array.from(rows)
       .filter(row => row.style.backgroundColor === RESTORE_SELECTED_BG)
@@ -718,9 +720,8 @@
   }
 
   function listSelectionFor(rowId) {
-    if (rowId.startsWith('V-'))   return window.g_voppLS;
-    if (rowId.startsWith('P-'))   return window.g_poppLS;
-    if (rowId.startsWith('Rxxx')) return window.g_resLS;
+    if (rowId.startsWith('V-')) return window.g_voppLS;
+    if (rowId.startsWith('P-')) return window.g_poppLS;
     return undefined;
   }
 
@@ -733,16 +734,8 @@
     pendingRestoreIds = null;
     if (!ids || typeof selectRow !== 'function') return;
 
-    // Ventende/pågående først: å markere en pågående rad markerer også
-    // tilhørende ressursrad, og da skal vi ikke toggle den av igjen etterpå
-    // (sjekken mot allerede merket rad nedenfor fanger det opp).
-    const ordered = [
-      ...ids.filter(id => !id.startsWith('Rxxx')),
-      ...ids.filter(id =>  id.startsWith('Rxxx'))
-    ];
-
     let restored = 0;
-    ordered.forEach(id => {
+    ids.forEach(id => {
       const row = document.getElementById(id);
       // Raden er filtrert bort, eller allerede merket
       if (!row || row.style.backgroundColor === RESTORE_SELECTED_BG) return;
