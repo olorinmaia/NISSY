@@ -204,8 +204,30 @@
       e.stopPropagation();
       return false;
     }
-  
+
   }, true);
+
+  /* ======================================================
+     DEL 0A: BEKREFTELSE FØR PLANLEGGING LUKKES (Ctrl+W m.m.)
+     Ctrl+W er en reservert nettleser-snarvei: keydown fyres, men
+     preventDefault() stopper IKKE lukkingen (til forskjell fra F5 og
+     Ctrl+R over). Det eneste som gir brukeren et valg er beforeunload,
+     som viser nettleserens egen dialog ("Vil du forlate siden?").
+     Teksten kan ikke styres av oss.
+
+     Siden F5 og Ctrl+R allerede fanges opp, slår dialogen i praksis kun
+     inn ved faktisk lukking eller navigasjon bort fra Planlegging.
+     ====================================================== */
+
+  // Settes når scriptet selv navigerer bort (f.eks. reload ved utløpt økt),
+  // slik at brukeren ikke får dialogen oppå sin egen bekreftelse
+  let _skipCloseGuard = false;
+
+  window.addEventListener('beforeunload', (e) => {
+    if (_skipCloseGuard) return;
+    e.preventDefault();
+    e.returnValue = ''; // kreves av eldre nettlesere
+  });
 
   /* ======================================================
      DEL 0B: FORBEDRET KARTVINDU (matcher Rutekalkulering)
@@ -503,6 +525,8 @@
     );
     
     if (userConfirmed) {
+      // Brukeren har allerede bekreftet – ikke vis lukkevarselet oppå
+      _skipCloseGuard = true;
       window.location.reload();
     }
   }

@@ -20,6 +20,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Gjelder ventende og pågående oppdrag. Bestillinger og turer som er filtrert bort hoppes over – det som fortsatt vises blir merket på nytt
   - Merkede ressurser som ikke ligger på pågående oppdrag gjenopprettes ikke.
 
+### NISSY-fiks: Bekreftelse før Planlegging lukkes
+
+- ⌛ **NISSY-fiks**
+  - CTRL+W, reload-knappen og andre måter å lukke fanen på gir nå en bekreftelse først, slik at du ikke mister planleggingsvinduet ved et uhell
+  - F5 og CTRL+R oppdaterer oppdragene som før, uten spørsmål
+
 ### Hentetid/Bestillingsmodul/Rek-knapper: Merkede ressurser beholdes
 
 - 🕐 **Hentetid (ALT+E)** / 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)**
