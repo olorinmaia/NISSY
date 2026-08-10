@@ -362,6 +362,7 @@ Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`
 
 ### 📞 Sjekk-Telefon (Alt+4)
 Sjekker alle bestillinger på valgt filter for manglende telefonnummer og viser de i en liste du kan klikke deg inn på for å rette opp.
+- Nummer som ikke er mobilnummer (f.eks. fasttelefon) vises i en egen liste – det er da usikkert om SMS når frem. Har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen.
 
 ### 📊 Statistikk (Alt+5)
 Beregner i en pop-up antall bestillinger på ventende/pågående oppdrag og «samkjøringsgrad» basert på valgte filter.

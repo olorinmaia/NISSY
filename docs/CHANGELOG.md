@@ -11,25 +11,26 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.9.2] - ??.08.2026
+## 🔧 [4.9.2] - 11.08.2026
 
-### NISSY-fiks: Merkingen kommer tilbake etter filterbytte
+### NISSY-fiks: Merkingen kommer tilbake etter filterbytte, og bekreftelse før Planlegging lukkes
 
 - ⌛ **NISSY-fiks**
   - Merkingen må fjernes når du bytter filter eller viser/skjuler kolonner, ellers henger NISSY. Nå settes den tilbake automatisk så snart listene er ferdig oppdatert, slik at du slipper å merke opp igjen
   - Gjelder ventende og pågående oppdrag. Bestillinger og turer som er filtrert bort hoppes over – det som fortsatt vises blir merket på nytt
   - Merkede ressurser som ikke ligger på pågående oppdrag gjenopprettes ikke.
-
-### NISSY-fiks: Bekreftelse før Planlegging lukkes
-
-- ⌛ **NISSY-fiks**
   - CTRL+W, reload-knappen og andre måter å lukke fanen på gir nå en bekreftelse først, slik at du ikke mister planleggingsvinduet ved et uhell
-  - F5 og CTRL+R oppdaterer oppdragene som før, uten spørsmål
 
 ### Hentetid/Bestillingsmodul/Rek-knapper: Merkede ressurser beholdes
 
 - 🕐 **Hentetid (ALT+E)** / 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)**
   - Disse scriptene merket opp igjen bestillinger og turer etter at listene ble oppdatert, men merkede ressurser falt ut. Nå beholdes også ressursmerkingen
+
+### Sjekk-telefon: Fasttelefon skilles fra mobilnummer
+
+- 📞 **Sjekk-Telefon (Alt+4)**
+  - Norske nummer som ikke er mobilnummer (starter ikke på 4 eller 9), f.eks. fasttelefon, vises nå i en egen liste i resultatvinduet
+  - Det er da usikkert om SMS når frem – har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen
 
 ---
 

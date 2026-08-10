@@ -206,6 +206,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
 - 📞 **Sjekk-Telefon (Alt+4)**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+  - Nummer som ikke er mobilnummer (f.eks. fasttelefon) vises i en egen liste – det er da usikkert om SMS når frem. Har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/7b0bb542-abcb-43ed-a873-f191ef18d832" />
 - 📊 **Statistikk (Alt+5)**
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
