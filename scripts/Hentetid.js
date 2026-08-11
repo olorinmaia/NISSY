@@ -642,6 +642,8 @@
       // Hent nåværende verdi fra input hvis den finnes
       const existingInput = popup.querySelector(`#time_${displayId}`);
       const currentValue = existingInput ? existingInput.value : b.currentTime || b.existingTime;
+      // Behold data-original fra eksisterende felt (oppdateres etter lagring)
+      const originalTime = existingInput ? existingInput.getAttribute('data-original') : b.existingTime;
       const borderColor = existingInput ? existingInput.style.borderColor : '#2196f3';
       const bgColor = existingInput ? existingInput.style.background : '#fff';
       
@@ -730,7 +732,7 @@
               <input 
                 type="text" 
                 id="time_${displayId}"
-                data-original="${b.existingTime}"
+                data-original="${originalTime}"
                 value="${currentValue}"
                 placeholder="HH:MM"
                 maxlength="5"
@@ -2864,6 +2866,31 @@
     };
 
     if (sortedBestillinger.length > 0) {
+    // Tilstander for Lagre-knappen: 'active' (grønn, klikkbar), 'saving', 'saved' (grå)
+    const setConfirmButtonState = (state) => {
+      const enabled = state === 'active';
+      confirmButton.disabled = !enabled;
+      confirmButton.style.background = enabled ? '#28a745' : '#95a5a6';
+      confirmButton.style.cursor = enabled ? 'pointer' : 'default';
+      confirmButton.style.opacity = enabled ? '1' : '0.65';
+      confirmButton.textContent = state === 'saved' ? '✅ Lagret' : state === 'saving' ? '💾 Lagrer...' : '💾 Lagre';
+    };
+
+    // Etter lagring: reaktiver Lagre-knappen hvis en hentetid avviker fra sist lagret verdi
+    const refreshConfirmAfterSave = () => {
+      if (!changesSaved || confirmButton.textContent.includes('Lagrer')) return;
+      const hasNewChanges = [...popup.querySelectorAll('input[id^="time_"]')]
+        .some(inp => inp.value.trim() !== inp.getAttribute('data-original'));
+      setConfirmButtonState(hasNewChanges ? 'active' : 'saved');
+    };
+    // Delegert på popup slik at lytterne overlever rebuild av bestillingslisten
+    popup.addEventListener('input', (e) => {
+      if (e.target.id && e.target.id.startsWith('time_')) refreshConfirmAfterSave();
+    });
+    popup.addEventListener('focusout', (e) => {
+      if (e.target.id && e.target.id.startsWith('time_')) refreshConfirmAfterSave();
+    });
+
     confirmButton.onclick = async () => {
       // Sorter visuelt før validering hvis rekkefølgen ikke er kronologisk
       const currentlySorted = sortBestillingerByTime(bestillinger, popup);
@@ -2941,10 +2968,15 @@
         return;
       }
 
+      const cancelButton = popup.querySelector("#cancelChange");
       statusBox.style.display = "block";
-      confirmButton.style.display = "none";
-      popup.querySelector("#cancelChange").style.display = "none";
-      
+      statusBox.style.background = "#ecf0f1";
+      statusBox.style.color = "#555";
+      setConfirmButtonState('saving');
+      cancelButton.disabled = true;
+      cancelButton.style.opacity = "0.65";
+      cancelButton.style.cursor = "default";
+
       bestillinger.forEach(b => {
         const displayId = b.uniqueId || b.id;
         const input = popup.querySelector(`#time_${displayId}`);
@@ -2953,6 +2985,12 @@
 
       await processTimeChanges(changes, statusBox);
       changesSaved = true;
+
+      // Oppdater "original"-verdiene slik at bare nye redigeringer regnes som endringer
+      changes.forEach(c => {
+        const input = popup.querySelector(`#time_${c.uniqueId || c.id}`);
+        if (input) input.setAttribute('data-original', c.newTime);
+      });
 
       statusBox.style.background = "#d4edda";
       statusBox.style.color = "#155724";
@@ -2988,29 +3026,20 @@
         setTimeout(() => openPopp('-1'), 200);
       }
       
-      const closeButton = document.createElement("button");
-      closeButton.textContent = "Lukk";
-      Object.assign(closeButton.style, {
-        marginTop: "16px",
-        padding: "10px 24px",
-        background: "#95a5a6",
-        color: "#fff",
-        border: "none",
-        borderRadius: "6px",
-        fontSize: "14px",
-        cursor: "pointer",
-        fontWeight: "600"
+      // Gjenåpne feltene for videre justering - Lagre-knappen forblir grå ("✅ Lagret")
+      // til en hentetid endres på nytt (håndteres av refreshConfirmAfterSave)
+      setConfirmButtonState('saved');
+      bestillinger.forEach(b => {
+        const displayId = b.uniqueId || b.id;
+        const input = popup.querySelector(`#time_${displayId}`);
+        if (input) input.disabled = false;
       });
-      closeButton.onclick = closePopup;
-      popup.appendChild(closeButton);
-      
-      setTimeout(() => closeButton.focus(), 100);
-      closeButton.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          closePopup();
-        }
-      });
+
+      cancelButton.disabled = false;
+      cancelButton.style.opacity = "1";
+      cancelButton.style.cursor = "pointer";
+      cancelButton.textContent = "Lukk";
+      setTimeout(() => cancelButton.focus(), 100);
     };
     }
 

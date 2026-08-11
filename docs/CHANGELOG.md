@@ -32,6 +32,14 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Norske nummer som ikke er mobilnummer (starter ikke på 4 eller 9), f.eks. fasttelefon, vises nå i en egen liste i resultatvinduet
   - Det er da usikkert om SMS når frem – har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen
 
+### Hentetid: Fortsett å justere etter lagring
+
+- 🕐 **Hentetid (ALT+E)**
+  - Lagre-knappen forsvinner ikke lenger etter lagring – den blir stående grået ut som «✅ Lagret», og blir grønn «💾 Lagre» igjen så snart en hentetid endres på nytt
+  - Praktisk når du ser i kartet etter lagring at det trengs videre justeringer – du slipper å lukke vinduet og starte på nytt
+  - Ved ny lagring sendes kun hentetider som faktisk er endret siden forrige lagring
+  - Avbryt-knappen skifter tekst til «Lukk» etter lagring og har fokus, så Enter lukker vinduet som før
+
 ---
 
 ## 🔧 [4.9.1] - 07.08.2026

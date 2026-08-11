@@ -48,6 +48,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Pågående oppdrag med status ≠ "Tildelt" vises som info-kort til orientering, men kan ikke redigeres her.
   - **Beregn alle mot felles oppmøtetid** – ved flere reiser til behandling kan du sette én felles oppmøtetid og beregne alle hentetider med ett klikk. Oppmøtetiden lagres ikke i bestillingene.
   - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
+  - Etter lagring kan du fortsette å justere hentetidene og lagre på nytt – Lagre-knappen viser «✅ Lagret» og aktiveres igjen når noe endres.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/ff8e576f-85ce-44e7-b1cc-4f4b9da8cc96" />
 
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**

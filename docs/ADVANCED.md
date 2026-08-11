@@ -220,6 +220,7 @@ Tilordner hver bestilling til sin egen avtale (individuelt). Ingen begrensning p
 
 Lar deg merke bestillinger på ventende og pågående oppdrag for å redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
 "🗺️ Kartvisning" oppe til høyre i pop-up, viser merkede bestillinger i kartet. "Rutekalkulering" åpner bestillingene i Google maps. "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
+Etter lagring kan du fortsette å justere hentetidene og lagre på nytt – Lagre-knappen viser «✅ Lagret» og aktiveres igjen når noe endres.
 
 **Pågående oppdrag med status ≠ "Tildelt":**
 Disse kan ikke redigeres her, men vises i stedet som info-kort nederst i pop-upen (navn, adresse, hentetid, oppmøtetid, status og "H"-knapp), slik at du får oversikt over alt som er merket. Hvis ingen av de merkede ressursene har status "Tildelt", vises kun info-kort og en "Lukk"-knapp.
