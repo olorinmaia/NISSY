@@ -39,6 +39,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Praktisk når du ser i kartet etter lagring at det trengs videre justeringer – du slipper å lukke vinduet og starte på nytt
   - Ved ny lagring sendes kun hentetider som faktisk er endret siden forrige lagring
   - Avbryt-knappen skifter tekst til «Lukk» etter lagring og har fokus, så Enter lukker vinduet som før
+  - Etter 🧮-beregning for én enkelt bestilling flyttes fokus til hentetid-feltet, slik at Enter lagrer med én gang – samme oppførsel som «Beregn alle»
 
 ---
 

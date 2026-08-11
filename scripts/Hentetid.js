@@ -1153,6 +1153,11 @@
           e.preventDefault();
           const inputElement = popup.querySelector(`#time_${displayId}`);
           await autoCalculatePickupTime(b, inputElement, calcButton, popup);
+          // Flytt fokus til hentetid-feltet slik at Enter lagrer (som etter "Beregn alle")
+          if (inputElement) {
+            inputElement.focus();
+            inputElement.select();
+          }
         };
       }
 
