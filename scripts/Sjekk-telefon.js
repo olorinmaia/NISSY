@@ -166,10 +166,18 @@
         return -1;
     }
 
-    // Funksjon for å validere telefonnummer
-    function isValidPhone(phone) {
-        if (!phone || phone.trim() === '') return false;
-        return VALID_PHONE_REGEX.test(phone.trim());
+    // Klassifiserer telefonnummer:
+    //  'mobil'       - norsk mobilnummer (starter på 4 eller 9), eller utenlandsk nummer
+    //  'fasttelefon' - gyldig norsk nummer som ikke er mobil (usikkert om SMS når frem)
+    //  'ugyldig'     - mangler eller matcher ikke gyldig format
+    function classifyPhone(phone) {
+        if (!phone || phone.trim() === '') return 'ugyldig';
+        if (!VALID_PHONE_REGEX.test(phone.trim())) return 'ugyldig';
+        const digits = phone.replace(/\s+/g, '');
+        // Utenlandske nummer (+ annet enn +47) kan ikke vurderes mot norske nummerserier
+        if (digits.startsWith('+') && !digits.startsWith('+47')) return 'mobil';
+        const national = digits.startsWith('+47') ? digits.slice(3) : digits;
+        return /^[49]/.test(national) ? 'mobil' : 'fasttelefon';
     }
 
     // Funksjon for å sjekke ventende oppdrag
@@ -207,12 +215,14 @@
                 const name = nameCell.textContent.trim();
                 const phone = phoneCell.textContent.trim();
 
-                if (!isValidPhone(phone)) {
+                const kategori = classifyPhone(phone);
+                if (kategori !== 'mobil') {
                     results.push({
                         name: name,
                         phone: phone === '' || phone === '&nbsp;' ? 'Mangler' : phone,
                         rowId: row.id,
-                        reqId: row.id.replace(/^V-/, '')
+                        reqId: row.id.replace(/^V-/, ''),
+                        kategori: kategori
                     });
                 }
             }
@@ -273,12 +283,14 @@
                         const name = nameDivs[i].textContent.trim();
                         const phone = i < phoneDivs.length ? phoneDivs[i].textContent.trim() : '';
 
-                        if (!isValidPhone(phone)) {
+                        const kategori = classifyPhone(phone);
+                        if (kategori !== 'mobil') {
                             results.push({
                                 name: name,
                                 phone: phone === '' || phone === '&nbsp;' ? 'Mangler' : phone,
                                 rowId: row.id,
-                                reqId: poppImgs[i]?.id.replace('popp_', '') || null
+                                reqId: poppImgs[i]?.id.replace('popp_', '') || null,
+                                kategori: kategori
                             });
                         }
                     }
@@ -288,12 +300,14 @@
                     const phone = phoneCell.textContent.trim();
                     const poppImg = row.querySelector('img[id^="popp_"]');
 
-                    if (!isValidPhone(phone)) {
+                    const kategori = classifyPhone(phone);
+                    if (kategori !== 'mobil') {
                         results.push({
                             name: name,
                             phone: phone === '' || phone === '&nbsp;' ? 'Mangler' : phone,
                             rowId: row.id,
-                            reqId: poppImg?.id.replace('popp_', '') || null
+                            reqId: poppImg?.id.replace('popp_', '') || null,
+                            kategori: kategori
                         });
                     }
                 }
@@ -311,11 +325,13 @@
             existingModal.remove();
         }
 
-        // Fjern duplikater - behold kun unike navn
+        // Fjern duplikater - behold kun unike navn.
+        // Ugyldig/manglende nummer prioriteres over fasttelefon hvis samme pasient har begge deler
         const uniqueNames = {};
         results.forEach(result => {
-            if (!uniqueNames[result.name]) {
-                uniqueNames[result.name] = { phone: result.phone, rowId: result.rowId, reqId: result.reqId };
+            const existing = uniqueNames[result.name];
+            if (!existing || (existing.kategori === 'fasttelefon' && result.kategori !== 'fasttelefon')) {
+                uniqueNames[result.name] = { phone: result.phone, rowId: result.rowId, reqId: result.reqId, kategori: result.kategori };
             }
         });
 
@@ -324,6 +340,7 @@
             phone: uniqueNames[name].phone,
             rowId: uniqueNames[name].rowId,
             reqId: uniqueNames[name].reqId,
+            kategori: uniqueNames[name].kategori,
         }));
 
         // Opprett modal overlay
@@ -362,14 +379,19 @@
 
         if (uniqueResults.length === 0) {
             const message = document.createElement('p');
-            message.textContent = 'Alle bestillinger har gyldig telefonnummer! ✓';
+            message.textContent = 'Alle bestillinger har gyldig mobilnummer! ✓';
             message.style.cssText = 'color: #28a745; font-weight: bold; padding: 20px; text-align: center;';
             modal.appendChild(message);
         } else {
-            const intro = document.createElement('p');
-            intro.textContent = 'Fant ' + uniqueResults.length + ' pasient(er) med ugyldig eller manglende telefonnummer:';
-            intro.style.cssText = 'color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; border-left: 4px solid #ffc107;';
-            modal.appendChild(intro);
+            const manglerResults = uniqueResults.filter(r => r.kategori !== 'fasttelefon');
+            const fasttelefonResults = uniqueResults.filter(r => r.kategori === 'fasttelefon');
+
+            if (manglerResults.length > 0) {
+                const intro = document.createElement('p');
+                intro.textContent = 'Fant ' + manglerResults.length + ' pasient(er) med ugyldig eller manglende telefonnummer:';
+                intro.style.cssText = 'color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; border-left: 4px solid #ffc107;';
+                modal.appendChild(intro);
+            }
 
             const tips = document.createElement('details');
             tips.style.cssText = 'margin: 10px 0 16px 0; font-size: 13px; color: #555;';
@@ -386,9 +408,12 @@
             tips.appendChild(tipsList);
             modal.appendChild(tips);
 
-            // Opprett liste
-            const list = document.createElement('ul');
-            list.style.cssText = 'list-style: none; padding: 0; margin: 20px 0;';
+            // Opprett én liste per kategori
+            const listStyle = 'list-style: none; padding: 0; margin: 12px 0 20px 0;';
+            const manglerList = document.createElement('ul');
+            manglerList.style.cssText = listStyle;
+            const fasttelefonList = document.createElement('ul');
+            fasttelefonList.style.cssText = listStyle;
 
             uniqueResults.forEach(result => {
                 const item = document.createElement('li');
@@ -413,7 +438,8 @@
 
                 const phoneSpan = document.createElement('span');
                 phoneSpan.textContent = ' - ' + result.phone;
-                phoneSpan.style.cssText = 'flex-shrink: 0; white-space: nowrap; ' + (result.phone === 'Mangler' ? 'color: #dc3545;' : 'color: #856404;');
+                const phoneColor = result.phone === 'Mangler' ? '#dc3545' : result.kategori === 'fasttelefon' ? '#0c5460' : '#856404';
+                phoneSpan.style.cssText = 'flex-shrink: 0; white-space: nowrap; color: ' + phoneColor + ';';
 
                 textContainer.appendChild(nameSpan);
                 textContainer.appendChild(phoneSpan);
@@ -608,10 +634,20 @@
 
                 item.appendChild(textContainer);
                 item.appendChild(buttonContainer);
-                list.appendChild(item);
+                (result.kategori === 'fasttelefon' ? fasttelefonList : manglerList).appendChild(item);
             });
 
-            modal.appendChild(list);
+            if (manglerResults.length > 0) {
+                modal.appendChild(manglerList);
+            }
+
+            if (fasttelefonResults.length > 0) {
+                const fastIntro = document.createElement('p');
+                fastIntro.textContent = 'Fant ' + fasttelefonResults.length + ' pasient(er) med fasttelefon eller annet nummer som ikke er mobilnummer – det er da usikkert om SMS når frem (mobilen kan ligge i et annet felt). Har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen:';
+                fastIntro.style.cssText = 'color: #0c5460; background: #d1ecf1; padding: 10px; border-radius: 4px; border-left: 4px solid #17a2b8;';
+                modal.appendChild(fastIntro);
+                modal.appendChild(fasttelefonList);
+            }
         }
 
         // Lukk-knapp
@@ -683,7 +719,7 @@
         const paagaaendeResults = checkPaagaaendeOppdrag();
         const allResults = [...ventendeResults, ...paagaaendeResults];
 
-        console.log('Fant ' + allResults.length + ' bestillinger med ugyldige telefonnummer');
+        console.log('Fant ' + allResults.length + ' bestillinger uten gyldig mobilnummer');
 
         // Skjul kolonner mens spinner fortsatt dekker bakgrunnen
         await togglePhoneColumns(false, nameWasHidden);

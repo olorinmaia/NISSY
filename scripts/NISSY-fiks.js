@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.9.1'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.9.2'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -204,8 +204,30 @@
       e.stopPropagation();
       return false;
     }
-  
+
   }, true);
+
+  /* ======================================================
+     DEL 0A: BEKREFTELSE FØR PLANLEGGING LUKKES (Ctrl+W m.m.)
+     Ctrl+W er en reservert nettleser-snarvei: keydown fyres, men
+     preventDefault() stopper IKKE lukkingen (til forskjell fra F5 og
+     Ctrl+R over). Det eneste som gir brukeren et valg er beforeunload,
+     som viser nettleserens egen dialog ("Vil du forlate siden?").
+     Teksten kan ikke styres av oss.
+
+     Siden F5 og Ctrl+R allerede fanges opp, slår dialogen i praksis kun
+     inn ved faktisk lukking eller navigasjon bort fra Planlegging.
+     ====================================================== */
+
+  // Settes når scriptet selv navigerer bort (f.eks. reload ved utløpt økt),
+  // slik at brukeren ikke får dialogen oppå sin egen bekreftelse
+  let _skipCloseGuard = false;
+
+  window.addEventListener('beforeunload', (e) => {
+    if (_skipCloseGuard) return;
+    e.preventDefault();
+    e.returnValue = ''; // kreves av eldre nettlesere
+  });
 
   /* ======================================================
      DEL 0B: FORBEDRET KARTVINDU (matcher Rutekalkulering)
@@ -503,6 +525,8 @@
     );
     
     if (userConfirmed) {
+      // Brukeren har allerede bekreftet – ikke vis lukkevarselet oppå
+      _skipCloseGuard = true;
       window.location.reload();
     }
   }
@@ -611,6 +635,12 @@
   };
 
   XMLHttpRequest.prototype.send = function(...args) {
+    // Etter filter-/kolonnebytte: hold gjenopprettingen av merking i vente
+    // så lenge det fortsatt kommer ajax-kall
+    if (typeof this._requestUrl === 'string' && this._requestUrl.includes('ajax-dispatch')) {
+      this.addEventListener("load", () => scheduleRestore());
+    }
+
     if (this._requestType) {
       const requestType = this._requestType;
 
@@ -685,16 +715,97 @@
     }
   }
 
+  /* ------------------------------------------------------------------
+     GJENOPPRETTING AV MERKING ETTER FILTER-/KOLONNEBYTTE
+     Merkingen må fjernes før byttet (ellers kan NISSY henge), men radene
+     som fortsatt finnes etterpå markeres på nytt. Vi vet ikke på forhånd
+     hvor mange kall byttet fører til – ventende laster kun sin egen liste,
+     mens ressursbytte i tillegg kjører openPopp – så vi venter til
+     AJAX-trafikken har roet seg, med en absolutt frist som sikkerhetsnett.
+     ------------------------------------------------------------------ */
+
+  const RESTORE_SELECTED_BG   = 'rgb(148, 169, 220)';
+  const RESTORE_QUIET_MS      = 250;   // stillhet etter siste ajax-kall
+  const RESTORE_MAX_WAIT_MS   = 6000;  // sikkerhetsnett
+
+  let pendingRestoreIds    = null;
+  let restoreQuietTimer    = null;
+  let restoreDeadlineTimer = null;
+
+  // Kun ventende og pågående oppdrag. Ressurser holdes utenfor ved
+  // filterbytte, siden ressurslisten selv er det som endrer seg.
+  function getSelectedRowIds() {
+    const rows = document.querySelectorAll(
+      '#ventendeoppdrag tr[id^="V-"], #pagaendeoppdrag tr[id^="P-"]'
+    );
+    return Array.from(rows)
+      .filter(row => row.style.backgroundColor === RESTORE_SELECTED_BG)
+      .map(row => row.id);
+  }
+
+  function listSelectionFor(rowId) {
+    if (rowId.startsWith('V-')) return window.g_voppLS;
+    if (rowId.startsWith('P-')) return window.g_poppLS;
+    return undefined;
+  }
+
+  function applyPendingRestore() {
+    clearTimeout(restoreQuietTimer);
+    clearTimeout(restoreDeadlineTimer);
+    restoreQuietTimer = restoreDeadlineTimer = null;
+
+    const ids = pendingRestoreIds;
+    pendingRestoreIds = null;
+    if (!ids || typeof selectRow !== 'function') return;
+
+    let restored = 0;
+    ids.forEach(id => {
+      const row = document.getElementById(id);
+      // Raden er filtrert bort, eller allerede merket
+      if (!row || row.style.backgroundColor === RESTORE_SELECTED_BG) return;
+      const ls = listSelectionFor(id);
+      if (!ls) return;
+      try {
+        selectRow(id, ls);
+        restored++;
+      } catch (e) {}
+    });
+
+    if (restored) {
+      console.log(`✅ Gjenopprettet merking på ${restored} av ${ids.length} rad(er) etter filterbytte`);
+    }
+  }
+
+  // Kalles fra XHR-lytteren for hvert ajax-dispatch-kall mens en
+  // gjenoppretting venter – siste kall bestemmer når vi markerer på nytt.
+  function scheduleRestore() {
+    if (!pendingRestoreIds) return;
+    clearTimeout(restoreQuietTimer);
+    restoreQuietTimer = setTimeout(applyPendingRestore, RESTORE_QUIET_MS);
+  }
+
+  function armRestore() {
+    const ids = getSelectedRowIds();
+    // Tomt utvalg: behold en eventuell ventende gjenoppretting (den ble
+    // armert av forrige bytte og er ikke kjørt ennå)
+    if (ids.length) pendingRestoreIds = ids;
+    if (!pendingRestoreIds) return;
+    clearTimeout(restoreDeadlineTimer);
+    restoreDeadlineTimer = setTimeout(applyPendingRestore, RESTORE_MAX_WAIT_MS);
+  }
+
   function onSelectChange(e) {
     const select = e.target;
     if (!select || select.tagName !== "SELECT") return;
-  
+
     if (SELECTS_CLEAR_ONLY.includes(select.name)) {
+      armRestore();
       clearSelection();
       return;
     }
 
     if (SELECTS_FULL_ACTION.includes(select.name)) {
+      armRestore();
       clearSelection();
       _rfilterOpenPoppPending = true;
     }

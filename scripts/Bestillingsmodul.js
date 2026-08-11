@@ -1849,12 +1849,13 @@
     }
 
     /**
-     * Lagrer IDs til merkede ventende-bestillinger (V-) og pågående oppdrag (P-).
+     * Lagrer IDs til merkede ventende-bestillinger (V-), pågående oppdrag (P-)
+     * og ressurser (Rxxx).
      * Kalles rett før modal åpnes, mens radene fortsatt er synlige.
      */
     function saveSelectedRows() {
         window._bestillingsmodulSavedRows = new Set();
-        document.querySelectorAll('tr[id^="V-"], tr[id^="P-"]').forEach(row => {
+        document.querySelectorAll('tr[id^="V-"], tr[id^="P-"], tr[id^="Rxxx"]').forEach(row => {
             const bg = window.getComputedStyle(row).backgroundColor;
             if (bg === 'rgb(148, 169, 220)') {
                 window._bestillingsmodulSavedRows.add(row.id);
@@ -1903,10 +1904,19 @@
         if (!saved || saved.size === 0) return;
         window._bestillingsmodulSavedRows = new Set();
 
+        // Ventende/pågående først: å markere en pågående rad markerer også
+        // tilhørende ressursrad, og da skal den ikke toggles av igjen etterpå
+        // (sjekken mot allerede merket rad nedenfor fanger det opp).
+        const ordered = [
+            ...[...saved].filter(id => !id.startsWith('Rxxx')),
+            ...[...saved].filter(id =>  id.startsWith('Rxxx'))
+        ];
+
         onceAfterOpenPopp(() => setTimeout(() => {
-            saved.forEach(rowId => {
+            ordered.forEach(rowId => {
                 const row = document.getElementById(rowId);
                 if (!row) return;
+                if (window.getComputedStyle(row).backgroundColor === 'rgb(148, 169, 220)') return;
                 try {
                     const td = row.querySelector('td[onclick*="selectRow"]');
                     if (td) {

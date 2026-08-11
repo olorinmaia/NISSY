@@ -22,6 +22,8 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
   - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
   - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
+  - Merkingen som fjernes ved filter-/kolonnebytte settes tilbake automatisk på ventende og pågående oppdrag når listene er ferdig oppdatert, for de radene som fortsatt vises.
+  - Ber om bekreftelse før planleggingsvinduet lukkes (f.eks. ved CTRL+W), slik at fanen ikke forsvinner ved et uhell.
   - Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
   - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
   - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
@@ -46,6 +48,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Pågående oppdrag med status ≠ "Tildelt" vises som info-kort til orientering, men kan ikke redigeres her.
   - **Beregn alle mot felles oppmøtetid** – ved flere reiser til behandling kan du sette én felles oppmøtetid og beregne alle hentetider med ett klikk. Oppmøtetiden lagres ikke i bestillingene.
   - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
+  - Etter lagring kan du fortsette å justere hentetidene og lagre på nytt – Lagre-knappen viser «✅ Lagret» og aktiveres igjen når noe endres.
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/ff8e576f-85ce-44e7-b1cc-4f4b9da8cc96" />
 
 - 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
@@ -204,6 +207,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
 - 📞 **Sjekk-Telefon (Alt+4)**
   - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+  - Nummer som ikke er mobilnummer (f.eks. fasttelefon) vises i en egen liste – det er da usikkert om SMS når frem. Har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen.
   - <img width="400" alt="image" src="https://github.com/user-attachments/assets/7b0bb542-abcb-43ed-a873-f191ef18d832" />
 - 📊 **Statistikk (Alt+5)**
   - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.

@@ -11,6 +11,38 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.2] - 11.08.2026
+
+### NISSY-fiks: Merkingen kommer tilbake etter filterbytte, og bekreftelse før Planlegging lukkes
+
+- ⌛ **NISSY-fiks**
+  - Merkingen må fjernes når du bytter filter eller viser/skjuler kolonner, ellers henger NISSY. Nå settes den tilbake automatisk så snart listene er ferdig oppdatert, slik at du slipper å merke opp igjen
+  - Gjelder ventende og pågående oppdrag. Bestillinger og turer som er filtrert bort hoppes over – det som fortsatt vises blir merket på nytt
+  - Merkede ressurser som ikke ligger på pågående oppdrag gjenopprettes ikke.
+  - CTRL+W, reload-knappen og andre måter å lukke fanen på gir nå en bekreftelse først, slik at du ikke mister planleggingsvinduet ved et uhell
+
+### Hentetid/Bestillingsmodul/Rek-knapper: Merkede ressurser beholdes
+
+- 🕐 **Hentetid (ALT+E)** / 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)**
+  - Disse scriptene merket opp igjen bestillinger og turer etter at listene ble oppdatert, men merkede ressurser falt ut. Nå beholdes også ressursmerkingen
+
+### Sjekk-telefon: Fasttelefon skilles fra mobilnummer
+
+- 📞 **Sjekk-Telefon (Alt+4)**
+  - Norske nummer som ikke er mobilnummer (starter ikke på 4 eller 9), f.eks. fasttelefon, vises nå i en egen liste i resultatvinduet
+  - Det er da usikkert om SMS når frem – har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen
+
+### Hentetid: Fortsett å justere etter lagring
+
+- 🕐 **Hentetid (ALT+E)**
+  - Lagre-knappen forsvinner ikke lenger etter lagring – den blir stående grået ut som «✅ Lagret», og blir grønn «💾 Lagre» igjen så snart en hentetid endres på nytt
+  - Praktisk når du ser i kartet etter lagring at det trengs videre justeringer – du slipper å lukke vinduet og starte på nytt
+  - Ved ny lagring sendes kun hentetider som faktisk er endret siden forrige lagring
+  - Avbryt-knappen skifter tekst til «Lukk» etter lagring og har fokus, så Enter lukker vinduet som før
+  - Etter 🧮-beregning for én enkelt bestilling flyttes fokus til hentetid-feltet, slik at Enter lagrer med én gang – samme oppførsel som «Beregn alle»
+
+---
+
 ## 🔧 [4.9.1] - 07.08.2026
 
 ### Ressursinfo: Raskere oppslag - henter kun de nyeste vognløpshendelsene

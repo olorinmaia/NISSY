@@ -184,6 +184,8 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Begrenser bredden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
 - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
 - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
+- Merkingen som fjernes ved filter-/kolonnebytte settes tilbake automatisk på ventende og pågående oppdrag når listene er ferdig oppdatert, for de radene som fortsatt vises.
+- Ber om bekreftelse før planleggingsvinduet lukkes (f.eks. ved CTRL+W), slik at fanen ikke forsvinner ved et uhell.
 - Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
 - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass. 
 - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
@@ -274,6 +276,7 @@ Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`
 
 ### 📞 Sjekk-Telefon (Alt+4)
 Sjekker alle bestillinger på valgt filter for manglende telefonnummer og viser de i en liste du kan klikke deg inn på for å rette opp.
+- Nummer som ikke er mobilnummer (f.eks. fasttelefon) vises i en egen liste – det er da usikkert om SMS når frem. Har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen.
 
 ### 📊 Statistikk (Alt+5)
 Beregner i en pop-up antall bestillinger på ventende/pågående oppdrag og «samkjøringsgrad» basert på valgte filter.
