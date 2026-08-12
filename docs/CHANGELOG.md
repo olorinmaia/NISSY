@@ -24,6 +24,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - "Logg ut" i modalene spør nå først, siden den også logger deg ut av Planlegging og ikke bare vinduet du står i
   - Bekrefter du, logges du ut og havner på innloggingssiden – samme resultat som når du logger ut fra Planlegging
 
+### Hentetid: Tømt hentetid-felt henter tilbake lagret verdi
+
+- 🕐 **Hentetid (ALT+E)**
+  - Tømmer du et hentetid-felt, settes sist lagret verdi inn igjen når du forlater feltet – samme oppførsel som oppmøtetid-feltet har hatt
+
 ---
 
 ## 🔧 [4.9.2] - 11.08.2026

@@ -1395,9 +1395,12 @@
       // Formatering og validering
       const handleFormat = (e) => {
         let value = e.target.value.replace(/[^\d]/g, '');
-        
+
         if (value.length === 0) {
-          e.target.value = '';
+          // Tomt felt: hent tilbake sist lagret verdi, som for oppmøtetid
+          e.target.value = e.target.getAttribute('data-original') || '';
+          e.target.style.borderColor = '#2196f3';
+          e.target.style.background = '#fff';
           return;
         }
         
