@@ -2,6 +2,17 @@
 
 ## [📝 Endringslogg](CHANGELOG.md)
 
+## 🧭 Innhold
+
+- [🎯 For hvem?](#-for-hvem)
+- [📦 Hva får du?](#-hva-får-du)
+- [📥 Installasjon](#-installasjon)
+- [⌨️ Alle tastatursnarveier](#️-alle-tastatursnarveier)
+- [📖 Detaljert brukerveiledning](#-detaljert-brukerveiledning)
+- [❓ Feilsøking](#-feilsøking)
+- [💡 Tips og triks](#-tips-og-triks)
+- [📞 Support](#-support)
+
 ## 🎯 For hvem?
 
 NISSY AMK er perfekt for deg som:
@@ -25,11 +36,11 @@ NISSY AMK er perfekt for deg som:
 - 🌙 **[Darkmode](#-darkmode)** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
 - 🔔 **[Overvåk-Ventende](#-overvåk-ventende)** - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
 - 🚗 **[Alenebil](#-alenebil)** - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
-- 🤖 **[Auto-Bestill](#-auto-bestill)** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
-- 🔍 **[Sjekk-Bestilling](#-sjekk-bestilling)** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og dato/tidsfeil, lar deg søke opp disse for å rette opp.
-- 🚩 **[Sjekk-Plakat](#-sjekk-plakat)** - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
-- 📞 **[Sjekk-Telefon](#-sjekk-telefon)** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
-- 📊 **[Statistikk](#-statistikk)** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+- 🤖 **[Auto-Bestill](#-auto-bestill-alt1)** - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom.
+- 🔍 **[Sjekk-Bestilling](#-sjekk-bestilling-alt2)** - Sjekker alle bestillinger på valgt filter for duplikater, problematisk kombinasjon av spesielle behov og dato/tidsfeil, lar deg søke opp disse for å rette opp.
+- 🚩 **[Sjekk-Plakat](#-sjekk-plakat-alt3)** - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
+- 📞 **[Sjekk-Telefon](#-sjekk-telefon-alt4)** - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- 📊 **[Statistikk](#-statistikk-alt5)** - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
 - 🚖 **[Trøndertaxi-løyve](#-trøndertaxi-løyve)** - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 
 ## 📥 Installasjon
