@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.9.2'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.9.3'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -220,11 +220,13 @@
      ====================================================== */
 
   // Settes når scriptet selv navigerer bort (f.eks. reload ved utløpt økt),
-  // slik at brukeren ikke får dialogen oppå sin egen bekreftelse
+  // slik at brukeren ikke får dialogen oppå sin egen bekreftelse.
+  // Andre scripts kan sette window.__nissySkipCloseGuard = true av samme
+  // grunn – f.eks. når "Logg ut" i en modal allerede er bekreftet.
   let _skipCloseGuard = false;
 
   window.addEventListener('beforeunload', (e) => {
-    if (_skipCloseGuard) return;
+    if (_skipCloseGuard || window.__nissySkipCloseGuard) return;
     e.preventDefault();
     e.returnValue = ''; // kreves av eldre nettlesere
   });

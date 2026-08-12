@@ -11,6 +11,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.3] - ??.08.2026
+
+### Modaler: Bekreftelse før "Logg ut" i pop-up-vinduene
+
+- 🔠 **Rek-knapper (ALT+R)** / 📝 **Bestillingsmodul (ALT+N)** / ⚙️ **Adminmodul (ALT+A)**
+  - "Logg ut" i modalene spør nå først, siden den også logger deg ut av Planlegging og ikke bare vinduet du står i
+  - Bekrefter du, logges du ut og havner på innloggingssiden – samme resultat som når du logger ut fra Planlegging
+
+---
+
 ## 🔧 [4.9.2] - 11.08.2026
 
 ### NISSY-fiks: Merkingen kommer tilbake etter filterbytte, og bekreftelse før Planlegging lukkes

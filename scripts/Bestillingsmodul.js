@@ -98,6 +98,37 @@
     }
 
     /**
+     * Ber om bekreftelse før "Logg ut" inne i modalen følges, og logger i så
+     * fall ut via Planlegging slik at brukeren havner på innloggingssiden –
+     * samme opplevelse som når "Logg ut" trykkes i Planlegging selv.
+     * Utlogging fra en modal avslutter uansett hele økten.
+     *
+     * beforeunload-vakten i NISSY-fiks fanger ikke klikket, siden det er
+     * iframen som navigerer og ikke selve planleggingsvinduet.
+     */
+    function confirmLogoutLinks(doc) {
+        try {
+            if (!doc || doc.__nissyLogoutGuard) return;
+            doc.__nissyLogoutGuard = true;
+            doc.addEventListener('click', (e) => {
+                const link = e.target.closest?.('a[href$="/logout"]');
+                if (!link) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const ok = confirm(
+                    '⚠️ Logg ut av NISSY\n\n' +
+                    'Du logges ut av alt – også Planlegging – og sendes til innloggingssiden.\n\n' +
+                    'Trykk OK for å logge ut, eller Avbryt for å fortsette å jobbe.'
+                );
+                if (!ok) return;
+                // Brukeren har bekreftet – hopp over bekreftelsen i NISSY-fiks
+                window.__nissySkipCloseGuard = true;
+                window.location.href = '/planlegging/auth/logout.jsp';
+            }, true);
+        } catch (e) {}
+    }
+
+    /**
      * Aktiverer modal-modus (blokkerer CTRL+F søk i bakgrunnen)
      */
     function enableModalMode() {
@@ -568,6 +599,8 @@
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
 
+                        confirmLogoutLinks(iframeDoc);
+
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
                         iframeWin.addEventListener('keydown', function(e) {
@@ -983,6 +1016,8 @@
                         overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
+
+                        confirmLogoutLinks(iframeDoc);
 
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
@@ -1550,6 +1585,8 @@
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
 
+                        confirmLogoutLinks(iframeDoc);
+
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
                         iframeWin.addEventListener('keydown', function(e) {
@@ -2069,6 +2106,8 @@
                         overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
                         if (iframeDoc.head) iframeDoc.head.appendChild(overflowFix);
                         iframeDoc.querySelectorAll('#transportRequirements .form-check-label').forEach(label => { const t = label.textContent.trim(); label.title = label.title ? label.title + '\n' + t : t; });
+
+                        confirmLogoutLinks(iframeDoc);
 
                         // Blokker Alt alene inne i iframe
                         let _iframeAltAlone = false;
