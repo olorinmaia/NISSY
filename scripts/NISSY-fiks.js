@@ -1045,6 +1045,20 @@
     }
 
     function addManualButtons() {
+      // Dev-loaderne setter window.NISSY_LOADER = '<pakke>-dev'. Styrer både
+      // DEV-merket i fotnoten og hvilken branch lenker/manuelle scripts peker på.
+      const IS_DEV_PACKAGE = typeof window.NISSY_LOADER === 'string' && window.NISSY_LOADER.endsWith('-dev');
+      const PACKAGE_NAME = typeof window.NISSY_LOADER === 'string'
+        ? window.NISSY_LOADER.replace(/-dev$/, '')
+        : '';
+      const PACKAGE_LABEL = PACKAGE_NAME
+        ? PACKAGE_NAME.charAt(0).toUpperCase() + PACKAGE_NAME.slice(1)
+        : '';
+      const REPO_BRANCH = IS_DEV_PACKAGE ? 'dev' : 'main';
+      const REPO_URL = 'https://github.com/olorinmaia/NISSY';
+      const CHANGELOG_URL = `${REPO_URL}/blob/${REPO_BRANCH}/docs/CHANGELOG.md`;
+      const DEV_SUFFIX = IS_DEV_PACKAGE ? '-dev' : '';
+
       // Finn bottomframe tabellen
       const bottomTable = document.querySelector('.bottomframe table tbody tr');
       
@@ -1204,12 +1218,13 @@
             ` : ''}
           </div>
           <div id="nissy-fiks-about">
-            <span>Scripts <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">v${SCRIPT_VERSION}</a></span>
+            <span>Scripts <a href="${CHANGELOG_URL}" target="_blank" rel="noopener">v${SCRIPT_VERSION}${DEV_SUFFIX}</a></span>
             <button id="nissy-about-btn" title="Om prosjektet NISSY Scripts">ℹ</button>
             <div id="nissy-about-popup" style="display:none">
-              <div style="margin-bottom:2px"><strong>NISSY Scripts v${SCRIPT_VERSION}</strong></div>
-              <a href="https://github.com/olorinmaia/NISSY" target="_blank" rel="noopener">GitHub</a><br>
-              <a href="https://github.com/olorinmaia/NISSY/blob/main/docs/CHANGELOG.md" target="_blank" rel="noopener">Endringslogg</a><br>
+              <div style="margin-bottom:2px"><strong>NISSY Scripts v${SCRIPT_VERSION}${DEV_SUFFIX}</strong></div>
+              ${PACKAGE_LABEL ? `<div style="margin-bottom:4px;color:#666;font-size:11px;">Pakke: ${PACKAGE_LABEL}</div>` : ''}
+              <a href="${REPO_URL}" target="_blank" rel="noopener">GitHub</a><br>
+              <a href="${CHANGELOG_URL}" target="_blank" rel="noopener">Endringslogg</a><br>
               Utviklet av: Alf Einar Johnsen / <a href="mailto:aej@hnt.no">aej@hnt.no</a>
               <hr>
               ❤️ Make NISSY great 🤓
@@ -1260,7 +1275,6 @@
       };
 
       // Dev-loaderne setter window.NISSY_LOADER = '<pakke>-dev'
-      const IS_DEV_PACKAGE = typeof window.NISSY_LOADER === 'string' && window.NISSY_LOADER.endsWith('-dev');
       const MANUAL_SCRIPT_GITHUB_BASE = IS_DEV_PACKAGE
         ? 'https://raw.githubusercontent.com/olorinmaia/NISSY/dev/scripts/'
         : 'https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/';

@@ -13,6 +13,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.9.3] - ??.08.2026
 
+### NISSY-fiks: Versjonsvisningen viser hvilken pakke du kjører
+
+- ⌛ **NISSY-fiks**
+  - ℹ️-vinduet nede til høyre viser nå hvilken script-pakke som er lastet.
+
 ### Modaler: Bekreftelse før "Logg ut" i pop-up-vinduene
 
 - 🔠 **Rek-knapper (ALT+R)** / 📝 **Bestillingsmodul (ALT+N)** / ⚙️ **Adminmodul (ALT+A)**
