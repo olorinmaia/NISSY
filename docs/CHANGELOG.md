@@ -28,6 +28,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - 🕐 **Hentetid (ALT+E)**
   - Tømmer du et hentetid-felt, settes sist lagret verdi inn igjen når du forlater feltet – samme oppførsel som oppmøtetid-feltet har hatt
+  - Tips-teksten nederst nevner ikke lenger 🧮-beregning og oppmøtetid når kun returer redigeres – da finnes det ingen beregningsknapper i vinduet
 
 ---
 

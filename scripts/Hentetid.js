@@ -2563,7 +2563,7 @@
         font-size:12px;
         color:#856404;
       ">
-        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Trykk 🧮 for automatisk beregning.<br>Rediger oppmøtetid for å beregne mot et annet tidspunkt. Tab = neste felt. Enter = lagre/beregn.
+        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430).${beregnAlleBestillinger.length > 0 ? ' Trykk 🧮 for automatisk beregning.<br>Rediger oppmøtetid for å beregne mot et annet tidspunkt.' : ''} Tab = neste felt. Enter = ${beregnAlleBestillinger.length > 0 ? 'lagre/beregn' : 'lagre'}.
       </div>
       ` : ''}
 
