@@ -18,6 +18,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - ⌛ **NISSY-fiks**
   - ℹ️-vinduet nede til høyre viser nå hvilken script-pakke som er lastet.
 
+### Bestillingsmodul: Fokus-fikser i 4-stegs
+
+- 📝 **Bestillingsmodul (ALT+N)**
+  - Fikser diverse fokus-problemer i 4-stegs når nettleserens søkefelt (Ctrl+F) er åpent – markøren står nå klar på riktig felt gjennom stegene
+
 ### Modaler: Bekreftelse før "Logg ut" i pop-up-vinduene
 
 - 🔠 **Rek-knapper (ALT+R)** / 📝 **Bestillingsmodul (ALT+N)** / ⚙️ **Adminmodul (ALT+A)**

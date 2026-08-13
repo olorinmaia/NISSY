@@ -1765,20 +1765,35 @@
      * - Fødselsnummer-feltet på første steg i 4-stegs. Ensides har eget felt
      *   (patientSsnDecrypted) som med vilje ikke røres, siden hele skjemaet
      *   ligger på én side der.
+     * - Retningsvalget (Til/Fra behandling) på steg 3 i 4-stegs. Fokuseres kun,
+     *   velges ikke – som NISSY selv gjør uten Ctrl+F. Er retningen allerede
+     *   valgt, fokuseres OK-knappen i stedet, slik at Enter går videre.
+     *   Ensides bruker id-ene direction_0/direction_1 og treffes derfor ikke.
+     * - Returrekvisisjon-avkrysningen på steg 4 i 4-stegs. Fokuseres kun,
+     *   krysses ikke av. Ensides bruker id-en returnTrip og treffes derfor ikke.
      */
     function focusEntryField(doc, win) {
         try {
             const iframeWin = win || doc.defaultView;
             const isSearchPage = doc.location && doc.location.pathname.includes('findTreatmentCenter');
+            const checkedDirection = doc.querySelector('input#direction:checked');
             const field = isSearchPage
                 ? doc.getElementById('name')
-                : doc.getElementById('ssnDecrypted');
+                : (doc.getElementById('ssnDecrypted')
+                    // Retning valgt: fokuser OK-knappen (finnes kun på steg 3)
+                    || (checkedDirection && doc.getElementById('submitbutton'))
+                    || checkedDirection
+                    || doc.getElementById('direction')
+                    // Steg 4: Returrekvisisjon-avkrysningen
+                    || doc.getElementById('makeReturn'));
             if (!field) return;
             // Samme rAF-mønster som focusPickupTime: vent til siden er ferdig
             // rendret før fokus settes, og én sykel til før select().
             iframeWin.requestAnimationFrame(() => {
                 iframeWin.requestAnimationFrame(() => {
                     field.focus();
+                    // select() gjelder kun tekstfelt – radio/checkbox/knapper skal bare fokuseres
+                    if (field.type === 'radio' || field.type === 'checkbox' || typeof field.select !== 'function') return;
                     iframeWin.requestAnimationFrame(() => {
                         field.select();
                     });
