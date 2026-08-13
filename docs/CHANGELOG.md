@@ -11,12 +11,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.9.3] - ??.08.2026
-
-### NISSY-fiks: Versjonsvisningen viser hvilken pakke du kjører
-
-- ⌛ **NISSY-fiks**
-  - ℹ️-vinduet nede til høyre viser nå hvilken script-pakke som er lastet.
+## 🔧 [4.9.3] - 14.08.2026
 
 ### Bestillingsmodul: Fokus-fikser i 4-stegs
 
@@ -33,7 +28,6 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - 🕐 **Hentetid (ALT+E)**
   - Tømmer du et hentetid-felt, settes sist lagret verdi inn igjen når du forlater feltet – samme oppførsel som oppmøtetid-feltet har hatt
-  - Tips-teksten nederst nevner ikke lenger 🧮-beregning og oppmøtetid når kun returer redigeres – da finnes det ingen beregningsknapper i vinduet
 
 ---
 
