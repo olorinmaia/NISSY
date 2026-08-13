@@ -671,6 +671,35 @@
       iframe.src = "/rekvisisjon/requisition/exit";
     });
 
+    // Ber om bekreftelse før "Logg ut" inne i modalen følges, og logger i så
+    // fall ut via Planlegging slik at brukeren havner på innloggingssiden –
+    // samme opplevelse som når "Logg ut" trykkes i Planlegging selv.
+    // Utlogging fra en modal avslutter uansett hele økten.
+    //
+    // beforeunload-vakten i NISSY-fiks fanger ikke klikket, siden det er
+    // iframen som navigerer og ikke selve planleggingsvinduet.
+    const confirmLogoutLinks = (doc) => {
+      try {
+        if (!doc || doc.__nissyLogoutGuard) return;
+        doc.__nissyLogoutGuard = true;
+        doc.addEventListener('click', (e) => {
+          const link = e.target.closest?.('a[href$="/logout"]');
+          if (!link) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const ok = confirm(
+            '⚠️ Logg ut av NISSY\n\n' +
+            'Du logges ut av alt – også Planlegging – og sendes til innloggingssiden.\n\n' +
+            'Trykk OK for å logge ut, eller Avbryt for å fortsette å jobbe.'
+          );
+          if (!ok) return;
+          // Brukeren har bekreftet – hopp over bekreftelsen i NISSY-fiks
+          window.__nissySkipCloseGuard = true;
+          window.location.href = '/planlegging/auth/logout.jsp';
+        }, true);
+      } catch (e) {}
+    };
+
     // Hjelpefunksjon: Fokuser på Navn-feltet i "Finn behandlingssted"-søket.
     // Kjøres kun på findTreatmentCenter-sider (både 4-stegs og Ensides), der
     // Navn-feltet er første inntastingspunkt. Uten dette blir fokus liggende i
@@ -1456,6 +1485,8 @@
 
           // Sett markøren i Navn-feltet ved søk etter behandlingssted
           focusSearchName(doc, win);
+
+          confirmLogoutLinks(doc);
         } catch (err) {}
       });
 

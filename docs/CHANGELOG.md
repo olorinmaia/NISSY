@@ -11,6 +11,26 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.3] - 14.08.2026
+
+### Bestillingsmodul: Fokus-fikser i 4-stegs
+
+- 📝 **Bestillingsmodul (ALT+N)**
+  - Fikser diverse fokus-problemer i 4-stegs når nettleserens søkefelt (Ctrl+F) er åpent – markøren står nå klar på riktig felt gjennom stegene
+
+### Modaler: Bekreftelse før "Logg ut" i pop-up-vinduene
+
+- 🔠 **Rek-knapper (ALT+R)** / 📝 **Bestillingsmodul (ALT+N)** / ⚙️ **Adminmodul (ALT+A)**
+  - "Logg ut" i modalene spør nå først, siden den også logger deg ut av Planlegging og ikke bare vinduet du står i
+  - Bekrefter du, logges du ut og havner på innloggingssiden – samme resultat som når du logger ut fra Planlegging
+
+### Hentetid: Tømt hentetid-felt henter tilbake lagret verdi
+
+- 🕐 **Hentetid (ALT+E)**
+  - Tømmer du et hentetid-felt, settes sist lagret verdi inn igjen når du forlater feltet – samme oppførsel som oppmøtetid-feltet har hatt
+
+---
+
 ## 🔧 [4.9.2] - 11.08.2026
 
 ### NISSY-fiks: Merkingen kommer tilbake etter filterbytte, og bekreftelse før Planlegging lukkes

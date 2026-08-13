@@ -1395,9 +1395,12 @@
       // Formatering og validering
       const handleFormat = (e) => {
         let value = e.target.value.replace(/[^\d]/g, '');
-        
+
         if (value.length === 0) {
-          e.target.value = '';
+          // Tomt felt: hent tilbake sist lagret verdi, som for oppmøtetid
+          e.target.value = e.target.getAttribute('data-original') || '';
+          e.target.style.borderColor = '#2196f3';
+          e.target.style.background = '#fff';
           return;
         }
         
@@ -2560,7 +2563,7 @@
         font-size:12px;
         color:#856404;
       ">
-        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430). Trykk 🧮 for automatisk beregning.<br>Rediger oppmøtetid for å beregne mot et annet tidspunkt. Tab = neste felt. Enter = lagre/beregn.
+        💡 Tips: Skriv tid i format HH, HHMM (f.eks. 14 eller 1430).${beregnAlleBestillinger.length > 0 ? ' Trykk 🧮 for automatisk beregning.<br>Rediger oppmøtetid for å beregne mot et annet tidspunkt.' : ''} Tab = neste felt. Enter = ${beregnAlleBestillinger.length > 0 ? 'lagre/beregn' : 'lagre'}.
       </div>
       ` : ''}
 

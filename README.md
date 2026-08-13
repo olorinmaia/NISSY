@@ -7,213 +7,262 @@ Disse scriptene gjør arbeidsdagen langt mer effektiv, samt gir mer nyttig infor
 
 All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Unntaket er ruteberegning i enkelte scripts, der koordinater for hente- og leveringsadresser sendes til ORS/OSRM (open source rutetjenester) uten identifiserende informasjon.
 
-## 📦 Innhold
+## 🧭 Innhold
+
+- [📦 Alle script og funksjoner](#-alle-script-og-funksjoner)
+  - [Script med snarveier](#script-med-snarveier)
+    - [⌛ NISSY-fiks](#-nissy-fiks)
+    - [🪄 Smart-tildel (Alt+S)](#-smart-tildel-alts)
+    - [📆 Tilordning 2.0 (Alt+T)](#-tilordning-20-altt)
+    - [🕐 Hentetid (Alt+E)](#-hentetid-alte)
+    - [🔠 Rek-knapper (Alt+R)](#-rek-knapper-altr)
+    - [🧭 Rutekalkulering (Alt+Q)](#-rutekalkulering-altq)
+    - [🗺️ Kartvisning (Alt+W)](#️-kartvisning-altw)
+    - [🚕 Ressursinfo (Alt+D)](#-ressursinfo-altd)
+    - [📡 Live ressurskart (Alt+Z)](#-live-ressurskart-altz)
+    - [📝 Bestillingsmodul (Alt+N)](#-bestillingsmodul-altn)
+    - [⚙️ Adminmodul (Alt+A)](#️-adminmodul-alta)
+    - [✖️ Avbestilling (Alt+K)](#️-avbestilling-altk)
+    - [🚐 Samkjøring (Alt+X)](#-samkjøring-altx)
+    - [📋 Handlingslogg (Alt+J)](#-handlingslogg-altj)
+    - [📱 Send-SMS (Alt+C)](#-send-sms-altc)
+    - [🖱️ Hurtigmeny](#️-hurtigmeny)
+  - [Individuelle script](#individuelle-script)
+    - [🌙 Darkmode](#-darkmode)
+    - [🔔 Overvåk-Ventende](#-overvåk-ventende)
+    - [🚗 Alenebil](#-alenebil)
+    - [🤖 Auto-Bestill (Alt+1)](#-auto-bestill-alt1)
+    - [🔍 Sjekk-Bestilling (Alt+2)](#-sjekk-bestilling-alt2)
+    - [🚩 Sjekk-Plakat (Alt+3)](#-sjekk-plakat-alt3)
+    - [📞 Sjekk-Telefon (Alt+4)](#-sjekk-telefon-alt4)
+    - [📊 Statistikk (Alt+5)](#-statistikk-alt5)
+    - [🚕 Trøndertaxi-løyve](#-trøndertaxi-løyve)
+- [📊 Oversikt alle features i script-pakker](#-oversikt-alle-features-i-script-pakker)
+- [🚀 Installasjon](#-installasjon)
+- [⌨️ Tastatursnarveier](#️-tastatursnarveier)
+- [🐛 Kjente feil / ofte stilte spørsmål](#-kjente-feil--ofte-stilte-spørsmål)
+- [🤝 Bidrag](#-bidrag)
+- [📝 Lisens](#-lisens)
+- [🔄 Changelog](#-changelog)
+
+## 📦 Alle script og funksjoner
 
 ### Script med snarveier
 
-- ⌛ **NISSY-fiks**
-  - Inneholder bugfikser, masse tastatursnarveier og forbedringer.
-  - Automatisk kolonnejustering (skjuler/viser relevante kolonner).
-  - Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
-  - Åpner alle turer ved bytting av filter automatisk og ved søk.
-  - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
-  - Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
-  - Lukker alle typer plakater ved trykk utenfor.
-  - Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
-  - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
-  - Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
-  - Merkingen som fjernes ved filter-/kolonnebytte settes tilbake automatisk på ventende og pågående oppdrag når listene er ferdig oppdatert, for de radene som fortsatt vises.
-  - Ber om bekreftelse før planleggingsvinduet lukkes (f.eks. ved CTRL+W), slik at fanen ikke forsvinner ved et uhell.
-  - Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
-  - Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
-  - Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
-    - 12 siffer → Rekvisisjonsnummer
-    - 11 siffer → Personnummer
-    - 8 siffer → Turnummer
-    - 6 siffer → Personnummer (fødselsdato)
-    - Bokstaver/komma → Navn (Etternavn, Fornavn)
+#### ⌛ NISSY-fiks
+- Inneholder bugfikser, masse tastatursnarveier og forbedringer.
+- Automatisk kolonnejustering (skjuler/viser relevante kolonner).
+- Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
+- Åpner alle turer ved bytting av filter automatisk og ved søk.
+- Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
+- Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
+- Lukker alle typer plakater ved trykk utenfor.
+- Begrenser tekstlengden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
+- Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
+- Fikser bug med at vis/skjul kolonner ventende/pågående og filtergruppe på ressurs/ventende får NISSY til å henge hvis bestillinger er merket når select-knappene benyttes.
+- Merkingen som fjernes ved filter-/kolonnebytte settes tilbake automatisk på ventende og pågående oppdrag når listene er ferdig oppdatert, for de radene som fortsatt vises.
+- Ber om bekreftelse før planleggingsvinduet lukkes (f.eks. ved CTRL+W), slik at fanen ikke forsvinner ved et uhell.
+- Fikser gammel NISSY-bug der bestillinger på pågående oppdrag vises som duplikater ved redigering i enkelte scenario.
+- Forbedrer kontrollpanel-tabellen med å fjerne knapper som ikke er i bruk og legger til snarveier ved mouse-over og snarvei til Møteplass.
+- Nytt **Smart-søk** som standardvalg i søkefeltet – detekterer søketype automatisk basert på innhold:
+  - 12 siffer → Rekvisisjonsnummer
+  - 11 siffer → Personnummer
+  - 8 siffer → Turnummer
+  - 6 siffer → Personnummer (fødselsdato)
+  - Bokstaver/komma → Navn (Etternavn, Fornavn)
 
-- 🪄 **Smart-tildel (Alt+S)**
-  - **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING**
-  - Se [veiledning for å konfigurere Smart-tildeling](docs/Smart-tildeling_Konfigurasjon.md) for avtalemapping og instruksjoner for oppsett.
-  - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
-  - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
-  - Støtter også direkte tildeling til valgt avtale eller ressurs.
+#### 🪄 Smart-tildel (Alt+S)
+- **OBS! ALLE BESTILLINGER MÅ KUNNE FÅ TREFF PÅ TILORDNINGSSTØTTE! KREVER KONFIGURASJON AV AVTALEMAPPING**
+- Se [veiledning for å konfigurere Smart-tildeling](docs/Smart-tildeling_Konfigurasjon.md) for avtalemapping og instruksjoner for oppsett.
+- Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
+- Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
+- Støtter også direkte tildeling til valgt avtale eller ressurs.
 
-- 📆 **Tilordning 2.0 (Alt+T)**
-  - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
+#### 📆 Tilordning 2.0 (Alt+T)
+- Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
 
-- 🕐 **Hentetid (Alt+E)** 
-  - Lar deg merke bestillinger og turer og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
-  - Pågående oppdrag med status ≠ "Tildelt" vises som info-kort til orientering, men kan ikke redigeres her.
-  - **Beregn alle mot felles oppmøtetid** – ved flere reiser til behandling kan du sette én felles oppmøtetid og beregne alle hentetider med ett klikk. Oppmøtetiden lagres ikke i bestillingene.
-  - "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
-  - Etter lagring kan du fortsette å justere hentetidene og lagre på nytt – Lagre-knappen viser «✅ Lagret» og aktiveres igjen når noe endres.
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/ff8e576f-85ce-44e7-b1cc-4f4b9da8cc96" />
+#### 🕐 Hentetid (Alt+E)
+- Lar deg merke bestillinger og turer og redigere/beregne hentetider. Rekkefølge oppdateres fortløpende kronologisk basert på hentetid.
+- Pågående oppdrag med status ≠ "Tildelt" vises som info-kort til orientering, men kan ikke redigeres her.
+- **Beregn alle mot felles oppmøtetid** – ved flere reiser til behandling kan du sette én felles oppmøtetid og beregne alle hentetider med ett klikk. Oppmøtetiden lagres ikke i bestillingene.
+- "H"-knapp lar deg åpne hendelsesloggen for å se tidligere hentetid/oppmøtetid.
+- Etter lagring kan du fortsette å justere hentetidene og lagre på nytt – Lagre-knappen viser «✅ Lagret» og aktiveres igjen når noe endres.
+- <img width="500" alt="image" src="https://github.com/user-attachments/assets/ff8e576f-85ce-44e7-b1cc-4f4b9da8cc96" />
 
-- 🔠 **Rek-knapper (Alt+R - Trykk ESC for å lukke manuelt)**
-  - Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
-  - [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling, [M] Møteplass, [P] Rediger person og [B] Hent bestillinger.
-    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/0ca8396a-2f5e-4073-8b9d-4a438bb8960f" />
-  - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
-  - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
-  - Svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
-  - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
-  - Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når [T] ("Lag retur") brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
+#### 🔠 Rek-knapper (Alt+R)
+- Trykk ESC for å lukke manuelt.
+- Hurtigknapper for bestillinger på ventende/pågående oppdrag. Pop-up åpnes i iframe modal over planleggingsvindu.
+- [R] Rediger, [T] Lag retur, [H] Hendelseslogg, [S] Endre status, [K] Kopier bestilling, [M] Møteplass, [P] Rediger person og [B] Hent bestillinger.
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/0ca8396a-2f5e-4073-8b9d-4a438bb8960f" />
+- Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
+- Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
+- Svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
+- Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når [T] ("Lag retur") brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
 
-- 🧭 **Rutekalkulering (Alt+Q)**
-  - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
-  - Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps; adresser slik de står i NISSY benyttes som fallback.
-  - Filtrerer automatisk ut bestillinger med status «Framme» og "Ikke møtt".
+#### 🧭 Rutekalkulering (Alt+Q)
+- Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
+- Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps; adresser slik de står i NISSY benyttes som fallback.
+- Filtrerer automatisk ut bestillinger med status «Framme» og "Ikke møtt".
 
-- 🗺️ **Kartvisning**
-  - Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Kartvisning»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
-  - Pop-up vindu åpnes ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
-  - Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
-  - Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
-  - Tooltip med pasientnavn og tidspunkt ved mouse-over
-  - **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
-    - Jeg har ingen direkte kontroll over ruten som velges, noen ganger vil ikke forventet rute velges, men beregning vil være ca riktig uansett
-  - **Rutetjeneste (🧭 ORS/OSRM)**: Knapp i header for å velge rutetjeneste – valget brukes for både kjørerute og fergeberegning. Gjelder kun til kartvinduet lukkes, neste Alt+W nullstiller til standardvalg (ORS hvis API-nøkkel finnes, ellers OSRM). Krever ORS API-nøkkel for å kunne velge ORS – uten nøkkel er knappen deaktivert og kun OSRM brukes
-  - **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
-    - Leveringstid vises med `~`-prefiks på markør og i tooltip
-    - Automatisk fallback til luftlinje-estimat ved timeout eller feil
-  - **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag er konfigurert. Se [veiledning for å konfigurere fergeruter](docs/Ferge_Konfigurasjon.md) for mal og instruksjoner for oppsett.
-    - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
-    - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
-    - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
-    - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
-    - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
-    - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
-    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8d0f1163-6e79-4bee-8916-a6f21c4ac71e" />
-  - Adresser normaliseres og navn forkortes for kompakt visning
-  - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
-  - Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
-  - Hold over et segment for å se reisetid/avstand mellom to hendelser.
-  - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
+#### 🗺️ Kartvisning (Alt+W)
+- Interaktivt kart (Leaflet/OpenStreetMap) over merkede bestillinger – åpnes via «Kartvisning»-knapp eller Alt+W og erstatter NISSY sin innebygde kartvisning
+- Pop-up vindu åpnes ved siden av NISSY-vinduet der det er plass, og fyller hele skjermhøyden. Vinduet kan flyttes og endres i størrelse, og gjenbrukes i samme posisjon så lenge det ikke lukkes
+- Hentesteder vises med ➕ (grønn), leveringssteder med ➖ (blå) – stopp på samme koordinat får kombinert ikon
+- Markørene viser tidspunkt og adresse; etiketter kan skjules via toggle-knapp
+- Tooltip med pasientnavn og tidspunkt ved mouse-over
+- **Beregnet kjørerute** via ORS/OSRM (open source rutekalkulering) med total km og kjøretid i header (toggle-knapp 📐)
+  - Jeg har ingen direkte kontroll over ruten som velges, noen ganger vil ikke forventet rute velges, men beregning vil være ca riktig uansett
+- **Rutetjeneste (🧭 ORS/OSRM)**: Knapp i header for å velge rutetjeneste – valget brukes for både kjørerute og fergeberegning. Gjelder kun til kartvinduet lukkes, neste Alt+W nullstiller til standardvalg (ORS hvis API-nøkkel finnes, ellers OSRM). Krever ORS API-nøkkel for å kunne velge ORS – uten nøkkel er knappen deaktivert og kun OSRM brukes
+- **Retur-bestillinger**: estimert leveringstid beregnes via individuelle OSRM-kall per bestilling og brukes også til å sørge for så riktig node-rekkefølge og km/kjøretid som mulig
+  - Leveringstid vises med `~`-prefiks på markør og i tooltip
+  - Automatisk fallback til luftlinje-estimat ved timeout eller feil
+- **Fergeberegning** – rutetabeller for alle aktuelle ferger i Nord-Trøndelag er konfigurert. Se [veiledning for å konfigurere fergeruter](docs/Ferge_Konfigurasjon.md) for mal og instruksjoner for oppsett.
+  - Beregner automatisk neste avgang basert på kjøreruten og ankomsttid på fergeleiet
+  - Estimerer leveringstid for pasienter som leveres etter fergeoverfart
+  - Viser ⚠️-advarsel og antall minutter forsinket dersom estimert leveringstid er etter avtalt oppmøtetid
+  - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
+  - Viser 🚫-advarsel dersom siste ferge for dagen ikke kan nås
+  - Fergeikoner på kartet med avgangstider og tooltip med rutetabell
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/8d0f1163-6e79-4bee-8916-a6f21c4ac71e" />
+- Adresser normaliseres og navn forkortes for kompakt visning
+- Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
+- Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
+- Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
+- <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
 
-- 🚕 **Ressursinfo (Alt+D)**
-  - Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
-  - Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
-  - Faktisk kjørerute plottes med rutekalkulering i Leaflet / OpenStreetMap med ikoner/farger for hver enkelt hendelse.
-  - Viser 5021 XML (bilens nåværende posisjon) i vognløpshendelser og bilens faktiske kjørerute.
-  - Viser de 5 nyeste vognløpshendelsene med én gang for raskt oppslag. Knappen "Hent N eldre hendelser" henter resten ved behov, og kjørerute-kartet henter dem automatisk.
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/eb88afa0-37d7-44da-8b2f-7769da4384ca" />
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/1b4c8609-fb2f-4329-905d-459de836d08f" />
-- 📡 **Live ressurskart (Alt+Z)**
-  - Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
-  - Henter data fra SUTI-meldinger som allerede er lastet i NISSY
-  - Støtter alle kjente meldingstyper fra ITF/Cencom/Norgestaxi/TDS:
-    - **5021** – Auto-posisjon (periodiske GPS-posisjoner fra bilen underveis)
-    - **4010** – Bekreftelse på hentet/levert/bomtur/bil ved node
-    - **3003** – Oppdrag bekreftet av sjåfør (med sjåførmobil)
-    - **2000** – Planlagte turer og avtaleinformasjon
-  - Viser alltid den **nyeste hendelsen** per ressurs
-  - Viser planlagte stopp til valgt ressurs og beregnet kjørerute, kan toggles med knapper i header
-  - Pop-up per markør inneholder: løyvenummer, avtalenavn, turnummer (med lenke til Admin), hendelsestype med ikon, tidspunkt, adresse, sjåførmobil (klikk for å kopiere), og planlagte turer
-  - Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
-  - Manuell oppdateringsknapp tilgjengelig
-  - Clustering av markører ved utzoomet visning, spiderfying ved klikk
-  - <img width="1000" alt="image" src="https://github.com/user-attachments/assets/8791cebc-a07e-41b8-9388-638b16771b53" />
+#### 🚕 Ressursinfo (Alt+D)
+- Rask tilgang til ressursinformasjon som planlagte/faktiske tider, adresser, posisjoner, telefonnummer til sjåfør.
+- Hvis transportør er Trøndertaxi vises link til "Løyveregister" som tar deg til Trøndertaxi sitt register som viser info om bilens kapasitet m.m.
+- Faktisk kjørerute plottes med rutekalkulering i Leaflet / OpenStreetMap med ikoner/farger for hver enkelt hendelse.
+- Viser 5021 XML (bilens nåværende posisjon) i vognløpshendelser og bilens faktiske kjørerute.
+- Viser de 5 nyeste vognløpshendelsene med én gang for raskt oppslag. Knappen "Hent N eldre hendelser" henter resten ved behov, og kjørerute-kartet henter dem automatisk.
+- <img width="500" alt="image" src="https://github.com/user-attachments/assets/eb88afa0-37d7-44da-8b2f-7769da4384ca" />
+- <img width="500" alt="image" src="https://github.com/user-attachments/assets/1b4c8609-fb2f-4329-905d-459de836d08f" />
 
-- 📝 **Bestillingsmodul (Alt+N)**
-  - Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
-    - <img width="500" alt="image" src="https://github.com/user-attachments/assets/261651db-87e7-4f0b-b759-e9fa45b1d563" />
-  - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet eller i ny fane basert på valg.
-  - Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
-  - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides. (gjelder ikke når modul åpnes i ny fane)
-  - Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
-  - Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når "Generer returrekvisisjon" ([T]) brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
-  - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
-  - Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
-  - **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag, og som [B]-knapp i Rek-knapper.
+#### 📡 Live ressurskart (Alt+Z)
+- Åpner et interaktivt kart (Leaflet/OpenStreetMap) som viser siste kjente posisjon og hendelse for alle merkede ressurser
+- Henter data fra SUTI-meldinger som allerede er lastet i NISSY
+- Støtter alle kjente meldingstyper fra ITF/Cencom/Norgestaxi/TDS:
+  - **5021** – Auto-posisjon (periodiske GPS-posisjoner fra bilen underveis)
+  - **4010** – Bekreftelse på hentet/levert/bomtur/bil ved node
+  - **3003** – Oppdrag bekreftet av sjåfør (med sjåførmobil)
+  - **2000** – Planlagte turer og avtaleinformasjon
+- Viser alltid den **nyeste hendelsen** per ressurs
+- Viser planlagte stopp til valgt ressurs og beregnet kjørerute, kan toggles med knapper i header
+- Pop-up per markør inneholder: løyvenummer, avtalenavn, turnummer (med lenke til Admin), hendelsestype med ikon, tidspunkt, adresse, sjåførmobil (klikk for å kopiere), og planlagte turer
+- Automatisk oppdatering i konfigurerbart intervall (1–30 min, standard 5 min) – holdes levende så lenge vinduet er åpent
+- Manuell oppdateringsknapp tilgjengelig
+- Clustering av markører ved utzoomet visning, spiderfying ved klikk
+- <img width="1000" alt="image" src="https://github.com/user-attachments/assets/8791cebc-a07e-41b8-9388-638b16771b53" />
 
-- ⚙️ **Adminmodul (Alt+A)**
-  - Lar deg velge om du ønsker å åpne admin-modul i pop-up iframe eller ny fane. For pop-up husker den siste besøkte side.
-  - Åpner admin-linker i planleggingsvinduet i pop-up isteden for ny fane, søker opp tur/bestilling automatisk og scroller ned til innholdet automatisk.
+#### 📝 Bestillingsmodul (Alt+N)
+- Lar deg velge foretrukken modul mellom 4-stegs og ensides samt åpningsmetode og husker valget for sesjonen.
+  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/261651db-87e7-4f0b-b759-e9fa45b1d563" />
+- Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet eller i ny fane basert på valg.
+- Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
+- Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides. (gjelder ikke når modul åpnes i ny fane)
+- Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når "Generer returrekvisisjon" ([T]) brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
+- Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
+- Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
+- **Hent rekvisisjon (Alt+H)** – henter automatisk fødselsnummer for merket(e) bestilling(er) på ventende og/eller pågående oppdrag og søker dem frem i "Hent rekvisisjon"-bildet. Hvis flere ulike personer er merket, vises en valgpopup hvor du velger hvem det skal hentes bestillinger for. Tilgjengelig i hurtigmeny som "Hent bestillinger" på både ventende og pågående oppdrag, og som [B]-knapp i Rek-knapper.
 
-- ✖️ **Avbestilling (Alt+K)**
-  - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
-  - Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
-  - Hindrer bruker fra å gjøre ting som ikke er i henhold til beste-praksis / SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
-  - Avvik-registrering (maks 400 tegn) i popup for enkelt- og masseavbestilling av bestillinger; sendes til NISSY etter gjennomført avbestilling
-  - <img width="250" alt="image" src="https://github.com/user-attachments/assets/24464cf1-e838-446c-8e4a-69607869bea8" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/8314c5e8-ebf3-4100-95fe-9fb41420d7bf" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/08d00111-24cd-4206-8f27-3d825554a02f" />
+#### ⚙️ Adminmodul (Alt+A)
+- Lar deg velge om du ønsker å åpne admin-modul i pop-up iframe eller ny fane. For pop-up husker den siste besøkte side.
+- Åpner admin-linker i planleggingsvinduet i pop-up isteden for ny fane, søker opp tur/bestilling automatisk og scroller ned til innholdet automatisk.
 
-- 🚐 **Samkjøring (Alt+X)**
-  - Velg aktuelle filter. Merk bestilling(er) på ventende eller en ressurs på pågående oppdrag og trykk på Samkjøring-knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
-  - Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
-  - Kan merke en ressurs og søke etter andre ressurser på samme filter for replanlegging. F.eks. for å se om ressursen kan slåes sammen med andre ressurser.
-  - Kan ikke merke bestilling på ventende og ressurs på pågående samtidig. Det er to forskjellige moduser.
-  - Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
-   - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3ebda51d-813d-49e8-9592-3888c40e0719" />
+#### ✖️ Avbestilling (Alt+K)
+- Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
+- Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
+- Hindrer bruker fra å gjøre ting som ikke er i henhold til beste-praksis / SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
+- Avvik-registrering (maks 400 tegn) i popup for enkelt- og masseavbestilling av bestillinger; sendes til NISSY etter gjennomført avbestilling
+- <img width="250" alt="image" src="https://github.com/user-attachments/assets/24464cf1-e838-446c-8e4a-69607869bea8" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/8314c5e8-ebf3-4100-95fe-9fb41420d7bf" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/08d00111-24cd-4206-8f27-3d825554a02f" />
 
-- 📋 **Handlingslogg (Alt+J)** 
-  - Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
-  - Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/060daa07-6149-48ac-9cb5-d373b25eeaf9" />
+#### 🚐 Samkjøring (Alt+X)
+- Velg aktuelle filter. Merk bestilling(er) på ventende eller en ressurs på pågående oppdrag og trykk på Samkjøring-knappen eller Alt+X. Algoritmen søker etter ressurser for samkjøring/returutnytting på valgte filter.
+- Baseres utelukket på tidspunkt for hent/oppmøte og postnummer for fra/til-adresse, så det er begrensninger for hva som er mulig, men mange gode forslag vil komme opp.
+- Kan merke en ressurs og søke etter andre ressurser på samme filter for replanlegging. F.eks. for å se om ressursen kan slåes sammen med andre ressurser.
+- Kan ikke merke bestilling på ventende og ressurs på pågående samtidig. Det er to forskjellige moduser.
+- Når ingenting er merket så søkes det innad på ventende oppdrag for mulig samkjøring mellom bestillingene. 
+ - Kan velge hvilke man ønsker å samkjøre og merke disse for videre justering / tildeling.
+- <img width="500" alt="image" src="https://github.com/user-attachments/assets/3ebda51d-813d-49e8-9592-3888c40e0719" />
 
-- 📱 **Send-SMS (Alt+C)**
-  - Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
-  - "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
-  - Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
-  - Vasker adressene før de settes inn i SMS-en: bolig-/bruksenhetsnummer (H0101 / U0101) og sti-prefiks (`./`, `../`, `.../`) i starten av adressen fjernes, f.eks. ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim".
-  - Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
-  - Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
-  - Logger SMS-utsendelser i Handlingslogg.
-  - Tilgjengelig for alle kontor – kontor uten egne konfigurerte maler bruker globale standardmaler (med henvisning til 05515). Ta kontakt for å konfigurere kontorspesifikke maler for ditt kontor.
-  - Se [veiledning for å konfigurere SMS-maler](docs/SMS_Maler.md) for mal og instruksjoner for oppsett.
-  - <img width="300" alt="image" src="https://github.com/user-attachments/assets/0f0780f4-e2cd-4c6a-a66e-e82704673130" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/e48215bb-a6b6-4f08-8697-152a7c61a32a" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/4400471f-a0da-4ed5-848c-2b0d9376f560" />
+#### 📋 Handlingslogg (Alt+J)
+- Logger handlinger som tildeling, avbestilling av turer/bestillinger, fjerning av turer, avplanlegging.
+- Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du nå lett tilbake til bestilling/tur.
+- <img width="400" alt="image" src="https://github.com/user-attachments/assets/060daa07-6149-48ac-9cb5-d373b25eeaf9" />
 
-- 🖱️ **Hurtigmeny**
-  - Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
-  - Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
-  - Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
-  - Støtter Kopier / Klipp ut / Lim inn.
-  - Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
-  - <img width="200" alt="image" src="https://github.com/user-attachments/assets/3f6d6dd2-69d7-4f53-aadf-8dfc52591d92" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/b2bfe108-22ea-4bce-98f9-72b3e1b9b8c7" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/c1d70557-4dcb-4e35-b0a5-22da016fc649" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/00835359-f1f7-46eb-b67a-3b60364f7787" />
+#### 📱 Send-SMS (Alt+C)
+- Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
+- "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk.
+- Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+- Vasker adressene før de settes inn i SMS-en: bolig-/bruksenhetsnummer (H0101 / U0101) og sti-prefiks (`./`, `../`, `.../`) i starten av adressen fjernes, f.eks. ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim".
+- Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.
+- Automatisk valg av mal basert på henteadresse, f.eks. Trondheim lufthavn Værnes.
+- Logger SMS-utsendelser i Handlingslogg.
+- Tilgjengelig for alle kontor – kontor uten egne konfigurerte maler bruker globale standardmaler (med henvisning til 05515). Ta kontakt for å konfigurere kontorspesifikke maler for ditt kontor.
+- Se [veiledning for å konfigurere SMS-maler](docs/SMS_Maler.md) for mal og instruksjoner for oppsett.
+- <img width="300" alt="image" src="https://github.com/user-attachments/assets/0f0780f4-e2cd-4c6a-a66e-e82704673130" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/e48215bb-a6b6-4f08-8697-152a7c61a32a" /><img width="300" alt="image" src="https://github.com/user-attachments/assets/4400471f-a0da-4ed5-848c-2b0d9376f560" />
+
+#### 🖱️ Hurtigmeny
+- Høyreklikk på rader i Ventende, Pågående og Ressurser åpner en meny med hurtig tilgang til de viktigste funksjonene.
+- Høyreklikk utenfor tabellene åpner en generell meny med tilgang til alle moduler og manuelle script.
+- Skjuler automatisk menyvalg for script som ikke er lastet inn i gjeldende pakke.
+- Støtter Kopier / Klipp ut / Lim inn.
+- Meny-header viser navn på valgt bestilling/ressurs og antall merkede rader.
+- <img width="200" alt="image" src="https://github.com/user-attachments/assets/3f6d6dd2-69d7-4f53-aadf-8dfc52591d92" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/b2bfe108-22ea-4bce-98f9-72b3e1b9b8c7" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/c1d70557-4dcb-4e35-b0a5-22da016fc649" /><img width="200" alt="image" src="https://github.com/user-attachments/assets/00835359-f1f7-46eb-b67a-3b60364f7787" />
 
 - **Installeres som knapper og får dedikerte snarveier under Ressurser i NISSY Planlegging:**
   - <img width="500" alt="image" src="https://github.com/user-attachments/assets/3629686a-96c3-4444-b1ce-aaf7681055e9" />
 
 ### Individuelle script
-- 🌙 **Darkmode** - Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
-  - <img width="500" alt="image" src="https://github.com/user-attachments/assets/0f1a20bd-a732-459e-bdfd-53411187c4e0" />
+
+#### 🌙 Darkmode
+- Mørkere fargetema, men prøver å holde seg "tro" til NISSY-stilen.
+- <img width="500" alt="image" src="https://github.com/user-attachments/assets/0f1a20bd-a732-459e-bdfd-53411187c4e0" />
  
-- 🔔 **Overvåk-Ventende**
-  - Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
-  - Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
-  - Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/767bffcc-416d-469e-9965-e1ba4020037f" />
-- 🚗 **Alenebil**
-  - Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
-- 🤖 **Auto-Bestill (Alt+1)**
-  - Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom. Viser en sammenleggbar liste over alle aktuelle turer (Ressurs og Starttid) der du kan velge bort turer du ikke ønsker å bestille opp.
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/5cea60e7-e146-44bb-abce-cec5c14eed47" />
-- 🔍 **Sjekk-Bestilling (Alt+2)**
-  - Sjekker alle bestillinger på valgt filter og lar deg søke opp disse for å rette opp for: 
-    - Duplikater, flere enn 2 bestillinger, flere bestillinger med samme fra- eller til-adresse
-    - Om de har forskjellig dato på hentetid og leveringstid
-    - Om turer på pågående oppdrag med flere bestillinger har ulik dato på hentetid
-    - Om hentetid er senere enn leveringstid (kun til behandling)
-    - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
-    - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling
-    - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
-- 🚩 **Sjekk-Plakat (Alt+3)**
-  - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
-  - Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
-- 📞 **Sjekk-Telefon (Alt+4)**
-  - Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
-  - Nummer som ikke er mobilnummer (f.eks. fasttelefon) vises i en egen liste – det er da usikkert om SMS når frem. Har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen.
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/7b0bb542-abcb-43ed-a873-f191ef18d832" />
-- 📊 **Statistikk (Alt+5)**
-  - Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
-  - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0e1684da-dc52-49c4-9b3d-9f08c126c100" />
-- 🚕 **Trøndertaxi-løyve**
-  - Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
+#### 🔔 Overvåk-Ventende
+- Overvåker ventende oppdrag for nye bestillinger og gir varsler med lyd, blinkende fane, toast-varsel i topp av planleggingsvindu og favicon i fanen. 
+- Teller x antall bestillinger på ventende oppdrag og viser dette som (x) i fanetittel.
+- Merker nye bestillinger automatisk ved bekrefting av toast-varsel.
+- <img width="400" alt="image" src="https://github.com/user-attachments/assets/767bffcc-416d-469e-9965-e1ba4020037f" />
+
+#### 🚗 Alenebil
+- Setter behovet "Alenebil" på en eller flere merkede bestillinger. Nyttig når behovet er deaktivert
+
+#### 🤖 Auto-Bestill (Alt+1)
+- Pop-up vindu som gir mulighet til å bestille opp alle turer på valgt filter med 0,25 sekunders mellomrom. Viser en sammenleggbar liste over alle aktuelle turer (Ressurs og Starttid) der du kan velge bort turer du ikke ønsker å bestille opp.
+- <img width="400" alt="image" src="https://github.com/user-attachments/assets/5cea60e7-e146-44bb-abce-cec5c14eed47" />
+
+#### 🔍 Sjekk-Bestilling (Alt+2)
+- Sjekker alle bestillinger på valgt filter og lar deg søke opp disse for å rette opp for: 
+  - Duplikater, flere enn 2 bestillinger, flere bestillinger med samme fra- eller til-adresse
+  - Om de har forskjellig dato på hentetid og leveringstid
+  - Om turer på pågående oppdrag med flere bestillinger har ulik dato på hentetid
+  - Om hentetid er senere enn leveringstid (kun til behandling)
+  - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
+  - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling
+  - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
+- <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
+
+#### 🚩 Sjekk-Plakat (Alt+3)
+- Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
+- Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
+- <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
+
+#### 📞 Sjekk-Telefon (Alt+4)
+- Sjekker alle bestillinger på valgt filter for manglende telefonnummer, lar deg søke opp disse for å rette opp.
+- Nummer som ikke er mobilnummer (f.eks. fasttelefon) vises i en egen liste – det er da usikkert om SMS når frem. Har pasienten mobil, legg den inn i feltet Mobilnr i kontaktinfoen.
+- <img width="400" alt="image" src="https://github.com/user-attachments/assets/7b0bb542-abcb-43ed-a873-f191ef18d832" />
+
+#### 📊 Statistikk (Alt+5)
+- Beregner antall bestillinger på ventende/pågående oppdrag og beregner "samkjøringsgrad" basert på valgte filter i pop-up vindu.
+- <img width="400" alt="image" src="https://github.com/user-attachments/assets/0e1684da-dc52-49c4-9b3d-9f08c126c100" />
+
+#### 🚕 Trøndertaxi-løyve
+- Kopierer løyvenummer til merket ressurs i NISSY Planlegging eller fra "Footer" i CTRL og åpner Trøndertaxi sitt løyveregister med informasjon om valgt ressurs om den finnes.
 - **Installeres som knapper over ventende oppdrag og nederst i footer i NISSY planlegging via script-pakke:**
   - <img width="937" height="47" alt="image" src="https://github.com/user-attachments/assets/12ce822f-7325-47d2-95bc-dc3a6abfb252" />
   - <img width="1037" height="47" alt="image" src="https://github.com/user-attachments/assets/2e8496f2-b91f-4bce-8540-2b3d2a62142f" />

@@ -247,6 +247,37 @@
     }
 
     /**
+     * Ber om bekreftelse før "Logg ut" inne i modalen følges, og logger i så
+     * fall ut via Planlegging slik at brukeren havner på innloggingssiden –
+     * samme opplevelse som når "Logg ut" trykkes i Planlegging selv.
+     * Utlogging fra en modal avslutter uansett hele økten.
+     *
+     * beforeunload-vakten i NISSY-fiks fanger ikke klikket, siden det er
+     * iframen som navigerer og ikke selve planleggingsvinduet.
+     */
+    function confirmLogoutLinks(doc) {
+        try {
+            if (!doc || doc.__nissyLogoutGuard) return;
+            doc.__nissyLogoutGuard = true;
+            doc.addEventListener('click', (e) => {
+                const link = e.target.closest?.('a[href$="/logout"]');
+                if (!link) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const ok = confirm(
+                    '⚠️ Logg ut av NISSY\n\n' +
+                    'Du logges ut av alt – også Planlegging – og sendes til innloggingssiden.\n\n' +
+                    'Trykk OK for å logge ut, eller Avbryt for å fortsette å jobbe.'
+                );
+                if (!ok) return;
+                // Brukeren har bekreftet – hopp over bekreftelsen i NISSY-fiks
+                window.__nissySkipCloseGuard = true;
+                window.location.href = '/planlegging/auth/logout.jsp';
+            }, true);
+        } catch (e) {}
+    }
+
+    /**
      * Håndterer F5 - refresher iframe i stedet for hele siden
      */
     function handleF5(e) {
@@ -362,6 +393,8 @@
                         if (e.key === 'Alt' && _iframeAltAlone) { e.preventDefault(); }
                         _iframeAltAlone = false;
                     }, true);
+
+                    confirmLogoutLinks(iframeDoc);
 
                     // Fokuser på Phone-feltet
                     setTimeout(() => {
@@ -770,6 +803,8 @@
                             if (e.key === 'Alt' && _iframeAltAlone) { e.preventDefault(); }
                             _iframeAltAlone = false;
                         }, true);
+
+                        confirmLogoutLinks(iframeDoc);
 
                         // Hvis vi venter på søkeresultater, klikk på første rad og scroll
                         if (waitingForSearchResults) {
