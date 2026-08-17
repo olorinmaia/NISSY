@@ -699,37 +699,39 @@
         }
         
         // Vis riktig iframe-modal og aktiver F5-håndtering
-        if (moduleKey === 'fourStep') {
-            fourStepModal.classList.add('active');
-            const iframe = fourStepModal.querySelector('iframe');
-            enableF5Handler(iframe);
-            // Sett fokus på iframe når det er lastet
-            iframe.addEventListener('load', function focusOnLoad() {
-                setTimeout(() => {
-                    try {
-                        iframe.contentWindow.focus();
-                    } catch (e) {
-                        // Kan ikke fokusere (CORS)
-                    }
-                }, 100);
-                iframe.removeEventListener('load', focusOnLoad);
-            });
-        } else {
-            onePageModal.classList.add('active');
-            const iframe = onePageModal.querySelector('iframe');
-            enableF5Handler(iframe);
-            // Sett fokus på iframe når det er lastet
-            iframe.addEventListener('load', function focusOnLoad() {
-                setTimeout(() => {
-                    try {
-                        iframe.contentWindow.focus();
-                    } catch (e) {
-                        // Kan ikke fokusere (CORS)
-                    }
-                }, 100);
-                iframe.removeEventListener('load', focusOnLoad);
-            });
-        }
+        const modal = moduleKey === 'fourStep' ? fourStepModal : onePageModal;
+        modal.classList.add('active');
+        const iframe = modal.querySelector('iframe');
+        enableF5Handler(iframe);
+
+        const focusIframe = () => {
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow.focus();
+                    focusEntryField(iframe.contentDocument, iframe.contentWindow);
+                } catch (e) {
+                    // Kan ikke fokusere (CORS)
+                }
+            }, 100);
+        };
+
+        // Første gang (uten lagret preferanse) laster iframen ferdig i
+        // bakgrunnen mens valgmodalen vises. Da fyrer ikke 'load' igjen, og
+        // fokus satt fra load-lytteren gikk tapt fordi modalen var skjult
+        // (display:none) – kjør fokus nå som modalen er synlig.
+        try {
+            const doc = iframe.contentDocument;
+            if (doc && doc.readyState === 'complete' && doc.location.href !== 'about:blank') {
+                focusIframe();
+                return;
+            }
+        } catch (e) {}
+
+        // Sett fokus på iframe når det er lastet
+        iframe.addEventListener('load', function focusOnLoad() {
+            focusIframe();
+            iframe.removeEventListener('load', focusOnLoad);
+        });
     }
 
     /**
