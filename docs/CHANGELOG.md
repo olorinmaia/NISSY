@@ -11,6 +11,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.4] - 17.08.2026
+
+### Loadere: Bedre håndtering når GitHub er nede
+
+- 📦 **Alle script-pakker (Basic/Advanced/AMK)**
+  - Laste-spinneren vises nå helt til innlastingen faktisk er ferdig, i stedet for å forsvinne mens scripts fortsatt lastes i bakgrunnen
+  - Er både GitHub og reservekilden (jsDelivr) nede, avbrytes innlastingen og du får feilmelding innen et halvt minutt – tidligere kunne det ta flere minutter
+
+---
+
 ## 🔧 [4.9.3] - 14.08.2026
 
 ### Bestillingsmodul: Fokus-fikser i 4-stegs

@@ -135,17 +135,27 @@
   nissyLoadingOverlay.appendChild(nissyLoadingSpinner);
   nissyLoadingOverlay.appendChild(nissyLoadingText);
   document.body.appendChild(nissyLoadingOverlay);
-  // Sikkerhetsnett: fjern overlay selv om en enkelt script-fetch skulle henge
-  const nissyLoadingSafetyTimer = setTimeout(() => {
-    nissyLoadingOverlay.remove();
-    nissyLoadingSpinnerCss.remove();
-  }, 35000);
 
-  // stopOnFirstFailure: brukes for GitHub-forsøket - hvis GitHub er
-  // nettverksblokkert (ikke bare 429) kan hver mislykket fetch henge i
-  // mange sekunder (timeout), så vi vil ikke gjøre dette 17-24 ganger før
-  // vi bytter til jsDelivr. jsDelivr-forsøket (fallback) prøver alltid alt.
-  async function loadScriptPass(base, stopOnFirstFailure) {
+  // Timeout per fetch: under GitHub-nedetid kan både GitHub og jsDelivr
+  // bruke 20-30 sek per mislykket forespørsel - uten timeout kan loaderen
+  // bli hengende i flere minutter. GitHub får kort frist (rask når den er
+  // oppe, og vi har jsDelivr som fallback), jsDelivr får lengre frist siden
+  // den er siste utvei og vellykkede svar kan ta opptil ~18 sek.
+  const GITHUB_TIMEOUT_MS = 10000;
+  const JSDELIVR_TIMEOUT_MS = 25000;
+  function fetchWithTimeout(url, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+  }
+
+  // stopOnFirstFailure: brukes for GitHub-forsøket - feiler ett script er
+  // det gjerne rate-limit/nedetid som rammer alle, så vi bytter direkte til
+  // jsDelivr i stedet for å feile 17-24 ganger. jsDelivr-forsøket (fallback)
+  // fortsetter ved enkeltfeil, men avbryter hvis det FØRSTE scriptet feiler:
+  // jsDelivr henter fra GitHub og deler samme feilkilde, så da er det full
+  // nedetid og resten vil også feile.
+  async function loadScriptPass(base, stopOnFirstFailure, timeoutMs) {
     const failures = [];
     for (const script of scripts) {
       try {
@@ -155,7 +165,7 @@
           continue;
         }
 
-        const response = await fetch(base + script);
+        const response = await fetchWithTimeout(base + script, timeoutMs);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
@@ -168,18 +178,24 @@
           console.warn(`⚠️ Stopper videre GitHub-forsøk etter feil på ${script} - bytter til jsDelivr for hele pakken`);
           break;
         }
+        if (script === scripts[0]) {
+          console.warn(`⚠️ ${script} feilet også fra jsDelivr - avbryter, resten av pakken vil også feile`);
+          failures.push(...scripts.slice(1));
+          break;
+        }
       }
     }
     return failures;
   }
 
   console.log('📦 Laster NISSY Basic DEV (GitHub)...');
-  let failedScripts = await loadScriptPass(GITHUB_BASE, true);
+  let failedScripts = await loadScriptPass(GITHUB_BASE, true, GITHUB_TIMEOUT_MS);
 
   if (failedScripts.length > 0) {
     console.warn(`⚠️ ${failedScripts.length} script(s) feilet fra GitHub - prøver hele pakken på nytt via jsDelivr`);
+    nissyLoadingText.textContent = 'GitHub feilet - prøver reservekilde (jsDelivr)…';
     BASE = JSDELIVR_BASE; // Bytt kilde for evt. senere on-demand-hentinger også
-    failedScripts = await loadScriptPass(JSDELIVR_BASE, false);
+    failedScripts = await loadScriptPass(JSDELIVR_BASE, false, JSDELIVR_TIMEOUT_MS);
   }
 
   if (failedScripts.length > 0) {
@@ -758,7 +774,6 @@
       setTimeout(() => clearInterval(t), 8000);
     };
 
-    clearTimeout(nissyLoadingSafetyTimer);
     nissyLoadingOverlay.remove();
     nissyLoadingSpinnerCss.remove();
 
