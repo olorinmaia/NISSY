@@ -245,6 +245,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
   - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling
   - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
+- **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten.
 - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 
 #### 🚩 Sjekk-Plakat (Alt+3)

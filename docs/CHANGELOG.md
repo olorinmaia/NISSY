@@ -11,6 +11,15 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.5] - ??.08.2026
+
+### Sjekk-bestilling: Hent bestillinger-knapp
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Ny **Hent bestillinger**-knapp (lilla) per funn i resultatpopupen – åpner Bestillingsmodul direkte over Sjekk-bestilling-vinduet slik at bestillingen kan rettes uten å lukke oversikten. Knappen grås ut etter første klikk
+
+---
+
 ## 🔧 [4.9.4] - 17.08.2026
 
 ### Loadere: Bedre håndtering når GitHub er nede

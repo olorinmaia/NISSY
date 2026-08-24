@@ -279,6 +279,7 @@ Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikk
 - Returer med tidligere eller lik hentetid enn oppmøtetid for samme behandlingssted
 - Reisetid mellom 1–9 minutter på reiser til behandling
 - Problematisk kombinasjon av spesielle behov (RB+ERS, LB+LF m.fl.)
+- **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten
 
 ### 🚩 Sjekk-Plakat (Alt+3)
 Finn alle røde plakater med fritekst på valgt filter – plakater med flaggede ord vises øverst.
