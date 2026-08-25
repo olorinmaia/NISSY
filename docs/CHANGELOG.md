@@ -11,12 +11,23 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.9.5] - ??.08.2026
+## 🔧 [4.9.5] - 25.08.2026
+
+### Redigering via Hent bestillinger får samme hjelp som "R"-knappen
+
+- 📝 **Bestillingsmodul (ALT+H)** / 🔠 **Rek-knapper ([B])**
+  - Redigeres en bestilling fra trefflisten i Hent bestillinger, settes markøren nå klar i hentetid-feltet – som ved redigering via "R"-knappen
+  - NISSY kan vise feil Reisemåte i redigeringsvinduet (blank eller en helt annen enn bestillingens faktiske). Feltet sjekkes nå alltid mot bestillingens plakat og rettes automatisk ved avvik
 
 ### Sjekk-bestilling: Hent bestillinger-knapp
 
 - 🔍 **Sjekk-Bestilling (Alt+2)**
   - Ny **Hent bestillinger**-knapp (lilla) per funn i resultatpopupen – åpner Bestillingsmodul direkte over Sjekk-bestilling-vinduet slik at bestillingen kan rettes uten å lukke oversikten. Knappen grås ut etter første klikk
+
+### Send-SMS: Justert mal for Nordlandssykehuset
+
+- 📱 **Send-SMS (Alt+C)**
+  - Liten justering i ordlyden i malen for Bodø lufthavn – @asa032
 
 ---
 

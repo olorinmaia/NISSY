@@ -97,7 +97,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - Fikser bug med datasmitte mellom bestillinger da data alltid er nullstilt.
 - Merk at det ikke er noen begrensning på bestillingens status. Planlagte bestillinger som endres på status "Startet"-ressurs (etter 3003 XML og første 4010-1701 XML) vil ikke generere 2000-XML!
 - Svært nyttig for å rette opp feil adresse, tidspunkt, egenandel etc. på planlagte bestillinger på pågående oppdrag.
-- Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- Fikser NISSY-bug hvor Reisemåte sporadisk ble satt blank eller til feil verdi ved redigering av bestilling – feltet sjekkes mot bestillingens plakat og rettes automatisk.
 - Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når [T] ("Lag retur") brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
 
 #### 🧭 Rutekalkulering (Alt+Q)
@@ -163,7 +163,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - Åpner valgt bestillingsmodul i pop-up liggende over planleggingsvinduet eller i ny fane basert på valg.
 - Fikser NISSY-bug med datasmitte mellom bestillinger da data alltid er nullstilt.
 - Fikser NISSY-bug med "Tilbake"-knapp som ikke virker når det søkes etter behandlingssted i 4-steg/ensides. (gjelder ikke når modul åpnes i ny fane)
-- Fikser NISSY-bug hvor Reisemåte sporadisk ble stående blank ved redigering av bestilling.
+- Fikser NISSY-bug hvor Reisemåte sporadisk ble satt blank eller til feil verdi ved redigering av bestilling – feltet sjekkes mot bestillingens plakat og rettes automatisk.
 - Fikser NISSY-bug hvor dato for "Pasient klar fra" ikke fylles inn automatisk på returbestillingen når "Generer returrekvisisjon" ([T]) brukes – dato hentes nå fra opprinnelig bestilling og fylles inn hvis feltet er tomt, med automatisk scroll/fokus til feltet.
 - Åpner "R"-linker i planleggingsvinduet i pop-up isteden for ny fane.
 - Åpner møteplass-funksjon i pop-up eller i ny fane basert på foretrukket valg.
