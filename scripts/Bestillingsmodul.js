@@ -1708,6 +1708,49 @@
                             cancelBtn.removeAttribute('onclick');
                             cancelBtn.addEventListener('click', () => closeMeetingplace());
                         }
+
+                        // Redigering/retur via [R] (editIt) og [T] (makeReturn) kan
+                        // også nås fra Møteplass-modalen – samme håndtering som i
+                        // de andre modal-flytene: rid fanges ved klikk, Reisemåte
+                        // verifiseres mot plakat på hver lasting der feltet finnes,
+                        // og "Rediger klar fra"/hentetid-fokus kjøres når en
+                        // redigering er aktiv. Lastes en "ny bestilling"-side,
+                        // nullstilles redigerings-rid.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
+                        if (transportSelect && iframe._pendingEditRid) {
+                            iframe._currentEditRid = iframe._pendingEditRid;
+                            iframe._pendingEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        if (transportSelect && iframe._currentEditRid) {
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            // Endrer brukeren reisemåte selv (ekte hendelse – vår
+                            // programmatiske change er ikke isTrusted), er det
+                            // brukerens valg som gjelder videre
+                            transportSelect.addEventListener('change', (e) => {
+                                if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
+                            });
+                        }
+                        iframeDoc.addEventListener('click', (e) => {
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
+                            if (!editLink) return;
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
+                            iframe._pendingEditRid = m ? m[1] : undefined;
+                        }, true);
+
+                        // alwaysFocus kun når en redigering er aktiv – på selve
+                        // Møteplass-siden finnes ikke feltene, så der skjer ingenting
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)

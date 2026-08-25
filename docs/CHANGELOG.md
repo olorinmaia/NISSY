@@ -15,7 +15,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ### Tryggere og enklere redigering av bestillinger i modalene
 
-- 📝 **Bestillingsmodul (ALT+H)** / 🔠 **Rek-knapper ([B])**
+- 📝 **Bestillingsmodul (ALT+N/H/M)** / 🔠 **Rek-knapper ([B])**
   - Redigeres en bestilling fra trefflisten i Hent bestillinger, settes markøren nå klar i hentetid-feltet – som ved redigering via "R"-knappen
   - NISSY kan vise feil Reisemåte i redigeringsvinduet (blank eller en helt annen enn bestillingens faktiske). Feltet sjekkes nå alltid mot bestillingens plakat og rettes automatisk ved avvik
   - F5 i Rek-knappers modaler oppdaterer nå innholdet i vinduet (f.eks. hendelsesloggen) i stedet for å være sperret
