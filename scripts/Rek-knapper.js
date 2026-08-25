@@ -179,6 +179,49 @@
   }
 
   // ============================================================
+  // F5-HÅNDTERING: Refresher innholdet i modal-iframen i stedet for
+  // hele planleggingssiden mens modalen er åpen (samme oppførsel som
+  // Bestillingsmodul)
+  // ============================================================
+  let f5Handler = null;
+  let currentIframe = null;
+
+  function handleF5(e) {
+    const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+    if (isF5) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (currentIframe) {
+        try {
+          // Refresh gjeldende side i iframe
+          currentIframe.contentWindow.location.reload();
+        } catch (err) {
+          // Fallback: refresh iframe src
+          currentIframe.src = currentIframe.src;
+        }
+      }
+      return false;
+    }
+  }
+
+  function enableF5Handler(iframe) {
+    currentIframe = iframe;
+    if (f5Handler) return;
+    f5Handler = handleF5;
+    window.addEventListener('keydown', f5Handler, true);
+    document.addEventListener('keydown', f5Handler, true);
+  }
+
+  function disableF5Handler() {
+    currentIframe = null;
+    if (!f5Handler) return;
+    window.removeEventListener('keydown', f5Handler, true);
+    document.removeEventListener('keydown', f5Handler, true);
+    f5Handler = null;
+  }
+
+  // ============================================================
   // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
   // ============================================================
   let currentErrorToast = null;
@@ -786,6 +829,9 @@
         modal.style.justifyContent = window.isVentendeOppdrag ? "flex-end" : "flex-start";
       }
 
+      // F5 refresher iframe-innholdet i stedet for hele siden mens modalen er åpen
+      enableF5Handler(iframe);
+
       // Tvinger Tilbake-knappen til alltid å bruke korrekt URL.
       // 4-stegs: table.top_navigation er synlig → addTrip-URL
       // Rekvirenttilhørighet: h2.wizard_middle med tekst "Rekvirent" → commissionerAndTreatmentCenter-URL
@@ -982,6 +1028,8 @@
         iframe.src = "about:blank";
         iframe.onload = null;
       }
+
+      disableF5Handler();
 
       window.popupObserver?.disconnect();
 
@@ -1470,12 +1518,19 @@
         try {
           const doc = iframe.contentDocument || iframe.contentWindow.document;
           const win = iframe.contentWindow;
-          doc.addEventListener("keydown", (e) => {
-            if (e.key === "F5") {
+          // F5 inne i iframen: refresh gjeldende side i stedet for å blokkere
+          const iframeF5Handler = (e) => {
+            const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+            if (isF5) {
               e.preventDefault();
               e.stopPropagation();
+              e.stopImmediatePropagation();
+              win.location.reload();
+              return false;
             }
-          }, true);
+          };
+          doc.addEventListener("keydown", iframeF5Handler, true);
+          win.addEventListener("keydown", iframeF5Handler, true);
           // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
           const overflowFix = doc.createElement('style');
           overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
