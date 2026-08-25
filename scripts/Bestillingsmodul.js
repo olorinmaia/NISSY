@@ -616,7 +616,53 @@
 
                         focusEntryField(iframeDoc, iframeWin);
 
-                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
+                        // Redigering i samme modal: etter at en bestilling er
+                        // opprettet, hentes den gjerne frem igjen via menyens
+                        // Hent rekvisisjon og redigeres med [R]-lenkene (editIt).
+                        // Fang rid ved klikk (lytteren nederst); når
+                        // redigeringssiden lastes verifiseres Reisemåte mot
+                        // plakat og rettes ved avvik – på hver lasting så lenge
+                        // redigeringen pågår. Nye bestillinger (uten
+                        // editIt-klikk) berøres ikke: lastes en "ny bestilling"-
+                        // side, nullstilles redigerings-rid.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        // "Ny bestilling"-side = new?confirmed eller altRequisition
+                        // HELT uten query. Navigasjoner under redigering har alltid
+                        // query-parametre (clear=false ved Tilbake/editIt, search=true
+                        // ved valg av hentested/leveringssted, osv.)
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
+                        if (transportSelect && iframe._pendingEditRid) {
+                            iframe._currentEditRid = iframe._pendingEditRid;
+                            iframe._pendingEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        if (transportSelect && iframe._currentEditRid) {
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            // Endrer brukeren reisemåte selv (ekte hendelse – vår
+                            // programmatiske change er ikke isTrusted), er det
+                            // brukerens valg som gjelder videre
+                            transportSelect.addEventListener('change', (e) => {
+                                if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
+                            });
+                        }
+                        iframeDoc.addEventListener('click', (e) => {
+                            const editLink = e.target.closest?.('a[href*="editIt("]');
+                            if (!editLink) return;
+                            const m = (editLink.getAttribute('href') || '').match(/editIt\('(\d+)'/);
+                            iframe._pendingEditRid = m ? m[1] : undefined;
+                        }, true);
+
+                        // alwaysFocus kun når en bestilling redigeres via [R]:
+                        // da klikkes "Rediger klar fra" og hentetid fokuseres –
+                        // som R-knappen. Ved vanlig nybestilling gjelder bare
+                        // [T]-oppførselen.
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
 
                     }
                 } catch (e) {
@@ -1060,7 +1106,19 @@
                         // hentested/leveringssted. Rid konsumeres først når feltet
                         // faktisk finnes, siden navigasjonen kan gå via en
                         // mellomlasting (edit → altRequisition) der feltet ennå
-                        // ikke er der.
+                        // ikke er der. Lastes en "ny bestilling"-side, nullstilles
+                        // redigerings-rid så den ikke smitter over på nybestillingen.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        // "Ny bestilling"-side = new?confirmed eller altRequisition
+                        // HELT uten query. Navigasjoner under redigering har alltid
+                        // query-parametre (clear=false ved Tilbake/editIt, search=true
+                        // ved valg av hentested/leveringssted, osv.)
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
                         const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
                         if (transportSelect && iframe._pendingEditRid) {
                             iframe._currentEditRid = iframe._pendingEditRid;
@@ -2205,7 +2263,19 @@
                         // et [R]-klikk i Hent rekvisisjon (nås via menyen i
                         // modalen). Rid fra [R]-klikk konsumeres først når feltet
                         // faktisk finnes, siden navigasjonen kan gå via en
-                        // mellomlasting.
+                        // mellomlasting. Lastes en "ny bestilling"-side, nullstilles
+                        // redigerings-rid så den ikke smitter over på nybestillingen.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        // "Ny bestilling"-side = new?confirmed eller altRequisition
+                        // HELT uten query. Navigasjoner under redigering har alltid
+                        // query-parametre (clear=false ved Tilbake/editIt, search=true
+                        // ved valg av hentested/leveringssted, osv.)
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
                         const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
                         if (transportSelect && iframe._pendingEditRid) {
                             iframe._currentEditRid = iframe._pendingEditRid;

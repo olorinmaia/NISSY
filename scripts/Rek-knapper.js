@@ -1506,7 +1506,19 @@
           // på HVER lasting der feltet finnes – NISSY kan sette feil verdi
           // igjen f.eks. etter søk på hentested/leveringssted. Rid konsumeres
           // først når feltet faktisk finnes, siden navigasjonen kan gå via en
-          // mellomlasting.
+          // mellomlasting. Lastes en "ny bestilling"-side, nullstilles
+          // redigerings-rid så den ikke smitter over på nybestillingen.
+          const _path  = doc.location?.pathname || '';
+          const _query = doc.location?.search || '';
+          // "Ny bestilling"-side = new?confirmed eller altRequisition HELT
+          // uten query. Navigasjoner under redigering har alltid query-
+          // parametre (clear=false ved Tilbake/editIt, search=true ved valg
+          // av hentested/leveringssted, osv.)
+          if (_path.includes('/requisition/new') ||
+              (_path.includes('altRequisition') && !_query)) {
+            iframe._currentEditRid = undefined;
+            iframe._userTransportChoice = undefined;
+          }
           const transportSelect = doc.querySelector('select[name="trip.actualTransportTypeCode"]');
           if (transportSelect && iframe._pendingEditRid) {
             iframe._currentEditRid = iframe._pendingEditRid;
