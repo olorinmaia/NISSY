@@ -1145,10 +1145,12 @@
 
                         focusEntryField(iframeDoc, iframeWin);
 
-                        // alwaysFocus=true: som for redit-lenker klikkes "Rediger klar
-                        // fra" og hentetid fokuseres når redigeringssiden lastes. På
-                        // søke-/trefflisten finnes ikke feltene, så der skjer ingenting.
-                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, true);
+                        // alwaysFocus kun når en redigering er aktiv: da klikkes
+                        // "Rediger klar fra" og hentetid fokuseres når
+                        // redigeringssiden lastes. Går brukeren videre til en ny
+                        // bestilling i samme modal, er redigerings-rid nullstilt
+                        // og fokusen skal ikke kjøre.
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
 
                     }
                 } catch (e) {
@@ -2298,7 +2300,10 @@
                             iframe._pendingEditRid = m ? m[1] : undefined;
                         }, true);
 
-                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, true);
+                        // alwaysFocus kun når en redigering er aktiv – går brukeren
+                        // videre til en ny bestilling i samme modal, er
+                        // redigerings-rid nullstilt og fokusen skal ikke kjøre
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
