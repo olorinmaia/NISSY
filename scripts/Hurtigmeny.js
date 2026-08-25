@@ -594,6 +594,7 @@
       ...clipboardSection(),
       // ── Moduler ──────────────────────────────────────────────
       item('📝', 'Bestillingsmodul', 'Alt+N', () => triggerAlt('n')),
+      item('📥', 'Hent bestillinger', 'Alt+H', () => triggerAlt('h')),
       item('⚙️', 'Adminmodul',       'Alt+A', () => triggerAlt('a')),
       sep(),
       // ── Sjekk-verktøy ────────────────────────────────────────
