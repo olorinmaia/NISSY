@@ -242,6 +242,8 @@
     186750: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImIxNGU4Y2I1Mzk4MjRjZjZhODIyZTBmZTUzYTBlYzEwIiwiaCI6Im11cm11cjY0In0=', // jakall
      88261: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjViMzE4NGQzYmRjNTQ0ZjM5MTY0YmFlMWE2MWFhMTBiIiwiaCI6Im11cm11cjY0In0=', // ieij
      44121: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImI5OTA1ZGFmNjhiMTRkMTg4ZDFiNWM2ZmNiODQ0YzIyIiwiaCI6Im11cm11cjY0In0=', // riln
+    181040: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjYzZTI3OTc1NTc0MTQ3ZTQ5MGM2YWI3MjYyYmNmZjUzIiwiaCI6Im11cm11cjY0In0=', // vegmje
+    180327: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjI2NDc0ZTVlZjQ1NzQ1NzJiNDIxNTlhNjdiMmM1YjEyIiwiaCI6Im11cm11cjY0In0=', // sillar
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;

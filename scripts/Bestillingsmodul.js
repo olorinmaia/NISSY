@@ -616,7 +616,56 @@
 
                         focusEntryField(iframeDoc, iframeWin);
 
-                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
+                        // Redigering i samme modal: etter at en bestilling er
+                        // opprettet, hentes den gjerne frem igjen via menyens
+                        // Hent rekvisisjon og redigeres med [R]-lenkene (editIt).
+                        // Fang rid ved klikk (lytteren nederst); når
+                        // redigeringssiden lastes verifiseres Reisemåte mot
+                        // plakat og rettes ved avvik – på hver lasting så lenge
+                        // redigeringen pågår. Nye bestillinger (uten
+                        // editIt-klikk) berøres ikke: lastes en "ny bestilling"-
+                        // side, nullstilles redigerings-rid.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        // "Ny bestilling"-side = new?confirmed eller altRequisition
+                        // HELT uten query. Navigasjoner under redigering har alltid
+                        // query-parametre (clear=false ved Tilbake/editIt, search=true
+                        // ved valg av hentested/leveringssted, osv.)
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
+                        if (transportSelect && iframe._pendingEditRid) {
+                            iframe._currentEditRid = iframe._pendingEditRid;
+                            iframe._pendingEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        if (transportSelect && iframe._currentEditRid) {
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            // Endrer brukeren reisemåte selv (ekte hendelse – vår
+                            // programmatiske change er ikke isTrusted), er det
+                            // brukerens valg som gjelder videre
+                            transportSelect.addEventListener('change', (e) => {
+                                if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
+                            });
+                        }
+                        iframeDoc.addEventListener('click', (e) => {
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
+                            if (!editLink) return;
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
+                            iframe._pendingEditRid = m ? m[1] : undefined;
+                        }, true);
+
+                        // alwaysFocus kun når en bestilling redigeres via [R]:
+                        // da klikkes "Rediger klar fra" og hentetid fokuseres –
+                        // som R-knappen. Ved vanlig nybestilling gjelder bare
+                        // [T]-oppførselen.
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
 
                     }
                 } catch (e) {
@@ -1050,11 +1099,64 @@
                             });
                         }
 
+                        // [R]-lenkene i Hent rekvisisjon navigerer via en hash-id, men
+                        // selve lenken inneholder numerisk rid:
+                        // href="javascript:editIt('81451170','$userid','&ns=true')".
+                        // Fang rid ved klikk (lytteren nederst), og husk den som
+                        // gjeldende rid så lenge redigeringen pågår. Reisemåte
+                        // verifiseres mot plakat på HVER lasting der feltet finnes –
+                        // NISSY kan sette feil verdi igjen f.eks. etter søk på
+                        // hentested/leveringssted. Rid konsumeres først når feltet
+                        // faktisk finnes, siden navigasjonen kan gå via en
+                        // mellomlasting (edit → altRequisition) der feltet ennå
+                        // ikke er der. Lastes en "ny bestilling"-side, nullstilles
+                        // redigerings-rid så den ikke smitter over på nybestillingen.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        // "Ny bestilling"-side = new?confirmed eller altRequisition
+                        // HELT uten query. Navigasjoner under redigering har alltid
+                        // query-parametre (clear=false ved Tilbake/editIt, search=true
+                        // ved valg av hentested/leveringssted, osv.)
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
+                        if (transportSelect && iframe._pendingEditRid) {
+                            iframe._currentEditRid = iframe._pendingEditRid;
+                            iframe._pendingEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        if (transportSelect && iframe._currentEditRid) {
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            // Endrer brukeren reisemåte selv (ekte hendelse – vår
+                            // programmatiske change er ikke isTrusted), er det
+                            // brukerens valg som gjelder videre
+                            transportSelect.addEventListener('change', (e) => {
+                                if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
+                            });
+                        }
+                        iframeDoc.addEventListener('click', (e) => {
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
+                            if (!editLink) return;
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
+                            iframe._pendingEditRid = m ? m[1] : undefined;
+                        }, true);
+
                         fixTilbakeLink(iframeDoc);
 
                         focusEntryField(iframeDoc, iframeWin);
 
-                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, false);
+                        // alwaysFocus kun når en redigering er aktiv: da klikkes
+                        // "Rediger klar fra" og hentetid fokuseres når
+                        // redigeringssiden lastes. Går brukeren videre til en ny
+                        // bestilling i samme modal, er redigerings-rid nullstilt
+                        // og fokusen skal ikke kjøre.
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
 
                     }
                 } catch (e) {
@@ -1606,6 +1708,49 @@
                             cancelBtn.removeAttribute('onclick');
                             cancelBtn.addEventListener('click', () => closeMeetingplace());
                         }
+
+                        // Redigering/retur via [R] (editIt) og [T] (makeReturn) kan
+                        // også nås fra Møteplass-modalen – samme håndtering som i
+                        // de andre modal-flytene: rid fanges ved klikk, Reisemåte
+                        // verifiseres mot plakat på hver lasting der feltet finnes,
+                        // og "Rediger klar fra"/hentetid-fokus kjøres når en
+                        // redigering er aktiv. Lastes en "ny bestilling"-side,
+                        // nullstilles redigerings-rid.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
+                        if (transportSelect && iframe._pendingEditRid) {
+                            iframe._currentEditRid = iframe._pendingEditRid;
+                            iframe._pendingEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        if (transportSelect && iframe._currentEditRid) {
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            // Endrer brukeren reisemåte selv (ekte hendelse – vår
+                            // programmatiske change er ikke isTrusted), er det
+                            // brukerens valg som gjelder videre
+                            transportSelect.addEventListener('change', (e) => {
+                                if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
+                            });
+                        }
+                        iframeDoc.addEventListener('click', (e) => {
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
+                            if (!editLink) return;
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
+                            iframe._pendingEditRid = m ? m[1] : undefined;
+                        }, true);
+
+                        // alwaysFocus kun når en redigering er aktiv – på selve
+                        // Møteplass-siden finnes ikke feltene, så der skjer ingenting
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)
@@ -2018,34 +2163,50 @@
     }
 
     /**
-     * Sjekker om Reisemåte-feltet i bestillingsmodulen er blankt.
-     * Hvis det er blankt, hentes korrekt verdi fra plakaten og settes automatisk.
-     * Logger til konsoll både ved oppdagelse og ved korrigering.
+     * Verifiserer Reisemåte-feltet i redigeringsvinduet mot bestillingens
+     * plakat. NISSY setter av og til feil reisemåte – ikke bare blank, men
+     * også en helt annen verdi enn bestillingens faktiske. Plakaten er fasit,
+     * så verdien hentes derfra og feltet rettes ved avvik. Har brukeren selv
+     * endret reisemåte tidligere i redigeringen (userChoice), er det
+     * brukerens valg som gjelder i stedet.
+     * Logger til konsoll både ved verifisering og ved korrigering.
      * @param {Document} iframeDoc - iframe-dokumentet
      * @param {string} rid - Bestillings-ID brukt til plakat-oppslag
+     * @param {string|null} userChoice - Reisemåte brukeren selv har valgt
      */
-    async function fixTransportType(iframeDoc, rid) {
+    async function fixTransportType(iframeDoc, rid, userChoice = null) {
         const select = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
         if (!select) return;
-        if (select.value !== '') return;
 
-        console.log(`[BM] ⚠️ Reisemåte er blank for rid=${rid} – henter fra plakat...`);
+        // Race-vern: to nesten samtidige kall på samme side ville begge
+        // hentet plakat og skrevet hver sin verdi – sistemann ville vunnet
+        // med feil bestillings reisemåte. Kun første kall får kjøre (per
+        // dokument, så sjekken kjøres igjen ved hver ny lasting av siden).
+        if (iframeDoc.__nissyTransportFixPending) return;
+        iframeDoc.__nissyTransportFixPending = true;
 
-        const reisemåte = await fetchReisemåte(rid);
-        if (!reisemåte) {
-            console.warn(`[BM] Kunne ikke hente reisemåte for rid=${rid} – feltet forblir blankt`);
+        const fasit = userChoice || await fetchReisemåte(rid);
+        const kilde = userChoice ? 'brukerens valg' : 'plakat';
+        if (!fasit) {
+            console.warn(`[BM] Kunne ikke hente reisemåte fra plakat for rid=${rid} – feltet er ikke verifisert`);
             return;
         }
 
-        const option = iframeDoc.querySelector(`select[name="trip.actualTransportTypeCode"] option[value="${reisemåte}"]`);
+        if (select.value === fasit) {
+            console.log(`[BM] ✅ Reisemåte "${fasit}" stemmer med ${kilde} for rid=${rid}`);
+            return;
+        }
+
+        const option = select.querySelector(`option[value="${fasit}"]`);
         if (!option) {
-            console.warn(`[BM] Reisemåte "${reisemåte}" finnes ikke som valg i feltet for rid=${rid}`);
+            console.warn(`[BM] Reisemåte "${fasit}" finnes ikke som valg i feltet for rid=${rid}`);
             return;
         }
 
-        select.value = reisemåte;
+        const previous = select.value ? `"${select.value}"` : 'blank';
+        select.value = fasit;
         select.dispatchEvent(new Event('change', { bubbles: true }));
-        console.log(`[BM] ✅ Reisemåte automatisk satt til "${reisemåte}" for rid=${rid}`);
+        console.log(`[BM] ✅ Reisemåte rettet fra ${previous} til "${fasit}" for rid=${rid} (fra ${kilde})`);
     }
 
     /**
@@ -2096,6 +2257,11 @@
             // Håndter F5 på modal-nivå
             modal.addEventListener('keydown', handleF5, true);
             
+            // Gjeldende bestilling for Reisemåte-verifisering: starter med rid
+            // fra URL-en, overtas av rid fra evt. [R]-klikk i modalen
+            iframe._currentEditRid = rid || undefined;
+            iframe._userTransportChoice = undefined;
+
             // Når iframe laster, prøv å klikke på Rediger-knappen og fokuser på pickupTime
             iframe.addEventListener('load', function() {
                 try {
@@ -2141,10 +2307,55 @@
 
                         focusEntryField(iframeDoc, iframeWin);
 
-                        // Sjekk og rett opp blankt Reisemåte-felt
-                        if (rid) fixTransportType(iframeDoc, rid);
+                        // Reisemåte verifiseres mot plakat på HVER lasting der
+                        // feltet finnes – NISSY kan sette feil verdi igjen f.eks.
+                        // etter søk på hentested/leveringssted. Gjeldende rid er
+                        // bestillingen modalen ble åpnet med, eller rid fanget fra
+                        // et [R]-klikk i Hent rekvisisjon (nås via menyen i
+                        // modalen). Rid fra [R]-klikk konsumeres først når feltet
+                        // faktisk finnes, siden navigasjonen kan gå via en
+                        // mellomlasting. Lastes en "ny bestilling"-side, nullstilles
+                        // redigerings-rid så den ikke smitter over på nybestillingen.
+                        const _path  = iframeDoc.location?.pathname || '';
+                        const _query = iframeDoc.location?.search || '';
+                        // "Ny bestilling"-side = new?confirmed eller altRequisition
+                        // HELT uten query. Navigasjoner under redigering har alltid
+                        // query-parametre (clear=false ved Tilbake/editIt, search=true
+                        // ved valg av hentested/leveringssted, osv.)
+                        if (_path.includes('/requisition/new') ||
+                            (_path.includes('altRequisition') && !_query)) {
+                            iframe._currentEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
+                        if (transportSelect && iframe._pendingEditRid) {
+                            iframe._currentEditRid = iframe._pendingEditRid;
+                            iframe._pendingEditRid = undefined;
+                            iframe._userTransportChoice = undefined;
+                        }
+                        if (transportSelect && iframe._currentEditRid) {
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            // Endrer brukeren reisemåte selv (ekte hendelse – vår
+                            // programmatiske change er ikke isTrusted), er det
+                            // brukerens valg som gjelder videre
+                            transportSelect.addEventListener('change', (e) => {
+                                if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
+                            });
+                        }
+                        iframeDoc.addEventListener('click', (e) => {
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
+                            if (!editLink) return;
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
+                            iframe._pendingEditRid = m ? m[1] : undefined;
+                        }, true);
 
-                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, true);
+                        // alwaysFocus kun når en redigering er aktiv – går brukeren
+                        // videre til en ny bestilling i samme modal, er
+                        // redigerings-rid nullstilt og fokusen skal ikke kjøre
+                        setupReturnAutoFill(iframe, iframeDoc, iframeWin, !!iframe._currentEditRid);
                     }
                 } catch (e) {
                     // Kan ikke få tilgang til iframe-innhold (CORS)

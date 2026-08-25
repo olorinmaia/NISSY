@@ -333,16 +333,18 @@
       if (cells.length <= Math.max(navnIndex, reiseIndex, oppIndex, fraIndex, behovIndex)) continue;
       
       const reknr = row.getAttribute('title');
+      const rid = row.id.replace(/^V-/, ''); // Intern rekvisisjons-ID, brukes av Hent bestillinger
       const navn = cells[navnIndex]?.textContent.trim();
       const hentetid = cells[reiseIndex]?.textContent.trim();
       const leveringstid = cells[oppIndex]?.textContent.trim();
       const adresseCell = cells[fraIndex]?.innerHTML || '';
       const [fra, til] = adresseCell.split('<br>').map(s => s.trim());
       const behov = cells[behovIndex]?.textContent.trim();
-      
+
       if (navn && hentetid) {
         data.push({
           reknr,
+          rid,
           navn,
           hentetid,
           leveringstid,
@@ -405,7 +407,8 @@
         const behovDivs = cells[behovIndex]?.querySelectorAll('div.row-image') || [];
         const imgContainers = cells[toggleIndex]?.querySelectorAll('div.row-image') || [];
         const actionContainers = cells[cells.length - 1]?.querySelectorAll('div.row-image') || [];
-        
+        const poppImgs = row.querySelectorAll('img[id^="popp_"]');
+
         for (let i = 0; i < navnDivs.length; i++) {
           let reknr = '';
           
@@ -434,17 +437,19 @@
               status = 'ikke møtt';
             }
           }
-          
+
+          const rid = poppImgs[i]?.id.replace('popp_', '') || '';
           const navn = navnDivs[i]?.textContent.trim();
           const hentetid = hentetidDivs[i]?.textContent.trim();
           const leveringstid = leveringstidDivs[i]?.textContent.trim();
           const fra = fraDivs[i]?.textContent.trim();
           const til = tilDivs[i]?.textContent.trim();
           const behov = behovDivs[i]?.textContent.trim();
-          
+
           if (navn && hentetid) {
             data.push({
               reknr,
+              rid,
               navn,
               hentetid,
               leveringstid,
@@ -476,7 +481,8 @@
             status = 'ikke møtt';
           }
         }
-        
+
+        const rid = row.querySelector('img[id^="popp_"]')?.id.replace('popp_', '') || '';
         const navn = cells[navnIndex]?.textContent.trim();
         const hentetid = cells[startIndex]?.textContent.trim();
         const leveringstid = cells[oppIndex]?.textContent.trim();
@@ -487,6 +493,7 @@
         if (navn && hentetid) {
           data.push({
             reknr,
+            rid,
             navn,
             hentetid,
             leveringstid,
@@ -698,6 +705,7 @@
       const behovDivs = cells[behovIndex]?.querySelectorAll('div.row-image') || [];
       const imgContainers = cells[toggleIndex]?.querySelectorAll('div.row-image') || [];
       const actionContainers = cells[cells.length - 1]?.querySelectorAll('div.row-image') || [];
+      const poppImgs = row.querySelectorAll('img[id^="popp_"]');
 
       const items = [];
       for (let i = 0; i < navnDivs.length; i++) {
@@ -730,6 +738,7 @@
 
         items.push({
           reknr,
+          rid: poppImgs[i]?.id.replace('popp_', '') || '',
           navn: navnDivs[i]?.textContent.trim() || '',
           hentetid: hentetidDivs[i]?.textContent.trim() || '',
           leveringstid: leveringstidDivs[i]?.textContent.trim() || '',
@@ -1039,7 +1048,7 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
-      z-index: 9999;
+      z-index: 9989;
     `;
     overlayDiv.addEventListener('click', closeModal);
     document.body.appendChild(overlayDiv);
@@ -1054,7 +1063,7 @@
     const reknrWidth = allGroups.some(dup => dup.items.some(item => item.status)) ? 165 : 110;
     
     let html = `
-      <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 9990; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
       <div style="position: sticky; top: 0; background: #007bff; color: white; padding: 16px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; z-index: 1;">
         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">🔍 Sjekk av bestillinger</h2>
         <button id="closeModalBtn" style="background: transparent; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px;">✕</button>
@@ -1177,6 +1186,21 @@
         searchInPlanningByReqNr(turnummer);
       });
     });
+
+    // Hent bestillinger: åpner Bestillingsmodul over popupen uten å lukke den
+    const hentButtons = modalDiv.querySelectorAll('.nissy-hent-btn');
+    hentButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rid = btn.getAttribute('data-rid');
+        if (!rid) { alert('Kunne ikke finne rekvisisjons-ID for denne bestillingen.'); return; }
+        if (window.Bestillingsmodul?.openHentRekvisisjon) {
+          btn.style.background = '#6b7280'; // Grå ut som besøkt
+          window.Bestillingsmodul.openHentRekvisisjon(rid);
+        } else {
+          alert('Bestillingsmodul er ikke lastet inn.');
+        }
+      });
+    });
   }
 
   function renderDuplicates(duplicates, type, reknrWidth) {
@@ -1211,6 +1235,12 @@
         buttonClass = isSingleBooking ? 'nissy-search-reknr-btn' : 'nissy-search-btn';
       }
 
+      // Hent bestillinger gjelder én pasient – på tur-grupper (flere pasienter) får hver rad egen knapp i stedet
+      const hentRid = type === 'tripdate' ? '' : (dup.items.find(it => it.rid)?.rid || '');
+      const hentButtonHtml = hentRid
+        ? `<button class="nissy-hent-btn" data-rid="${hentRid}" style="background: #6f42c1; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">📥 Hent bestillinger</button>`
+        : '';
+
       html += `
         <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -1218,9 +1248,12 @@
               <div style="font-weight: 600; color: #333; font-size: 15px; margin-bottom: 2px;">${dup.navn} <span style="font-size: 13px; color: #666; font-weight: 400;">(${dup.items.length} bestilling${dup.items.length === 1 ? '' : 'er'})</span></div>
               <div style="font-size: 12px; color: #666;">${dup.reason}</div>
             </div>
-            <button class="${buttonClass}" ${searchAttr} style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
-              🔍 Søk i planlegging
-            </button>
+            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+              ${hentButtonHtml}
+              <button class="${buttonClass}" ${searchAttr} style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                🔍 Søk i planlegging
+              </button>
+            </div>
           </div>
           <div style="overflow-x: auto;">
             <table style="table-layout: fixed; width: ${tableWidth}px; border-collapse: collapse; font-size: 13px;">
@@ -1239,9 +1272,13 @@
       `;
       
       for (const item of dup.items) {
-        const reknrDisplay = item.status 
-          ? `${item.reknr} <span style="color: #dc3545;">(${item.status})</span>` 
-          : item.reknr;
+        // På tur-grupper gjelder radene ulike pasienter – egen mini-knapp per bestilling
+        const hentMini = type === 'tripdate' && item.rid
+          ? ` <button class="nissy-hent-btn" data-rid="${item.rid}" title="Hent bestillinger for denne pasienten" style="background: #6f42c1; color: white; border: none; padding: 1px 6px; border-radius: 3px; cursor: pointer; font-size: 11px;">📥</button>`
+          : '';
+        const reknrDisplay = (item.status
+          ? `${item.reknr} <span style="color: #dc3545;">(${item.status})</span>`
+          : item.reknr) + hentMini;
         
         const hentetidDate = extractDate(item.hentetid);
         const leveringstidDate = extractDate(item.leveringstid);

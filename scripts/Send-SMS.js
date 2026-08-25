@@ -438,7 +438,7 @@
         {
           navn: "Bodø lufthavn",
           tekst: () =>
-            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\n\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du lander i Bodø. Våre åpningstider er hverdager 08.00 - 16.00. Om du lander utenom vår åpningstid ringer du Nordland taxi tlf 07550.\n\nHa en fin dag.`,
+            `Dette er en melding fra Pasientreiser, meldingen kan ikke besvares med SMS.\n\nFor taxi på bestilt rekvisisjon, ta kontakt med Pasientreiser tlf 05515 når du ankommer Bodø. Våre åpningstider er hverdager 08.00 - 16.00. Om du ankommer utenom vår åpningstid ringer du Nordland taxi tlf 07550.\n\nHa en fin dag.`,
         },
         {
           navn: "Svolvær lufthavn",
@@ -527,11 +527,6 @@
             `Ditt avreisetidspunkt er endret til: ${formaterTid(info.reiseTid)}.\n\nVed spørsmål, kontakt Pasientreiser på telefon 05515. Denne SMS-en kan ikke besvares.`,
         },
         {
-          navn: "Bekreftelse mottager",
-          tekst: () =>
-            `Dette er en melding fra Pasientreiser. Denne SMS-en kan ikke besvares.\n\nDet bekreftes at din reise er bestilt. Ditt personnummer er vårt referansenummer.\n\nDersom du har spørsmål vedrørende dette, kontakt Pasientreiser på telefon 05515.`,
-        },
-        {
           navn: "Skriftlig klage",
           tekst: () =>
             `Takk for at du tok kontakt med oss. For å sende klage til Pasientreiser er det følgende alternativer som gjelder:\n\nVanlig post:\nHelse Bergen\nHaukeland universitetssjukehus\nAvdeling for pasientreiser\nPostboks 1400\n5021 Bergen\n\nAll post til avdelinger på sykehuset skal sendes til det sentrale postmottaket vårt.\n\neDialog (sikker og kryptert oversending av brev og dokumenter):\nhttps://www.helse-bergen.no/om-oss/kontaktinformasjon/edialog/\n\nHar du andre spørsmål, ta kontakt med oss igjen på 05515.\n\nMed vennlig hilsen Pasientreiser.`,
@@ -574,7 +569,7 @@
         {
           navn: "Fly RB",
           tekst: (info) =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nViser til drosjebestillingen din fra Flesland flyplass. Ved ankomst ringer du Bergen Taxi på 55 97 70 70. Oppgi at du har drosjerekvisisjon hos Pasientreiser. Forventet avreise fra Flesland er ${formaterTid(info.reiseTid)}. Hentestedet er på høyre side for utgangen ved innenlands ankomst. Ved endring eller avbestilling, ring 05515 snarest.\n\nHilsen Pasientreiser.`,
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nViser til drosjebestillingen din fra Flesland flyplass. Ved ankomst ringer du Bergen Taxi på 55 99 70 70. Oppgi at du har drosjerekvisisjon hos Pasientreiser. Forventet avreise fra Flesland er ${formaterTid(info.reiseTid)}. Hentestedet er på høyre side for utgangen ved innenlands ankomst. Ved endring eller avbestilling, ring 05515 snarest.\n\nHilsen Pasientreiser.`,
         },
         {
           navn: "Forsinkelser",
@@ -585,11 +580,6 @@
           navn: "Bestilt reise",
           tekst: (info) =>
             `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDin reise til behandling er bestilt. Estimert hentetid: ${formaterTid(info.reiseTid)}. Noe ventetid må påregnes. Ring 05515 for å endre eller avbestille. Du finner mer informasjon på helsenorge.no.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "Endring på avreise tidspunkt",
-          tekst: (info) =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDin reise til behandling er bestilt. Estimert avreise: ${formaterTid(info.reiseTid)}.\n\nHilsen Pasientreiser.`,
         },
         {
           navn: "Bomtur",

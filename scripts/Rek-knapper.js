@@ -179,6 +179,49 @@
   }
 
   // ============================================================
+  // F5-HÅNDTERING: Refresher innholdet i modal-iframen i stedet for
+  // hele planleggingssiden mens modalen er åpen (samme oppførsel som
+  // Bestillingsmodul)
+  // ============================================================
+  let f5Handler = null;
+  let currentIframe = null;
+
+  function handleF5(e) {
+    const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+    if (isF5) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (currentIframe) {
+        try {
+          // Refresh gjeldende side i iframe
+          currentIframe.contentWindow.location.reload();
+        } catch (err) {
+          // Fallback: refresh iframe src
+          currentIframe.src = currentIframe.src;
+        }
+      }
+      return false;
+    }
+  }
+
+  function enableF5Handler(iframe) {
+    currentIframe = iframe;
+    if (f5Handler) return;
+    f5Handler = handleF5;
+    window.addEventListener('keydown', f5Handler, true);
+    document.addEventListener('keydown', f5Handler, true);
+  }
+
+  function disableF5Handler() {
+    currentIframe = null;
+    if (!f5Handler) return;
+    window.removeEventListener('keydown', f5Handler, true);
+    document.removeEventListener('keydown', f5Handler, true);
+    f5Handler = null;
+  }
+
+  // ============================================================
   // FEILMELDING-TOAST: Vises nederst på skjermen (rød bakgrunn)
   // ============================================================
   let currentErrorToast = null;
@@ -344,6 +387,20 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hent "Oppm. dato" (4. kolonne) fra en rad i
+  // Hent rekvisisjon-listen. Brukes når [T] (makeReturn) trykkes inne
+  // i modalen, slik at dato-feltet på returskjemaet kan fylles inn.
+  // Format: "dd.mm.åå tt:mm" → {day, month}, ellers null (= dagens dato).
+  // ============================================================
+  function extractOppmDatoFromRow(row) {
+    const cells = row.querySelectorAll('td');
+    const text = cells[3]?.textContent.trim() || '';
+    const m = text.match(/(\d{2})\.(\d{2})\.(\d{2})/);
+    if (!m) return null;
+    return { day: parseInt(m[1], 10), month: parseInt(m[2], 10) };
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Fyll inn dato-feltet ("Pasient klar fra") hvis det
   // er tomt, basert på datoen hentet fra raden (eller dagens dato).
   // ============================================================
@@ -436,28 +493,44 @@
     }
   }
 
-  async function fixTransportType(doc, rid) {
+  async function fixTransportType(doc, rid, userChoice = null) {
     const select = doc.querySelector('select[name="trip.actualTransportTypeCode"]');
     if (!select) return;
-    if (select.value !== '') return;
 
-    console.log(`[REK] ⚠️ Reisemåte er blank for rid=${rid} – henter fra plakat...`);
+    // Race-vern: to nesten samtidige kall på samme side ville begge hentet
+    // plakat og skrevet hver sin verdi – sistemann ville vunnet med feil
+    // bestillings reisemåte. Kun første kall får kjøre (per dokument, så
+    // sjekken kjøres igjen ved hver ny lasting av siden).
+    if (doc.__nissyTransportFixPending) return;
+    doc.__nissyTransportFixPending = true;
 
-    const reisemåte = await fetchReisemåte(rid);
-    if (!reisemåte) {
-      console.warn(`[REK] Kunne ikke hente reisemåte for rid=${rid} – feltet forblir blankt`);
+    // NISSY setter av og til feil reisemåte i redigeringsvinduet – ikke bare
+    // blank, men også en helt annen verdi enn bestillingens faktiske.
+    // Plakaten er fasit, så verdien verifiseres mot den og rettes ved avvik.
+    // Har brukeren selv endret reisemåte tidligere i redigeringen (userChoice),
+    // er det brukerens valg som gjelder i stedet.
+    const fasit = userChoice || await fetchReisemåte(rid);
+    const kilde = userChoice ? 'brukerens valg' : 'plakat';
+    if (!fasit) {
+      console.warn(`[REK] Kunne ikke hente reisemåte fra plakat for rid=${rid} – feltet er ikke verifisert`);
       return;
     }
 
-    const option = doc.querySelector(`select[name="trip.actualTransportTypeCode"] option[value="${reisemåte}"]`);
+    if (select.value === fasit) {
+      console.log(`[REK] ✅ Reisemåte "${fasit}" stemmer med ${kilde} for rid=${rid}`);
+      return;
+    }
+
+    const option = select.querySelector(`option[value="${fasit}"]`);
     if (!option) {
-      console.warn(`[REK] Reisemåte "${reisemåte}" finnes ikke som valg i feltet for rid=${rid}`);
+      console.warn(`[REK] Reisemåte "${fasit}" finnes ikke som valg i feltet for rid=${rid}`);
       return;
     }
 
-    select.value = reisemåte;
+    const previous = select.value ? `"${select.value}"` : 'blank';
+    select.value = fasit;
     select.dispatchEvent(new Event('change', { bubbles: true }));
-    console.log(`[REK] ✅ Reisemåte automatisk satt til "${reisemåte}" for rid=${rid}`);
+    console.log(`[REK] ✅ Reisemåte rettet fra ${previous} til "${fasit}" for rid=${rid} (fra ${kilde})`);
   }
 
   // ============================================================
@@ -723,6 +796,29 @@
       } catch (err) {}
     };
 
+    // Hjelpefunksjon: Scroll til og fokuser på hentetid-feltet
+    const focusPickupTime = (doc, win) => {
+      try {
+        const pickupTimeField = doc.getElementById("pickupTime");
+        if (!pickupTimeField) return;
+        const iframeWin = win || doc.defaultView;
+        // Vent to render-sykluser (rAF x2) slik at scrollHeight er ferdig
+        // beregnet av nettleseren før vi måler og scroller.
+        iframeWin.requestAnimationFrame(() => {
+          iframeWin.requestAnimationFrame(() => {
+            const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
+            iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
+            pickupTimeField.focus({ preventScroll: true });
+            // Tredje rAF: vent til nettleseren har prosessert focus-eventet
+            // før select() kalles – hindrer sjeldne tilfeller der markering uteblir
+            iframeWin.requestAnimationFrame(() => {
+              pickupTimeField.select();
+            });
+          });
+        });
+      } catch (err) {}
+    };
+
     // ============================================================
     // ÅPNE MODAL MED IFRAME
     // Brukes for å vise redigering, hendelseslogg, etc.
@@ -736,34 +832,20 @@
       // Reset iframe
       iframe.onload = null;
       iframe.src = "about:blank";
+      // Fjern rid og evt. brukervalgt reisemåte fra en tidligere modal-økt,
+      // slik at de ikke feilaktig brukes på neste redigeringsside
+      iframe._pendingEditRid = undefined;
+      iframe._currentEditRid = undefined;
+      iframe._userTransportChoice = undefined;
+      iframe._pendingReturnDate = undefined;
 
       // Juster posisjonering basert på om vi er i ventende oppdrag
       if (modal) {
         modal.style.justifyContent = window.isVentendeOppdrag ? "flex-end" : "flex-start";
       }
 
-      // Hjelpefunksjon: Scroll til og fokuser på hentetid-feltet
-      const focusPickupTime = (doc, win) => {
-        try {
-          const pickupTimeField = doc.getElementById("pickupTime");
-          if (!pickupTimeField) return;
-          const iframeWin = win || doc.defaultView;
-          // Vent to render-sykluser (rAF x2) slik at scrollHeight er ferdig
-          // beregnet av nettleseren før vi måler og scroller.
-          iframeWin.requestAnimationFrame(() => {
-            iframeWin.requestAnimationFrame(() => {
-              const scrollBottom = doc.documentElement.scrollHeight - iframeWin.innerHeight - 135;
-              iframeWin.scrollTo({ top: scrollBottom, behavior: "instant" });
-              pickupTimeField.focus({ preventScroll: true });
-              // Tredje rAF: vent til nettleseren har prosessert focus-eventet
-              // før select() kalles – hindrer sjeldne tilfeller der markering uteblir
-              iframeWin.requestAnimationFrame(() => {
-                pickupTimeField.select();
-              });
-            });
-          });
-        } catch (err) {}
-      };
+      // F5 refresher iframe-innholdet i stedet for hele siden mens modalen er åpen
+      enableF5Handler(iframe);
 
       // Tvinger Tilbake-knappen til alltid å bruke korrekt URL.
       // 4-stegs: table.top_navigation er synlig → addTrip-URL
@@ -837,28 +919,17 @@
           };
         }
 
-        // Hvis det er rediger-knappen, klikk automatisk på "Rediger klar fra" og fokuser hentetid
+        // Rediger-knappen (R): merk gjeldende bestilling. Reisemåte-sjekken
+        // OG "Rediger klar fra"-klikk med fokus på hentetid kjøres fra den
+        // permanente load-lytteren på HVER lasting der redigeringssiden er
+        // aktiv – NISSY kan sette feil reisemåte igjen f.eks. etter søk på
+        // hentested/leveringssted, og scroll/fokus skal også gjentas da.
+        // Redigeres en annen bestilling via Hent rekvisisjon → [R], overtar
+        // dens rid.
         if (isEditButton) {
           const ridMatch = url ? url.match(/[?&]id=(\d+)/) : null;
           const rid = ridMatch ? ridMatch[1] : null;
-          iframe.onload = function() {
-            try {
-              const doc = iframe.contentDocument || iframe.contentWindow.document;
-              const win = iframe.contentWindow;
-              if (rid) fixTransportType(doc, rid);
-              setTimeout(() => {
-                const redigerBtn = doc.getElementById("redigerKlarFra");
-                if (redigerBtn &&
-                    win.getComputedStyle(redigerBtn).display !== "none" &&
-                    win.getComputedStyle(redigerBtn).visibility !== "hidden") {
-                  redigerBtn.click();
-                  setTimeout(() => focusPickupTime(doc, win), 50);
-                } else {
-                  focusPickupTime(doc, win);
-                }
-              }, 100);
-            } catch (err) {}
-          };
+          if (rid) iframe._currentEditRid = rid;
         }
       }
       // Scenario 2: POST requisitionNumber (for T-knappen - lag retur)
@@ -893,7 +964,14 @@
             if (window.lastEditedReqId) {
               try {
                 iframe.contentWindow.eval(`javascript:makeReturn('${window.lastEditedReqId}','&ns=true');`);
-                
+
+                // NISSY setter returens reisemåte lik originalbestillingen –
+                // bruk dens rid til verifisering når returskjemaet lastes
+                // (makeReturn kalles her via eval, så klikk-fangsten i den
+                // permanente load-lytteren treffer ikke)
+                iframe._currentEditRid = window.lastEditedReqId;
+                iframe._userTransportChoice = undefined;
+
                 // makeReturn() trigger en ny sidelasting — vent på onload
                 if (isReturnButton) {
                   const rowDate = window.lastEditedRowDate;
@@ -972,6 +1050,8 @@
         iframe.src = "about:blank";
         iframe.onload = null;
       }
+
+      disableF5Handler();
 
       window.popupObserver?.disconnect();
 
@@ -1460,12 +1540,19 @@
         try {
           const doc = iframe.contentDocument || iframe.contentWindow.document;
           const win = iframe.contentWindow;
-          doc.addEventListener("keydown", (e) => {
-            if (e.key === "F5") {
+          // F5 inne i iframen: refresh gjeldende side i stedet for å blokkere
+          const iframeF5Handler = (e) => {
+            const isF5 = (e.key === 'F5') || (e.keyCode === 116 && e.key !== 't');
+            if (isF5) {
               e.preventDefault();
               e.stopPropagation();
+              e.stopImmediatePropagation();
+              win.location.reload();
+              return false;
             }
-          }, true);
+          };
+          doc.addEventListener("keydown", iframeF5Handler, true);
+          win.addEventListener("keydown", iframeF5Handler, true);
           // Tving lang admin-tekst til å bryte linje fremfor å sprenge bredden på modalen
           const overflowFix = doc.createElement('style');
           overflowFix.textContent = '.container-fluid p, .container-fluid span { word-break: break-word !important; overflow-wrap: break-word !important; white-space: normal !important; } #transportRequirements table:has(.form-check-label) { table-layout: fixed !important; width: 100% !important; } #transportRequirements td:has(.form-check-label) { overflow: hidden !important; } #transportRequirements .form-check-label { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; display: inline-block !important; max-width: calc(100% - 25px) !important; vertical-align: middle !important; }';
@@ -1487,6 +1574,88 @@
           focusSearchName(doc, win);
 
           confirmLogoutLinks(doc);
+
+          // [R]-lenkene i Hent rekvisisjon ([B]-knappen) navigerer via en
+          // hash-id, men selve lenken inneholder numerisk rid:
+          // href="javascript:editIt('81451170','$userid','&ns=true')".
+          // Fang rid ved klikk (lytteren nederst), og husk den som gjeldende
+          // rid så lenge redigeringen pågår. Reisemåte verifiseres mot plakat
+          // på HVER lasting der feltet finnes – NISSY kan sette feil verdi
+          // igjen f.eks. etter søk på hentested/leveringssted. Rid konsumeres
+          // først når feltet faktisk finnes, siden navigasjonen kan gå via en
+          // mellomlasting. Lastes en "ny bestilling"-side, nullstilles
+          // redigerings-rid så den ikke smitter over på nybestillingen.
+          const _path  = doc.location?.pathname || '';
+          const _query = doc.location?.search || '';
+          // "Ny bestilling"-side = new?confirmed eller altRequisition HELT
+          // uten query. Navigasjoner under redigering har alltid query-
+          // parametre (clear=false ved Tilbake/editIt, search=true ved valg
+          // av hentested/leveringssted, osv.)
+          if (_path.includes('/requisition/new') ||
+              (_path.includes('altRequisition') && !_query)) {
+            iframe._currentEditRid = undefined;
+            iframe._userTransportChoice = undefined;
+          }
+          const transportSelect = doc.querySelector('select[name="trip.actualTransportTypeCode"]');
+          if (transportSelect && iframe._pendingEditRid) {
+            iframe._currentEditRid = iframe._pendingEditRid;
+            iframe._pendingEditRid = undefined;
+            iframe._userTransportChoice = undefined;
+          }
+          if (transportSelect && iframe._currentEditRid) {
+            fixTransportType(doc, iframe._currentEditRid, iframe._userTransportChoice);
+            // Endrer brukeren reisemåte selv (ekte hendelse – vår programmatiske
+            // change er ikke isTrusted), er det brukerens valg som gjelder videre
+            transportSelect.addEventListener('change', (e) => {
+              if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
+            });
+            // Ble denne siden lastet via et [T]-klikk (makeReturn), fylles
+            // datoen fra raden inn hvis dato-feltet er tomt (undefined =
+            // ikke lastet via [T], da røres ikke datoen)
+            const returnDate = iframe._pendingReturnDate;
+            iframe._pendingReturnDate = undefined;
+            const fillDate = () => {
+              if (returnDate !== undefined) fillPickupDateIfEmpty(doc, returnDate);
+            };
+            // Klikk "Rediger klar fra" og fokuser hentetid – gjelder både R-
+            // knappen og redigering via [R]/[T] i Hent rekvisisjon, og gjentas
+            // ved hver lasting av redigeringssiden (f.eks. retur fra søk på
+            // hentested/leveringssted)
+            setTimeout(() => {
+              try {
+                const redigerBtn = doc.getElementById("redigerKlarFra");
+                if (redigerBtn &&
+                    win.getComputedStyle(redigerBtn).display !== "none" &&
+                    win.getComputedStyle(redigerBtn).visibility !== "hidden") {
+                  redigerBtn.click();
+                  setTimeout(() => {
+                    fillDate();
+                    focusPickupTime(doc, win);
+                  }, 50);
+                } else {
+                  fillDate();
+                  focusPickupTime(doc, win);
+                }
+              } catch (err) {}
+            }, 100);
+          }
+          doc.addEventListener('click', (e) => {
+            // [T] (makeReturn) fanges på samme måte som [R] (editIt): NISSY
+            // setter returens reisemåte lik originalbestillingen, så dens rid
+            // brukes til verifisering av returskjemaet
+            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
+            if (!editLink) return;
+            const href = editLink.getAttribute('href') || '';
+            const m = href.match(/(?:editIt|makeReturn)\('(\d+)'/);
+            iframe._pendingEditRid = m ? m[1] : undefined;
+            // [T]: ta med "Oppm. dato" fra raden, slik at "Pasient klar fra"-
+            // datoen kan fylles inn på returskjemaet (som T-knappen gjør).
+            // [R]-klikk nullstiller, så en gammel dato ikke henger igjen.
+            const returnRow = editLink.closest('tr');
+            iframe._pendingReturnDate = href.includes('makeReturn(')
+              ? (returnRow ? extractOppmDatoFromRow(returnRow) : null)
+              : undefined;
+          }, true);
         } catch (err) {}
       });
 
