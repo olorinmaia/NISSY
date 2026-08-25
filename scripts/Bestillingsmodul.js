@@ -652,9 +652,12 @@
                             });
                         }
                         iframeDoc.addEventListener('click', (e) => {
-                            const editLink = e.target.closest?.('a[href*="editIt("]');
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
                             if (!editLink) return;
-                            const m = (editLink.getAttribute('href') || '').match(/editIt\('(\d+)'/);
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
                             iframe._pendingEditRid = m ? m[1] : undefined;
                         }, true);
 
@@ -1135,9 +1138,12 @@
                             });
                         }
                         iframeDoc.addEventListener('click', (e) => {
-                            const editLink = e.target.closest?.('a[href*="editIt("]');
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
                             if (!editLink) return;
-                            const m = (editLink.getAttribute('href') || '').match(/editIt\('(\d+)'/);
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
                             iframe._pendingEditRid = m ? m[1] : undefined;
                         }, true);
 
@@ -2294,9 +2300,12 @@
                             });
                         }
                         iframeDoc.addEventListener('click', (e) => {
-                            const editLink = e.target.closest?.('a[href*="editIt("]');
+                            // [T] (makeReturn) fanges på samme måte som [R] (editIt):
+                            // NISSY setter returens reisemåte lik originalbestillingen,
+                            // så dens rid brukes til verifisering av returskjemaet
+                            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
                             if (!editLink) return;
-                            const m = (editLink.getAttribute('href') || '').match(/editIt\('(\d+)'/);
+                            const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
                             iframe._pendingEditRid = m ? m[1] : undefined;
                         }, true);
 

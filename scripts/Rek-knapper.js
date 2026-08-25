@@ -387,6 +387,20 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Hent "Oppm. dato" (4. kolonne) fra en rad i
+  // Hent rekvisisjon-listen. Brukes når [T] (makeReturn) trykkes inne
+  // i modalen, slik at dato-feltet på returskjemaet kan fylles inn.
+  // Format: "dd.mm.åå tt:mm" → {day, month}, ellers null (= dagens dato).
+  // ============================================================
+  function extractOppmDatoFromRow(row) {
+    const cells = row.querySelectorAll('td');
+    const text = cells[3]?.textContent.trim() || '';
+    const m = text.match(/(\d{2})\.(\d{2})\.(\d{2})/);
+    if (!m) return null;
+    return { day: parseInt(m[1], 10), month: parseInt(m[2], 10) };
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Fyll inn dato-feltet ("Pasient klar fra") hvis det
   // er tomt, basert på datoen hentet fra raden (eller dagens dato).
   // ============================================================
@@ -823,6 +837,7 @@
       iframe._pendingEditRid = undefined;
       iframe._currentEditRid = undefined;
       iframe._userTransportChoice = undefined;
+      iframe._pendingReturnDate = undefined;
 
       // Juster posisjonering basert på om vi er i ventende oppdrag
       if (modal) {
@@ -949,7 +964,14 @@
             if (window.lastEditedReqId) {
               try {
                 iframe.contentWindow.eval(`javascript:makeReturn('${window.lastEditedReqId}','&ns=true');`);
-                
+
+                // NISSY setter returens reisemåte lik originalbestillingen –
+                // bruk dens rid til verifisering når returskjemaet lastes
+                // (makeReturn kalles her via eval, så klikk-fangsten i den
+                // permanente load-lytteren treffer ikke)
+                iframe._currentEditRid = window.lastEditedReqId;
+                iframe._userTransportChoice = undefined;
+
                 // makeReturn() trigger en ny sidelasting — vent på onload
                 if (isReturnButton) {
                   const rowDate = window.lastEditedRowDate;
@@ -1587,8 +1609,16 @@
             transportSelect.addEventListener('change', (e) => {
               if (e.isTrusted) iframe._userTransportChoice = transportSelect.value;
             });
+            // Ble denne siden lastet via et [T]-klikk (makeReturn), fylles
+            // datoen fra raden inn hvis dato-feltet er tomt (undefined =
+            // ikke lastet via [T], da røres ikke datoen)
+            const returnDate = iframe._pendingReturnDate;
+            iframe._pendingReturnDate = undefined;
+            const fillDate = () => {
+              if (returnDate !== undefined) fillPickupDateIfEmpty(doc, returnDate);
+            };
             // Klikk "Rediger klar fra" og fokuser hentetid – gjelder både R-
-            // knappen og redigering via [R] i Hent rekvisisjon, og gjentas
+            // knappen og redigering via [R]/[T] i Hent rekvisisjon, og gjentas
             // ved hver lasting av redigeringssiden (f.eks. retur fra søk på
             // hentested/leveringssted)
             setTimeout(() => {
@@ -1598,18 +1628,33 @@
                     win.getComputedStyle(redigerBtn).display !== "none" &&
                     win.getComputedStyle(redigerBtn).visibility !== "hidden") {
                   redigerBtn.click();
-                  setTimeout(() => focusPickupTime(doc, win), 50);
+                  setTimeout(() => {
+                    fillDate();
+                    focusPickupTime(doc, win);
+                  }, 50);
                 } else {
+                  fillDate();
                   focusPickupTime(doc, win);
                 }
               } catch (err) {}
             }, 100);
           }
           doc.addEventListener('click', (e) => {
-            const editLink = e.target.closest?.('a[href*="editIt("]');
+            // [T] (makeReturn) fanges på samme måte som [R] (editIt): NISSY
+            // setter returens reisemåte lik originalbestillingen, så dens rid
+            // brukes til verifisering av returskjemaet
+            const editLink = e.target.closest?.('a[href*="editIt("], a[href*="makeReturn("]');
             if (!editLink) return;
-            const m = (editLink.getAttribute('href') || '').match(/editIt\('(\d+)'/);
+            const href = editLink.getAttribute('href') || '';
+            const m = href.match(/(?:editIt|makeReturn)\('(\d+)'/);
             iframe._pendingEditRid = m ? m[1] : undefined;
+            // [T]: ta med "Oppm. dato" fra raden, slik at "Pasient klar fra"-
+            // datoen kan fylles inn på returskjemaet (som T-knappen gjør).
+            // [R]-klikk nullstiller, så en gammel dato ikke henger igjen.
+            const returnRow = editLink.closest('tr');
+            iframe._pendingReturnDate = href.includes('makeReturn(')
+              ? (returnRow ? extractOppmDatoFromRow(returnRow) : null)
+              : undefined;
           }, true);
         } catch (err) {}
       });
