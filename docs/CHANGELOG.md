@@ -25,10 +25,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🔍 **Sjekk-Bestilling (Alt+2)**
   - Ny **Hent bestillinger**-knapp (lilla) per funn i resultatpopupen – åpner Bestillingsmodul direkte over Sjekk-bestilling-vinduet slik at bestillingen kan rettes uten å lukke oversikten. Knappen grås ut etter første klikk
 
-### Send-SMS: Justert mal for Nordlandssykehuset
+### Send-SMS: Justert maler for Nordlandssykehuset og Helse Bergen
 
 - 📱 **Send-SMS (Alt+C)**
   - Liten justering i ordlyden i malen for Bodø lufthavn – @asa032
+  - Fjernet to maler og endret nummer i malen "Fly RB" for Helse Bergen
 
 ---
 
