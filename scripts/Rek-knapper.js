@@ -493,7 +493,33 @@
     }
   }
 
-  async function fixTransportType(doc, rid, userChoice = null) {
+  // Henter reisemåten fra "Spes. behov"-kolonnen i en rad i Hent
+  // rekvisisjon-listen. Cellen viser evt. spesielle behov etterfulgt av
+  // reisemåten og antall ledsagere, f.eks. "RU RB TAX (0)" – reisemåten er
+  // siste kode før ledsager-tallet. Null hvis kolonnen/koden ikke finnes.
+  function extractReisemåteFraListe(row) {
+    try {
+      if (!row) return null;
+      const headers = row.closest('table')?.querySelectorAll('thead td, thead th') || [];
+      let idx = -1;
+      headers.forEach((h, i) => { if (h.textContent.trim() === 'Spes. behov') idx = i; });
+      if (idx === -1 || !row.cells[idx]) return null;
+      const tokens = row.cells[idx].textContent
+        .replace(/\(\d+\)/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      const code = tokens[tokens.length - 1];
+      return code && /^[A-ZÆØÅ0-9]{2,8}$/.test(code) ? code : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Verifiserer Reisemåte-feltet: prioritet userChoice (brukerens eget valg)
+  // → listChoice (fra Hent rekvisisjon-listen – bestillingen ligger ikke
+  // nødvendigvis i planleggingsvinduet, og da er plakaten tom) → plakat.
+  async function fixTransportType(doc, rid, userChoice = null, listChoice = null) {
     const select = doc.querySelector('select[name="trip.actualTransportTypeCode"]');
     if (!select) return;
 
@@ -509,8 +535,8 @@
     // Plakaten er fasit, så verdien verifiseres mot den og rettes ved avvik.
     // Har brukeren selv endret reisemåte tidligere i redigeringen (userChoice),
     // er det brukerens valg som gjelder i stedet.
-    const fasit = userChoice || await fetchReisemåte(rid);
-    const kilde = userChoice ? 'brukerens valg' : 'plakat';
+    const fasit = userChoice || listChoice || await fetchReisemåte(rid);
+    const kilde = userChoice ? 'brukerens valg' : (listChoice ? 'Hent rekvisisjon-listen' : 'plakat');
     if (!fasit) {
       console.warn(`[REK] Kunne ikke hente reisemåte fra plakat for rid=${rid} – feltet er ikke verifisert`);
       return;
@@ -838,6 +864,8 @@
       iframe._currentEditRid = undefined;
       iframe._userTransportChoice = undefined;
       iframe._pendingReturnDate = undefined;
+      iframe._pendingListReisemåte = undefined;
+      iframe._listReisemåte = undefined;
 
       // Juster posisjonering basert på om vi er i ventende oppdrag
       if (modal) {
@@ -1595,15 +1623,18 @@
               (_path.includes('altRequisition') && !_query)) {
             iframe._currentEditRid = undefined;
             iframe._userTransportChoice = undefined;
+            iframe._listReisemåte = undefined;
           }
           const transportSelect = doc.querySelector('select[name="trip.actualTransportTypeCode"]');
           if (transportSelect && iframe._pendingEditRid) {
             iframe._currentEditRid = iframe._pendingEditRid;
             iframe._pendingEditRid = undefined;
             iframe._userTransportChoice = undefined;
+            iframe._listReisemåte = iframe._pendingListReisemåte;
+            iframe._pendingListReisemåte = undefined;
           }
           if (transportSelect && iframe._currentEditRid) {
-            fixTransportType(doc, iframe._currentEditRid, iframe._userTransportChoice);
+            fixTransportType(doc, iframe._currentEditRid, iframe._userTransportChoice, iframe._listReisemåte);
             // Endrer brukeren reisemåte selv (ekte hendelse – vår programmatiske
             // change er ikke isTrusted), er det brukerens valg som gjelder videre
             transportSelect.addEventListener('change', (e) => {
@@ -1648,6 +1679,10 @@
             const href = editLink.getAttribute('href') || '';
             const m = href.match(/(?:editIt|makeReturn)\('(\d+)'/);
             iframe._pendingEditRid = m ? m[1] : undefined;
+            // Reisemåten hentes fra "Spes. behov"-kolonnen i samme rad –
+            // bestillingen ligger ikke nødvendigvis i planleggingsvinduet
+            // (da er plakaten tom), og det sparer plakat-kall
+            iframe._pendingListReisemåte = m ? extractReisemåteFraListe(editLink.closest('tr')) : undefined;
             // [T]: ta med "Oppm. dato" fra raden, slik at "Pasient klar fra"-
             // datoen kan fylles inn på returskjemaet (som T-knappen gjør).
             // [R]-klikk nullstiller, så en gammel dato ikke henger igjen.

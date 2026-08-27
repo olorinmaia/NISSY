@@ -635,15 +635,18 @@
                             (_path.includes('altRequisition') && !_query)) {
                             iframe._currentEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = undefined;
                         }
                         const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
                         if (transportSelect && iframe._pendingEditRid) {
                             iframe._currentEditRid = iframe._pendingEditRid;
                             iframe._pendingEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = iframe._pendingListReisemåte;
+                            iframe._pendingListReisemåte = undefined;
                         }
                         if (transportSelect && iframe._currentEditRid) {
-                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice, iframe._listReisemåte);
                             // Endrer brukeren reisemåte selv (ekte hendelse – vår
                             // programmatiske change er ikke isTrusted), er det
                             // brukerens valg som gjelder videre
@@ -659,6 +662,11 @@
                             if (!editLink) return;
                             const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
                             iframe._pendingEditRid = m ? m[1] : undefined;
+                            // Reisemåten hentes fra "Spes. behov"-kolonnen i samme
+                            // rad – bestillingen ligger ikke nødvendigvis i
+                            // planleggingsvinduet (da er plakaten tom), og det
+                            // sparer plakat-kall
+                            iframe._pendingListReisemåte = m ? extractReisemåteFraListe(editLink.closest('tr')) : undefined;
                         }, true);
 
                         // alwaysFocus kun når en bestilling redigeres via [R]:
@@ -1121,15 +1129,18 @@
                             (_path.includes('altRequisition') && !_query)) {
                             iframe._currentEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = undefined;
                         }
                         const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
                         if (transportSelect && iframe._pendingEditRid) {
                             iframe._currentEditRid = iframe._pendingEditRid;
                             iframe._pendingEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = iframe._pendingListReisemåte;
+                            iframe._pendingListReisemåte = undefined;
                         }
                         if (transportSelect && iframe._currentEditRid) {
-                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice, iframe._listReisemåte);
                             // Endrer brukeren reisemåte selv (ekte hendelse – vår
                             // programmatiske change er ikke isTrusted), er det
                             // brukerens valg som gjelder videre
@@ -1145,6 +1156,11 @@
                             if (!editLink) return;
                             const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
                             iframe._pendingEditRid = m ? m[1] : undefined;
+                            // Reisemåten hentes fra "Spes. behov"-kolonnen i samme
+                            // rad – bestillingen ligger ikke nødvendigvis i
+                            // planleggingsvinduet (da er plakaten tom), og det
+                            // sparer plakat-kall
+                            iframe._pendingListReisemåte = m ? extractReisemåteFraListe(editLink.closest('tr')) : undefined;
                         }, true);
 
                         fixTilbakeLink(iframeDoc);
@@ -1722,15 +1738,18 @@
                             (_path.includes('altRequisition') && !_query)) {
                             iframe._currentEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = undefined;
                         }
                         const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
                         if (transportSelect && iframe._pendingEditRid) {
                             iframe._currentEditRid = iframe._pendingEditRid;
                             iframe._pendingEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = iframe._pendingListReisemåte;
+                            iframe._pendingListReisemåte = undefined;
                         }
                         if (transportSelect && iframe._currentEditRid) {
-                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice, iframe._listReisemåte);
                             // Endrer brukeren reisemåte selv (ekte hendelse – vår
                             // programmatiske change er ikke isTrusted), er det
                             // brukerens valg som gjelder videre
@@ -1746,6 +1765,11 @@
                             if (!editLink) return;
                             const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
                             iframe._pendingEditRid = m ? m[1] : undefined;
+                            // Reisemåten hentes fra "Spes. behov"-kolonnen i samme
+                            // rad – bestillingen ligger ikke nødvendigvis i
+                            // planleggingsvinduet (da er plakaten tom), og det
+                            // sparer plakat-kall
+                            iframe._pendingListReisemåte = m ? extractReisemåteFraListe(editLink.closest('tr')) : undefined;
                         }, true);
 
                         // alwaysFocus kun når en redigering er aktiv – på selve
@@ -2163,18 +2187,49 @@
     }
 
     /**
+     * Henter reisemåten fra "Spes. behov"-kolonnen i en rad i Hent
+     * rekvisisjon-listen. Cellen viser eventuelle spesielle behov etterfulgt
+     * av reisemåten og antall ledsagere, f.eks. "RU RB TAX (0)" – reisemåten
+     * er siste kode før ledsager-tallet. Returnerer null hvis kolonnen eller
+     * koden ikke finnes.
+     */
+    function extractReisemåteFraListe(row) {
+        try {
+            if (!row) return null;
+            const headers = row.closest('table')?.querySelectorAll('thead td, thead th') || [];
+            let idx = -1;
+            headers.forEach((h, i) => { if (h.textContent.trim() === 'Spes. behov') idx = i; });
+            if (idx === -1 || !row.cells[idx]) return null;
+            const tokens = row.cells[idx].textContent
+                .replace(/\(\d+\)/g, ' ')
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean);
+            const code = tokens[tokens.length - 1];
+            return code && /^[A-ZÆØÅ0-9]{2,8}$/.test(code) ? code : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
      * Verifiserer Reisemåte-feltet i redigeringsvinduet mot bestillingens
      * plakat. NISSY setter av og til feil reisemåte – ikke bare blank, men
      * også en helt annen verdi enn bestillingens faktiske. Plakaten er fasit,
      * så verdien hentes derfra og feltet rettes ved avvik. Har brukeren selv
      * endret reisemåte tidligere i redigeringen (userChoice), er det
-     * brukerens valg som gjelder i stedet.
+     * brukerens valg som gjelder i stedet. Ved redigering/retur via Hent
+     * rekvisisjon brukes reisemåten fra listens "Spes. behov"-kolonne
+     * (listChoice) – bestillingen ligger ikke nødvendigvis i
+     * planleggingsvinduet, og da er plakaten tom. Det sparer også
+     * plakat-kall. Prioritet: userChoice → listChoice → plakat.
      * Logger til konsoll både ved verifisering og ved korrigering.
      * @param {Document} iframeDoc - iframe-dokumentet
      * @param {string} rid - Bestillings-ID brukt til plakat-oppslag
      * @param {string|null} userChoice - Reisemåte brukeren selv har valgt
+     * @param {string|null} listChoice - Reisemåte fra Hent rekvisisjon-listen
      */
-    async function fixTransportType(iframeDoc, rid, userChoice = null) {
+    async function fixTransportType(iframeDoc, rid, userChoice = null, listChoice = null) {
         const select = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
         if (!select) return;
 
@@ -2185,8 +2240,8 @@
         if (iframeDoc.__nissyTransportFixPending) return;
         iframeDoc.__nissyTransportFixPending = true;
 
-        const fasit = userChoice || await fetchReisemåte(rid);
-        const kilde = userChoice ? 'brukerens valg' : 'plakat';
+        const fasit = userChoice || listChoice || await fetchReisemåte(rid);
+        const kilde = userChoice ? 'brukerens valg' : (listChoice ? 'Hent rekvisisjon-listen' : 'plakat');
         if (!fasit) {
             console.warn(`[BM] Kunne ikke hente reisemåte fra plakat for rid=${rid} – feltet er ikke verifisert`);
             return;
@@ -2258,9 +2313,11 @@
             modal.addEventListener('keydown', handleF5, true);
             
             // Gjeldende bestilling for Reisemåte-verifisering: starter med rid
-            // fra URL-en, overtas av rid fra evt. [R]-klikk i modalen
+            // fra URL-en, overtas av rid fra evt. [R]-klikk i modalen.
+            // Åpnet fra planleggingsvinduet – ingen listeverdi, plakat brukes.
             iframe._currentEditRid = rid || undefined;
             iframe._userTransportChoice = undefined;
+            iframe._listReisemåte = undefined;
 
             // Når iframe laster, prøv å klikke på Rediger-knappen og fokuser på pickupTime
             iframe.addEventListener('load', function() {
@@ -2326,15 +2383,18 @@
                             (_path.includes('altRequisition') && !_query)) {
                             iframe._currentEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = undefined;
                         }
                         const transportSelect = iframeDoc.querySelector('select[name="trip.actualTransportTypeCode"]');
                         if (transportSelect && iframe._pendingEditRid) {
                             iframe._currentEditRid = iframe._pendingEditRid;
                             iframe._pendingEditRid = undefined;
                             iframe._userTransportChoice = undefined;
+                            iframe._listReisemåte = iframe._pendingListReisemåte;
+                            iframe._pendingListReisemåte = undefined;
                         }
                         if (transportSelect && iframe._currentEditRid) {
-                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice);
+                            fixTransportType(iframeDoc, iframe._currentEditRid, iframe._userTransportChoice, iframe._listReisemåte);
                             // Endrer brukeren reisemåte selv (ekte hendelse – vår
                             // programmatiske change er ikke isTrusted), er det
                             // brukerens valg som gjelder videre
@@ -2350,6 +2410,11 @@
                             if (!editLink) return;
                             const m = (editLink.getAttribute('href') || '').match(/(?:editIt|makeReturn)\('(\d+)'/);
                             iframe._pendingEditRid = m ? m[1] : undefined;
+                            // Reisemåten hentes fra "Spes. behov"-kolonnen i samme
+                            // rad – bestillingen ligger ikke nødvendigvis i
+                            // planleggingsvinduet (da er plakaten tom), og det
+                            // sparer plakat-kall
+                            iframe._pendingListReisemåte = m ? extractReisemåteFraListe(editLink.closest('tr')) : undefined;
                         }, true);
 
                         // alwaysFocus kun når en redigering er aktiv – går brukeren
