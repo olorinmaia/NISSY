@@ -866,6 +866,7 @@
       iframe._pendingReturnDate = undefined;
       iframe._pendingListReisemåte = undefined;
       iframe._listReisemåte = undefined;
+      iframe._skipFocusOnce = undefined;
 
       // Juster posisjonering basert på om vi er i ventende oppdrag
       if (modal) {
@@ -999,6 +1000,12 @@
                 // permanente load-lytteren treffer ikke)
                 iframe._currentEditRid = window.lastEditedReqId;
                 iframe._userTransportChoice = undefined;
+                // T-knappens egen onload håndterer "Rediger klar fra"-klikk,
+                // dato og fokus på returskjemaets første lasting (med lengre
+                // ventetid – makeReturn trenger tid på DOM-endringene). Den
+                // permanente lytteren skal IKKE klikke i tillegg – et for
+                // tidlig/dobbelt klikk toggler redigeringen av igjen
+                iframe._skipFocusOnce = true;
 
                 // makeReturn() trigger en ny sidelasting — vent på onload
                 if (isReturnButton) {
@@ -1651,24 +1658,29 @@
             // Klikk "Rediger klar fra" og fokuser hentetid – gjelder både R-
             // knappen og redigering via [R]/[T] i Hent rekvisisjon, og gjentas
             // ved hver lasting av redigeringssiden (f.eks. retur fra søk på
-            // hentested/leveringssted)
-            setTimeout(() => {
-              try {
-                const redigerBtn = doc.getElementById("redigerKlarFra");
-                if (redigerBtn &&
-                    win.getComputedStyle(redigerBtn).display !== "none" &&
-                    win.getComputedStyle(redigerBtn).visibility !== "hidden") {
-                  redigerBtn.click();
-                  setTimeout(() => {
+            // hentested/leveringssted). T-knappens egen onload håndterer
+            // returskjemaets første lasting selv (_skipFocusOnce).
+            if (iframe._skipFocusOnce) {
+              iframe._skipFocusOnce = undefined;
+            } else {
+              setTimeout(() => {
+                try {
+                  const redigerBtn = doc.getElementById("redigerKlarFra");
+                  if (redigerBtn &&
+                      win.getComputedStyle(redigerBtn).display !== "none" &&
+                      win.getComputedStyle(redigerBtn).visibility !== "hidden") {
+                    redigerBtn.click();
+                    setTimeout(() => {
+                      fillDate();
+                      focusPickupTime(doc, win);
+                    }, 50);
+                  } else {
                     fillDate();
                     focusPickupTime(doc, win);
-                  }, 50);
-                } else {
-                  fillDate();
-                  focusPickupTime(doc, win);
-                }
-              } catch (err) {}
-            }, 100);
+                  }
+                } catch (err) {}
+              }, 100);
+            }
           }
           doc.addEventListener('click', (e) => {
             // [T] (makeReturn) fanges på samme måte som [R] (editIt): NISSY
