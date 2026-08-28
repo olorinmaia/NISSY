@@ -41,8 +41,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - [🚀 Installasjon](#-installasjon)
 - [⌨️ Tastatursnarveier](#️-tastatursnarveier)
 - [🐛 Kjente feil / ofte stilte spørsmål](#-kjente-feil--ofte-stilte-spørsmål)
-- [🤝 Bidrag](#-bidrag)
-- [📝 Lisens](#-lisens)
+- [🤝 Bruk og bidrag](#-bruk-og-bidrag)
 - [🔄 Changelog](#-changelog)
 
 ## 📦 Alle script og funksjoner
@@ -386,13 +385,15 @@ Snarveiene hører til de ulike script-pakkene.
 - F5 er ikke sperret, F5 bruker isteden "Åpne alle"-funksjonen til å oppdatere alle bestillinger/turer og åpne lukkede turer.
 - Hvis F5 trykkes fort etter hverandre inne i en pop-up kan hele siden lastes inn på nytt, script må da aktiveres igjen.
 
-## 🤝 Bidrag
+## 🤝 Bruk og bidrag
 
-Dette er et public repository for deling av javascript til brukere av NISSY Planlegging. Forbedringsforslag mottas gjerne via issues.
+Dette er et public repository for deling av javascript til brukere av NISSY Planlegging. Scriptene er i dag i bruk ved over halvparten av landets pasientreisekontor.
 
-## 📝 Lisens
+Scriptene kjører i nettleseren på toppen av NISSY Planlegging og forutsetter at du er innlogget med egen bruker. De gir ingen tilgang du ikke har fra før, og all databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere.
 
-Privat - Kun for intern bruk i NISSY-systemet.
+Forbedringsforslag mottas gjerne via issues eller pull requests.
+
+Scriptene leveres som de er, uten garantier.
 
 ## 🔄 Changelog
 
