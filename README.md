@@ -387,13 +387,11 @@ Snarveiene hører til de ulike script-pakkene.
 
 ## 🤝 Bruk og bidrag
 
-Dette er et public repository for deling av javascript til brukere av NISSY Planlegging. Scriptene er i dag i bruk ved over halvparten av landets pasientreisekontor.
+Dette er et public repository for deling av javascript til brukere av NISSY Planlegging.
 
-Scriptene kjører i nettleseren på toppen av NISSY Planlegging og forutsetter at du er innlogget med egen bruker. De gir ingen tilgang du ikke har fra før, og all databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere.
+Scriptene kjører i nettleseren på toppen av NISSY Planlegging og forutsetter at du er innlogget med egen bruker. All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere.
 
 Forbedringsforslag mottas gjerne via issues eller pull requests.
-
-Scriptene leveres som de er, uten garantier.
 
 ## 🔄 Changelog
 
