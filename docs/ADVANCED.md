@@ -416,8 +416,8 @@ Beregner i en pop-up antall bestillinger på ventende/pågående oppdrag og «sa
 
 ## 💪 Pro-tips
 
-1. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle → tilordningsstøtte 2.0 (ingen begrensning på antall bestillinger))
-2. **Hentetid/Rek-knapper + Smart-tildeling**: Rediger først, tildel etterpå
+1. **Maksimer effekt av Hentetid `ALT+E`**: Reduser `Bestillingstid`-innstillingen på NISSY-avtalene til rundt 720 minutter (12 timer). Dette vil sørge for at du kan redigere hentetid på bestillinger som ligger på pågående oppdrag for neste dag iløpet av hele arbeidsdagen. `Bestillingstid` bestemmer hvor langt vindu fra "nå" bestillinger på pågående oppdrag skal sendes over på SUTI til transportør.
+2. **Kombiner snarveier**: `ALT+V` → `ALT+T` (merk alle → tilordningsstøtte 2.0 (ingen begrensning på antall bestillinger))
 3. **ESC lukker alt**: Rek-knapper, modaler, popups
 4. **F5 har ny funksjon**: Når du trykker på F5 refreshes alle bestillinger/turer og alle turer åpnes. Ikke hele siden.
 5. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.

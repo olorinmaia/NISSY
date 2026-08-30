@@ -399,7 +399,7 @@ Legger til:
 
 ## 💡 Tips og triks
 
-1. **Lagre bokmerket i bokmerkeslinjen** for rask tilgang
+1. **Maksimer effekt av Hentetid `ALT+E`**: Reduser `Bestillingstid`-innstillingen på NISSY-avtalene til rundt 720 minutter (12 timer). Dette vil sørge for at du kan redigere hentetid på bestillinger som ligger på pågående oppdrag for neste dag iløpet av hele arbeidsdagen. `Bestillingstid` bestemmer hvor langt vindu fra "nå" bestillinger på pågående oppdrag skal sendes over på SUTI til transportør.
 2. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
 3. **ESC er din venn**: Lukker alle pop-ups
 4. **F5 har ny funksjon**: Når du trykker på F5 refreshes alle bestillinger/turer og alle turer åpnes. Ikke hele siden.
