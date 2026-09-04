@@ -1604,20 +1604,29 @@
         for (let i = 0; i < currentWaypoints.length; i++) {
           wpToRoutingIdx.push(wps.length);
           wps.push(currentWaypoints[i]);
-          viaPoints.forEach(function(vp, j) { if (gaps[j] === i) wps.push(vp.latlng); });
+          viaPoints.forEach(function(vp, j) { if (gaps[j] === i) { vp.routingIdx = wps.length; wps.push(vp.latlng); } });
         }
         return { wps: wps, wpToRoutingIdx: wpToRoutingIdx };
+      }
+
+      function makeViaIcon(timeStr) {
+        const label = timeStr
+          ? '<div class="icon-label"><div class="icon-label-time"><span style="color:#047CA1">' + timeStr + '</span></div></div>'
+          : '';
+        return L.divIcon({
+          className: 'custom-marker-wrapper',
+          html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                '<div style="width:14px;height:14px;background:#047CA1;border:2px solid #fff;' +
+                'border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.5);cursor:grab;flex-shrink:0;"></div>' +
+                label + '</div>',
+          iconSize: [14, 40], iconAnchor: [7, 7]
+        });
       }
 
       function addViaPoint(latlng) {
         const marker = L.marker(latlng, {
           draggable: true, zIndexOffset: 500,
-          icon: L.divIcon({
-            className: 'custom-marker-wrapper',
-            html: '<div style="width:14px;height:14px;background:#047CA1;border:2px solid #fff;' +
-                  'border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.5);cursor:grab;"></div>',
-            iconSize: [14, 14], iconAnchor: [7, 7]
-          })
+          icon: makeViaIcon(null)
         }).addTo(map);
         marker.bindTooltip('Dra for å endre ruten · Dobbeltklikk for å fjerne', { direction: 'top', offset: [0, -10] });
         const vp = { marker: marker, latlng: latlng };
@@ -1788,12 +1797,11 @@
           const polys = [];
           legs.forEach(function (leg) {
             const poly = L.polyline(leg.latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
-            poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); map.getContainer().style.cursor = 'crosshair'; });
-            poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); map.getContainer().style.cursor = ''; });
-            poly.on('click', function (e) { L.DomEvent.stopPropagation(e); addViaPoint(e.latlng); });
+            poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
+            poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
             poly.bindTooltip(
               '🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur) +
-              '<br><span style="color:#999;font-size:11px">Klikk eller høyreklikk for å justere ruten</span>',
+              '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>',
               { sticky: true });
             polys.push(poly);
           });
@@ -1805,6 +1813,19 @@
           // mellomliggende leveringer (f.eks. retur Meråker→Frøya via levering i Trondheim).
           const _cumSecAtWp = [0];
           legs.forEach(function(leg, i) { _cumSecAtWp.push(_cumSecAtWp[i] + leg.dur); });
+          // Vis estimert passeringstidspunkt på via-punktene (tidligste pasientKlar + kjøretid dit)
+          if (viaPoints.length) {
+            const _viaTider = currentFiltered.map(function(r) { return r.pasientKlar || ''; }).filter(Boolean).sort();
+            const _viaStartMin = _viaTider.length ? parseMin(_viaTider[0]) : null;
+            viaPoints.forEach(function(vp) {
+              if (_viaStartMin === null || vp.routingIdx == null || _cumSecAtWp[vp.routingIdx] == null) return;
+              const _viaTid = '~' + minTil(_viaStartMin + Math.round(_cumSecAtWp[vp.routingIdx] / 60));
+              vp.marker.setIcon(makeViaIcon(_viaTid));
+              vp.marker.setTooltipContent(
+                '⏱ Passeres ca. <b>' + _viaTid + '</b>' +
+                '<br><span style="color:#999;font-size:11px">Dra for å endre ruten · Dobbeltklikk for å fjerne</span>');
+            });
+          }
           const _returPickupSec = {};
           currentFiltered.filter(function(req) {
             return returReqs.some(function(r) { return r.reqId === req.reqId; });
@@ -2041,12 +2062,33 @@
           const minutterTidligere = prevAvgangMin !== null ? boardAnkomstMin - (prevAvgangMin - 10) : null;
 
           // Fase 1: individuelle kall – exit→levering (for sortering) + hentested→board (ventetid for returer)
+          function closestFlatIdx(pt) {
+            let idx = 0, dist = Infinity;
+            flatPts.forEach(function (p, i) {
+              const d = haversine(p, pt);
+              if (d < dist) { dist = d; idx = i; }
+            });
+            return idx;
+          }
           Promise.all(kandidater.map(function (b) {
             const klarMin = parseMin(b.pasientKlar);
             const oppmoteMin = parseMin(b.oppmote);
             const erRetur = klarMin !== null && oppmoteMin <= klarMin;
-            const delFetch = fetchSegmentDuration(exitLeie.lon, exitLeie.lat, b.leveringssted.lon, b.leveringssted.lat)
-              .catch(function () { return null; });
+            // Via-punkter mellom fergekaia og leveringsstedet må med i kjøretidsberegningen,
+            // ellers estimeres leveringstiden som om ruten gikk direkte fra kaia til levering
+            const _delFlatIdx = closestFlatIdx(b.leveringssted);
+            const _viasEtterFerge = viaPoints
+              .map(function (vp) { return { vp: vp, idx: closestFlatIdx({ lat: vp.latlng.lat, lon: vp.latlng.lng }) }; })
+              .filter(function (v) { return v.idx > boardFirstIdx && v.idx < _delFlatIdx; })
+              .sort(function (a, b2) { return a.idx - b2.idx; });
+            const delFetch = _viasEtterFerge.length
+              ? fetchChainDurations([[exitLeie.lon, exitLeie.lat]]
+                  .concat(_viasEtterFerge.map(function (v) { return [v.vp.latlng.lng, v.vp.latlng.lat]; }))
+                  .concat([[b.leveringssted.lon, b.leveringssted.lat]]), null)
+                  .then(function (cums) { return cums ? cums[cums.length - 1] : null; })
+                  .catch(function () { return null; })
+              : fetchSegmentDuration(exitLeie.lon, exitLeie.lat, b.leveringssted.lon, b.leveringssted.lat)
+                  .catch(function () { return null; });
             if (erRetur && validLL(b.hentested)) {
               const boardFetch = fetchSegmentDuration(b.hentested.lon, b.hentested.lat, boardLeie.lon, boardLeie.lat)
                 .catch(function () { return null; });
@@ -2069,10 +2111,27 @@
             function chainFetch(sorted) {
               if (!sorted.length) return Promise.resolve([]);
               if (sorted.length === 1) return Promise.resolve([sorted[0].indivSec]);
-              const points = [[exitLeie.lon, exitLeie.lat]]
-                .concat(sorted.map(function (r) { return [r.b.leveringssted.lon, r.b.leveringssted.lat]; }));
-              const fallback = sorted.map(function (r) { return r.indivSec; });
-              return fetchChainDurations(points, fallback);
+              const _vias = viaPoints
+                .map(function (vp) { return { lon: vp.latlng.lng, lat: vp.latlng.lat, idx: closestFlatIdx({ lat: vp.latlng.lat, lon: vp.latlng.lng }) }; })
+                .filter(function (v) { return v.idx > boardFirstIdx; });
+              if (!_vias.length) {
+                const points = [[exitLeie.lon, exitLeie.lat]]
+                  .concat(sorted.map(function (r) { return [r.b.leveringssted.lon, r.b.leveringssted.lat]; }));
+                const fallback = sorted.map(function (r) { return r.indivSec; });
+                return fetchChainDurations(points, fallback);
+              }
+              // Via-punkter etter fergen veves inn i kjeden etter posisjon langs ruten,
+              // og de kumulative tidene for leveringspunktene plukkes ut etterpå
+              const stops = sorted.map(function (r) { return { r: r, lon: r.b.leveringssted.lon, lat: r.b.leveringssted.lat, idx: closestFlatIdx(r.b.leveringssted) }; });
+              const merged = stops.concat(_vias).sort(function (a, b) { return a.idx - b.idx; });
+              const points = [[exitLeie.lon, exitLeie.lat]].concat(merged.map(function (s) { return [s.lon, s.lat]; }));
+              return fetchChainDurations(points, null).then(function (cums) {
+                return sorted.map(function (r) {
+                  if (!cums) return r.indivSec;
+                  const i = merged.findIndex(function (s) { return s.r === r; });
+                  return i >= 0 && cums[i] != null ? cums[i] : r.indivSec;
+                });
+              });
             }
 
             Promise.all([chainFetch(forwards), chainFetch(returs)]).then(function (chains) {
@@ -2258,12 +2317,11 @@
           const postDist = polyDist(postCoords);
           function mkSolid(latlngs, dist) {
             const p = L.polyline(latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
-            p.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); map.getContainer().style.cursor = 'crosshair'; });
-            p.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); map.getContainer().style.cursor = ''; });
-            p.on('click', function (e) { L.DomEvent.stopPropagation(e); addViaPoint(e.latlng); });
+            p.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
+            p.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
             p.bindTooltip(
               '🛣 ' + formatDist(dist) +
-              '<br><span style="color:#999;font-size:11px">Klikk eller høyreklikk for å justere ruten</span>',
+              '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>',
               { sticky: true });
             return p;
           }
@@ -2312,15 +2370,29 @@
                 const _preSec = preSec !== null ? preSec : legs[_legIdx].dur;
                 const boardAnkomstMin = Math.round(startTid + (_cumSec + _preSec) / 60);
                 if (postExitPolyInfo && postExitPolyInfo.prePoly)
-                  postExitPolyInfo.prePoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.preDist) + '  ·  ⏱ ca. ' + formatTime(_preSec));
+                  postExitPolyInfo.prePoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.preDist) + '  ·  ⏱ ca. ' + formatTime(_preSec) +
+                    '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>');
                 const nesteAvgangMin = visLeieBording(board, boardFm, boardAnkomstMin);
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
                   const _legEnd = (_routingWps || currentWaypoints)[_legIdx + 1];
                   if (postExitPolyInfo && postExitPolyInfo.postPoly && _legEnd) {
                     fetchSegmentDuration(exit.lon, exit.lat, _legEnd.lng, _legEnd.lat).then(function (sec) {
-                      if (sec !== null)
-                        postExitPolyInfo.postPoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.postDist) + '  ·  ⏱ ca. ' + formatTime(sec));
+                      if (sec === null) return;
+                      postExitPolyInfo.postPoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.postDist) + '  ·  ⏱ ca. ' + formatTime(sec) +
+                        '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>');
+                      // Via-punkter etter fergen: passeringstiden fra applyLegs mangler fergeventetid.
+                      // Korriger med faktisk fergeankomst (neste avgang + overfart) + kjøretid fra kaia.
+                      const _exitArrMin = nesteAvgangMin + ferge.crossing_min;
+                      viaPoints.forEach(function (vp) {
+                        if (vp.routingIdx == null || vp.routingIdx <= _legIdx) return;
+                        const _viaSec = sec + (_cumSecAtWp[vp.routingIdx] - _cumSecAtWp[_legIdx + 1]);
+                        const _viaTid = '~' + minTil(Math.round(_exitArrMin + _viaSec / 60));
+                        vp.marker.setIcon(makeViaIcon(_viaTid));
+                        vp.marker.setTooltipContent(
+                          '⏱ Passeres ca. <b>' + _viaTid + '</b>' +
+                          '<br><span style="color:#999;font-size:11px">Dra for å endre ruten · Dobbeltklikk for å fjerne</span>');
+                      });
                     });
                   }
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered, detectedLeier[0].firstIdx);
@@ -2588,14 +2660,14 @@
         e.originalEvent.preventDefault();
         _ctxLatlng = e.latlng;
         ctxMenu.innerHTML = '';
-        ctxMenu.appendChild(ctxItem('📍 Legg til rutepunkt her', function () {
+        ctxMenu.appendChild(ctxItem('<span style="display:inline-block;width:22px;text-align:center">📍</span> Legg til rutepunkt her', function () {
           if (_ctxLatlng) addViaPoint(_ctxLatlng);
         }));
         if (viaPoints.length > 0) {
           const sep = document.createElement('div');
           sep.style.cssText = 'border-top:1px solid #eee;margin:3px 0;';
           ctxMenu.appendChild(sep);
-          ctxMenu.appendChild(ctxItem('🗑 Fjern alle rutepunkter', function () {
+          ctxMenu.appendChild(ctxItem('<span style="display:inline-block;width:22px;text-align:center">🗑</span> Fjern alle rutepunkter', function () {
             clearViaPoints();
             if (routeControl) { routeControl.remove(); routeControl = null; }
             resetEstimates(); resetFerjeMarkers(); setRouteInfo(null);
