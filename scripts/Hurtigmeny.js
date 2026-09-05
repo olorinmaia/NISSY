@@ -196,8 +196,12 @@
   // ── Pasientnavn / ressursnavn fra rad ────────────────────────
   function getDisplayName(row, type) {
     if (type === 'ventende') {
-      const cells = row.querySelectorAll('td.d[onclick]');
-      return cells[0]?.textContent.trim() || '';
+      // Pasientnavn-kolonnen kan være skjult, så indeksen slås opp fra thead
+      // via sorteringslenken sortVentendeOppdragList('patientName')
+      const headers = row.closest('table')?.querySelectorAll('thead th') || [];
+      const nameIdx = [...headers].findIndex(th => th.querySelector(`a[href*="'patientName'"]`));
+      if (nameIdx === -1) return '';
+      return row.querySelectorAll('td')[nameIdx]?.textContent.trim() || '';
     }
     if (type === 'paagaende') {
       // Ressursnavn ligger alltid i 2. kolonne (<td> index 1)
