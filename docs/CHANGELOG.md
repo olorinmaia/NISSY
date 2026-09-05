@@ -11,6 +11,22 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.6] - ??.09.2026
+
+### Kartvisning: Rutepunkter for å styre kjøreruten
+
+- 🗺️ **Kartvisning (Alt+W)**
+  - Nye **rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted (f.eks. en annen vei enn den rutetjenesten foreslår). Punktene kan flyttes med drag-and-drop, fjernes med dobbeltklikk, eller alle på én gang via høyreklikkmenyen
+  - Rutepunktene viser estimert passeringstidspunkt både som etikett under punktet (følger «Info på ikon»-knappen) og i tooltip
+  - Estimert leveringstid og fergeberegning tar hensyn til rutepunkter.
+
+### Avbestilling: Riktig informasjon i popup uavhengig av kolonneoppsett
+
+- ✖️ **Avbestilling (Alt+K)**
+  - Fikser bug hvor popup for enkelt- og masseavbestilling/avplanlegging viste data fra feil kolonner (f.eks. adresse i stedet for pasientnavn, eller feil status) når kolonner som Pasientnavn var skjult eller Reisemåte var lagt til i Ventende/Pågående oppdrag. Kolonnene identifiseres nå dynamisk ut fra tabellens overskrifter
+
+---
+
 ## 🔧 [4.9.5] - 25.08.2026
 
 ### Tryggere og enklere redigering av bestillinger i modalene

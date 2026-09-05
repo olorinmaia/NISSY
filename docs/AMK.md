@@ -147,6 +147,7 @@ javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISS
     - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- **Rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted. Punktene kan flyttes med drag-and-drop og fjernes med dobbeltklikk (eller alle via høyreklikkmenyen). Viser estimert passeringstid, og leveringstid/fergeberegning tar hensyn til punktene
 - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md).
 
 ### 🚕 Ressursinfo (ALT+D)
