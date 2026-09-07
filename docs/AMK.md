@@ -191,7 +191,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
 - Åpner alle turer ved bytting av filter automatisk og ved søk.
 - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
-- Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
+- Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer og viser en diskret melding nederst mens det skjer. Se tabell lengre nede.
 - Lukker alle typer plakater ved trykk utenfor.
 - Begrenser bredden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
 - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.

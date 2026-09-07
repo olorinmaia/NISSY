@@ -20,6 +20,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Rutepunktene viser estimert passeringstidspunkt både som etikett under punktet (følger «Info på ikon»-knappen) og i tooltip
   - Estimert leveringstid og fergeberegning tar hensyn til rutepunkter.
 
+### NISSY-fiks: Tilbakemelding ved F5
+
+- ⌛ **NISSY-fiks**
+  - F5 viser nå en diskret melding nederst («Bestillinger oppdateres og turer åpnes…») mens NISSY henter inn data, slik at det er tydelig at noe skjer. Meldingen forsvinner når oppdateringen er ferdig
+
 ### Avbestilling: Riktig informasjon i popup uavhengig av kolonneoppsett
 
 - ✖️ **Avbestilling (Alt+K)**
