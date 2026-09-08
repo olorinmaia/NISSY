@@ -25,6 +25,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - ⌛ **NISSY-fiks**
   - F5 viser nå en diskret melding nederst («Bestillinger oppdateres og turer åpnes…») mens NISSY henter inn data, slik at det er tydelig at noe skjer. Meldingen forsvinner når oppdateringen er ferdig
 
+### Sjekk-bestilling: Datofeil fanges også når én av tidene er i dag
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Fikser bug hvor sjekken «ulik dato på hentetid og leveringstid» ikke slo ut når én av tidene var i dag (NISSY viser da kun klokkeslett, uten dato). En bestilling med hentetid «07:15» og oppmøtetid «09.09 10:45» fanges nå opp
+
 ### Avbestilling: Riktig informasjon i popup uavhengig av kolonneoppsett
 
 - ✖️ **Avbestilling (Alt+K)**
