@@ -1449,7 +1449,7 @@
         return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
           method: 'POST',
           headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]] }),
+          body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]], radiuses: [-1, -1] }),
           signal: AbortSignal.timeout(4000)
         })
         .then(function (r) { return r.json(); })
@@ -1497,7 +1497,7 @@
           return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
             method: 'POST',
             headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ coordinates: points }),
+            body: JSON.stringify({ coordinates: points, radiuses: points.map(function () { return -1; }) }),
             signal: AbortSignal.timeout(4000)
           })
           .then(function (r) { return r.json(); })
@@ -1922,10 +1922,12 @@
         }
 
         const coords = _routingWps.map(function (w) { return [w.lng, w.lat]; });
+        // radiuses: -1 = ubegrenset snappe-radius, ellers avviser ORS via-punkter
+        // plassert >350 m fra kjørbar vei (feilkode 2010)
         fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': '${ORS_API_KEY}' },
-            body: JSON.stringify({ coordinates: coords }),
+            body: JSON.stringify({ coordinates: coords, radiuses: coords.map(function () { return -1; }) }),
             signal: AbortSignal.timeout(4000)
           })
           .then(function (r) { return r.json(); })
