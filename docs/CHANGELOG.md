@@ -11,6 +11,31 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.6] - 10.09.2026
+
+### Kartvisning: Rutepunkter for å styre kjøreruten
+
+- 🗺️ **Kartvisning (Alt+W)**
+  - Nye **rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted (f.eks. en annen vei enn den rutetjenesten foreslår). Punktene kan flyttes med drag-and-drop, fjernes med dobbeltklikk, eller alle på én gang via høyreklikkmenyen
+  - Rutepunktene viser estimert passeringstidspunkt både som etikett under punktet (følger «Info på ikon»-knappen) og i tooltip
+
+### NISSY-fiks: Tilbakemelding ved F5
+
+- ⌛ **NISSY-fiks**
+  - F5 viser nå en diskret melding nederst («Bestillinger oppdateres og turer åpnes…») mens NISSY henter inn data, slik at det er tydelig at noe skjer. Meldingen forsvinner når oppdateringen er ferdig
+
+### Sjekk-bestilling: Datofeil fanges også når én av tidene er i dag
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Fikser bug hvor sjekken «ulik dato på hentetid og leveringstid» ikke slo ut når én av tidene var i dag (NISSY viser da kun klokkeslett, uten dato). En bestilling med hentetid «07:15» og oppmøtetid «09.09 10:45» fanges nå opp
+
+### Avbestilling: Riktig informasjon i popup uavhengig av kolonneoppsett
+
+- ✖️ **Avbestilling (Alt+K)**
+  - Fikser bug hvor popup for enkelt- og masseavbestilling/avplanlegging viste data fra feil kolonner (f.eks. adresse i stedet for pasientnavn, eller feil status) når kolonner som Pasientnavn var skjult eller Reisemåte var lagt til i Ventende/Pågående oppdrag. Kolonnene identifiseres nå dynamisk ut fra tabellens overskrifter
+
+---
+
 ## 🔧 [4.9.5] - 25.08.2026
 
 ### Tryggere og enklere redigering av bestillinger i modalene

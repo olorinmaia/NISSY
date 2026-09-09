@@ -164,6 +164,49 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Finn kolonneindeks dynamisk fra tabellens thead
+  // Kolonner i Ventende/Pågående oppdrag kan skjules/vises av brukeren
+  // (f.eks. Pasientnavn, Reisemåte), så faste indekser er ikke trygge.
+  // Header-cellene har sorteringslenker som sortPopp('patientName') /
+  // sortVentendeOppdragList('tripFromAddress') - vi slår opp på disse.
+  // ============================================================
+  function findColumnIndex(table, headerLink) {
+    if (!table) return -1;
+    const headers = table.querySelectorAll('thead th');
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].querySelector(`a[href*="'${headerLink}'"]`)) return i;
+    }
+    return -1;
+  }
+
+  /**
+   * Henter pasientnavn og adresse-HTML (fra<br>til) fra en rad i Ventende oppdrag.
+   * Bruker kolonneindekser fra thead slik at skjulte/ekstra kolonner ikke
+   * gir feil data. Fallback for adresse: første celle som inneholder <br>.
+   * @param {HTMLTableRowElement} row
+   * @returns {{pasient: string, rawInfo: string}}
+   */
+  function getVentendeRowData(row) {
+    const table = row.closest('table');
+    const cells = [...row.querySelectorAll('td')];
+    const nameIndex = findColumnIndex(table, 'patientName');
+    const addressIndex = findColumnIndex(table, 'tripFromAddress');
+
+    const pasient = (nameIndex !== -1 && cells[nameIndex])
+      ? (cells[nameIndex].textContent.trim() || "(ukjent)")
+      : "(ukjent)";
+
+    let rawInfo = "";
+    if (addressIndex !== -1 && cells[addressIndex]) {
+      rawInfo = cells[addressIndex].innerHTML.trim();
+    } else {
+      rawInfo = cells.find(td => td.innerHTML.includes("<br>"))?.innerHTML.trim() ?? "";
+    }
+
+    return { pasient, rawInfo };
+  }
+
+  // ============================================================
   // KONFIGURASJON
   // ============================================================
   const MIN_DIGITS_AFTER_DASH = 6;
@@ -373,71 +416,55 @@
           // Sjekk om dette er multi-bestilling (har div.row-image) eller single-bestilling
           const parentDiv = target.closest("div.row-image");
           const allColumns = [...row.querySelectorAll("td")];
-          
-          let pasient = "";
-          let rekvNr = "";
-          let fraAdresse = "";
-          let tilAdresse = "";
-          let status = "";
-          
+
+          // Finn kolonneindekser dynamisk fra thead - kolonner som Pasientnavn
+          // og Reisemåte kan være skjult/vist, så faste indekser er ikke trygge
+          const table = row.closest("table");
+          const colIdx = {
+            pasient:  findColumnIndex(table, 'patientName'),
+            fra:      findColumnIndex(table, 'tripFromAddress'),
+            til:      findColumnIndex(table, 'tripToAddress'),
+            status:   findColumnIndex(table, 'resourceStatus'),
+            hentetid: findColumnIndex(table, 'tripStartTime')
+          };
+
+          // Finn hvilken index denne bestillingen har på ressursen (kun multi)
+          let bestillingIndex = 0;
           if (parentDiv) {
-            // ============================================================
-            // MULTI-BESTILLING: Data er i div.row-image elementer
-            // ============================================================
-            let bestillingIndex = 0;
-            
-            // Finn hvilken index denne bestillingen har
             const actionColumn = row.querySelector("td.dr:last-child");
             if (actionColumn) {
               const allActionDivs = [...actionColumn.querySelectorAll("div.row-image")];
               bestillingIndex = allActionDivs.indexOf(parentDiv);
             }
-            
-            // Funksjon for å hente data fra riktig div i en kolonne
-            const getDataFromColumn = (columnIndex) => {
-              if (columnIndex >= allColumns.length) return "";
-              const column = allColumns[columnIndex];
+          }
+
+          // Henter celletekst for denne bestillingen fra en kolonne.
+          // Multi-bestilling: data ligger i div.row-image-elementer (én per bestilling).
+          // Single-bestilling: data ligger direkte i td.
+          const getDataFromColumn = (columnIndex) => {
+            if (columnIndex === -1 || columnIndex >= allColumns.length) return "";
+            const column = allColumns[columnIndex];
+            if (parentDiv) {
               const divs = [...column.querySelectorAll("div.row-image")];
-              if (bestillingIndex < divs.length) {
-                return divs[bestillingIndex].textContent.trim();
-              }
-              return "";
-            };
-            
-            // Kolonneindekser: 5=Pasient, 8=Fra, 9=Til, 10=Status
-            pasient = getDataFromColumn(5) || "(ukjent)";
-            fraAdresse = getDataFromColumn(8);
-            tilAdresse = getDataFromColumn(9);
-            status = getDataFromColumn(10);
-            
-            // Hent rekvNr fra spørsmålstegn-ikonet i samme div
-            const questionImg = parentDiv.querySelector("img[src*='question.gif']");
-            if (questionImg) {
-              const onclickMatch = questionImg.getAttribute("onclick")?.match(/nr=(\d+)/);
-              if (onclickMatch) {
-                rekvNr = onclickMatch[1];
-              }
+              return bestillingIndex < divs.length
+                ? divs[bestillingIndex].textContent.trim()
+                : "";
             }
-          } else {
-            // ============================================================
-            // SINGLE-BESTILLING: Data er direkte i td elementer
-            // ============================================================
-            
-            // Finn pasientnavn (inneholder komma, typisk kolonne 5)
-            pasient = allColumns[5]?.textContent.trim() || "(ukjent)";
-            
-            // Fra-adresse er kolonne 8, til-adresse er kolonne 9, status er kolonne 10
-            fraAdresse = allColumns[8]?.textContent.trim() || "";
-            tilAdresse = allColumns[9]?.textContent.trim() || "";
-            status = allColumns[10]?.textContent.trim() || "";
-            
-            // Hent rekvNr fra spørsmålstegn-ikonet (direkte i siste td)
-            const questionImg = row.querySelector("img[src*='question.gif']");
-            if (questionImg) {
-              const onclickMatch = questionImg.getAttribute("onclick")?.match(/nr=(\d+)/);
-              if (onclickMatch) {
-                rekvNr = onclickMatch[1];
-              }
+            return column.textContent.trim();
+          };
+
+          let pasient = getDataFromColumn(colIdx.pasient) || "(ukjent)";
+          const fraAdresse = getDataFromColumn(colIdx.fra);
+          const tilAdresse = getDataFromColumn(colIdx.til);
+          const status = getDataFromColumn(colIdx.status);
+
+          // Hent rekvNr fra spørsmålstegn-ikonet (i samme div for multi, direkte i td for single)
+          let rekvNr = "";
+          const questionImg = (parentDiv || row).querySelector("img[src*='question.gif']");
+          if (questionImg) {
+            const onclickMatch = questionImg.getAttribute("onclick")?.match(/nr=(\d+)/);
+            if (onclickMatch) {
+              rekvNr = onclickMatch[1];
             }
           }
           
@@ -471,29 +498,11 @@
             : "";
           
           // Sjekk om turen er i fremtiden (for å tilpasse OBS-tekst)
+          // Hvis hentetid inneholder punktum (.), er det en dato (dd.mm format)
+          // Hvis ikke punktum, er det kun klokkeslett = dagens dato
           let erFremtidig = false;
-          if (erSamkjort && parentDiv) {
-            // Hent hentetid fra kolonne 3
-            const actionColumn = row.querySelector("td.dr:last-child");
-            let bestillingIndex = 0;
-            if (actionColumn) {
-              const allActionDivs = [...actionColumn.querySelectorAll("div.row-image")];
-              bestillingIndex = allActionDivs.indexOf(parentDiv);
-            }
-            
-            const hentetidColumn = allColumns[3];
-            if (hentetidColumn) {
-              const divs = [...hentetidColumn.querySelectorAll("div.row-image")];
-              if (bestillingIndex < divs.length) {
-                const hentetid = divs[bestillingIndex].textContent.trim();
-                // Hvis hentetid inneholder punktum (.), er det en dato (dd.mm format)
-                // Hvis ikke punktum, er det kun klokkeslett = dagens dato
-                erFremtidig = hentetid.includes('.');
-              }
-            }
-          } else if (erSamkjort && !parentDiv) {
-            // Single bestilling format - sjekk direkte i td
-            const hentetid = allColumns[3]?.textContent.trim() || "";
+          if (erSamkjort) {
+            const hentetid = getDataFromColumn(colIdx.hentetid);
             erFremtidig = hentetid.includes('.');
           }
           
@@ -518,18 +527,15 @@
           // Finn raden for å hente informasjon
           const row = target.closest("tr");
           if (row) {
-            // Parse rad for å få info
+            // Parse rad for å få info (kolonner slås opp dynamisk fra thead)
             const rekvNr = row.getAttribute("title") || "";
-            
-            const cells = [...row.querySelectorAll("td")];
-            let pasient = cells.find(td => td.textContent.includes(","))?.textContent.trim() ?? "(ukjent)";
-            
+
+            let { pasient, rawInfo } = getVentendeRowData(row);
+
             if (rekvNr) {
               pasient += ` (${rekvNr})`;
             }
-            
-            const rawInfo = cells.find(td => td.innerHTML.includes("<br>"))
-              ?.innerHTML.trim() ?? "";
+
             const cleanedInfo = cleanAddressHtml(rawInfo).replace(/<br>/g, " →<br>");
             
             // Vis popup for enkelt-avbestilling
@@ -833,21 +839,14 @@
       // Hent rekvisisjonsnummer fra title-attributt
       let rekvNr = row.getAttribute("title") || "";
 
-      // Hent pasientnavn
-      let pasient = Array.from(row.querySelectorAll("td"))
-        .find(td => td.textContent.includes(","))
-        ?.textContent.trim() ?? "(ukjent)";
+      // Hent pasientnavn og adresse (kolonner slås opp dynamisk fra thead)
+      let { pasient, rawInfo } = getVentendeRowData(row);
 
       // Legg til rekvisisjonsnummer hvis det finnes
       if (rekvNr) {
         pasient += ` (${rekvNr})`;
       }
 
-      // Hent adresse/info
-      const rawInfo = Array.from(row.querySelectorAll("td"))
-        .find(td => td.innerHTML.includes("<br>"))
-        ?.innerHTML.trim() ?? "";
-      
       // Rens først for problematiske suffikser, deretter erstatt <br> med pil
       let info = cleanAddressHtml(rawInfo).replace(/<br>/g, " → ");
 

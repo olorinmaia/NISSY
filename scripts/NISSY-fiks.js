@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.9.5'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.9.6'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -46,6 +46,60 @@
       _altPressedAlone = false;
     }
   }, true);
+
+  /* ---------- Diskret toast ved F5 (openPopp) ----------
+     F5 laster ikke siden på nytt (da forsvinner scriptene), men kjører
+     openPopp('-1') som oppdaterer bestillinger/turer og åpner alle turer.
+     Uten synlig tilbakemelding er det lett å tro at ingenting skjer, så
+     vi viser en liten melding nederst til ajax-kallet
+     (action=openres&rid=-1) er ferdig – se DEL 3. */
+  let _refreshToast = null;
+  let _refreshToastShownAt = 0;
+  let _refreshToastTimer = null;
+
+  function showRefreshToast() {
+    hideRefreshToast(true);
+    const toast = document.createElement("div");
+    toast.id = "nissy-refresh-toast";
+    toast.textContent = "🔄 Bestillinger oppdateres og turer åpnes…";
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "20px", // Samme plassering som øvrige toaster (Avbestilling m.fl.)
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "rgba(40, 40, 40, 0.88)",
+      color: "#fff",
+      padding: "6px 14px",
+      borderRadius: "16px",
+      fontFamily: "Arial, sans-serif",
+      fontSize: "12px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+      zIndex: "999999",
+      pointerEvents: "none",
+      opacity: "0",
+      transition: "opacity 0.2s ease"
+    });
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => { toast.style.opacity = "1"; });
+    _refreshToast = toast;
+    _refreshToastShownAt = Date.now();
+    // Sikkerhetsnett hvis ajax-kallet aldri fullfører
+    _refreshToastTimer = setTimeout(() => hideRefreshToast(), 5000);
+  }
+
+  function hideRefreshToast(immediate = false) {
+    const toast = _refreshToast;
+    if (!toast) return;
+    clearTimeout(_refreshToastTimer);
+    _refreshToast = null;
+    if (immediate) { toast.remove(); return; }
+    // Vis i minst 700 ms så meldingen ikke bare blinker
+    const elapsed = Date.now() - _refreshToastShownAt;
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 200);
+    }, Math.max(0, 700 - elapsed));
+  }
   window.addEventListener("keyup", function (e) {
     if (e.key === "Alt" && _altPressedAlone) {
       e.preventDefault();
@@ -193,6 +247,7 @@
       e.preventDefault();
       e.stopPropagation();
       if (typeof openPopp === "function") {
+        showRefreshToast();
         openPopp("-1");
       }
       return false;
@@ -621,6 +676,8 @@
         this._requestType = 'rfilter';
         this._openPoppAfterLoad = _rfilterOpenPoppPending;
         _rfilterOpenPoppPending = false;
+      } else if (url.includes('action=openres') && url.includes('rid=-1')) {
+        this._requestType = 'openpopp'; // openPopp('-1') – brukes til å skjule F5-toasten
       } else if (url.includes('search=none')) {
         this._requestType = 'cancel';
       } else if (url.includes('search=')) {
@@ -652,6 +709,10 @@
           if (openPoppAfterLoad) {
             openPopp("-1");
           }
+          return;
+        }
+        if (requestType === 'openpopp') {
+          hideRefreshToast();
           return;
         }
         const waiter = activeWaiters[requestType];

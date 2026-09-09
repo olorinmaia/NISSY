@@ -149,6 +149,7 @@ javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISS
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- **Rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted. Punktene kan flyttes med drag-and-drop og fjernes med dobbeltklikk (eller alle via høyreklikkmenyen). Viser estimert passeringstid, og leveringstid/fergeberegning tar hensyn til punktene
 - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md).
 
 ### 🚕 Ressursinfo (ALT+D)
@@ -192,7 +193,7 @@ Scriptet fikser en rekke bugs, forbedrerer eksisterende funksjonalitet og juster
 - Fikser bug med at filter ikke oppdaterer seg når bestillinger er merket når du bytter filter.
 - Åpner alle turer ved bytting av filter automatisk og ved søk.
 - Ved søk etter rekvisisjonsnummer så markeres den spesifikke bestillingen på en tur med flere bestillinger og raden velges i NISSY.
-- Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer. Se tabell lengre nede.
+- Setter snarveier til ofte brukte NISSY-funksjoner. F5 refresher/åpner alle turer og viser en diskret melding nederst mens det skjer. Se tabell lengre nede.
 - Lukker alle typer plakater ved trykk utenfor.
 - Begrenser bredden på navn og adresse på ventende/pågående oppdrag og avtalenavn/ressursnavn i avtale/ressurs-tabell hvis det ikke er plass til alt.
 - Fikser problem med at NISSY-plakater lukker seg med en gang musen beveger seg over og forbi en annen plakat, timer på 500ms innført før ny plakat åpnes.
@@ -399,10 +400,12 @@ Legger til:
 
 ## 💡 Tips og triks
 
-1. **Lagre bokmerket i bokmerkeslinjen** for rask tilgang
+1. **Maksimer effekt av Hentetid `ALT+E`**: Reduser `Bestillingstid`-innstillingen på NISSY-avtalene til rundt 720 minutter (12 timer). Dette vil sørge for at du kan redigere hentetid på bestillinger som ligger på pågående oppdrag for neste dag iløpet av hele arbeidsdagen. `Bestillingstid` bestemmer hvor langt vindu fra "nå" bestillinger på pågående oppdrag skal sendes over på SUTI til transportør.
 2. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
 3. **ESC er din venn**: Lukker alle pop-ups
 4. **F5 har ny funksjon**: Når du trykker på F5 refreshes alle bestillinger/turer og alle turer åpnes. Ikke hele siden.
+5. **Kjør sjekk-scriptene flere ganger om dagen**: Det anbefales å kjøre Sjekk-Bestilling `ALT+2`, Sjekk-Plakat `ALT+3` og Sjekk-Telefon `ALT+4` flere ganger hver dag, både på dagens turer og morgendagens turer. Det kommer inn nye bestillinger hele veien, så én sjekk om morgenen fanger ikke opp alt.
+6. **Sjekkene lønner seg**: Jevnlig bruk av sjekk-scriptene avdekker et stort antall bestillinger som er verdt å rette opp i. Det forebygger bomturer og gir bedre datakvalitet på bestillingene.
 
 ## 📞 Support
 

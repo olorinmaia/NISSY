@@ -266,9 +266,14 @@
   }
 
   function datesAreDifferent(hentetid, leveringstid) {
-    const hentetidDate = extractDate(hentetid);
-    const leveringstidDate = extractDate(leveringstid);
-    if (!hentetidDate || !leveringstidDate) return false;
+    // Tomme felt kan ikke sammenlignes
+    if (!/\d{1,2}:\d{2}/.test(hentetid || '') || !/\d{1,2}:\d{2}/.test(leveringstid || '')) return false;
+    // NISSY viser kun klokkeslett (f.eks. "07:15") når datoen er i dag, og med
+    // dato (f.eks. "09.09 10:45") når den ikke er det. Manglende dato betyr
+    // derfor "i dag" – ikke "ukjent" – slik at "07:15" vs "09.09 10:45" fanges.
+    const TODAY_SENTINEL = 'I_DAG';
+    const hentetidDate = extractDate(hentetid) || TODAY_SENTINEL;
+    const leveringstidDate = extractDate(leveringstid) || TODAY_SENTINEL;
     return hentetidDate !== leveringstidDate;
   }
 

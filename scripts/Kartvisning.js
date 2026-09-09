@@ -1449,7 +1449,7 @@
         return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
           method: 'POST',
           headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]] }),
+          body: JSON.stringify({ coordinates: [[lonA, latA], [lonB, latB]], radiuses: [-1, -1] }),
           signal: AbortSignal.timeout(4000)
         })
         .then(function (r) { return r.json(); })
@@ -1497,7 +1497,7 @@
           return fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car', {
             method: 'POST',
             headers: { 'Authorization': _orsKey, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ coordinates: points }),
+            body: JSON.stringify({ coordinates: points, radiuses: points.map(function () { return -1; }) }),
             signal: AbortSignal.timeout(4000)
           })
           .then(function (r) { return r.json(); })
@@ -1574,6 +1574,82 @@
       let currentFiltered = [];
       let markersByKey = {};
       let groupsByKey = {};
+      let viaPoints = [];
+
+      function clearViaPoints() {
+        viaPoints.forEach(function(vp) { map.removeLayer(vp.marker); });
+        viaPoints = [];
+      }
+
+      function buildRoutingWaypoints() {
+        if (!viaPoints.length) {
+          return { wps: currentWaypoints, wpToRoutingIdx: currentWaypoints.map(function(_, i) { return i; }) };
+        }
+        function ptDistToSeg(p, a, b) {
+          const dx = b.lat - a.lat, dy = b.lng - a.lng;
+          if (dx === 0 && dy === 0) { const dl = p.lat - a.lat, dm = p.lng - a.lng; return dl * dl + dm * dm; }
+          const t = Math.max(0, Math.min(1, ((p.lat - a.lat) * dx + (p.lng - a.lng) * dy) / (dx * dx + dy * dy)));
+          const dl = p.lat - (a.lat + t * dx), dm = p.lng - (a.lng + t * dy);
+          return dl * dl + dm * dm;
+        }
+        const gaps = viaPoints.map(function(vp) {
+          let best = 0, bestDist = Infinity;
+          for (let i = 0; i < currentWaypoints.length - 1; i++) {
+            const d = ptDistToSeg(vp.latlng, currentWaypoints[i], currentWaypoints[i + 1]);
+            if (d < bestDist) { bestDist = d; best = i; }
+          }
+          return best;
+        });
+        const wps = [], wpToRoutingIdx = [];
+        for (let i = 0; i < currentWaypoints.length; i++) {
+          wpToRoutingIdx.push(wps.length);
+          wps.push(currentWaypoints[i]);
+          viaPoints.forEach(function(vp, j) { if (gaps[j] === i) { vp.routingIdx = wps.length; wps.push(vp.latlng); } });
+        }
+        return { wps: wps, wpToRoutingIdx: wpToRoutingIdx };
+      }
+
+      function makeViaIcon(timeStr) {
+        const label = timeStr
+          ? '<div class="icon-label"><div class="icon-label-time"><span style="color:#047CA1">' + timeStr + '</span></div></div>'
+          : '';
+        return L.divIcon({
+          className: 'custom-marker-wrapper',
+          html: '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                '<div style="width:14px;height:14px;background:#047CA1;border:2px solid #fff;' +
+                'border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.5);cursor:grab;flex-shrink:0;"></div>' +
+                label + '</div>',
+          iconSize: [14, 40], iconAnchor: [7, 7]
+        });
+      }
+
+      function addViaPoint(latlng) {
+        const marker = L.marker(latlng, {
+          draggable: true, zIndexOffset: 500,
+          icon: makeViaIcon(null)
+        }).addTo(map);
+        marker.bindTooltip('Dra for å endre ruten · Dobbeltklikk for å fjerne', { direction: 'top', offset: [0, -10] });
+        const vp = { marker: marker, latlng: latlng };
+        viaPoints.push(vp);
+        marker.on('drag', function(e) { vp.latlng = e.target.getLatLng(); });
+        marker.on('dragend', function() {
+          vp.latlng = marker.getLatLng();
+          if (routeControl) { routeControl.remove(); routeControl = null; }
+          resetEstimates(); resetFerjeMarkers(); setRouteInfo(null);
+          drawRoute();
+        });
+        marker.on('dblclick', function(e) {
+          L.DomEvent.stopPropagation(e);
+          map.removeLayer(marker);
+          viaPoints = viaPoints.filter(function(v) { return v !== vp; });
+          if (routeControl) { routeControl.remove(); routeControl = null; }
+          resetEstimates(); resetFerjeMarkers(); setRouteInfo(null);
+          drawRoute();
+        });
+        if (routeControl) { routeControl.remove(); routeControl = null; }
+        resetEstimates(); resetFerjeMarkers(); setRouteInfo(null);
+        drawRoute();
+      }
 
       function earliestTime(entries, field) {
         return entries.map(function (e) { return (e.req[field] || '').split(' ')[1] || ''; })
@@ -1625,6 +1701,7 @@
         currentMarkerLayers.forEach(function (l) { map.removeLayer(l); });
         currentMarkerLayers = [];
         if (routeControl) { routeControl.remove(); routeControl = null; }
+        clearViaPoints();
         setRouteInfo(null);
         currentAllLL = [];
         currentWaypoints = [];
@@ -1703,6 +1780,9 @@
       function drawRoute(isRedraw) {
         if (!routeOn || currentWaypoints.length < 2) return;
         if (!isRedraw) setRouteInfo('⏳ Beregner rute…');
+        const _builtRoute = buildRoutingWaypoints();
+        const _routingWps = _builtRoute.wps;
+        const _wpToRoutingIdx = _builtRoute.wpToRoutingIdx;
 
         const fallback = function () {
           setRouteInfo(null);
@@ -1719,7 +1799,9 @@
             const poly = L.polyline(leg.latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
             poly.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
             poly.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
-            poly.bindTooltip('🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur),
+            poly.bindTooltip(
+              '🛣 ' + formatDist(leg.dist) + '  ·  ⏱ ca. ' + formatTime(leg.dur) +
+              '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>',
               { sticky: true });
             polys.push(poly);
           });
@@ -1731,6 +1813,19 @@
           // mellomliggende leveringer (f.eks. retur Meråker→Frøya via levering i Trondheim).
           const _cumSecAtWp = [0];
           legs.forEach(function(leg, i) { _cumSecAtWp.push(_cumSecAtWp[i] + leg.dur); });
+          // Vis estimert passeringstidspunkt på via-punktene (tidligste pasientKlar + kjøretid dit)
+          if (viaPoints.length) {
+            const _viaTider = currentFiltered.map(function(r) { return r.pasientKlar || ''; }).filter(Boolean).sort();
+            const _viaStartMin = _viaTider.length ? parseMin(_viaTider[0]) : null;
+            viaPoints.forEach(function(vp) {
+              if (_viaStartMin === null || vp.routingIdx == null || _cumSecAtWp[vp.routingIdx] == null) return;
+              const _viaTid = '~' + minTil(_viaStartMin + Math.round(_cumSecAtWp[vp.routingIdx] / 60));
+              vp.marker.setIcon(makeViaIcon(_viaTid));
+              vp.marker.setTooltipContent(
+                '⏱ Passeres ca. <b>' + _viaTid + '</b>' +
+                '<br><span style="color:#999;font-size:11px">Dra for å endre ruten · Dobbeltklikk for å fjerne</span>');
+            });
+          }
           const _returPickupSec = {};
           currentFiltered.filter(function(req) {
             return returReqs.some(function(r) { return r.reqId === req.reqId; });
@@ -1741,16 +1836,15 @@
               const d = haversine({ lat: wp.lat, lon: wp.lng }, req.hentested);
               if (d < closestDist) { closestDist = d; closestIdx = idx; }
             });
-            _returPickupSec[req.reqId] = _cumSecAtWp[closestIdx];
+            _returPickupSec[req.reqId] = _cumSecAtWp[_wpToRoutingIdx[closestIdx]];
           });
-          legs.forEach(function(leg, i) {
-            const _meta = currentWaypointMeta[i + 1];
-            if (!_meta || !_meta.isReturDel) return;
+          currentWaypointMeta.forEach(function(_meta, j) {
+            if (j === 0 || !_meta || !_meta.isReturDel) return;
             const _req = currentFiltered.find(function(r) { return r.reqId === _meta.reqId; });
             if (!_req || !validLL(_req.leveringssted)) return;
             const _klarMin = parseMin(_req.pasientKlar);
             if (_klarMin === null) return;
-            const _fromPickupSec = _cumSecAtWp[i + 1] - (_returPickupSec[_meta.reqId] || 0);
+            const _fromPickupSec = _cumSecAtWp[_wpToRoutingIdx[j]] - (_returPickupSec[_meta.reqId] || 0);
             const _delivMin = _klarMin + Math.round(Math.max(0, _fromPickupSec) / 60) + 5;
             const _dateStr = (_req.pasientKlar || '').split(' ')[0];
             estimertLev[_meta.reqId] = { sortKey: _dateStr + ' ' + minToSortStr(_delivMin), display: '~' + minToStr(_delivMin), isLate: false };
@@ -1790,11 +1884,18 @@
           let bounds = polys[0].getBounds();
           for (let i = 1; i < polys.length; i++) bounds.extend(polys[i].getBounds());
           map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-          sjekkFerger(legs, polys, _cumSecAtWp);
+          sjekkFerger(legs, polys, _cumSecAtWp, _routingWps);
         }
 
         function routeViaOsrm() {
-          const coords = currentWaypoints.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
+          // Kalles også som fallback når ORS feiler – bytt tjeneste og oppdater
+          // knappen så den viser hvilken tjeneste ruten faktisk kommer fra
+          if (_routingEngine === 'ors') {
+            _routingEngine = 'osrm';
+            sessionStorage.setItem(ROUTING_ENGINE_KEY, _routingEngine);
+            updateEngineBtn();
+          }
+          const coords = _routingWps.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
           fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson&steps=true', {
             signal: AbortSignal.timeout(4000)
           })
@@ -1820,11 +1921,13 @@
           routeViaOsrm(); return;
         }
 
-        const coords = currentWaypoints.map(function (w) { return [w.lng, w.lat]; });
+        const coords = _routingWps.map(function (w) { return [w.lng, w.lat]; });
+        // radiuses: -1 = ubegrenset snappe-radius, ellers avviser ORS via-punkter
+        // plassert >350 m fra kjørbar vei (feilkode 2010)
         fetch('https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': '${ORS_API_KEY}' },
-            body: JSON.stringify({ coordinates: coords }),
+            body: JSON.stringify({ coordinates: coords, radiuses: coords.map(function () { return -1; }) }),
             signal: AbortSignal.timeout(4000)
           })
           .then(function (r) { return r.json(); })
@@ -1858,11 +1961,12 @@
 
       function removeRoute() {
         if (routeControl) { routeControl.remove(); routeControl = null; }
+        clearViaPoints();
         setRouteInfo(null);
         resetFerjeMarkers();
       }
 
-      function sjekkFerger(legs, polys, _cumSecAtWp) {
+      function sjekkFerger(legs, polys, _cumSecAtWp, _routingWps) {
         const RADIUS_M = 400;
 
         let startTid = null, startDato = null;
@@ -1967,12 +2071,33 @@
           const minutterTidligere = prevAvgangMin !== null ? boardAnkomstMin - (prevAvgangMin - 10) : null;
 
           // Fase 1: individuelle kall – exit→levering (for sortering) + hentested→board (ventetid for returer)
+          function closestFlatIdx(pt) {
+            let idx = 0, dist = Infinity;
+            flatPts.forEach(function (p, i) {
+              const d = haversine(p, pt);
+              if (d < dist) { dist = d; idx = i; }
+            });
+            return idx;
+          }
           Promise.all(kandidater.map(function (b) {
             const klarMin = parseMin(b.pasientKlar);
             const oppmoteMin = parseMin(b.oppmote);
             const erRetur = klarMin !== null && oppmoteMin <= klarMin;
-            const delFetch = fetchSegmentDuration(exitLeie.lon, exitLeie.lat, b.leveringssted.lon, b.leveringssted.lat)
-              .catch(function () { return null; });
+            // Via-punkter mellom fergekaia og leveringsstedet må med i kjøretidsberegningen,
+            // ellers estimeres leveringstiden som om ruten gikk direkte fra kaia til levering
+            const _delFlatIdx = closestFlatIdx(b.leveringssted);
+            const _viasEtterFerge = viaPoints
+              .map(function (vp) { return { vp: vp, idx: closestFlatIdx({ lat: vp.latlng.lat, lon: vp.latlng.lng }) }; })
+              .filter(function (v) { return v.idx > boardFirstIdx && v.idx < _delFlatIdx; })
+              .sort(function (a, b2) { return a.idx - b2.idx; });
+            const delFetch = _viasEtterFerge.length
+              ? fetchChainDurations([[exitLeie.lon, exitLeie.lat]]
+                  .concat(_viasEtterFerge.map(function (v) { return [v.vp.latlng.lng, v.vp.latlng.lat]; }))
+                  .concat([[b.leveringssted.lon, b.leveringssted.lat]]), null)
+                  .then(function (cums) { return cums ? cums[cums.length - 1] : null; })
+                  .catch(function () { return null; })
+              : fetchSegmentDuration(exitLeie.lon, exitLeie.lat, b.leveringssted.lon, b.leveringssted.lat)
+                  .catch(function () { return null; });
             if (erRetur && validLL(b.hentested)) {
               const boardFetch = fetchSegmentDuration(b.hentested.lon, b.hentested.lat, boardLeie.lon, boardLeie.lat)
                 .catch(function () { return null; });
@@ -1995,10 +2120,27 @@
             function chainFetch(sorted) {
               if (!sorted.length) return Promise.resolve([]);
               if (sorted.length === 1) return Promise.resolve([sorted[0].indivSec]);
-              const points = [[exitLeie.lon, exitLeie.lat]]
-                .concat(sorted.map(function (r) { return [r.b.leveringssted.lon, r.b.leveringssted.lat]; }));
-              const fallback = sorted.map(function (r) { return r.indivSec; });
-              return fetchChainDurations(points, fallback);
+              const _vias = viaPoints
+                .map(function (vp) { return { lon: vp.latlng.lng, lat: vp.latlng.lat, idx: closestFlatIdx({ lat: vp.latlng.lat, lon: vp.latlng.lng }) }; })
+                .filter(function (v) { return v.idx > boardFirstIdx; });
+              if (!_vias.length) {
+                const points = [[exitLeie.lon, exitLeie.lat]]
+                  .concat(sorted.map(function (r) { return [r.b.leveringssted.lon, r.b.leveringssted.lat]; }));
+                const fallback = sorted.map(function (r) { return r.indivSec; });
+                return fetchChainDurations(points, fallback);
+              }
+              // Via-punkter etter fergen veves inn i kjeden etter posisjon langs ruten,
+              // og de kumulative tidene for leveringspunktene plukkes ut etterpå
+              const stops = sorted.map(function (r) { return { r: r, lon: r.b.leveringssted.lon, lat: r.b.leveringssted.lat, idx: closestFlatIdx(r.b.leveringssted) }; });
+              const merged = stops.concat(_vias).sort(function (a, b) { return a.idx - b.idx; });
+              const points = [[exitLeie.lon, exitLeie.lat]].concat(merged.map(function (s) { return [s.lon, s.lat]; }));
+              return fetchChainDurations(points, null).then(function (cums) {
+                return sorted.map(function (r) {
+                  if (!cums) return r.indivSec;
+                  const i = merged.findIndex(function (s) { return s.r === r; });
+                  return i >= 0 && cums[i] != null ? cums[i] : r.indivSec;
+                });
+              });
             }
 
             Promise.all([chainFetch(forwards), chainFetch(returs)]).then(function (chains) {
@@ -2186,7 +2328,10 @@
             const p = L.polyline(latlngs, { color: '#047CA1', weight: 4, opacity: 0.7 }).addTo(map);
             p.on('mouseover', function () { this.setStyle({ weight: 6, opacity: 1 }); });
             p.on('mouseout',  function () { this.setStyle({ weight: 4, opacity: 0.7 }); });
-            p.bindTooltip('🛣 ' + formatDist(dist), { sticky: true });
+            p.bindTooltip(
+              '🛣 ' + formatDist(dist) +
+              '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>',
+              { sticky: true });
             return p;
           }
           const prePoly = preCoords.length >= 2 ? mkSolid(preCoords, preDist) : null;
@@ -2234,15 +2379,29 @@
                 const _preSec = preSec !== null ? preSec : legs[_legIdx].dur;
                 const boardAnkomstMin = Math.round(startTid + (_cumSec + _preSec) / 60);
                 if (postExitPolyInfo && postExitPolyInfo.prePoly)
-                  postExitPolyInfo.prePoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.preDist) + '  ·  ⏱ ca. ' + formatTime(_preSec));
+                  postExitPolyInfo.prePoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.preDist) + '  ·  ⏱ ca. ' + formatTime(_preSec) +
+                    '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>');
                 const nesteAvgangMin = visLeieBording(board, boardFm, boardAnkomstMin);
                 if (exitFm && nesteAvgangMin !== null) {
                   visLeieAnkomst(exit, exitFm, nesteAvgangMin + ferge.crossing_min);
-                  const _legEnd = currentWaypoints[_legIdx + 1];
+                  const _legEnd = (_routingWps || currentWaypoints)[_legIdx + 1];
                   if (postExitPolyInfo && postExitPolyInfo.postPoly && _legEnd) {
                     fetchSegmentDuration(exit.lon, exit.lat, _legEnd.lng, _legEnd.lat).then(function (sec) {
-                      if (sec !== null)
-                        postExitPolyInfo.postPoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.postDist) + '  ·  ⏱ ca. ' + formatTime(sec));
+                      if (sec === null) return;
+                      postExitPolyInfo.postPoly.setTooltipContent('🛣 ' + formatDist(postExitPolyInfo.postDist) + '  ·  ⏱ ca. ' + formatTime(sec) +
+                        '<br><span style="color:#999;font-size:11px">Høyreklikk for å justere ruten</span>');
+                      // Via-punkter etter fergen: passeringstiden fra applyLegs mangler fergeventetid.
+                      // Korriger med faktisk fergeankomst (neste avgang + overfart) + kjøretid fra kaia.
+                      const _exitArrMin = nesteAvgangMin + ferge.crossing_min;
+                      viaPoints.forEach(function (vp) {
+                        if (vp.routingIdx == null || vp.routingIdx <= _legIdx) return;
+                        const _viaSec = sec + (_cumSecAtWp[vp.routingIdx] - _cumSecAtWp[_legIdx + 1]);
+                        const _viaTid = '~' + minTil(Math.round(_exitArrMin + _viaSec / 60));
+                        vp.marker.setIcon(makeViaIcon(_viaTid));
+                        vp.marker.setTooltipContent(
+                          '⏱ Passeres ca. <b>' + _viaTid + '</b>' +
+                          '<br><span style="color:#999;font-size:11px">Dra for å endre ruten · Dobbeltklikk for å fjerne</span>');
+                      });
                     });
                   }
                   sjekkLeveringViaFerge(board, boardFm, exit, ferge.crossing_min, nesteAvgangMin, boardAnkomstMin, currentFiltered, detectedLeier[0].firstIdx);
@@ -2483,6 +2642,57 @@
           renderBookings(reqDetails.filter(function (r) { return activeFilter.includes(r.reqId); }));
         });
       }
+
+      // ── Høyreklikksmeny ──────────────────────────────────────
+      const ctxMenu = document.createElement('div');
+      Object.assign(ctxMenu.style, {
+        position: 'fixed', background: '#fff', border: '1px solid #ccc',
+        borderRadius: '6px', boxShadow: '0 2px 8px rgba(0,0,0,.25)',
+        padding: '4px 0', zIndex: '9999', display: 'none',
+        fontFamily: 'Arial,sans-serif', fontSize: '13px', minWidth: '210px'
+      });
+      document.body.appendChild(ctxMenu);
+
+      function ctxItem(label, onClick) {
+        const el = document.createElement('div');
+        el.innerHTML = label;
+        Object.assign(el.style, { padding: '8px 14px', cursor: 'pointer', whiteSpace: 'nowrap' });
+        el.addEventListener('mouseover', function () { el.style.background = '#f0f4f8'; });
+        el.addEventListener('mouseout',  function () { el.style.background = ''; });
+        el.addEventListener('click', function (e) { e.stopPropagation(); ctxMenu.style.display = 'none'; onClick(); });
+        return el;
+      }
+
+      let _ctxLatlng = null;
+      map.on('contextmenu', function (e) {
+        if (!routeOn || currentWaypoints.length < 2) return;
+        e.originalEvent.preventDefault();
+        _ctxLatlng = e.latlng;
+        ctxMenu.innerHTML = '';
+        ctxMenu.appendChild(ctxItem('<span style="display:inline-block;width:22px;text-align:center">📍</span> Legg til rutepunkt her', function () {
+          if (_ctxLatlng) addViaPoint(_ctxLatlng);
+        }));
+        if (viaPoints.length > 0) {
+          const sep = document.createElement('div');
+          sep.style.cssText = 'border-top:1px solid #eee;margin:3px 0;';
+          ctxMenu.appendChild(sep);
+          ctxMenu.appendChild(ctxItem('<span style="display:inline-block;width:22px;text-align:center">🗑</span> Fjern alle rutepunkter', function () {
+            clearViaPoints();
+            if (routeControl) { routeControl.remove(); routeControl = null; }
+            resetEstimates(); resetFerjeMarkers(); setRouteInfo(null);
+            drawRoute();
+          }));
+        }
+        const mx = e.originalEvent.clientX, my = e.originalEvent.clientY;
+        ctxMenu.style.left = mx + 'px';
+        ctxMenu.style.top  = my + 'px';
+        ctxMenu.style.display = 'block';
+        const w = ctxMenu.offsetWidth, h = ctxMenu.offsetHeight;
+        if (mx + w > window.innerWidth)  ctxMenu.style.left = (mx - w) + 'px';
+        if (my + h > window.innerHeight) ctxMenu.style.top  = (my - h) + 'px';
+      });
+      document.addEventListener('click', function () { ctxMenu.style.display = 'none'; }, true);
+      map.on('movestart', function () { ctxMenu.style.display = 'none'; });
     }
   </script>
 </body>
