@@ -1888,6 +1888,13 @@
         }
 
         function routeViaOsrm() {
+          // Kalles også som fallback når ORS feiler – bytt tjeneste og oppdater
+          // knappen så den viser hvilken tjeneste ruten faktisk kommer fra
+          if (_routingEngine === 'ors') {
+            _routingEngine = 'osrm';
+            sessionStorage.setItem(ROUTING_ENGINE_KEY, _routingEngine);
+            updateEngineBtn();
+          }
           const coords = _routingWps.map(function (w) { return w.lng + ',' + w.lat; }).join(';');
           fetch('https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson&steps=true', {
             signal: AbortSignal.timeout(4000)
