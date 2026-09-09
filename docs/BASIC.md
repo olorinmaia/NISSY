@@ -404,6 +404,8 @@ Legger til:
 2. **Benytt riktig URL til NISSY** Benytt https://nissy6.pasientreiser.nhn.no/planlegging/ og https://nissy6.pasientreiser.nhn.no/rekvisisjon/ og https://nissy6.pasientreiser.nhn.no/administrasjon/ for å unngå å bli logget ut hele tiden.
 3. **ESC er din venn**: Lukker alle pop-ups
 4. **F5 har ny funksjon**: Når du trykker på F5 refreshes alle bestillinger/turer og alle turer åpnes. Ikke hele siden.
+5. **Kjør sjekk-scriptene flere ganger om dagen**: Det anbefales å kjøre Sjekk-Bestilling `ALT+2`, Sjekk-Plakat `ALT+3` og Sjekk-Telefon `ALT+4` flere ganger hver dag, både på dagens turer og morgendagens turer. Det kommer inn nye bestillinger hele veien, så én sjekk om morgenen fanger ikke opp alt.
+6. **Sjekkene lønner seg**: Jevnlig bruk av sjekk-scriptene avdekker et stort antall bestillinger som er verdt å rette opp i. Det forebygger bomturer og gir bedre datakvalitet på bestillingene.
 
 ## 📞 Support
 
