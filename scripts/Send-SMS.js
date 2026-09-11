@@ -116,8 +116,8 @@
   // Tre mal-typer per kontor:
   //   bestilling  – enkelt/masse-modus (har tilgang til info-variabler)
   //   fritekst    – ingen bestilling merket (kun statiske tekster)
-  //   sjaafor     – sjåfør-SMS via ressurser-tabell (info fra merkede
-  //                 bestillinger + turnummer fra ressursraden)
+  //   sjaafor     – sjåfør-SMS via ressurser-tabell (info fra bestillingene
+  //                 på ressursens tur + turnummer fra ressursraden)
   //
   // Tilgjengelige variabler i bestilling-maler:
   //   info.pasientNavn  – f.eks. "Johnsen, Alf"
@@ -131,14 +131,15 @@
   // I sjaafor-maler finnes i tillegg:
   //   info.turNummer    – turnummer fra ressursraden, f.eks. "72334460"
   //   info.initialer    – f.eks. "A.E.J." (fornavn/mellomnavn først, etternavn sist)
-  //   info.bestillinger – alle merkede bestillinger på turen; hver har samme
-  //                       felter som over (pasientNavn, initialer, reiseTid,
-  //                       fraAdresse, tilAdresse …). info.fraAdresse osv. peker
-  //                       på den første bestillingen.
-  //   forHverBestilling(info, (b) => `…`, skille) – lager én tekstbit per
+  //   info.bestillinger – alle bestillinger på ressursens tur (raden P-<turId>
+  //                       i pågående oppdrag); hver har samme felter som over
+  //                       (pasientNavn, initialer, reiseTid, fraAdresse,
+  //                       tilAdresse …). info.fraAdresse osv. peker på den
+  //                       første bestillingen.
+  //   forHverBestilling(info, (b, i) => `…`, skille) – lager én tekstbit per
   //                       bestilling og slår dem sammen (standard skille: "\n").
-  // Uten merkede bestillinger fylles feltene med plassholdere (XXXX, TT:MM,
-  // INITIALER) slik at malen kan fylles ut manuelt.
+  // Ligger turen ikke i pågående oppdrag (f.eks. ferdig), fylles feltene med
+  // plassholdere (XXXX, TT:MM, INITIALER) slik at malen kan fylles ut manuelt.
   //
   // Kontor uten egen oppføring her bruker GLOBAL_MALER (se over) for
   // alle tre mal-typer.
@@ -858,15 +859,15 @@
       .join("");
   }
 
-  // Plassholdere for sjåfør-maler når ingen bestilling er merket.
+  // Plassholdere for sjåfør-maler når turen ikke har bestillinger i pågående oppdrag.
   const SJAAFOR_PLASSHOLDER = {
     id: "", pasientNavn: "NAVN", fornavn: "NAVN", initialer: "INITIALER",
     reiseTid: "TT:MM", oppTid: "TT:MM", fraAdresse: "XXXX", tilAdresse: "XXXX",
   };
 
   // Bygger info-objektet for sjåfør-maler.
-  // turNummer kommer fra ressursraden, bestillingene fra merkede rader i
-  // pågående oppdrag (alle bestillinger på en merket tur tas med, ventende ignoreres).
+  // turNummer kommer fra ressursraden, bestillingene fra turens rad i
+  // pågående oppdrag (alle bestillinger på turen tas med).
   // Toppnivå-feltene (fraAdresse, reiseTid, initialer …) speiler første bestilling.
   function lagSjaaforInfo(turNummer, bestillinger) {
     const liste = bestillinger.length > 0
@@ -2289,9 +2290,13 @@
       telefon = await fetchSjaaforTelefon(licensePlate, turId);
     }
 
-    // Info til malene: merkede bestillinger i pågående oppdrag (alle på en merket tur) + turnummer.
-    // Ventende ignoreres – de ligger ikke på turen.
-    const bestillinger = hentMerkedeBestillinger([], getPaagaaendeRader()) || [];
+    // Info til malene: bestillingene på ressursens tur + turnummer.
+    // Tur-ID er felles for ressursraden (Rxxx<id>) og turens rad i pågående
+    // oppdrag (P-<id>), så vi går rett på riktig rad uavhengig av hva som er
+    // merket – flere merkede ressurser skal ikke blande inn andre turer.
+    // Finnes ikke raden (turen er ferdig), brukes plassholdere.
+    const turRad = document.getElementById(`P-${ressursId.replace(/^Rxxx/, "")}`);
+    const bestillinger = turRad ? (hentMerkedeBestillinger([], [turRad]) || []) : [];
     const info = lagSjaaforInfo(turId, bestillinger);
 
     const { overlay, popup } = createPopupBase("480px");

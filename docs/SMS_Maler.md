@@ -34,7 +34,7 @@ Tre mal-typer støttes per kontor:
 |---|---|
 | `bestilling` | Brukes i enkelt/masse-modus når bestillinger er merket. Kan bruke info-variabler. |
 | `fritekst` | Ingen bestilling merket – kun statisk tekst med manuelle plassholdere. |
-| `sjaafor` | Sjåfør-SMS via høyreklikk på ressurs. Kan bruke info-variabler fra merkede bestillinger, samt turnummer. |
+| `sjaafor` | Sjåfør-SMS via høyreklikk på ressurs. Kan bruke info-variabler fra bestillingene på ressursens tur, samt turnummer. |
 
 ### Tilgjengelige variabler i `bestilling`-maler
 
@@ -57,13 +57,13 @@ I `fritekst`-maler er ingen variabler tilgjengelig – bruk plassholdere som `TT
 
 ### Tilgjengelige variabler i `sjaafor`-maler
 
-Sjåfør-maler har de samme variablene som `bestilling`-maler, hentet fra bestillingene som er merket i pågående oppdrag når SMS-vinduet åpnes. Høyreklikk på ressurs og velg "Send SMS til sjåfør" eller merk turen på pågående oppdrag, velg «Sjåfør» i dialogen som dukker opp, og malen fylles ut. I tillegg finnes:
+Sjåfør-maler har de samme variablene som `bestilling`-maler, hentet fra bestillingene som ligger på ressursens tur i pågående oppdrag. Turen finnes automatisk ut fra ressursen, så ingenting trenger å være merket i pågående oppdrag. Høyreklikk på ressursen og velg «Send SMS til sjåfør», eller merk ressursen og trykk Alt+C, så fylles malen ut. I tillegg finnes:
 
 | Variabel | Eksempel | Beskrivelse |
 |---|---|---|
 | `info.turNummer` | `72334460` | Turnummeret til ressursen (kun i sjåfør-maler) |
 | `info.initialer` | `A.E.J.` | Pasientens initialer – fornavn og mellomnavn først, etternavn sist |
-| `info.bestillinger` | – | Liste over alle merkede bestillinger på turen. Hver har `fraAdresse`, `tilAdresse`, `reiseTid`, `oppTid`, `pasientNavn`, `fornavn` og `initialer` |
+| `info.bestillinger` | – | Liste over alle bestillinger på turen. Hver har `fraAdresse`, `tilAdresse`, `reiseTid`, `oppTid`, `pasientNavn`, `fornavn` og `initialer` |
 
 `info.fraAdresse`, `info.initialer` osv. på toppnivå peker på den første bestillingen. Skal alle bestillingene på turen med i meldingen, bruk `forHverBestilling(info, (b, i) => ..., skille)` – den lager én tekstbit per bestilling og slår dem sammen (`i` er løpenummeret fra 0, standard skille er linjeskift).
 
@@ -84,7 +84,7 @@ Eksempelet under er malen Nord-Trøndelag bruker for å sende hele turoppdraget 
 },
 ```
 
-Er ingen bestilling merket når sjåfør-SMS åpnes, fylles variablene med plassholdere (`XXXX`, `TT:MM`, `INITIALER`) som kan skrives over manuelt. Turnummeret hentes alltid fra ressursraden.
+Ligger turen ikke i pågående oppdrag når sjåfør-SMS åpnes (f.eks. fordi den er ferdig kjørt), fylles variablene med plassholdere (`XXXX`, `TT:MM`, `INITIALER`) som kan skrives over manuelt. Turnummeret hentes alltid fra ressursraden.
 
 ---
 
