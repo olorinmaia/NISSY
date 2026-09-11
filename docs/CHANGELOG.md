@@ -11,6 +11,24 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.7] - 11.09.2026
+
+### Send-SMS: Automatisk utfylling i sjåfør-SMS og nye maler for Helse Bergen
+
+- 📱 **Send-SMS (Alt+C)**
+  - Sjåfør-maler kan nå fylles ut automatisk: merk ressurs/turen i pågående oppdrag, så settes turnummer, hente-/leveringsadresse, hentetid og pasientens initialer inn i meldingen. Ligger det flere bestillinger på turen, tas alle med
+  - Nye kontorspesifikke SMS-maler for Pasientreiser Helse Bergen
+  - Ny sjåførmal «Turoppdrag (ved taksameterproblemer)», både i standardmalene og for Nord-Trøndelag, som gir sjåføren en oversikt på SMS over alle bestillingene på turen, med hentetid, pasientens initialer, adresser og oppmøtetid
+  - «Send SMS til sjåfør» i høyreklikkmenyen er nå tilgjengelig også for ressurser uten løyvenummer (turer som kjøres offline)
+  - Maks tillatt meldingslengde utvidet fra 640 til 1280 tegn
+
+### Adminmodul: Lange SMS-er strekker ikke lenger turloggen
+
+- ⚙️ **Adminmodul (Alt+A)**
+  - I SMS-loggene for tur og rekvisisjon («Ressurs, SMS logg» og «Rekvisisjon, SMS logg») vises lange SMS-er nå i en boks på rundt ti linjer som kan rulles, i stedet for å strekke hele visningen slik at resten ble vanskelig å lese
+
+---
+
 ## 🔧 [4.9.6] - 10.09.2026
 
 ### Kartvisning: Rutepunkter for å styre kjøreruten

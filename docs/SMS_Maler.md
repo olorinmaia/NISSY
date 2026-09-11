@@ -34,7 +34,7 @@ Tre mal-typer støttes per kontor:
 |---|---|
 | `bestilling` | Brukes i enkelt/masse-modus når bestillinger er merket. Kan bruke info-variabler. |
 | `fritekst` | Ingen bestilling merket – kun statisk tekst med manuelle plassholdere. |
-| `sjaafor` | Sjåfør-SMS via høyreklikk på ressurs – kun statisk tekst. |
+| `sjaafor` | Sjåfør-SMS via høyreklikk på ressurs. Kan bruke info-variabler fra merkede bestillinger, samt turnummer. |
 
 ### Tilgjengelige variabler i `bestilling`-maler
 
@@ -51,9 +51,40 @@ Bruk alltid `formaterTid(info.reiseTid)` og `formaterTid(info.oppTid)` i stedet 
 - Samme dag: `18:36` → `kl. 18:36`
 - Frem i tid: `06.03 08:00` → `06.03 kl. 08:00`
 
-I `fritekst`- og `sjaafor`-maler er ingen variabler tilgjengelig – bruk plassholdere som `TT:MM` for tidspunkt og skriv inn manuelt ved sending.
+I `fritekst`-maler er ingen variabler tilgjengelig – bruk plassholdere som `TT:MM` for tidspunkt og skriv inn manuelt ved sending.
 
 `autoVelgHvis(info)` er valgfri per mal – returnerer `true` for å automatisk velge malen basert på f.eks. adresse.
+
+### Tilgjengelige variabler i `sjaafor`-maler
+
+Sjåfør-maler har de samme variablene som `bestilling`-maler, hentet fra bestillingene som er merket i pågående oppdrag når SMS-vinduet åpnes. Høyreklikk på ressurs og velg "Send SMS til sjåfør" eller merk turen på pågående oppdrag, velg «Sjåfør» i dialogen som dukker opp, og malen fylles ut. I tillegg finnes:
+
+| Variabel | Eksempel | Beskrivelse |
+|---|---|---|
+| `info.turNummer` | `72334460` | Turnummeret til ressursen (kun i sjåfør-maler) |
+| `info.initialer` | `A.E.J.` | Pasientens initialer – fornavn og mellomnavn først, etternavn sist |
+| `info.bestillinger` | – | Liste over alle merkede bestillinger på turen. Hver har `fraAdresse`, `tilAdresse`, `reiseTid`, `oppTid`, `pasientNavn`, `fornavn` og `initialer` |
+
+`info.fraAdresse`, `info.initialer` osv. på toppnivå peker på den første bestillingen. Skal alle bestillingene på turen med i meldingen, bruk `forHverBestilling(info, (b, i) => ..., skille)` – den lager én tekstbit per bestilling og slår dem sammen (`i` er løpenummeret fra 0, standard skille er linjeskift).
+
+Eksempelet under er malen Nord-Trøndelag bruker for å sende hele turoppdraget til sjåføren på SMS ved taksameterproblemer. Den ligger også i de globale standardmalene:
+
+```javascript
+{
+  navn: "Turoppdrag (ved taksameterproblemer)",
+  // Lister alle bestillinger på turen (merk turen i pågående oppdrag)
+  tekst: (info) =>
+    `Hei. Dette er en melding som ikke kan besvares.\n\nBestillinger på turnummer ${info.turNummer}:\n\n` +
+    forHverBestilling(info, (b, i) =>
+      `${i + 1}) ${b.initialer}\nHenting ${formaterTid(b.reiseTid)}` +
+      (b.oppTid ? `, oppmøte ${formaterTid(b.oppTid)}` : "") +
+      `\nFra: ${b.fraAdresse}\nTil: ${b.tilAdresse}`
+    , "\n\n") +
+    `\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+},
+```
+
+Er ingen bestilling merket når sjåfør-SMS åpnes, fylles variablene med plassholdere (`XXXX`, `TT:MM`, `INITIALER`) som kan skrives over manuelt. Turnummeret hentes alltid fra ressursraden.
 
 ---
 
@@ -156,6 +187,18 @@ Nedenfor er et fullstendig eksempel fra Pasientreiser Nord-Trøndelag. Kopier bl
       tekst: () =>
         `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
     },
+    {
+      navn: "Turoppdrag (ved taksameterproblemer)",
+      // Lister alle bestillinger på turen
+      tekst: (info) =>
+        `Hei. Dette er en melding som ikke kan besvares.\n\nBestillinger på turnummer ${info.turNummer}:\n\n` +
+        forHverBestilling(info, (b, i) =>
+          `${i + 1}) ${b.initialer}\nHenting ${formaterTid(b.reiseTid)}` +
+          (b.oppTid ? `, oppmøte ${formaterTid(b.oppTid)}` : "") +
+          `\nFra: ${b.fraAdresse}\nTil: ${b.tilAdresse}`
+        , "\n\n") +
+        `\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+    },
   ],
 
 },
@@ -175,7 +218,7 @@ Send den tilpassede blokken (og kontorets navn) til **aej@hnt.no**, på Teams, e
 - De nasjonale malene som ligger fra før i NISSY forsvinner, de som evt. brukes av de må legges til i kontorspesifikke maler.
 - `\n` lager linjeskift i meldingsteksten.
 - `autoVelgHvis` kan brukes til å automatisk velge en mal basert på f.eks. adressen: `autoVelgHvis: (info) => /flyplass|lufthavn/i.test(info.fraAdresse)`
-- Sjåfør-SMS (`sjaafor`) sendes via høyreklikk på ressurs i ressurskolonnen.
+- Sjåfør-SMS (`sjaafor`) sendes via høyreklikk på ressurs i ressurskolonnen, eller med Alt+C når en ressurs er merket. Har ressursen bestillinger i pågående oppdrag, fylles malen ut med bestillingsdata og turnummer.
 
 ---
 

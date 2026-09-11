@@ -422,7 +422,8 @@
       ...((scriptLoaded.smartTildeling() && countSelected('ventende') > 0) ? [sep()] : []),
       ...(scriptLoaded.smartTildeling() && countSelected('ventende') > 0 ? [item('🪄', 'Smart-tildeling', 'Alt+S', () => triggerAlt('s'))] : []),
       sep(),
-      ...(!/-\d{7,}$/.test(getDisplayName(row, 'ressurser')) && scriptLoaded.sendSMS() ? [
+      // Også for ressurser uten løyvenummer (offline-turer) – da fylles mobilnummer inn manuelt
+      ...(scriptLoaded.sendSMS() ? [
         item('📱', 'Send SMS til sjåfør', null, () => {
           if (typeof window.__openSjaaforSMSPopup === 'function') {
             window.__openSjaaforSMSPopup(row);

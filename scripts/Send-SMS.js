@@ -93,6 +93,18 @@
         tekst: () =>
           `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nHilsen Pasientreiser.`,
       },
+      {
+        navn: "Turoppdrag (ved taksameterproblemer)",
+        // Lister alle bestillinger på turen (merk turen i pågående oppdrag)
+        tekst: (info) =>
+          `Hei. Dette er en melding som ikke kan besvares.\n\nBestillinger på turnummer ${info.turNummer}:\n\n` +
+          forHverBestilling(info, (b, i) =>
+            `${i + 1}) ${b.initialer}\nHenting ${formaterTid(b.reiseTid)}` +
+            (b.oppTid ? `, oppmøte ${formaterTid(b.oppTid)}` : "") +
+            `\nFra: ${b.fraAdresse}\nTil: ${b.tilAdresse}`
+          , "\n\n") +
+          `\n\nFor spørsmål kontakt oss på 05515.\n\nHilsen Pasientreiser.`,
+      },
     ],
 
   };
@@ -104,7 +116,8 @@
   // Tre mal-typer per kontor:
   //   bestilling  – enkelt/masse-modus (har tilgang til info-variabler)
   //   fritekst    – ingen bestilling merket (kun statiske tekster)
-  //   sjaafor     – sjåfør-SMS via ressurser-tabell (kun statiske tekster)
+  //   sjaafor     – sjåfør-SMS via ressurser-tabell (info fra merkede
+  //                 bestillinger + turnummer fra ressursraden)
   //
   // Tilgjengelige variabler i bestilling-maler:
   //   info.pasientNavn  – f.eks. "Johnsen, Alf"
@@ -114,6 +127,18 @@
   //   info.fraAdresse   – f.eks. "Brubakken 15, 7608 Levanger"
   //   info.tilAdresse   – f.eks. "St. Olavs Hospital, 7006 Trondheim"
   // autoVelgHvis(info): valgfri – returnerer true for å auto-velge malen
+  //
+  // I sjaafor-maler finnes i tillegg:
+  //   info.turNummer    – turnummer fra ressursraden, f.eks. "72334460"
+  //   info.initialer    – f.eks. "A.E.J." (fornavn/mellomnavn først, etternavn sist)
+  //   info.bestillinger – alle merkede bestillinger på turen; hver har samme
+  //                       felter som over (pasientNavn, initialer, reiseTid,
+  //                       fraAdresse, tilAdresse …). info.fraAdresse osv. peker
+  //                       på den første bestillingen.
+  //   forHverBestilling(info, (b) => `…`, skille) – lager én tekstbit per
+  //                       bestilling og slår dem sammen (standard skille: "\n").
+  // Uten merkede bestillinger fylles feltene med plassholdere (XXXX, TT:MM,
+  // INITIALER) slik at malen kan fylles ut manuelt.
   //
   // Kontor uten egen oppføring her bruker GLOBAL_MALER (se over) for
   // alle tre mal-typer.
@@ -215,10 +240,20 @@
           tekst: () =>
             `Hei. Dette er en melding som ikke kan besvares.\n\nVi har prøvd å kontakte deg.\nVennligst ring oss tilbake på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
         },
+        {
+          navn: "Turoppdrag (ved taksameterproblemer)",
+          // Lister alle bestillinger på turen
+          tekst: (info) =>
+            `Hei. Dette er en melding som ikke kan besvares.\n\nBestillinger på turnummer ${info.turNummer}:\n\n` +
+            forHverBestilling(info, (b, i) =>
+              `${i + 1}) ${b.initialer}\nHenting ${formaterTid(b.reiseTid)}` +
+              (b.oppTid ? `, oppmøte ${formaterTid(b.oppTid)}` : "") +
+              `\nFra: ${b.fraAdresse}\nTil: ${b.tilAdresse}`
+            , "\n\n") +
+            `\n\nFor spørsmål kontakt oss på 05515.\n\nMvh Pasientreiser Nord-Trøndelag.`,
+        },
       ],
-
     },
-    
     // ----------------------------------------------------------
     // Pasientreiser Møre og Romsdal
     // ----------------------------------------------------------
@@ -517,19 +552,34 @@
 
       bestilling: [
         {
-          navn: "Avbestilt reise",
-          tekst: (info) =>
-            `Dette er en melding fra Pasientreiser. Denne SMS-en kan ikke besvares.\n\nTransport til time ${formaterTid(info.oppTid)} er avbestilt.\n\nDersom du har spørsmål vedrørende dette, kontakt Pasientreiser på telefon 05515.`,
-        },
-        {
-          navn: "Endre reisetid pasient",
-          tekst: (info) =>
-            `Ditt avreisetidspunkt er endret til: ${formaterTid(info.reiseTid)}.\n\nVed spørsmål, kontakt Pasientreiser på telefon 05515. Denne SMS-en kan ikke besvares.`,
-        },
-        {
-          navn: "Skriftlig klage",
+          navn: "BT forsinkelse - ikke bil på vei",
           tekst: () =>
-            `Takk for at du tok kontakt med oss. For å sende klage til Pasientreiser er det følgende alternativer som gjelder:\n\nVanlig post:\nHelse Bergen\nHaukeland universitetssjukehus\nAvdeling for pasientreiser\nPostboks 1400\n5021 Bergen\n\nAll post til avdelinger på sykehuset skal sendes til det sentrale postmottaket vårt.\n\neDialog (sikker og kryptert oversending av brev og dokumenter):\nhttps://www.helse-bergen.no/om-oss/kontaktinformasjon/edialog/\n\nHar du andre spørsmål, ta kontakt med oss igjen på 05515.\n\nMed vennlig hilsen Pasientreiser.`,
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket, men de jobber med å skaffe bil så fort som mulig.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "BT forsinkelse - bekreftet tidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket. Forventet ankomst er om ca. XX minutter.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "BT forsinkelse - bekreftet bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "CT forsinkelse - ikke bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket, men de jobber med å skaffe bil så fort som mulig.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "CT forsinkelse - bekreftet tidspunkt",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket. Forventet ankomst er om ca. XX minutter.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "CT forsinkelse - bekreftet bil på vei",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
         },
         {
           navn: "NT forsinkelse - ikke bil på vei",
@@ -547,64 +597,14 @@
             `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Norgestaxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
         },
         {
-          navn: "CT forsinkelse - ikke bil på vei",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket, men de jobber med å skaffe bil så fort som mulig.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "CT forsinkelse - bekreftet bil på vei",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "CT forsinkelse - bekreftet tidspunkt",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Christiania Taxi. Taxien er forsinket. Forventet ankomst er om ca. XX minutter.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "Fly",
+          navn: "Fly - Vanlig drosje",
           tekst: (info) =>
             `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nViser til drosjebestillingen din fra Flesland flyplass. Ved ankomst ringer du Christiania Taxi på 23 89 26 08. Oppgi at du har drosjerekvisisjon hos Pasientreiser. Forventet avreise fra Flesland er ${formaterTid(info.reiseTid)}. Hentestedet er på høyre side for utgangen ved innenlands ankomst. Ved endring eller avbestilling, ring 05515 snarest.\n\nHilsen Pasientreiser.`,
         },
         {
-          navn: "Fly RB",
+          navn: "Fly - Rullestolbil",
           tekst: (info) =>
             `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nViser til drosjebestillingen din fra Flesland flyplass. Ved ankomst ringer du Bergen Taxi på 55 99 70 70. Oppgi at du har drosjerekvisisjon hos Pasientreiser. Forventet avreise fra Flesland er ${formaterTid(info.reiseTid)}. Hentestedet er på høyre side for utgangen ved innenlands ankomst. Ved endring eller avbestilling, ring 05515 snarest.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "Forsinkelser",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har for tiden tekniske problemer som kan føre til lengre ventetid på pasientreisen din i dag. Vi beklager ulempen. Hvis du må legge ut for reisen selv, kan du søke om refusjon i etterkant.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "Bestilt reise",
-          tekst: (info) =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDin reise til behandling er bestilt. Estimert hentetid: ${formaterTid(info.reiseTid)}. Noe ventetid må påregnes. Ring 05515 for å endre eller avbestille. Du finner mer informasjon på helsenorge.no.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "Bomtur",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nHelse Bergen sendte en drosje for å kjøre deg til behandling i dag, men du var ikke å treffe. Husk å avbestille reisen på 05515 så fort som mulig ved endringer.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "Manglende betaling av egenandel",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDet er registrert at du ikke har betalt egenandel for pasientreisen i dag. Du vil motta Vipps-krav eller faktura på egenandelsbeløpet fra Helse Bergen.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "BT forsinkelse - ikke bil på vei",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket, men de jobber med å skaffe bil så fort som mulig.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "BT forsinkelse - bekreftet bil på vei",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket, men det er bil på vei.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
-        },
-        {
-          navn: "BT forsinkelse - bekreftet tidspunkt",
-          tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har snakket med sentralen til Bergen Taxi. Taxien er forsinket. Forventet ankomst er om ca. XX minutter.\n\nVi beklager forsinkelsen.\n\nHilsen Pasientreiser.`,
         },
         {
           navn: "Oma - uten avtale",
@@ -612,19 +612,64 @@
             `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nHelse Bergen har ikke lenger avtale om kjøring i Omastrand og Strandebarm. På denne reisen må du derfor organisere transporten selv og legge ut for reisen. Vi beklager ulempen. Rekvisisjonen fungerer som dokumentasjon på behovet ditt når du søker om dekning av reiseutgifter. Du kan lese mer på helse-bergen.no/pasientreiser eller ringe 05515.\n\nHilsen Pasientreiser.`,
         },
         {
-          navn: "SMS Etterlyse pasient, PVA",
-          tekst: (info) =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi ser at du har en reise med Pasientreiser i dag fra ${info.fraAdresse}. Husk å melde deg i skranken hos Pasientreiser når du er klar for avreise. Ring 05515 ved spørsmål.\n\nHilsen Pasientreiser.`,
+          navn: "Ventetid etter behandling - informasjon",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nNår du har en organisert reise etter behandling, må du regne med noe ventetid. Du kan vanligvis regne med å vente inntil 45 minutter.\n\nLes mer om hva du kan forvente av reisen din i serviceerklæringen vår:\nhttps://www.pasientreiser.no/pasientreiseordningen/serviceerklaring\n\nHilsen Pasientreiser.`,
         },
         {
-          navn: "Refusjon ok",
+          navn: "Forsinkelse til/fra behandling - Refusjon ok",
           tekst: () =>
-            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDrosjen som er bestilt til deg i dag, er forsinket. Hvis du ønsker å ordne transport på egen hånd, kan du kontakte oss på 05515, slik at vi får registrert det og du får godkjent søknad om refusjon.\n\nHilsen Pasientreiser.`,
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDrosjen som er bestilt til deg i dag, er forsinket. Hvis du ønsker å ordne transporten selv, ring oss på 05515. Vi registrerer da at du ordner reisen selv, slik at du kan søke om refusjon i etterkant.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Forsinkelse fra behandling - uten refusjonstilbud",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi ser at ventetiden din etter behandling er lengre enn 45 minutter i dag. Vi henter deg så snart som mulig. Vær tilgjengelig på telefon.\n\nHvis du ikke lenger trenger reisen, ring oss på 05515.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Forsinkelse - tekniske problemer",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi har for tiden tekniske problemer som kan føre til lengre ventetid på pasientreisen din i dag. Vi beklager ulempen. Hvis du må legge ut for reisen selv, kan du søke om refusjon i etterkant.\n\nHilsen Pasientreiser.`,
         },
         {
           navn: "Refusjonsbekreftelse",
           tekst: () =>
             `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi bekrefter at du vil få refundert drosjeutgifter til behandling i dag. Dersom du ikke har frikort, trekkes en egenandel på 171 kr. Søk om refusjon på helse-bergen.no/pasientreiser og legg ved kvittering.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Endre reisetid - pasient",
+          tekst: (info) =>
+            `Ditt avreisetidspunkt er endret til: ${formaterTid(info.reiseTid)}.\n\nVed spørsmål, kontakt Pasientreiser på telefon 05515. Denne SMS-en kan ikke besvares.`,
+        },
+        {
+          navn: "Etterlyse pasient - PVA",
+          tekst: (info) =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nVi ser at du har en reise med Pasientreiser i dag fra ${info.fraAdresse}. Husk å melde deg i skranken hos Pasientreiser når du er klar for avreise. Ring 05515 ved spørsmål.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Manglende betaling av egenandel",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDet er registrert at du ikke har betalt egenandel for pasientreisen i dag. Du vil motta Vipps-krav eller faktura på egenandelsbeløpet fra Helse Bergen.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Bomtur",
+          tekst: () =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nHelse Bergen sendte en drosje for å kjøre deg til behandling i dag, men du var ikke å treffe. Husk å avbestille reisen på 05515 så fort som mulig ved endringer.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Bestilt reise",
+          tekst: (info) =>
+            `Hei. Dette er en melding fra Pasientreiser og kan ikke besvares.\n\nDin reise til behandling er bestilt. Estimert hentetid: ${formaterTid(info.reiseTid)}. Noe ventetid må påregnes. Ring 05515 for å endre eller avbestille. Du finner mer informasjon på helsenorge.no.\n\nHilsen Pasientreiser.`,
+        },
+        {
+          navn: "Avbestilt reise",
+          tekst: (info) =>
+            `Dette er en melding fra Pasientreiser. Denne SMS-en kan ikke besvares.\n\nTransport til time ${formaterTid(info.oppTid)} er avbestilt.\n\nDersom du har spørsmål vedrørende dette, kontakt Pasientreiser på telefon 05515.`,
+        },
+        {
+          navn: "Skriftlig klage",
+          tekst: () =>
+            `Takk for at du tok kontakt med oss. For å sende klage til Pasientreiser er det følgende alternativer som gjelder:\n\nVanlig post:\nHelse Bergen\nHaukeland universitetssjukehus\nAvdeling for pasientreiser\nPostboks 1400\n5021 Bergen\n\nAll post til avdelinger på sykehuset skal sendes til det sentrale postmottaket vårt.\n\neDialog (sikker og kryptert oversending av brev og dokumenter):\nhttps://www.helse-bergen.no/om-oss/kontaktinformasjon/edialog/\n\nHar du andre spørsmål, ta kontakt med oss igjen på 05515.\n\nMed vennlig hilsen Pasientreiser.`,
         },
       ],
 
@@ -639,8 +684,12 @@
       sjaafor: [
         {
           navn: "Osterøy fergeselskap (Padøy)",
-          tekst: () =>
-            `Fra: XXXX, til: XXXX. Tur-id: XXXXXX. Dato: DD.MM, kl. TT:MM. Pasient: INITIALER.\n\nRetur fra: XXXX, til: XXXX. Tur-id: XXXXXX, kl. TT:MM.\n\nMvh Pasientreiser.`,
+          // Én linje per bestilling på turen.
+          tekst: (info) =>
+            forHverBestilling(info, (b) =>
+              `Fra: ${b.fraAdresse}, til: ${b.tilAdresse}. Tur-id: ${info.turNummer}. Tid: ${formaterTid(b.reiseTid)}. Pasient: ${b.initialer}`
+            , "\n\n") +
+            `\n\nAll informasjon om turen er sendt til portalen.\n\nMvh Pasientreiser.`,
         },
       ],
 
@@ -754,7 +803,7 @@
   const SMS_MALER_SJAAFOR  = _kontorMaler.sjaafor    || [];
   // ============================================================
   // ============================================================
-  const MAX_TEGN           = 640;
+  const MAX_TEGN           = 1280;
   const MAX_NAVN_LENGDE    = 22;
   const MAX_ADRESSE_LENGDE = 28;
   // ============================================================
@@ -762,6 +811,17 @@
   function kortTekst(str, maks) {
     if (!str) return "";
     return str.length > maks ? str.slice(0, maks) + "…" : str;
+  }
+
+  // Setter høyden på et tekstfelt lik innholdet. Kalles kun når en mal legges
+  // inn – ikke mens brukeren skriver. Feltet står dermed i ro under redigering:
+  // blir teksten lengre, ruller den inne i feltet; blir den kortere, beholdes
+  // høyden. Kantlinjene må regnes med (offsetHeight - clientHeight), ellers
+  // mangler det 2px og et rullefelt dukker opp uten at det er noe å rulle i.
+  // Flex kan fortsatt krympe feltet ved plassmangel i popupen.
+  function tilpassHoyde(ta) {
+    ta.style.height = "auto";
+    ta.style.height = (ta.scrollHeight + ta.offsetHeight - ta.clientHeight) + "px";
   }
 
   function titleCase(str) {
@@ -784,6 +844,42 @@
     const sammeDag = str.match(/^(\d{2}:\d{2})$/);
     if (sammeDag) return `kl. ${sammeDag[1]}`;
     return str;
+  }
+
+  // Lager initialer av pasientnavn på formen "Etternavn, Fornavn Mellomnavn".
+  // Fornavn og mellomnavn først, etternavn sist:
+  //   "Johnsen, Alf Einar Rolf" → "A.E.R.J."
+  //   "Berg-Hansen, Anne-Lise"  → "A-L.B-H."
+  function lagInitialer(pasientNavn) {
+    if (!pasientNavn) return "";
+    const [etternavn = "", fornavn = ""] = pasientNavn.split(",").map(s => s.trim());
+    return `${fornavn} ${etternavn}`.trim().split(/\s+/).filter(Boolean)
+      .map(del => del.split("-").map(p => p.charAt(0).toUpperCase()).join("-") + ".")
+      .join("");
+  }
+
+  // Plassholdere for sjåfør-maler når ingen bestilling er merket.
+  const SJAAFOR_PLASSHOLDER = {
+    id: "", pasientNavn: "NAVN", fornavn: "NAVN", initialer: "INITIALER",
+    reiseTid: "TT:MM", oppTid: "TT:MM", fraAdresse: "XXXX", tilAdresse: "XXXX",
+  };
+
+  // Bygger info-objektet for sjåfør-maler.
+  // turNummer kommer fra ressursraden, bestillingene fra merkede rader i
+  // pågående oppdrag (alle bestillinger på en merket tur tas med, ventende ignoreres).
+  // Toppnivå-feltene (fraAdresse, reiseTid, initialer …) speiler første bestilling.
+  function lagSjaaforInfo(turNummer, bestillinger) {
+    const liste = bestillinger.length > 0
+      ? bestillinger.map(b => ({ ...b, initialer: lagInitialer(b.pasientNavn) }))
+      : [{ ...SJAAFOR_PLASSHOLDER }];
+    return { ...liste[0], turNummer, bestillinger: liste, antallBestillinger: bestillinger.length };
+  }
+
+  // Kjører mal-funksjonen for hver bestilling i info.bestillinger og slår
+  // sammen resultatet. Brukes i sjåfør-maler for turer med flere bestillinger:
+  //   forHverBestilling(info, (b) => `Fra: ${b.fraAdresse}, til: ${b.tilAdresse}.`)
+  function forHverBestilling(info, mal, skille = "\n") {
+    return (info.bestillinger || [info]).map(mal).join(skille);
   }
 
   // Fjerner sti-prefiks (./ ../ .../) i STARTEN av adressen og bolig-/bruksenhetsnummer.
@@ -884,19 +980,24 @@
       padding: "22px 26px", borderRadius: "10px",
       boxShadow: "0 8px 30px rgba(0,0,0,0.28)",
       fontFamily: "Segoe UI, Arial, sans-serif", fontSize: "13px",
-      minWidth: minWidth, maxWidth: "750px", maxHeight: "85vh", overflow: "auto",
+      // Kan bruke nesten hele skjermhøyden: 20px luft i topp og bunn + 22px padding
+      // oppe og nede (content-box, slik at min-/maxWidth gjelder innholdet som før).
+      // Popupen selv ruller aldri – den er en kolonne-flex der meldingsfeltet
+      // (evt. tabellen i massemodus) krymper og ruller internt ved plassmangel.
+      minWidth: minWidth, maxWidth: "750px", maxHeight: "calc(100vh - 84px)",
+      overflow: "hidden", display: "flex", flexDirection: "column",
     });
 
+    // Sentreres horisontalt over col2 (hvis den finnes), vertikalt midt i vinduet
     const col2 = document.getElementById("col2");
     if (col2) {
       const rect = col2.getBoundingClientRect();
-      popup.style.left      = `${rect.left + rect.width / 2}px`;
-      popup.style.top       = `${rect.top + rect.height / 2}px`;
-      popup.style.transform = "translate(-50%, -50%)";
+      popup.style.left = `${rect.left + rect.width / 2}px`;
     } else {
-      popup.style.top = "50%"; popup.style.left = "50%";
-      popup.style.transform = "translate(-50%, -50%)";
+      popup.style.left = "50%";
     }
+    popup.style.top       = "50%";
+    popup.style.transform = "translate(-50%, -50%)";
 
     overlay.appendChild(popup);
     return { overlay, popup };
@@ -1251,13 +1352,18 @@
         ${SMS_MALER.map((m, i) => `<option value="${i}">${m.navn}</option>`).join("")}
        </select>`);
 
-    skjemaRad("Melding:",
+    const meldingRad = skjemaRad("Melding:",
       `<textarea id="__smsMsg" rows="5"
           style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
-                 font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
-       <div style="text-align:right;font-size:11px;margin-top:3px;">
+                 font-size:13px;resize:vertical;box-sizing:border-box;
+                 min-height:70px;overflow-y:auto;flex:0 1 auto;"></textarea>
+       <div style="text-align:right;font-size:11px;margin-top:3px;flex-shrink:0;">
          <span id="__smsTegn" style="color:#888;">0 / ${MAX_TEGN} tegn</span>
        </div>`);
+    // Meldingsraden er det eneste som krymper når popupen når maks høyde –
+    // da ruller teksten inne i meldingsfeltet, ikke popupen.
+    Object.assign(meldingRad.style, { flex: "0 1 auto", minHeight: "0", alignItems: "stretch" });
+    Object.assign(meldingRad.lastElementChild.style, { display: "flex", flexDirection: "column", minHeight: "0" });
 
     const btnRow = document.createElement("div");
     Object.assign(btnRow.style, { display: "flex", justifyContent: "flex-end", gap: "9px", marginTop: "6px" });
@@ -1315,8 +1421,7 @@
     function velgMal(idx) {
       malSelect.value      = idx;
       msgArea.value        = SMS_MALER[idx].tekst(info).slice(0, MAX_TEGN);
-      msgArea.style.height = "auto";
-      msgArea.style.height = msgArea.scrollHeight + "px";
+      tilpassHoyde(msgArea);
       oppdaterTegnteller();
     }
 
@@ -1439,6 +1544,8 @@
       display: "none", width: "100%", border: "1px solid #ccc",
       borderRadius: "4px", padding: "6px 8px", marginBottom: "4px",
       fontSize: "13px", resize: "vertical", boxSizing: "border-box",
+      // Krymper og ruller internt ved plassmangel (popupen ruller aldri)
+      flex: "0 1 auto", minHeight: "80px", overflowY: "auto",
     });
     popup.appendChild(malPreview);
 
@@ -1464,7 +1571,8 @@
 
     // Tabell
     const tblWrap = document.createElement("div");
-    Object.assign(tblWrap.style, { overflowX: "auto", marginBottom: "14px" });
+    // Tabellen krymper og ruller internt ved mange bestillinger (popupen ruller aldri)
+    Object.assign(tblWrap.style, { overflow: "auto", marginBottom: "14px", flex: "0 1 auto", minHeight: "120px" });
     const tbl = document.createElement("table");
     Object.assign(tbl.style, { width: "100%", borderCollapse: "collapse", fontSize: "12px" });
     tbl.innerHTML = `
@@ -1694,9 +1802,7 @@
       malPreview.style.background = "";
       malPreview.style.borderColor = "#ccc";
       malPreview.style.display = "block";
-      malPreview.style.height = "auto";
-      void malPreview.offsetHeight;
-      malPreview.style.height = malPreview.scrollHeight + "px";
+      tilpassHoyde(malPreview);
       oppdaterPreviewTegnteller();
       malPreviewTegn.style.display = "block";
     }
@@ -1713,9 +1819,7 @@
       malPreview.style.background = "#f4fcf4";
       malPreview.style.borderColor = "#27ae60";
       malPreview.style.display = "block";
-      malPreview.style.height = "auto";
-      void malPreview.offsetHeight;
-      malPreview.style.height = malPreview.scrollHeight + "px";
+      tilpassHoyde(malPreview);
       oppdaterPreviewTegnteller();
       malPreviewTegn.style.display = "block";
     }
@@ -1966,13 +2070,18 @@
         ${SMS_MALER_FRITEKST.map((m, i) => `<option value="${i}">${m.navn}</option>`).join("")}
        </select>`);
 
-    skjemaRad("Melding:",
+    const meldingRad = skjemaRad("Melding:",
       `<textarea id="__smsMsg" rows="5"
           style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
-                 font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
-       <div style="text-align:right;font-size:11px;margin-top:3px;">
+                 font-size:13px;resize:vertical;box-sizing:border-box;
+                 min-height:70px;overflow-y:auto;flex:0 1 auto;"></textarea>
+       <div style="text-align:right;font-size:11px;margin-top:3px;flex-shrink:0;">
          <span id="__smsTegn" style="color:#888;">0 / ${MAX_TEGN} tegn</span>
        </div>`);
+    // Meldingsraden er det eneste som krymper når popupen når maks høyde –
+    // da ruller teksten inne i meldingsfeltet, ikke popupen.
+    Object.assign(meldingRad.style, { flex: "0 1 auto", minHeight: "0", alignItems: "stretch" });
+    Object.assign(meldingRad.lastElementChild.style, { display: "flex", flexDirection: "column", minHeight: "0" });
 
     const btnRow = document.createElement("div");
     Object.assign(btnRow.style, { display: "flex", justifyContent: "flex-end", gap: "9px", marginTop: "6px" });
@@ -2030,8 +2139,7 @@
       const idx = parseInt(malSelect.value, 10);
       if (!isNaN(idx) && SMS_MALER_FRITEKST[idx]) {
         msgArea.value        = SMS_MALER_FRITEKST[idx].tekst().slice(0, MAX_TEGN);
-        msgArea.style.height = "auto";
-        msgArea.style.height = msgArea.scrollHeight + "px";
+        tilpassHoyde(msgArea);
       } else {
         msgArea.value = "";
       }
@@ -2181,6 +2289,11 @@
       telefon = await fetchSjaaforTelefon(licensePlate, turId);
     }
 
+    // Info til malene: merkede bestillinger i pågående oppdrag (alle på en merket tur) + turnummer.
+    // Ventende ignoreres – de ligger ikke på turen.
+    const bestillinger = hentMerkedeBestillinger([], getPaagaaendeRader()) || [];
+    const info = lagSjaaforInfo(turId, bestillinger);
+
     const { overlay, popup } = createPopupBase("480px");
     overlay.id = "__sendSMSOverlay";
 
@@ -2215,7 +2328,9 @@
     if (!tlfVerdi) {
       const noTlf = document.createElement("div");
       noTlf.style.cssText = "color:#d9534f;font-size:11px;margin-top:-7px;margin-bottom:8px;margin-left:92px;";
-      noTlf.textContent = "Telefonnummer ikke funnet i SUTI 3003 – fyll inn manuelt";
+      noTlf.textContent = har3003
+        ? "Telefonnummer ikke funnet i SUTI 3003 – fyll inn manuelt"
+        : "Ressursen har ikke løyvenummer – fyll inn sjåførens mobilnummer manuelt";
       popup.appendChild(noTlf);
     }
 
@@ -2225,13 +2340,35 @@
         ${SMS_MALER_SJAAFOR.map((m, i) => `<option value="${i}">${m.navn}</option>`).join("")}
        </select>`);
 
-    skjemaRad("Melding:",
+    // Vis hvilke bestillinger malen fylles ut fra – kun når valgt mal bruker info-variabler
+    const infoHint = document.createElement("div");
+    // width:0 + min-width gjør at teksten ikke påvirker popupens bredde (shrink-to-fit)
+    infoHint.style.cssText = "font-size:11px;margin-top:-7px;margin-bottom:8px;margin-left:92px;" +
+      "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:0;min-width:calc(100% - 92px);box-sizing:border-box;";
+    infoHint.hidden = true;
+    if (info.antallBestillinger === 0) {
+      infoHint.style.color = "#888";
+      infoHint.textContent = "Ingen bestillinger synlig på turen";
+    } else {
+      infoHint.style.color = "#5a7a5a";
+      const navn = info.bestillinger.map(b => kortTekst(b.pasientNavn, MAX_NAVN_LENGDE) || "(ukjent)").join(", ");
+      infoHint.textContent = `📋 Fyller inn fra ${info.antallBestillinger} bestilling${info.antallBestillinger > 1 ? "er" : ""}: ${navn}`;
+      infoHint.title = navn;
+    }
+    popup.appendChild(infoHint);
+
+    const meldingRad = skjemaRad("Melding:",
       `<textarea id="__smsMsg" rows="5"
           style="width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:4px;
-                 font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
-       <div style="text-align:right;font-size:11px;margin-top:3px;">
+                 font-size:13px;resize:vertical;box-sizing:border-box;
+                 min-height:70px;overflow-y:auto;flex:0 1 auto;"></textarea>
+       <div style="text-align:right;font-size:11px;margin-top:3px;flex-shrink:0;">
          <span id="__smsTegn" style="color:#888;">0 / ${MAX_TEGN} tegn</span>
        </div>`);
+    // Meldingsraden er det eneste som krymper når popupen når maks høyde –
+    // da ruller teksten inne i meldingsfeltet, ikke popupen.
+    Object.assign(meldingRad.style, { flex: "0 1 auto", minHeight: "0", alignItems: "stretch" });
+    Object.assign(meldingRad.lastElementChild.style, { display: "flex", flexDirection: "column", minHeight: "0" });
 
     const btnRow = document.createElement("div");
     Object.assign(btnRow.style, { display: "flex", justifyContent: "flex-end", gap: "9px", marginTop: "6px" });
@@ -2306,11 +2443,14 @@
     malSelect.addEventListener("change", () => {
       const idx = parseInt(malSelect.value, 10);
       if (!isNaN(idx) && SMS_MALER_SJAAFOR[idx]) {
-        msgArea.value        = SMS_MALER_SJAAFOR[idx].tekst().slice(0, MAX_TEGN);
-        msgArea.style.height = "auto";
-        msgArea.style.height = msgArea.scrollHeight + "px";
+        const mal = SMS_MALER_SJAAFOR[idx];
+        msgArea.value        = mal.tekst(info).slice(0, MAX_TEGN);
+        tilpassHoyde(msgArea);
+        // Maler som tar imot info-objektet (tekst: (info) => …) bruker bestillingsdata
+        infoHint.hidden = mal.tekst.length === 0;
       } else {
         msgArea.value = "";
+        infoHint.hidden = true;
       }
       oppdaterTegnteller();
     });
@@ -2413,28 +2553,12 @@
     overlay.querySelector("#__smsValgBestilling").focus();
   }
 
-  async function openSendSMSPopup() {
-    if (document.getElementById("__sendSMSOverlay")) return;
-
-    const ventendeRader   = getVentendeRader();
-    const paagaaendeRader = getPaagaaendeRader();
-
-    // ---- Sjekk om ressurs med løyvenummer er merket → sjåfør eller modusvalg ----
-    const ressursRadMedLoeyve = getMerketRessursRadMedLoeyve();
-    if (ressursRadMedLoeyve) {
-      if (ventendeRader.length > 0 || paagaaendeRader.length > 0) {
-        visModusValgDialog(ressursRadMedLoeyve, () => aapneBestillingsModus());
-      } else {
-        openSjaaforPopup(ressursRadMedLoeyve);
-      }
-      return;
-    }
-
-    aapneBestillingsModus();
-
-    async function aapneBestillingsModus() {
-    if (document.getElementById("__sendSMSOverlay")) return;
-
+  // ============================================================
+  // SAMLE INFO FOR MERKEDE BESTILLINGER (ventende + pågående)
+  // Returnerer liste med booking-objekter, eller null (med toast) dersom
+  // nødvendige kolonner mangler i tabellen.
+  // ============================================================
+  function hentMerkedeBestillinger(ventendeRader, paagaaendeRader) {
     // ---- Ventende: kolonnevalidering ----
     let ventendeInfo = [];
     if (ventendeRader.length > 0) {
@@ -2453,7 +2577,7 @@
       if (idx.til      === -1) mangler.push("'Til'");
       if (mangler.length > 0) {
         showToast(`Mangler kolonne(r) på ventende oppdrag: ${mangler.join(", ")}. Legg til i tabellen.`, "warning");
-        return;
+        return null;
       }
       ventendeInfo = ventendeRader.map(row => ({
         ...extractRowInfo(row.id, row, idx),
@@ -2479,13 +2603,39 @@
       if (idx.til      === -1) mangler.push("'Til'");
       if (mangler.length > 0) {
         showToast(`Mangler kolonne(r) på pågående oppdrag: ${mangler.join(", ")}. Legg til i tabellen.`, "warning");
-        return;
+        return null;
       }
       paagaaendeInfo = paagaaendeRader.flatMap(row => extractPaagaaendeBookings(row, idx));
     }
 
+    return [...ventendeInfo, ...paagaaendeInfo];
+  }
+
+  async function openSendSMSPopup() {
+    if (document.getElementById("__sendSMSOverlay")) return;
+
+    const ventendeRader   = getVentendeRader();
+    const paagaaendeRader = getPaagaaendeRader();
+
+    // ---- Sjekk om ressurs med løyvenummer er merket → sjåfør eller modusvalg ----
+    const ressursRadMedLoeyve = getMerketRessursRadMedLoeyve();
+    if (ressursRadMedLoeyve) {
+      if (ventendeRader.length > 0 || paagaaendeRader.length > 0) {
+        visModusValgDialog(ressursRadMedLoeyve, () => aapneBestillingsModus());
+      } else {
+        openSjaaforPopup(ressursRadMedLoeyve);
+      }
+      return;
+    }
+
+    aapneBestillingsModus();
+
+    async function aapneBestillingsModus() {
+    if (document.getElementById("__sendSMSOverlay")) return;
+
+    const alleInfo = hentMerkedeBestillinger(ventendeRader, paagaaendeRader);
+    if (!alleInfo) return;
     const paagaaendeRadIds = paagaaendeRader.map(r => r.id);
-    const alleInfo = [...ventendeInfo, ...paagaaendeInfo];
 
     if (alleInfo.length === 0) {
       openFritekstPopup();
