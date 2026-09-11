@@ -16,7 +16,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 ### Send-SMS: Automatisk utfylling i sjåfør-SMS og nye maler for Helse Bergen
 
 - 📱 **Send-SMS (Alt+C)**
-  - Sjåfør-maler kan nå fylles ut automatisk: merk ressurs/turen i pågående oppdrag, så settes turnummer, hente-/leveringsadresse, hentetid og pasientens initialer inn i meldingen. Ligger det flere bestillinger på turen, tas alle med
+  - Sjåfør-maler kan nå fylles ut automatisk: turnummer, hente-/leveringsadresse, hentetid og pasientens initialer hentes fra ressursens tur i pågående oppdrag. Ligger det flere bestillinger på turen, tas alle med
   - Nye kontorspesifikke SMS-maler for Pasientreiser Helse Bergen
   - Ny sjåførmal «Turoppdrag (ved taksameterproblemer)», både i standardmalene og for Nord-Trøndelag, som gir sjåføren en oversikt på SMS over alle bestillingene på turen, med hentetid, pasientens initialer, adresser og oppmøtetid
   - «Send SMS til sjåfør» i høyreklikkmenyen er nå tilgjengelig også for ressurser uten løyvenummer (turer som kjøres offline)
