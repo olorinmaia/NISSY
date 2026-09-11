@@ -278,6 +278,79 @@
     }
 
     /**
+     * Begrenser meldingskolonnen i SMS-loggene i tur-/rekvisisjonsvisningen
+     * ("Ressurs, SMS logg" og "Rekvisisjon, SMS logg").
+     * Lange SMS-er (f.eks. turoppdrag med mange bestillinger) strakk ellers
+     * hele visningen slik at resten ble uleselig. Meldingen legges i en boks
+     * på maks ca. 10 linjer som ruller internt.
+     * Tabellene lastes dynamisk (ajax_reqdetails), derfor MutationObserver.
+     */
+    function begrensSmsLogg(doc) {
+        try {
+            if (!doc || doc.__nissySmsLoggObs) return;
+
+            const STYLE_ID = 'nissy-smslogg-style';
+            if (!doc.getElementById(STYLE_ID)) {
+                const st = doc.createElement('style');
+                st.id = STYLE_ID;
+                st.textContent = `
+                    .nissy-smslogg-melding {
+                        display: block;
+                        width: 600px;
+                        max-height: 170px;
+                        overflow: auto;
+                        white-space: pre-wrap;
+                        word-break: break-word;
+                        text-align: left;
+                    }
+                    /* Fast bredde på meldingskolonnen – lik i begge loggene – de andre holdes på én linje */
+                    table.nissy-smslogg-tabell td, table.nissy-smslogg-tabell th { white-space: nowrap; }
+                    table.nissy-smslogg-tabell td.nissy-smslogg-celle { width: 600px; white-space: normal; }`;
+                (doc.head || doc.documentElement).appendChild(st);
+            }
+
+            const behandleOverskrift = (b) => {
+                if (b.dataset.nissySmsLogg) return;
+                if (!/^(Ressurs|Rekvisisjon), SMS logg$/.test(b.textContent.trim())) return;
+                b.dataset.nissySmsLogg = '1';
+                // Tabellen ligger i raden etter overskriftsraden
+                const tabell = b.closest('tr')?.nextElementSibling?.querySelector('table');
+                if (!tabell) return;
+                // Kolonnene varierer (ressurs: Tid|Mottaker|Melding, rekvisisjon: Tid|Status|Mottaker|Melding)
+                const overskrifter = Array.from(tabell.querySelectorAll('th')).map(th => th.textContent.trim());
+                const meldingIdx = overskrifter.indexOf('Melding');
+                if (meldingIdx === -1) return;
+                tabell.classList.add('nissy-smslogg-tabell');
+                tabell.querySelectorAll('tr').forEach(tr => {
+                    const td = tr.querySelectorAll('td')[meldingIdx];
+                    if (!td || td.querySelector('.nissy-smslogg-melding')) return;
+                    td.classList.add('nissy-smslogg-celle');
+                    const boks = doc.createElement('div');
+                    boks.className = 'nissy-smslogg-melding';
+                    while (td.firstChild) boks.appendChild(td.firstChild);
+                    td.appendChild(boks);
+                });
+            };
+
+            const behandleNode = (node) => {
+                if (!node || node.nodeType !== 1) return;
+                if (node.tagName === 'B') behandleOverskrift(node);
+                node.querySelectorAll?.('b').forEach(behandleOverskrift);
+            };
+
+            // Behandles synkront i observer-callbacken (før neste tegning), slik at
+            // tabellen aldri rekker å vises i full bredde før den krympes. Kun nye
+            // noder sjekkes, så det koster lite selv om turloggen gir mange endringer.
+            const obs = new doc.defaultView.MutationObserver((mutasjoner) => {
+                for (const m of mutasjoner) m.addedNodes.forEach(behandleNode);
+            });
+            obs.observe(doc.body || doc.documentElement, { childList: true, subtree: true });
+            doc.__nissySmsLoggObs = obs;
+            behandleNode(doc.body || doc.documentElement);
+        } catch (e) {}
+    }
+
+    /**
      * Håndterer F5 - refresher iframe i stedet for hele siden
      */
     function handleF5(e) {
@@ -395,6 +468,7 @@
                     }, true);
 
                     confirmLogoutLinks(iframeDoc);
+                    begrensSmsLogg(iframeDoc);
 
                     // Fokuser på Phone-feltet
                     setTimeout(() => {
@@ -805,6 +879,7 @@
                         }, true);
 
                         confirmLogoutLinks(iframeDoc);
+                        begrensSmsLogg(iframeDoc);
 
                         // Hvis vi venter på søkeresultater, klikk på første rad og scroll
                         if (waitingForSearchResults) {
