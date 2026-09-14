@@ -367,6 +367,7 @@ Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikk
 - Returer med tidligere eller lik hentetid enn oppmøtetid for samme behandlingssted
 - Reisetid mellom 1–9 minutter på reiser til behandling
 - Problematisk kombinasjon av spesielle behov (RB+ERS, LB+LF m.fl.)
+- Bestillinger på ventende oppdrag som ikke er rutekalkulert/geokodet (rødt dollartegn) – ett eller begge koordinater mangler, og bestillingen vises ikke riktig i kartet. Rettes som regel ved å redigere bestillingen → Lagre og toggle 5 ganger, men ikke alltid – det viktigste er at koordinatene finnes på bestillingen (åpne den i kartet og sjekk at både hente- og leveringssted vises). Kjør sjekken tidlig på dagen mens alle bestillinger ligger på ventende oppdrag, dollartegnet vises ikke på pågående
 - **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten
 
 ### 🚩 Sjekk-Plakat (Alt+3)

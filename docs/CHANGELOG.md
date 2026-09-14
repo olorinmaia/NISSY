@@ -11,6 +11,17 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.8] - ??.09.2026
+
+### Sjekk-Bestilling: Finner bestillinger som ikke er rutekalkulert/geokodet
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Ny sjekk som finner bestillinger på ventende oppdrag med rødt dollartegn. Dollartegnet betyr at bestillingen muligens ikke er rutekalkulert/geokodet, slik at ett eller begge koordinater mangler og bestillingen ikke vises riktig i kartet
+  - Resultatet viser hvordan feilen som regel kan rettes: rediger bestillingen → Lagre og toggle 5 ganger. Det lykkes ikke alltid, men det viktigste er at koordinatene finnes på bestillingen – åpne den i kartet og sjekk at både hente- og leveringssted vises
+  - Dollartegnet vises kun på ventende oppdrag, så sjekken bør kjøres tidlig på dagen mens alle bestillinger fortsatt ligger der
+
+---
+
 ## 🔧 [4.9.7] - 11.09.2026
 
 ### Send-SMS: Automatisk utfylling i sjåfør-SMS og nye maler for Helse Bergen

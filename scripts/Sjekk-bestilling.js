@@ -11,6 +11,9 @@
 // - Retur-tidsfeil: Retur-hentetid lik eller før oppmøtetid på reisen til behandling
 // - Problematiske spesielle behov: Kombinasjoner som ERS+RB som skaper problemer
 // - Tur-datofeil: Turer (pågående oppdrag) med flere bestillinger som har ulik dato
+// - Manglende geokoding: Rødt dollartegn (price-missing.gif) på ventende oppdrag
+//   → bestillingen er ikke rutekalkulert/geokodet, ett eller begge koordinater mangler.
+//   Ikonet vises ikke på pågående oppdrag, så sjekken gjelder kun ventende.
 //
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
 // ================================================================================
@@ -345,6 +348,8 @@
       const adresseCell = cells[fraIndex]?.innerHTML || '';
       const [fra, til] = adresseCell.split('<br>').map(s => s.trim());
       const behov = cells[behovIndex]?.textContent.trim();
+      // Rødt dollartegn (price-missing.gif) = ikke rutekalkulert/geokodet
+      const missingGeocode = !!row.querySelector('img[src*="price-missing"]');
 
       if (navn && hentetid) {
         data.push({
@@ -357,7 +362,8 @@
           til: til || '',
           behov: behov || '',
           type: 'Ventende',
-          status: ''
+          status: '',
+          missingGeocode
         });
       }
     }
@@ -966,6 +972,31 @@
     return errors;
   }
 
+  // ============================================================
+  // SJEKK: Bestillinger som ikke er rutekalkulert/geokodet
+  // Rødt dollartegn (images/price-missing.gif) på ventende oppdrag betyr at
+  // ett eller begge koordinater mangler. Bestillingen vises da ikke riktig i
+  // kartet. Ikonet vises ikke på pågående oppdrag, så kun ventende sjekkes.
+  // Rettes som regel (ikke alltid) ved å redigere bestillingen → Lagre og
+  // toggle 5 ganger. Det viktigste er at koordinatene finnes på bestillingen.
+  // ============================================================
+  function findMissingGeocode() {
+    const ventendeData = extractVentendeData();
+
+    const errors = [];
+
+    for (const item of ventendeData) {
+      if (!item.missingGeocode) continue;
+      errors.push({
+        navn: item.navn,
+        items: [item],
+        reason: 'Rødt dollartegn på ventende oppdrag (trolig ikke rutekalkulert/geokodet – ett eller begge koordinater mangler)'
+      });
+    }
+
+    return errors;
+  }
+
   function searchInPlanning(navn) {
     closeModal();
     
@@ -1034,7 +1065,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -1061,10 +1092,10 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length + missingGeocode.length;
 
     // Beregn Reknr-bredde én gang basert på alle grupper, slik at alle tabeller er like brede
-    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches];
+    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches, ...missingGeocode];
     const reknrWidth = allGroups.some(dup => dup.items.some(item => item.status)) ? 165 : 110;
     
     let html = `
@@ -1109,6 +1140,9 @@
       if (shortTravelTime.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⚡ ${shortTravelTime.length} bestilling${shortTravelTime.length === 1 ? '' : 'er'} med veldig kort reisetid (1–9 minutter)</div>`;
       }
+      if (missingGeocode.length > 0) {
+        html += `<div style="background: #fce4ec; color: #880e4f; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #e83e8c;">💲 ${missingGeocode.length} bestilling${missingGeocode.length === 1 ? '' : 'er'} på ventende oppdrag med rødt dollartegn (trolig ikke rutekalkulert/geokodet – ett eller begge koordinater mangler)</div>`;
+      }
       html += '</div>';
       
       if (problematicNeeds.length > 0) {
@@ -1149,6 +1183,16 @@
       if (routeDuplicates.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄 Duplikater med samme fra- eller til-adresse</h3>';
         html += renderDuplicates(routeDuplicates, 'route', reknrWidth);
+      }
+
+      if (missingGeocode.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">💲 Bestillinger med rødt dollartegn (trolig ikke rutekalkulert/geokodet)</h3>';
+        html += `<div style="background: #e7f3ff; color: #0c4a6e; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; border-left: 4px solid #0d6efd; font-size: 13px; line-height: 1.5;">
+          💡 <b>Slik retter du:</b> Rediger bestillingen → <b>Lagre og toggle 5 ganger</b>. Dette fjerner dollartegnet i de fleste tilfeller, men ikke alltid.<br>
+          Det viktigste er at koordinatene finnes på bestillingen: åpne den i kartet (Alt+W) og sjekk at både hente- og leveringssted vises.<br>
+          Dollartegnet vises kun på ventende oppdrag, så kjør denne sjekken tidlig på dagen mens alle bestillinger fortsatt ligger der.
+        </div>`;
+        html += renderDuplicates(missingGeocode, 'geocode', reknrWidth);
       }
     }
     
@@ -1220,7 +1264,8 @@
       'timelogic': '#dc3545',
       'returnbeforeout': '#dc3545',
       'shorttravel': '#dc3545',
-      'tripdate': '#fd7e14'
+      'tripdate': '#fd7e14',
+      'geocode': '#e83e8c'
     };
     
     const color = colorMap[type] || '#6c757d';
@@ -1240,8 +1285,9 @@
         buttonClass = isSingleBooking ? 'nissy-search-reknr-btn' : 'nissy-search-btn';
       }
 
-      // Hent bestillinger gjelder én pasient – på tur-grupper (flere pasienter) får hver rad egen knapp i stedet
-      const hentRid = type === 'tripdate' ? '' : (dup.items.find(it => it.rid)?.rid || '');
+      // Hent bestillinger gjelder én pasient – på tur-grupper (flere pasienter) får hver rad egen knapp i stedet.
+      // Dollartegn-funn rettes via Søk i planlegging (rediger → Lagre og toggle), så knappen utelates der.
+      const hentRid = (type === 'tripdate' || type === 'geocode') ? '' : (dup.items.find(it => it.rid)?.rid || '');
       const hentButtonHtml = hentRid
         ? `<button class="nissy-hent-btn" data-rid="${hentRid}" style="background: #6f42c1; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">📥 Hent bestillinger</button>`
         : '';
@@ -1334,7 +1380,8 @@
     const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
     const shortTravelTime = findShortTravelTime();
     const tripDateMismatches = findTripDateMismatches();
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches);
+    const missingGeocode = findMissingGeocode();
+    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode);
   } catch (error) {
     // Feil under kolonnevalidering eller datainnhenting
     // Feilmelding er allerede vist via showErrorToast()

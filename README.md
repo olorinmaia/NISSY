@@ -246,6 +246,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
   - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling
   - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
+  - Om bestillinger på ventende oppdrag ikke er rutekalkulert/geokodet (rødt dollartegn) – ett eller begge koordinater mangler, og bestillingen vises ikke riktig i kartet. Rettes som regel ved å redigere bestillingen → Lagre og toggle 5 ganger, men ikke alltid – det viktigste er at koordinatene finnes på bestillingen (åpne den i kartet og sjekk at både hente- og leveringssted vises). Kjør sjekken tidlig på dagen mens alle bestillinger ligger på ventende oppdrag, dollartegnet vises ikke på pågående
 - **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten.
 - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 
