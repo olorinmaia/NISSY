@@ -14,6 +14,9 @@
 // - Manglende geokoding: Rødt dollartegn (price-missing.gif) på ventende oppdrag
 //   → bestillingen er ikke rutekalkulert/geokodet, ett eller begge koordinater mangler.
 //   Ikonet vises ikke på pågående oppdrag, så sjekken gjelder kun ventende.
+// - Problematiske ord i adresse: "Hjem", "Hytta" osv. i hente-/leveringsadresse
+//   → rekvirent har skrevet fritekst i stedet for å endre selve adressen.
+//   Konfigurerbart: PROBLEMATIC_ADDRESS_WORDS (eksakt ordmatch foran postnummer)
 //
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
 // ================================================================================
@@ -59,6 +62,43 @@
   // Kontroller hvilke reiseretninger som skal sjekkes for tidsfeil
   const CHECK_TO_TREATMENT = true;    // Sjekk reiser TIL behandling (fra gateadresse)
   const CHECK_FROM_TREATMENT = false;  // Sjekk returreiser FRA behandling (til gateadresse)
+
+  // ============================================================
+  // KONFIGURASJON: PROBLEMATISKE ORD I ADRESSE
+  // Rekvirenter skriver ofte fritekst om hvor pasienten skal hentes
+  // ("Hjem", "Hytta") uten å endre selve adressen (vegnavn og nummer).
+  // Ordene matches som hele ord, uavhengig av store/små bokstaver, mot
+  // teksten foran postnummeret (", 7620 Skogn"). "Sykehjem" gir derfor
+  // ikke treff på "Hjem".
+  // ============================================================
+  const PROBLEMATIC_ADDRESS_WORDS = [
+    'Hjem',
+    'Hjemmet',
+    'Hjemme',
+    'Bosted',
+    'Hytta',
+    'Hytten'
+    // Legg til flere ord her etter behov
+  ];
+
+  // ============================================================
+  // HJELPEFUNKSJON: Finn problematisk ord i adresse
+  // Returnerer ordet fra PROBLEMATIC_ADDRESS_WORDS som traff, eller null
+  // ============================================================
+  function findProblematicAddressWord(address) {
+    if (!address) return null;
+    const clean = cleanAddressSuffixes(
+      address.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ')
+    ).trim();
+    // Kun teksten foran postnummeret: "Bosted, 7970 Kolvereid" → "Bosted"
+    const beforePostal = clean.replace(/,\s*\d{4}\b[\s\S]*$/, '');
+    const words = beforePostal.split(/[^A-Za-zÆØÅæøåÄäÖöÜüÉé]+/).filter(Boolean);
+    for (const word of words) {
+      const hit = PROBLEMATIC_ADDRESS_WORDS.find(w => w.toLowerCase() === word.toLowerCase());
+      if (hit) return hit;
+    }
+    return null;
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Kutt adresse til maks lengde
@@ -997,6 +1037,39 @@
     return errors;
   }
 
+  // ============================================================
+  // SJEKK: Problematiske ord i adressen (fritekst i stedet for gateadresse)
+  // Rekvirenter skriver ofte "Hjem", "Hytta" osv. i adressefeltet uten å
+  // endre selve adressen. Sjekker teksten foran postnummeret i både
+  // hente- og leveringsadresse på ventende og pågående oppdrag.
+  // Ordlisten er konfigurerbar: PROBLEMATIC_ADDRESS_WORDS
+  // ============================================================
+  function findProblematicAddresses() {
+    const allData = [...extractVentendeData(), ...extractPagaendeData()];
+    const errors = [];
+
+    for (const item of allData) {
+      const fraWord = findProblematicAddressWord(item.fra);
+      const tilWord = findProblematicAddressWord(item.til);
+      if (!fraWord && !tilWord) continue;
+
+      // Brukes av renderDuplicates for å fremheve adressecellen
+      item.addressWordFra = fraWord;
+      item.addressWordTil = tilWord;
+
+      const parts = [];
+      if (fraWord) parts.push(`hentested inneholder «${fraWord}»`);
+      if (tilWord) parts.push(`leveringssted inneholder «${tilWord}»`);
+      errors.push({
+        navn: item.navn,
+        items: [item],
+        reason: `Trolig fritekst fra rekvirent i stedet for gateadresse – ${parts.join(' og ')}`
+      });
+    }
+
+    return errors;
+  }
+
   function searchInPlanning(navn) {
     closeModal();
     
@@ -1065,7 +1138,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -1092,10 +1165,10 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length + missingGeocode.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length + missingGeocode.length + problematicAddresses.length;
 
     // Beregn Reknr-bredde én gang basert på alle grupper, slik at alle tabeller er like brede
-    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches, ...missingGeocode];
+    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches, ...missingGeocode, ...problematicAddresses];
     const reknrWidth = allGroups.some(dup => dup.items.some(item => item.status)) ? 165 : 110;
     
     let html = `
@@ -1142,6 +1215,9 @@
       }
       if (missingGeocode.length > 0) {
         html += `<div style="background: #fce4ec; color: #880e4f; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #e83e8c;">💲 ${missingGeocode.length} bestilling${missingGeocode.length === 1 ? '' : 'er'} på ventende oppdrag med rødt dollartegn (trolig ikke rutekalkulert/geokodet – ett eller begge koordinater mangler)</div>`;
+      }
+      if (problematicAddresses.length > 0) {
+        html += `<div style="background: #e9e3ff; color: #3b0764; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #6610f2;">🏠 ${problematicAddresses.length} bestilling${problematicAddresses.length === 1 ? '' : 'er'} med problematisk ord i adressen (f.eks. «Hjem», «Hytta» – trolig fritekst i stedet for gateadresse)</div>`;
       }
       html += '</div>';
       
@@ -1193,6 +1269,14 @@
           Dollartegnet vises kun på ventende oppdrag, så kjør denne sjekken tidlig på dagen mens alle bestillinger fortsatt ligger der.
         </div>`;
         html += renderDuplicates(missingGeocode, 'geocode', reknrWidth);
+      }
+
+      if (problematicAddresses.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🏠 Bestillinger med problematisk ord i adressen</h3>';
+        html += `<div style="background: #e7f3ff; color: #0c4a6e; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; border-left: 4px solid #0d6efd; font-size: 13px; line-height: 1.5;">
+          💡 Rekvirenten har trolig skrevet hvor pasienten skal hentes/leveres som fritekst (${PROBLEMATIC_ADDRESS_WORDS.map(w => `«${w}»`).join(', ')}) uten å endre selve adressen. Sjekk bestillingen og rett til riktig gateadresse.
+        </div>`;
+        html += renderDuplicates(problematicAddresses, 'address', reknrWidth);
       }
     }
     
@@ -1265,7 +1349,8 @@
       'returnbeforeout': '#dc3545',
       'shorttravel': '#dc3545',
       'tripdate': '#fd7e14',
-      'geocode': '#e83e8c'
+      'geocode': '#e83e8c',
+      'address': '#6610f2'
     };
     
     const color = colorMap[type] || '#6c757d';
@@ -1344,7 +1429,12 @@
           ? 'background: #f8d7da; color: #721c24; font-weight: 600; padding: 4px 6px; border-radius: 3px;' 
           : 'color: #495057;';
         const behovDisplay = item.behov || '-';
-        
+
+        // Fremhev adressecelle med problematisk ord (fritekst i stedet for gateadresse)
+        const addressHighlight = 'background: #e9e3ff; color: #3b0764; font-weight: 600;';
+        const fraStyle = item.addressWordFra ? addressHighlight : 'color: #495057;';
+        const tilStyle = item.addressWordTil ? addressHighlight : 'color: #495057;';
+
         html += `
           <tr style="border-bottom: 1px solid #dee2e6;">
             <td style="padding: 6px 8px;"><span style="background: ${item.type === 'Ventende' ? '#ffc107' : '#17a2b8'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">${item.type}</span></td>
@@ -1352,8 +1442,8 @@
             <td style="padding: 6px 8px; ${hentetidStyle}">${item.hentetid}</td>
             <td style="padding: 6px 8px; ${leveringstidStyle}">${item.leveringstid}</td>
             <td style="padding: 6px 8px; ${behovStyle}">${behovDisplay}</td>
-            <td style="padding: 6px 8px; color: #495057; white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.fra)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
-            <td style="padding: 6px 8px; color: #495057; white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.til)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
+            <td style="padding: 6px 8px; ${fraStyle} white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.fra)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
+            <td style="padding: 6px 8px; ${tilStyle} white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.til)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
           </tr>
         `;
       }
@@ -1381,7 +1471,8 @@
     const shortTravelTime = findShortTravelTime();
     const tripDateMismatches = findTripDateMismatches();
     const missingGeocode = findMissingGeocode();
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode);
+    const problematicAddresses = findProblematicAddresses();
+    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses);
   } catch (error) {
     // Feil under kolonnevalidering eller datainnhenting
     // Feilmelding er allerede vist via showErrorToast()

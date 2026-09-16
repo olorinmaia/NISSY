@@ -20,6 +20,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Resultatet viser hvordan feilen som regel kan rettes: rediger bestillingen → Lagre og toggle 5 ganger. Det lykkes ikke alltid, men det viktigste er at koordinatene finnes på bestillingen – åpne den i kartet og sjekk at både hente- og leveringssted vises
   - Dollartegnet vises kun på ventende oppdrag, så sjekken bør kjøres tidlig på dagen mens alle bestillinger fortsatt ligger der
 
+### Sjekk-Bestilling: Finner fritekst i adressen («Hjem», «Hytta» m.fl.)
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Ny sjekk som finner bestillinger der hente- eller leveringsadressen inneholder ord som «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten». Dette er typisk rekvirenter som skriver hvor pasienten skal hentes som fritekst, uten å endre selve adressen (vegnavn og nummer)
+  - Kun teksten foran postnummeret sjekkes, og ordet må stå som eget ord – «Sykehjem» gir ikke treff. Gjelder både ventende og pågående oppdrag, og adressecellen med treff fremheves i resultatet
+  - Ordlisten kan enkelt utvides i scriptet ved behov
+
 ---
 
 ## 🔧 [4.9.7] - 11.09.2026
