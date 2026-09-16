@@ -2733,6 +2733,21 @@
     mapWindow.document.close();
   }
 
+  // ── Varsle om bestillinger som mangler koordinater ────────
+  // Hente- eller leveringssted uten geokoordinater får ingen markør i kartet,
+  // og det er lett å overse. Én samlet toast (oransje, 6 s) lister hvem og hva.
+  function warnMissingCoords(allDetails) {
+    const lines = allDetails
+      .filter(d => !d.hentested || !d.leveringssted)
+      .map(d => {
+        const hva = !d.hentested && !d.leveringssted ? 'hente- og leveringssted'
+                  : !d.hentested ? 'hentested' : 'leveringssted';
+        return `${d.pasientNavn || d.reqNr || d.reqId}: ${hva}`;
+      });
+    if (!lines.length) return;
+    _toast(`⚠️ Mangler koordinater og vises ikke i kartet – ${lines.join(' · ')}`, '#e65100', 6000);
+  }
+
   // ── Hovedfunksjon ─────────────────────────────────────────
   async function visKart() {
     const voppIds = getVoppReqIds();
@@ -2770,6 +2785,7 @@
       return;
     }
 
+    warnMissingCoords(allDetails);
     openKartWindow(med);
   }
 
@@ -2784,6 +2800,41 @@
     }
     return _origOpen.call(this, url, target, features);
   };
+
+  // ── Offentlig API for andre script (f.eks. Sjekk-bestilling) ──
+  // Åpner kartet for gitte rekvisisjons-IDer (V-/popp_-id) uten at radene
+  // må være merket i planleggingsbildet. Faller ikke tilbake til NISSY-kartet
+  // ved manglende koordinater – kalleren får beskjed via returverdien.
+  // Returnerer { vist, utenKoordinater, detaljer } der detaljer er
+  // parseReqDetails-resultatet per bestilling (hentested/leveringssted = null
+  // når koordinater mangler).
+  async function visKartForReqIds(reqIds) {
+    const ids = [...new Set((reqIds || []).map(String).filter(Boolean))];
+    if (ids.length === 0) {
+      showError('🗺️ Ingen bestillinger å vise');
+      return { vist: [], utenKoordinater: [], detaljer: [] };
+    }
+    if (ids.length > 16) {
+      showError(`🗺️ For mange bestillinger (${ids.length}/16) – maks 16 støttes`);
+      return { vist: [], utenKoordinater: [], detaljer: [] };
+    }
+
+    const allDetails = await Promise.all(ids.map(id => fetchReqDetails(id)));
+    allDetails.forEach(d => { d.erFramme = false; d.erIkkeMott = false; d.erHiddenByDefault = false; });
+
+    const med  = allDetails.filter(d => d.hentested || d.leveringssted);
+    const uten = allDetails.filter(d => !d.hentested && !d.leveringssted);
+
+    if (med.length === 0) {
+      showError('🗺️ Fant ingen koordinater – verken hente- eller leveringssted er geokodet');
+      return { vist: [], utenKoordinater: uten.map(d => d.reqId), detaljer: allDetails };
+    }
+
+    warnMissingCoords(allDetails);
+    openKartWindow(med);
+    return { vist: med.map(d => d.reqId), utenKoordinater: uten.map(d => d.reqId), detaljer: allDetails };
+  }
+  window.Kartvisning = { visKartForReqIds };
 
   console.log('✅ Kartvisning klar – trykk Vis i kart (Alt+W) med merkede bestillinger');
 })();

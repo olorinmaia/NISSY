@@ -13,19 +13,23 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## 🔧 [4.9.8] - ??.09.2026
 
-### Sjekk-Bestilling: Finner bestillinger som ikke er rutekalkulert/geokodet
+### Sjekk-Bestilling: Finner bestillinger som mangler koordinater
 
 - 🔍 **Sjekk-Bestilling (Alt+2)**
-  - Ny sjekk som finner bestillinger på ventende oppdrag med rødt dollartegn. Dollartegnet betyr at bestillingen muligens ikke er rutekalkulert/geokodet, slik at ett eller begge koordinater mangler og bestillingen ikke vises riktig i kartet
-  - Resultatet viser hvordan feilen som regel kan rettes: rediger bestillingen → Lagre og toggle 5 ganger. Det lykkes ikke alltid, men det viktigste er at koordinatene finnes på bestillingen – åpne den i kartet og sjekk at både hente- og leveringssted vises
-  - Dollartegnet vises kun på ventende oppdrag, så sjekken bør kjøres tidlig på dagen mens alle bestillinger fortsatt ligger der
+  - Ny sjekk som finner bestillinger på ventende oppdrag med rødt dollartegn – ett eller begge koordinater mangler, og bestillingen vises ikke riktig i kartet
+  - **Vis i kart** åpner bestillingen i Kartvisning uten å merke den, og sier fra om hente- eller leveringssted mangler koordinater
+  - **Rediger bestilling** åpner bestillingen så adressene kan rettes og lagres på nytt – da settes koordinatene
+  - **Skjul** fjerner funn der begge koordinater finnes men dollartegnet blir stående. Knappen blir grønn når kartet bekrefter dette, og valget huskes til fanen lukkes («vis igjen»-lenke henter dem frem)
+
+### Kartvisning: Varsler når koordinater mangler
+
+- 🗺️ **Kartvisning (Alt+W)**
+  - Oransje varsel nederst lister pasienter der hente- eller leveringssted mangler koordinater og derfor ikke vises i kartet
 
 ### Sjekk-Bestilling: Finner fritekst i adressen («Hjem», «Hytta» m.fl.)
 
 - 🔍 **Sjekk-Bestilling (Alt+2)**
-  - Ny sjekk som finner bestillinger der hente- eller leveringsadressen inneholder ord som «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten». Dette er typisk rekvirenter som skriver hvor pasienten skal hentes som fritekst, uten å endre selve adressen (vegnavn og nummer)
-  - Kun teksten foran postnummeret sjekkes, og ordet må stå som eget ord – «Sykehjem» gir ikke treff. Gjelder både ventende og pågående oppdrag, og adressecellen med treff fremheves i resultatet
-  - Ordlisten kan enkelt utvides i scriptet ved behov
+  - Ny sjekk som finner bestillinger der hente- eller leveringsadressen inneholder «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – typisk fritekst fra rekvirent uten at selve adressen er endret. Ordlisten kan utvides i scriptet
 
 ---
 

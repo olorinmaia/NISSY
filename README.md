@@ -128,6 +128,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- Mangler en bestilling koordinater på hente- eller leveringssted, vises et oransje varsel nederst med pasient og hvilket sted som ikke kan vises i kartet
 - **Rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted. Punktene kan flyttes med drag-and-drop og fjernes med dobbeltklikk (eller alle via høyreklikkmenyen). Viser estimert passeringstid, og leveringstid/fergeberegning tar hensyn til punktene
 - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
 - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
@@ -246,8 +247,8 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
   - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling
   - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
-  - Om bestillinger på ventende oppdrag ikke er rutekalkulert/geokodet (rødt dollartegn) – ett eller begge koordinater mangler, og bestillingen vises ikke riktig i kartet. Rettes som regel ved å redigere bestillingen → Lagre og toggle 5 ganger, men ikke alltid – det viktigste er at koordinatene finnes på bestillingen (åpne den i kartet og sjekk at både hente- og leveringssted vises). Kjør sjekken tidlig på dagen mens alle bestillinger ligger på ventende oppdrag, dollartegnet vises ikke på pågående
-  - Om hente- eller leveringsadressen inneholder fritekst som «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – rekvirenten har skrevet hvor pasienten skal hentes uten å endre selve adressen. Kun teksten foran postnummeret sjekkes, og ordet må stå alene («Sykehjem» gir ikke treff). Ordlisten kan utvides i scriptet
+  - Om bestillinger på ventende oppdrag mangler koordinater (rødt dollartegn). «Vis i kart» viser om hente- og leveringssted er geokodet, «Rediger bestilling» lar deg rette adressene og lagre på nytt, og «Skjul» fjerner funn der alt er i orden selv om dollartegnet blir stående
+  - Om hente- eller leveringsadressen inneholder fritekst som «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – rekvirenten har skrevet hvor pasienten skal hentes uten å endre selve adressen. Ordlisten kan utvides i scriptet
 - **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten.
 - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 
