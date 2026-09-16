@@ -76,6 +76,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
 - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
 - Støtter også direkte tildeling til valgt avtale eller ressurs.
+- Varsler tydelig hvis NISSY avviser tildelingen (f.eks. deaktivert avtale i oppsettet) – oppgir regel og avtale-ID fra → til, slik at konfigurasjonen er lett å rette.
 
 #### 📆 Tilordning 2.0 (Alt+T)
 - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.

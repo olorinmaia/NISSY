@@ -223,6 +223,9 @@ Intelligent tildeling som automatisk:
 **Tildeling til ressurs/avtale:**
 - Merk også en ressurs eller avtale → tildeles direkte til ressursen/avtalen
 
+**Hvis NISSY avviser tildelingen:**
+- Varsler tydelig hvis NISSY avviser tildelingen (f.eks. deaktivert avtale i oppsettet) – oppgir regel og avtale-ID fra → til, slik at konfigurasjonen er lett å rette
+
 
 ### 📆 Tilordning 2.0 (ALT+T)
 
@@ -412,6 +415,12 @@ Beregner i en pop-up antall bestillinger på ventende/pågående oppdrag og «sa
 - Sjekk at RB/ERS-reglene stemmer med ditt oppsett
 - Verifiser antall samtidig reisende i toast-meldingen
 - Kontakt @olorinmaia hvis regler må oppdateres
+
+### Smart-tildeling melder «Tildelingen ble avvist av NISSY»
+
+- Avtalen som er mappet opp i oppsettet er trolig deaktivert i NISSY – meldingen oppgir regel (`rb_ers`/`multiple`) og avtale-ID fra → til
+- Sjekk at avtalen er aktiv i NISSY Admin, og oppdater avtalemappingen – se [veiledning for å konfigurere Smart-tildeling](Smart-tildeling_Konfigurasjon.md)
+- Bestillingene er låst i noen minutter før de kommer tilbake på ventende oppdrag
 
 ### Tilordningsstøtte 2.0 feiler
 

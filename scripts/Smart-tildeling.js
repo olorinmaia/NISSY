@@ -506,6 +506,51 @@
   }
 
   // ============================================================
+  // HJELPEFUNKSJON: Finn feilmelding i NISSY-respons etter tildeling
+  // NISSY svarer HTTP 200 og <status id="success"> selv når tildelingen
+  // feiler (f.eks. deaktivert avtale/transportør) - feilen ligger kun i
+  // msg-teksten ("Kommunikasjonsfeil ... Mislykket handling: Tildel
+  // transportør ..."). Returnerer feilteksten, eller null ved suksess.
+  // ============================================================
+  function getAssignmentError(responseText) {
+    if (!responseText) return null;
+    let msg = null;
+    try {
+      const doc = new DOMParser().parseFromString(responseText, "text/xml");
+      msg = doc.querySelector('response[id="status"] status')?.getAttribute("msg") ?? null;
+    } catch {}
+    if (msg === null) {
+      const m = responseText.match(/<status[^>]*\smsg="([^"]*)"/);
+      msg = m ? m[1] : null;
+    }
+    if (!msg) return null;
+    msg = msg.replace(/\s+/g, " ").trim();
+    return /Mislykket handling|Kommunikasjonsfeil/i.test(msg) ? msg : null;
+  }
+
+  // ============================================================
+  // HJELPEFUNKSJON: Fullfør tildeling - vis resultat eller feil
+  // Brukes av alle asstrans/assres-kall. Ved feil fra NISSY vises
+  // feilmelding i stedet for suksessmelding, og listen refreshes ikke.
+  // ============================================================
+  function finishAssignment(xhr, successMsg) {
+    const err = getAssignmentError(xhr.responseText);
+    if (err) {
+      console.warn("Smart-tildeling: NISSY avviste tildelingen:", err);
+      updateToast(
+        `✗ Tildelingen ble avvist av NISSY.\n` +
+        `Bestillingene er låst i noen minutter før de kommer tilbake på ventende oppdrag.\n\n` +
+        `<small>${err}</small>`
+      );
+      hideToast(10000);
+      return;
+    }
+    updateToast(successMsg);
+    hideToast(3000);
+    refreshIfNoSelection();
+  }
+
+  // ============================================================
   // HJELPEFUNKSJON: Finn merkede avtaler i #transportorer tabellen
   // ============================================================
   function findSelectedAgreements() {
@@ -810,12 +855,10 @@
         
         xhr.onreadystatechange = () => {
           if (xhr.readyState !== 4) return;
-          updateToast(
+          finishAssignment(xhr,
             `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
             `tildelt ressurs: ${resourceName}`
           );
-          hideToast(3000);
-          refreshIfNoSelection();
         };
         
         xhr.onerror = () => {
@@ -845,12 +888,10 @@
         
         xhr.onreadystatechange = () => {
           if (xhr.readyState !== 4) return;
-          updateToast(
+          finishAssignment(xhr,
             `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
             `tildelt avtale: ${agreementName}`
           );
-          hideToast(3000);
-          refreshIfNoSelection();
         };
         
         xhr.onerror = () => {
@@ -885,12 +926,10 @@
       
       xhr.onreadystatechange = () => {
         if (xhr.readyState !== 4) return;
-        updateToast(
+        finishAssignment(xhr,
           `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
           `tildelt avtale: ${agreementName}`
         );
-        hideToast(3000);
-        refreshIfNoSelection();
       };
       
       xhr.onerror = () => {
@@ -961,13 +1000,11 @@
       
       xhr.onreadystatechange = () => {
         if (xhr.readyState !== 4) return;
-        
-        updateToast(
+
+        finishAssignment(xhr,
           `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
           `tildelt ressurs${resourceName ? `: ${resourceName}` : ""}`
         );
-        hideToast(3000);
-        refreshIfNoSelection();
       };
       
       xhr.onerror = () => {
@@ -1045,18 +1082,22 @@
       // Grå ut bestillinger som skal tildeles
       disableRows(vids);
       
-      let agreementId = data.agreementId;
+      const baseAgreementId = data.agreementId;
+      let agreementId = baseAgreementId;
       let ruleApplied = false;
-      
+      let ruleName = null; // Navn på regelsettet i KONTOR_REGLER (for feilmelding)
+
       // Anvend RB/ERS-regel hvis aktuelt
       if (hasRB && RB_ERS_RULES[agreementId]) {
         agreementId = RB_ERS_RULES[agreementId];
         ruleApplied = true;
+        ruleName = 'rb_ers';
       }
       // Eller anvend flere-reisende-regel hvis aktuelt
       else if (!hasRB && maxOverlappingPassengers > 3 && MULTIPLE_ORDERS_RULES[agreementId]) {
         agreementId = MULTIPLE_ORDERS_RULES[agreementId];
         ruleApplied = true;
+        ruleName = 'multiple';
       }
       
       // Utfør tildelingen
@@ -1068,19 +1109,37 @@
       
       assignXhr.onreadystatechange = () => {
         if (assignXhr.readyState !== 4) return;
-        
+
+        // Avvist av NISSY etter regel-mapping: avtalen i oppsettet er trolig
+        // deaktivert. Vis fra/til-ID så regelen er lett å finne i KONTOR_REGLER.
+        const assignError = ruleApplied ? getAssignmentError(assignXhr.responseText) : null;
+        if (assignError) {
+          console.warn(
+            `Smart-tildeling: NISSY avviste tildelingen. Regel ${ruleName} for «${_office}»: ` +
+            `${baseAgreementId} → ${agreementId}.`, assignError
+          );
+          updateToast(
+            `✗ Tildelingen ble avvist av NISSY.\n` +
+            `Avtalen som er mappet opp i oppsettet er trolig deaktivert i NISSY – konfigurasjonen må sjekkes:\n` +
+            `<b>${ruleName}: ${baseAgreementId} → ${agreementId}</b> (${display.agreementName})\n` +
+            `Bestillingene er låst i noen minutter før de kommer tilbake på ventende oppdrag.\n\n` +
+            `<small>${assignError}</small>`
+          );
+          hideToast(15000);
+          return;
+        }
+
         // Vis resultat
         if (ruleApplied) {
           updateToast(`${vids.length} bestillinger tildelt avtale iht. oppsett.`);
+          hideToast(3000);
+          refreshIfNoSelection();
         } else {
-          updateToast(
+          finishAssignment(assignXhr,
             `${vids.length === 1 ? "1 bestilling" : vids.length + " bestillinger"} ` +
             `tildelt avtale: ${display.agreementName}`
           );
         }
-        
-        hideToast(3000);
-        refreshIfNoSelection();
       };
       
       assignXhr.onerror = () => {

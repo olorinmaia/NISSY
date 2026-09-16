@@ -31,6 +31,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🔍 **Sjekk-Bestilling (Alt+2)**
   - Ny sjekk som finner bestillinger der hente- eller leveringsadressen inneholder «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – typisk fritekst fra rekvirent uten at selve adressen er endret. Ordlisten kan utvides i scriptet
 
+### Smart-tildeling: Varsler når tildelingen avvises av NISSY
+
+- 🪄 **Smart-tildeling (Alt+S)**
+  - Fikser at tildelingen så ut til å lykkes selv om NISSY avviste den, f.eks. fordi avtalen i oppsettet er deaktivert. Bestillingene ble da hengende grået ut i noen minutter uten noen feilmelding
+  - Nå vises en tydelig feilmelding. Kom avtalen fra regeloppsettet, oppgis regel og avtale-ID fra → til, slik at konfigurasjonen er lett å finne og rette
+
 ---
 
 ## 🔧 [4.9.7] - 11.09.2026
