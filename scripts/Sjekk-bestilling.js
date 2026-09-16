@@ -1262,11 +1262,12 @@
       if (shortTravelTime.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⚡ ${shortTravelTime.length} bestilling${shortTravelTime.length === 1 ? '' : 'er'} med veldig kort reisetid (1–9 minutter)</div>`;
       }
-      if (missingGeocode.length > 0) {
-        html += `<div id="geocodeSummary" style="background: #fce4ec; color: #880e4f; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #e83e8c;">${geocodeSummaryText(missingGeocode.length)}</div>`;
-      }
       if (problematicAddresses.length > 0) {
         html += `<div style="background: #e9e3ff; color: #3b0764; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #6610f2;">🏠 ${problematicAddresses.length} bestilling${problematicAddresses.length === 1 ? '' : 'er'} med problematisk ord i adressen (f.eks. «Hjem», «Hytta» – trolig fritekst i stedet for gateadresse)</div>`;
+      }
+      // Dollartegn sist: alle funn kan skjules, så seksjonen bør ikke skyve de andre nedover
+      if (missingGeocode.length > 0) {
+        html += `<div id="geocodeSummary" style="background: #fce4ec; color: #880e4f; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #e83e8c;">${geocodeSummaryText(missingGeocode.length)}</div>`;
       }
       html += '</div>';
       
@@ -1310,6 +1311,15 @@
         html += renderDuplicates(routeDuplicates, 'route', reknrWidth);
       }
 
+      if (problematicAddresses.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🏠 Bestillinger med problematisk ord i adressen</h3>';
+        html += `<div style="background: #e7f3ff; color: #0c4a6e; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; border-left: 4px solid #0d6efd; font-size: 13px; line-height: 1.5;">
+          💡 Rekvirenten har trolig skrevet hvor pasienten skal hentes/leveres som fritekst (${PROBLEMATIC_ADDRESS_WORDS.map(w => `«${w}»`).join(', ')}) uten å endre selve adressen. Sjekk bestillingen og rett til riktig gateadresse.
+        </div>`;
+        html += renderDuplicates(problematicAddresses, 'address', reknrWidth);
+      }
+
+      // Dollartegn sist: alle funn kan skjules, så seksjonen bør ikke skyve de andre nedover
       if (missingGeocode.length > 0 || hiddenGeocode > 0) {
         html += '<div id="geocodeSection">';
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">💲 Bestillinger med rødt dollartegn (trolig ikke rutekalkulert/geokodet)</h3>';
@@ -1320,14 +1330,6 @@
         </div>`;
         html += renderDuplicates(missingGeocode, 'geocode', reknrWidth);
         html += '</div>';
-      }
-
-      if (problematicAddresses.length > 0) {
-        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🏠 Bestillinger med problematisk ord i adressen</h3>';
-        html += `<div style="background: #e7f3ff; color: #0c4a6e; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; border-left: 4px solid #0d6efd; font-size: 13px; line-height: 1.5;">
-          💡 Rekvirenten har trolig skrevet hvor pasienten skal hentes/leveres som fritekst (${PROBLEMATIC_ADDRESS_WORDS.map(w => `«${w}»`).join(', ')}) uten å endre selve adressen. Sjekk bestillingen og rett til riktig gateadresse.
-        </div>`;
-        html += renderDuplicates(problematicAddresses, 'address', reknrWidth);
       }
     }
     
