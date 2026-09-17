@@ -31,6 +31,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - 🔍 **Sjekk-Bestilling (Alt+2)**
   - Ny sjekk som finner bestillinger der hente- eller leveringsadressen inneholder «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – typisk fritekst fra rekvirent uten at selve adressen er endret. Ordlisten kan utvides i scriptet
 
+### Sjekk-Plakat: Tydeligere bekreftelse ved «Fjern fritekst»
+
+- 🚩 **Sjekk-Plakat (Alt+3)**
+  - Bekreftelsesdialogen viser nå selve friteksten som fjernes, og bare de feltene som faktisk har tekst – tidligere ble alle tre felttypene listet uansett
+  - Kort påminnelse om at behov eller adresse som står i friteksten må legges inn som behov/adresse på bestillingen i stedet. Finnes flaggede ord (f.eks. «rullestol»), nevnes de i påminnelsen
+
 ### Smart-tildeling: Varsler når tildelingen avvises av NISSY
 
 - 🪄 **Smart-tildeling (Alt+S)**

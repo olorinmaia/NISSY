@@ -289,6 +289,8 @@ Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikk
 ### 🚩 Sjekk-Plakat (Alt+3)
 Finn alle røde plakater med fritekst på valgt filter – plakater med flaggede ord vises øverst.
 
+«Fjern fritekst» viser hvilke tekster som fjernes før du bekrefter, og minner om at behov eller adresse i friteksten må legges inn på bestillingen i stedet.
+
 Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
 
 ### 📞 Sjekk-Telefon (Alt+4)

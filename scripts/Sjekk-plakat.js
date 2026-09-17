@@ -296,18 +296,54 @@
   }
 
   // ============================================================
+  // BEKREFTELSESTEKST FOR "FJERN FRITEKST"
+  // Viser kun feltene som faktisk har tekst (med selve teksten), og én kort
+  // påminnelse om at behov/adresse friteksten beskriver må legges inn på
+  // bestillingen. Flaggede ord nevnes i påminnelsen når de finnes.
+  // ============================================================
+  const FREETEXT_LABELS = {
+    amtp:  'Melding til pasientreisekontoret',
+    amtt:  'Melding til transportøren',
+    mohts: 'Merknad om hentested'
+  };
+
+  function buildRemoveConfirmHtml(reknr, poster) {
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const trunc = s => s.length > 160 ? s.slice(0, 159) + '…' : s;
+    const ft = poster?.freetext || {};
+    const present = Object.keys(FREETEXT_LABELS).filter(k => (ft[k] || '').trim());
+
+    let html = `<div style="font-weight: 600; margin-bottom: 8px;">Fjerne fritekst fra bestilling ${esc(reknr)}?</div>`;
+
+    if (present.length) {
+      html += present.map(k => `
+        <div style="margin-bottom: 8px; padding: 6px 8px; background: #f8f9fa; border-left: 3px solid #adb5bd; border-radius: 2px;">
+          <div style="font-size: 11px; color: #6c757d;">${FREETEXT_LABELS[k]}</div>
+          <div style="font-size: 13px;">${esc(trunc(ft[k].trim()))}</div>
+        </div>`).join('');
+    } else {
+      // Ukjent innhold (bør ikke skje) – si hva som tømmes
+      html += `<div style="font-size: 13px; margin-bottom: 8px;">Tømmer melding til pasientreisekontoret, melding til transportøren og merknad om hentested.</div>`;
+    }
+
+    const kw = poster?.problematicKeywords || [];
+    const lead = kw.length
+      ? `Teksten nevner ${kw.map(k => `«${esc(k)}»`).join(', ')} – behov`
+      : 'Behov';
+    html += `<div style="margin-top: 4px; padding: 8px 10px; background: #fff3cd; border-left: 3px solid #ffc107; border-radius: 3px; font-size: 13px; color: #856404;">
+      ⚠️ ${lead} eller adresse som står i friteksten må legges inn som behov/adresse på bestillingen i stedet.
+    </div>`;
+
+    return html;
+  }
+
+  // ============================================================
   // FJERN FRITEKST FRA BESTILLING
   // ============================================================
-  async function removeNotesFromRequisition(requisitionId, reknr) {
-    // Bekreftelse
-    const confirmed = await showConfirm(
-      `Er du sikker på at du ønsker å fjerne alle merknader fra bestilling ${reknr}?<br><br>` +
-      `Dette vil fjerne:<br>` +
-      `• Melding til pasientreisekontoret<br>` +
-      `• Melding til transportøren<br>` +
-      `• Merknad om hentested`
-    );
-    
+  async function removeNotesFromRequisition(requisitionId, reknr, poster = null) {
+    // Bekreftelse – viser hvilke tekster som fjernes
+    const confirmed = await showConfirm(buildRemoveConfirmHtml(reknr, poster));
+
     if (!confirmed) return;
 
     try {
@@ -1130,7 +1166,9 @@
       btn.addEventListener('click', () => {
         const requisitionId = btn.getAttribute('data-requisitionid');
         const reknr = btn.getAttribute('data-reknr');
-        removeNotesFromRequisition(requisitionId, reknr);
+        // Send med plakat-data så dialogen kan vise hvilke tekster som fjernes
+        const poster = data.all.find(p => String(p.reknr) === String(reknr)) || null;
+        removeNotesFromRequisition(requisitionId, reknr, poster);
       });
     });
   }

@@ -255,6 +255,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 
 #### 🚩 Sjekk-Plakat (Alt+3)
 - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
+- «Fjern fritekst» viser hvilke tekster som fjernes før du bekrefter, og minner om at behov eller adresse i friteksten må legges inn på bestillingen i stedet.
 - Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
 - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
 
