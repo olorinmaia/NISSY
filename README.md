@@ -279,7 +279,7 @@ Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plas
 Hvis du hard-refresher siden eller lukker nettleser må du aktivere script-pakken på nytt.
 Under er en oversikt over de features som følger med i hver pakke.
 
-| Features | AMK | Basic | Advanced |
+| Features | [AMK](docs/AMK.md) | [Basic](docs/BASIC.md) | [Advanced](docs/ADVANCED.md) |
 |---------|-------|-------|----------|
 | ⌛ NISSY-fiks | ✅ | ✅ | ✅ |
 | 🔔 Overvåk-Ventende | ✅ | ✅ | ✅ |
@@ -310,22 +310,22 @@ Under er en oversikt over de features som følger med i hver pakke.
 ## 🚀 Installasjon
 
 ### Script-pakker 
-Velg mellom **AMK**, **Basic** eller **Advanced**
+Velg mellom **[AMK](docs/AMK.md)**, **[Basic](docs/BASIC.md)** eller **[Advanced](docs/ADVANCED.md)** – klikk på navnet for brukermanualen til pakken.
 
 1. Opprett et nytt bokmerke i nettleseren din
 2. Lim inn følgende kode som URL:
 
-**AMK**
+**[AMK](docs/AMK.md)**
 ```javascript
 javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-amk.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-amk.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
 
-**Basic**
+**[Basic](docs/BASIC.md)**
 ```javascript
 javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-basic.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
 
-**Advanced** (OBS! Trenger konfigurasjon for å virke som tiltenkt. Ta kontakt.)
+**[Advanced](docs/ADVANCED.md)** (OBS! Trenger konfigurasjon for å virke som tiltenkt. Ta kontakt.)
 ```javascript
 javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-advanced.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-advanced.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
