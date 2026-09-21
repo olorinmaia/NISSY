@@ -20,6 +20,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Nå går alle gjennom én felles mekanisme i NISSY-fiks, og en oppfølging som ikke får noen listeoppdatering innen tre sekunder forkastes i stedet for å bli liggende
 - 🕐 **Hentetid (ALT+E)** / 📱 **Send-SMS**
   - Merking gjenopprettes nå bare for rader som fortsatt finnes etter oppdateringen og ikke allerede er merket. Tidligere kunne NISSY få beskjed om å merke en rad som var borte (f.eks. flyttet fra ventende til pågående), eller få merkingen slått av igjen på en rad NISSY selv nettopp hadde merket
+- 🔠 **Rek-knapper (ALT+R)**
+  - Lytterne som lukker knappene ved filterbytte, sletting, rekvisisjonslenker og andre snarveier registreres nå én gang. Tidligere ble de lagt til på nytt for hver Alt+R og aldri fjernet, slik at de hopet seg opp gjennom en lang økt
 
 ---
 
