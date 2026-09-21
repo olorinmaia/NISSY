@@ -11,6 +11,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.9] - ??.09.2026
+
+### Stabilitet: Én felles oppfølging av listeoppdateringer
+
+- ⌛ **NISSY-fiks** / 🕐 **Hentetid (ALT+E)** / 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)** / ⚙️ **Adminmodul (ALT+A)** / 📱 **Send-SMS**
+  - Scriptene som gjenoppretter merking etter at listene er oppdatert (openPopp/F5) koblet seg hver for seg på NISSY sine nettverkskall. Var NISSY opptatt idet to av dem gjorde det samtidig, kunne en gammel oppfølging bli liggende igjen resten av økten og kjøre ved hver senere oppdatering – merkingen kunne da forsvinne eller hoppe tilbake til rader fra en tidligere handling
+  - Nå går alle gjennom én felles mekanisme i NISSY-fiks, og en oppfølging som ikke får noen listeoppdatering innen tre sekunder forkastes i stedet for å bli liggende
+
+---
+
 ## 🔧 [4.9.8] - 21.09.2026
 
 ### Kartvisning: Fergesambandet Molde–Vestnes lagt til

@@ -1018,20 +1018,16 @@
   // ============================================================
   // ENGANGS XHR-INTERCEPTOR + RE-MARKERING
   // ============================================================
+  // Kjører callback 50 ms etter at openPopp(-1) sitt XHR-kall er ferdig. Selve
+  // XHR-lyttingen ligger i NISSY-fiks (window.__nissyOnceAfterOpenPopp), slik at
+  // XMLHttpRequest.prototype kun patches ett sted. Uten NISSY-fiks gjettes det
+  // på at openPopp er ferdig etter 1,5 s.
   function onceAfterOpenPopp(callback) {
-    const originalOpen = XMLHttpRequest.prototype.open;
-    let restored = false;
-    const restore = () => {
-      if (!restored) { restored = true; XMLHttpRequest.prototype.open = originalOpen; }
-    };
-    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-      if (typeof url === "string" && url.includes("action=openres") && url.includes("rid=-1")) {
-        restore();
-        this.addEventListener("load", () => setTimeout(callback, 50), { once: true });
-      }
-      return originalOpen.call(this, method, url, ...rest);
-    };
-    setTimeout(restore, 3000);
+    if (typeof window.__nissyOnceAfterOpenPopp === "function") {
+      window.__nissyOnceAfterOpenPopp(() => setTimeout(callback, 50));
+    } else {
+      setTimeout(callback, 1500);
+    }
   }
 
   function reMarkerRader(rowIds) {
@@ -2396,18 +2392,8 @@
       overlay.remove();
       if (typeof openPopp === "function") {
         if (typeof selectRow === "function" && typeof g_resLS !== "undefined") {
-          const originalOpen = XMLHttpRequest.prototype.open;
-          XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-            if (typeof url === "string" && url.includes("action=openres")) {
-              const origOnload = this.onload;
-              this.addEventListener("load", () => {
-                XMLHttpRequest.prototype.open = originalOpen;
-                setTimeout(() => selectRow(ressursId, g_resLS), 50);
-              }, { once: true });
-            }
-            return originalOpen.call(this, method, url, ...rest);
-          };
-          setTimeout(() => XMLHttpRequest.prototype.open = originalOpen, 3000);
+          // Merk ressursen på nytt når listene er tegnet om
+          onceAfterOpenPopp(() => selectRow(ressursId, g_resLS));
         }
         openPopp("-1");
       }
