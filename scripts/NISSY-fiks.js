@@ -675,10 +675,17 @@
      Semantikk som før: callbacken kjører på 'load' for første openres&rid=-1
      som ÅPNES etter registrering. Kommer ikke noe slikt kall innen fristen,
      forkastes callbacken. Callbacks registrert etter at kallet er åpnet
-     tilhører neste openPopp. */
+     tilhører neste openPopp.
+
+     Fristen er 5 s, ikke 3 s: NISSY sin updateContent har en semafor, og er
+     den opptatt legges openPopp i kø og sendes først etter nøyaktig 3 s
+     ("Systemet er opptatt. Handlingen settes på vent"). Med 3 s frist ville
+     callbacken blitt forkastet rett før kallet faktisk gikk. Feiler også
+     retry-forsøket, dropper NISSY handlingen ("kunne ikke utføres"), så
+     lenger frist enn dette har ingen hensikt. */
   let _openPoppOnceCallbacks = [];
 
-  window.__nissyOnceAfterOpenPopp = function (callback, timeoutMs = 3000) {
+  window.__nissyOnceAfterOpenPopp = function (callback, timeoutMs = 5000) {
     if (typeof callback !== 'function') return;
     const entry = { callback, timer: null };
     entry.timer = setTimeout(() => {
