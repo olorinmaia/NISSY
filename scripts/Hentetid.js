@@ -1614,8 +1614,12 @@
                : null;
       if (!ls) return;
 
+      // Raden kan være borte etter omtegningen (filtrert bort, flyttet fra
+      // ventende til pågående e.l.). Da skal NISSY ikke få en ID uten element
+      // i utvalgslisten – samme vern som NISSY-fiks og Bestillingsmodul har.
       const row = document.getElementById(rowId);
-      if (row && getComputedStyle(row).backgroundColor.replace(/\s+/g, '') === SELECTED_BG.replace(/\s+/g, '')) return;
+      if (!row) return;
+      if (getComputedStyle(row).backgroundColor.replace(/\s+/g, '') === SELECTED_BG.replace(/\s+/g, '')) return;
 
       try {
         selectRow(rowId, ls);

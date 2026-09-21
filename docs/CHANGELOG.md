@@ -18,6 +18,8 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 - ⌛ **NISSY-fiks** / 🕐 **Hentetid (ALT+E)** / 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)** / ⚙️ **Adminmodul (ALT+A)** / 📱 **Send-SMS**
   - Scriptene som gjenoppretter merking etter at listene er oppdatert (openPopp/F5) koblet seg hver for seg på NISSY sine nettverkskall. Var NISSY opptatt idet to av dem gjorde det samtidig, kunne en gammel oppfølging bli liggende igjen resten av økten og kjøre ved hver senere oppdatering – merkingen kunne da forsvinne eller hoppe tilbake til rader fra en tidligere handling
   - Nå går alle gjennom én felles mekanisme i NISSY-fiks, og en oppfølging som ikke får noen listeoppdatering innen tre sekunder forkastes i stedet for å bli liggende
+- 🕐 **Hentetid (ALT+E)** / 📱 **Send-SMS**
+  - Merking gjenopprettes nå bare for rader som fortsatt finnes etter oppdateringen og ikke allerede er merket. Tidligere kunne NISSY få beskjed om å merke en rad som var borte (f.eks. flyttet fra ventende til pågående), eller få merkingen slått av igjen på en rad NISSY selv nettopp hadde merket
 
 ---
 

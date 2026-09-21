@@ -1034,6 +1034,11 @@
     rowIds.forEach(rowId => {
       try {
         if (typeof selectRow !== "function") return;
+        // Raden kan være borte etter omtegningen, eller allerede merket av
+        // NISSY selv – da skal selectRow ikke kalles (ID uten element i
+        // utvalgslisten, eller toggling av merkingen)
+        const row = document.getElementById(rowId);
+        if (!row || getComputedStyle(row).backgroundColor === "rgb(148, 169, 220)") return;
         if (rowId.startsWith("P-") && typeof g_poppLS !== "undefined") {
           selectRow(rowId, g_poppLS);
         } else if (typeof g_voppLS !== "undefined") {
@@ -2392,8 +2397,12 @@
       overlay.remove();
       if (typeof openPopp === "function") {
         if (typeof selectRow === "function" && typeof g_resLS !== "undefined") {
-          // Merk ressursen på nytt når listene er tegnet om
-          onceAfterOpenPopp(() => selectRow(ressursId, g_resLS));
+          // Merk ressursen på nytt når listene er tegnet om – bare hvis raden
+          // fortsatt finnes og ikke allerede er merket
+          onceAfterOpenPopp(() => {
+            const r = document.getElementById(ressursId);
+            if (r && getComputedStyle(r).backgroundColor !== "rgb(148, 169, 220)") selectRow(ressursId, g_resLS);
+          });
         }
         openPopp("-1");
       }
