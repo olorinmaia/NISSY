@@ -1243,12 +1243,12 @@ window.addEventListener('beforeunload', () => {
   // Funksjon for å hente siste 4010-posisjon for en ressurs
   async function fetchLatestPosition(licensePlate, turId) {
     try {
-      // POST til searchStatus for å få requisitionId
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/administrasjon/admin/searchStatus", false); // Sync for enkelhet
-      xhr.withCredentials = true;
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      
+      // POST til searchStatus for å få requisitionId.
+      // Denne funksjonen kjører i NISSY-fanen (kartvinduet kaller
+      // window.opener.updateMapData fra sin timer), én gang per ressurs.
+      // Kallet MÅ være asynkront: et synkront XHR blokkerer hele NISSY-fanen
+      // til admin-modulen svarer, og med mange ressurser eller treg server
+      // frøs planleggingsvinduet i lang tid – uten tidsavbrudd, for alltid.
       const formData =
         "submit_action=tripSearch" +
         "&requisitionNumber=" +
@@ -1270,12 +1270,18 @@ window.addEventListener('beforeunload', () => {
         "&treatmentDateToAttention=" +
         "&_attentionUnresolvedOnly=on" +
         "&dbSelect=1";
-      
-      xhr.send(formData);
-      
-      if (xhr.status !== 200) return null;
-      
-      const html = xhr.responseText;
+
+      const searchResp = await fetch("/administrasjon/admin/searchStatus", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData,
+        signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(20000) : undefined
+      });
+
+      if (!searchResp.ok) return null;
+
+      const html = await searchResp.text();
       const m = html.match(/getRequisitionDetails\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/);
       if (!m) return null;
       

@@ -2188,22 +2188,26 @@
   // Returnerer streng eller null.
   async function fetchSjaaforTelefon(licensePlate, turId) {
     try {
-      // 1) POST til searchStatus for å finne requisitionId
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/administrasjon/admin/searchStatus", false);
-      xhr.withCredentials = true;
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr.send(
-        "submit_action=tripSearch&requisitionNumber=&attestId=&ssn=&treatmentDateFromSsn=" +
-        "&treatmentDateToSsn=&lastName=&firstName=&treatmentDateFromName=&treatmentDateToName=" +
-        "&council=-999999&tripNr=" + encodeURIComponent(turId) +
-        "&treatmentDateFromCommissioner=&treatmentDateToCommissioner=&commissionerUsername=" +
-        "&chosenDispatchCenter.id=&treatmentDateFromAttention=&treatmentDateToAttention=" +
-        "&_attentionUnresolvedOnly=on&dbSelect=1"
-      );
-      if (xhr.status !== 200) return null;
+      // 1) POST til searchStatus for å finne requisitionId.
+      // Asynkront – et synkront XHR blokkerer hele NISSY-fanen til
+      // admin-modulen svarer, uten tidsavbrudd.
+      const searchResp = await fetch("/administrasjon/admin/searchStatus", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body:
+          "submit_action=tripSearch&requisitionNumber=&attestId=&ssn=&treatmentDateFromSsn=" +
+          "&treatmentDateToSsn=&lastName=&firstName=&treatmentDateFromName=&treatmentDateToName=" +
+          "&council=-999999&tripNr=" + encodeURIComponent(turId) +
+          "&treatmentDateFromCommissioner=&treatmentDateToCommissioner=&commissionerUsername=" +
+          "&chosenDispatchCenter.id=&treatmentDateFromAttention=&treatmentDateToAttention=" +
+          "&_attentionUnresolvedOnly=on&dbSelect=1",
+        signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(20000) : undefined
+      });
+      if (!searchResp.ok) return null;
 
-      const m = xhr.responseText.match(/getRequisitionDetails\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/);
+      const searchHtml = await searchResp.text();
+      const m = searchHtml.match(/getRequisitionDetails\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/);
       if (!m) return null;
       const [, requisitionId, db, tripId, highlightTripNr] = m;
 
