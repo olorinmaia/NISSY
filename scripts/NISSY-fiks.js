@@ -1435,7 +1435,8 @@
             code = await fetchManualScriptText(scriptFile);
             MANUAL_SCRIPT_CACHE[scriptFile] = code;
           }
-          eval(code);
+          // sourceURL gir scriptet ekte filnavn i DevTools i stedet for "VM1234"
+          eval(code + '\n//# sourceURL=' + scriptFile);
         } catch (err) {
           console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
 
