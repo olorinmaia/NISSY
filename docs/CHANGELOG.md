@@ -11,7 +11,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.9.8] - ??.09.2026
+## 🔧 [4.9.8] - 21.09.2026
+
+### Kartvisning: Fergesambandet Molde–Vestnes lagt til
+
+- 🗺️ **Kartvisning (Alt+W)**
+  - Ruter som krysser Moldefjorden viser nå fergekaiene Molde og Vestnes med rutetider, neste avgang og estimert ankomst
 
 ### Sjekk-Bestilling: Finner bestillinger som mangler koordinater
 
