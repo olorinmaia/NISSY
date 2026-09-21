@@ -167,7 +167,9 @@
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const code = await response.text();
-        eval(code);
+        // sourceURL gir scriptet ekte filnavn i DevTools (call stack, Sources)
+        // i stedet for "VM1234" – nødvendig for å feilsøke frys/heng
+        eval(code + '\n//# sourceURL=' + script);
       } catch (err) {
         console.error(`❌ Feil ved lasting av ${script} (${base}):`, err);
         failures.push(script);
@@ -365,7 +367,7 @@
         try {
           const response = await fetch(BASE + 'Overvåk-ventende.js');
           const code = await response.text();
-          eval(code);
+          eval(code + '\n//# sourceURL=Overvåk-ventende.js');
         } catch (err) {
           console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
         }
@@ -384,7 +386,7 @@
           try {
             const response = await fetch(BASE + 'Darkmode.js');
             const code = await response.text();
-            eval(code);
+            eval(code + '\n//# sourceURL=Darkmode.js');
             if (window.NissyDarkmode && !document.getElementById('nissy-darkmode-css')) {
               window.NissyDarkmode.toggle();
             }
@@ -798,7 +800,7 @@
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
       }, 3000);
-      fetch(BASE + 'Overvåk-ventende.js').then(r => r.text()).then(code => eval(code)).catch(() => {});
+      fetch(BASE + 'Overvåk-ventende.js').then(r => r.text()).then(code => eval(code + '\n//# sourceURL=Overvåk-ventende.js')).catch(() => {});
       openPoppWhenReady();
       return;
     }
@@ -863,7 +865,7 @@
       try {
         const response = await fetch(BASE + 'Overvåk-ventende.js');
         const code = await response.text();
-        eval(code);
+        eval(code + '\n//# sourceURL=Overvåk-ventende.js');
         console.log('✅ Overvåk-ventende.js startet automatisk');
       } catch (err) {
         console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
@@ -878,3 +880,4 @@
     document.addEventListener('keydown', escHandler);
   }, 500);
 })();
+//# sourceURL=loader-amk-dev.js

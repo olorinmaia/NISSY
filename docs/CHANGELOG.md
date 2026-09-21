@@ -11,6 +11,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.9] - 22.09.2026
+
+### Stabilitet: Tekniske forbedringer
+
+- ⌛ **NISSY-fiks** / 🕐 **Hentetid** / 📝 **Bestillingsmodul** / 🔠 **Rek-knapper** / ⚙️ **Adminmodul** / 📱 **Send-SMS** / 📡 **Live ressurskart**
+  - Flere interne opprydninger som skal gjøre scriptene mer robuste: gjenoppretting av merking etter listeoppdatering går nå gjennom én felles mekanisme, rader som er borte etter oppdateringen hoppes over, lyttere i Rek-knapper legges ikke lenger til på nytt for hver Alt+R, og oppslag mot admin-modulen fra Live ressurskart og Send-SMS gjøres i bakgrunnen med tidsavbrudd
+  - Ingen endring i hvordan funksjonene brukes.
+
+---
+
 ## 🔧 [4.9.8] - 21.09.2026
 
 ### Kartvisning: Fergesambandet Molde–Vestnes lagt til

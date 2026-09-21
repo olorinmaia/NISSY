@@ -170,7 +170,9 @@
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const code = await response.text();
-        eval(code);
+        // sourceURL gir scriptet ekte filnavn i DevTools (call stack, Sources)
+        // i stedet for "VM1234" – nødvendig for å feilsøke frys/heng
+        eval(code + '\n//# sourceURL=' + script);
       } catch (err) {
         console.error(`❌ Feil ved lasting av ${script} (${base}):`, err);
         failures.push(script);
@@ -371,7 +373,7 @@
         try {
           const response = await fetch(BASE + 'Overvåk-ventende.js');
           const code = await response.text();
-          eval(code);
+          eval(code + '\n//# sourceURL=Overvåk-ventende.js');
         } catch (err) {
           console.error('❌ Feil ved lasting av Overvåk-ventende.js:', err);
         }
@@ -390,7 +392,7 @@
           try {
             const response = await fetch(BASE + 'Darkmode.js');
             const code = await response.text();
-            eval(code);
+            eval(code + '\n//# sourceURL=Darkmode.js');
             if (window.NissyDarkmode && !document.getElementById('nissy-darkmode-css')) {
               window.NissyDarkmode.toggle();
             }
@@ -886,3 +888,4 @@
     document.addEventListener('keydown', escHandler);
   }, 500);
 })();
+//# sourceURL=loader-basic.js

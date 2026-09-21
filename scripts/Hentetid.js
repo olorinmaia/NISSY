@@ -1577,32 +1577,17 @@
   }
 
   // ============================================================
-  // HJELPEFUNKSJON: Engangs XHR-interceptor for openPopp(-1)
-  // Fyrer callback når /planlegging/ajax-dispatch?action=openres&rid=-1 er ferdig
+  // HJELPEFUNKSJON: Kjør callback når openPopp(-1) sitt XHR-kall er ferdig
+  // Selve XHR-lyttingen ligger i NISSY-fiks (window.__nissyOnceAfterOpenPopp),
+  // slik at XMLHttpRequest.prototype kun patches ett sted. Uten NISSY-fiks
+  // gjettes det på at openPopp er ferdig etter 1,5 s.
   // ============================================================
   function onceAfterOpenPopp(callback) {
-    const originalOpen = XMLHttpRequest.prototype.open;
-    let restored = false;
-
-    const restore = () => {
-      if (!restored) {
-        restored = true;
-        XMLHttpRequest.prototype.open = originalOpen;
-      }
-    };
-
-    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-      if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
-        restore();
-        this.addEventListener('load', function() {
-          callback();
-        }, { once: true });
-      }
-      return originalOpen.call(this, method, url, ...rest);
-    };
-
-    // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
-    setTimeout(restore, 3000);
+    if (typeof window.__nissyOnceAfterOpenPopp === 'function') {
+      window.__nissyOnceAfterOpenPopp(callback);
+    } else {
+      setTimeout(callback, 1500);
+    }
   }
 
   // ============================================================
@@ -1629,8 +1614,12 @@
                : null;
       if (!ls) return;
 
+      // Raden kan være borte etter omtegningen (filtrert bort, flyttet fra
+      // ventende til pågående e.l.). Da skal NISSY ikke få en ID uten element
+      // i utvalgslisten – samme vern som NISSY-fiks og Bestillingsmodul har.
       const row = document.getElementById(rowId);
-      if (row && getComputedStyle(row).backgroundColor.replace(/\s+/g, '') === SELECTED_BG.replace(/\s+/g, '')) return;
+      if (!row) return;
+      if (getComputedStyle(row).backgroundColor.replace(/\s+/g, '') === SELECTED_BG.replace(/\s+/g, '')) return;
 
       try {
         selectRow(rowId, ls);

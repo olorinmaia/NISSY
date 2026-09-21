@@ -1018,26 +1018,27 @@
   // ============================================================
   // ENGANGS XHR-INTERCEPTOR + RE-MARKERING
   // ============================================================
+  // Kjører callback 50 ms etter at openPopp(-1) sitt XHR-kall er ferdig. Selve
+  // XHR-lyttingen ligger i NISSY-fiks (window.__nissyOnceAfterOpenPopp), slik at
+  // XMLHttpRequest.prototype kun patches ett sted. Uten NISSY-fiks gjettes det
+  // på at openPopp er ferdig etter 1,5 s.
   function onceAfterOpenPopp(callback) {
-    const originalOpen = XMLHttpRequest.prototype.open;
-    let restored = false;
-    const restore = () => {
-      if (!restored) { restored = true; XMLHttpRequest.prototype.open = originalOpen; }
-    };
-    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-      if (typeof url === "string" && url.includes("action=openres") && url.includes("rid=-1")) {
-        restore();
-        this.addEventListener("load", () => setTimeout(callback, 50), { once: true });
-      }
-      return originalOpen.call(this, method, url, ...rest);
-    };
-    setTimeout(restore, 3000);
+    if (typeof window.__nissyOnceAfterOpenPopp === "function") {
+      window.__nissyOnceAfterOpenPopp(() => setTimeout(callback, 50));
+    } else {
+      setTimeout(callback, 1500);
+    }
   }
 
   function reMarkerRader(rowIds) {
     rowIds.forEach(rowId => {
       try {
         if (typeof selectRow !== "function") return;
+        // Raden kan være borte etter omtegningen, eller allerede merket av
+        // NISSY selv – da skal selectRow ikke kalles (ID uten element i
+        // utvalgslisten, eller toggling av merkingen)
+        const row = document.getElementById(rowId);
+        if (!row || getComputedStyle(row).backgroundColor === "rgb(148, 169, 220)") return;
         if (rowId.startsWith("P-") && typeof g_poppLS !== "undefined") {
           selectRow(rowId, g_poppLS);
         } else if (typeof g_voppLS !== "undefined") {
@@ -2187,22 +2188,26 @@
   // Returnerer streng eller null.
   async function fetchSjaaforTelefon(licensePlate, turId) {
     try {
-      // 1) POST til searchStatus for å finne requisitionId
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/administrasjon/admin/searchStatus", false);
-      xhr.withCredentials = true;
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr.send(
-        "submit_action=tripSearch&requisitionNumber=&attestId=&ssn=&treatmentDateFromSsn=" +
-        "&treatmentDateToSsn=&lastName=&firstName=&treatmentDateFromName=&treatmentDateToName=" +
-        "&council=-999999&tripNr=" + encodeURIComponent(turId) +
-        "&treatmentDateFromCommissioner=&treatmentDateToCommissioner=&commissionerUsername=" +
-        "&chosenDispatchCenter.id=&treatmentDateFromAttention=&treatmentDateToAttention=" +
-        "&_attentionUnresolvedOnly=on&dbSelect=1"
-      );
-      if (xhr.status !== 200) return null;
+      // 1) POST til searchStatus for å finne requisitionId.
+      // Asynkront – et synkront XHR blokkerer hele NISSY-fanen til
+      // admin-modulen svarer, uten tidsavbrudd.
+      const searchResp = await fetch("/administrasjon/admin/searchStatus", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body:
+          "submit_action=tripSearch&requisitionNumber=&attestId=&ssn=&treatmentDateFromSsn=" +
+          "&treatmentDateToSsn=&lastName=&firstName=&treatmentDateFromName=&treatmentDateToName=" +
+          "&council=-999999&tripNr=" + encodeURIComponent(turId) +
+          "&treatmentDateFromCommissioner=&treatmentDateToCommissioner=&commissionerUsername=" +
+          "&chosenDispatchCenter.id=&treatmentDateFromAttention=&treatmentDateToAttention=" +
+          "&_attentionUnresolvedOnly=on&dbSelect=1",
+        signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(20000) : undefined
+      });
+      if (!searchResp.ok) return null;
 
-      const m = xhr.responseText.match(/getRequisitionDetails\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/);
+      const searchHtml = await searchResp.text();
+      const m = searchHtml.match(/getRequisitionDetails\((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/);
       if (!m) return null;
       const [, requisitionId, db, tripId, highlightTripNr] = m;
 
@@ -2396,18 +2401,12 @@
       overlay.remove();
       if (typeof openPopp === "function") {
         if (typeof selectRow === "function" && typeof g_resLS !== "undefined") {
-          const originalOpen = XMLHttpRequest.prototype.open;
-          XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-            if (typeof url === "string" && url.includes("action=openres")) {
-              const origOnload = this.onload;
-              this.addEventListener("load", () => {
-                XMLHttpRequest.prototype.open = originalOpen;
-                setTimeout(() => selectRow(ressursId, g_resLS), 50);
-              }, { once: true });
-            }
-            return originalOpen.call(this, method, url, ...rest);
-          };
-          setTimeout(() => XMLHttpRequest.prototype.open = originalOpen, 3000);
+          // Merk ressursen på nytt når listene er tegnet om – bare hvis raden
+          // fortsatt finnes og ikke allerede er merket
+          onceAfterOpenPopp(() => {
+            const r = document.getElementById(ressursId);
+            if (r && getComputedStyle(r).backgroundColor !== "rgb(148, 169, 220)") selectRow(ressursId, g_resLS);
+          });
         }
         openPopp("-1");
       }

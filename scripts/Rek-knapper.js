@@ -570,6 +570,86 @@
   });
 
   // ============================================================
+  // DOKUMENT-LYTTERE SOM LUKKER REK-KNAPPENE
+  // Registreres én gang ved lasting. Tidligere ble de lagt til på nytt for
+  // hver Alt+R og aldri fjernet, så de hopet seg opp gjennom økten. Lytterne
+  // kaller cleanup for den aktive snippeten via activeCleanup, som
+  // initializeSnippet setter.
+  // ============================================================
+  let activeCleanup = null;
+  const runActiveCleanup = () => {
+    if (window.snippetActive && typeof activeCleanup === "function") activeCleanup();
+  };
+
+  // Sjekk om et bilde er en slett-knapp
+  const isDeleteButton = (img) => {
+    const onclick = img.getAttribute("onclick");
+    return onclick && (onclick.includes("removeResurs") || onclick.includes("removePaagaaendeOppdrag") || onclick.includes("removeVentendeOppdrag"));
+  };
+
+  // Lytt på klikk på slett-ikoner (IMG med klassen 'dr')
+  document.addEventListener("click", (e) => {
+    if (!window.snippetActive) return;
+    const target = e.target;
+    if (target.tagName === "IMG" && target.classList.contains("dr") && isDeleteButton(target)) {
+      setTimeout(runActiveCleanup, 500);
+    }
+  }, true);
+
+  // Lytt på klikk på rekvisisjonslenker og kjør cleanup
+  const isRequisitionLink = (a) => {
+    const href = a.getAttribute("href") || "";
+    return a.getAttribute("target") === "_blank" &&
+      (href.includes("/rekvisisjon/requisition/") ||
+       href.includes("redit?id=") ||
+       a.id === "linkToRequisition");
+  };
+  document.addEventListener("click", (e) => {
+    if (!window.snippetActive) return;
+    const target = e.target;
+
+    // Direkte klikk på lenke
+    if (target.tagName === "A" && isRequisitionLink(target)) {
+      setTimeout(runActiveCleanup, 300);
+      return;
+    }
+
+    if (target.tagName === "IMG") {
+      // Bilde med onclick som åpner kopi av rekvisisjon
+      const onclick = target.getAttribute("onclick") || "";
+      if (onclick.includes("window.open") &&
+          onclick.includes("/rekvisisjon/requisition/patient?copyReqId=")) {
+        setTimeout(runActiveCleanup, 300);
+        return;
+      }
+      // Bilde inne i en lenke (1 nivå opp)
+      const parent = target.parentElement;
+      if (parent && parent.tagName === "A" && isRequisitionLink(parent)) {
+        setTimeout(runActiveCleanup, 300);
+      }
+    }
+  }, true);
+
+  // Lukker rek-knapper når følgende funksjoner brukes
+  // Smart-tildel (Alt+S), Tilordning (Alt+T), Avbestill (Alt+K), Hentetid (Alt+E), Bestillingsmodul (Alt+N), Hent rekvisisjon (Alt+H) og Møteplass (Alt+M)
+  const CLEANUP_HOTKEYS = new Set(["s", "t", "k", "e", "n", "h", "m"]);
+  document.addEventListener("keydown", (e) => {
+    if (!window.snippetActive) return;
+    if (!e.altKey) return;
+    if (!CLEANUP_HOTKEYS.has(e.key.toLowerCase())) return;
+    runActiveCleanup();
+  });
+
+  // Filter-dropdowns: kjører cleanup når filter endres
+  document.addEventListener("change", (e) => {
+    if (!window.snippetActive) return;
+    const target = e.target;
+    if (target.tagName === "SELECT" && target.classList.contains("filter")) {
+      setTimeout(runActiveCleanup, 500);
+    }
+  }, true); // capture – samme mønster som resten
+
+  // ============================================================
   // HOVEDFUNKSJON: Initialiserer snippet når ALT+R trykkes
   // ============================================================
   function initializeSnippet() {
@@ -596,6 +676,8 @@
     window.isVentendeOppdrag = false;
     window.snippetActive = true;
     window.tildelingButtonListeners = [];
+    // Dokument-lytterne (registrert én gang ved lasting) lukker denne snippeten
+    activeCleanup = cleanupSnippet;
 
     // ============================================================
     // CSS STYLING FOR KNAPPER
@@ -652,107 +734,7 @@
           window.tildelingButtonListeners.push({ btn, handler });
         }
       });
-
-      // Lytt på klikk på slett-ikoner (IMG med klassen 'dr')
-      document.addEventListener("click", (e) => {
-        if (!window.snippetActive) return;
-        const target = e.target;
-        if (target.tagName === "IMG" && target.classList.contains("dr")) {
-          if (isDeleteButton(target)) {
-            setTimeout(() => cleanupSnippet(), 500);
-          }
-        }
-      }, true);
-
-      // Lytt på klikk på rekvisisjonslenker og kjør cleanup
-      document.addEventListener("click", (e) => {
-        if (!window.snippetActive) return;
-        
-        const target = e.target;
-        
-        // Sjekk direkte klikk på lenke
-        if (target.tagName === "A") {
-          const href = target.getAttribute("href") || "";
-          const targetAttr = target.getAttribute("target");
-          
-          if (targetAttr === "_blank" && 
-              (href.includes("/rekvisisjon/requisition/") || 
-               href.includes("redit?id=") ||
-               target.id === "linkToRequisition")) {
-            setTimeout(() => cleanupSnippet(), 300);
-            return;
-          }
-        }
-        
-        // Sjekk klikk på bilde med onclick
-        if (target.tagName === "IMG") {
-          const onclick = target.getAttribute("onclick") || "";
-          if (onclick.includes("window.open") && 
-              onclick.includes("/rekvisisjon/requisition/patient?copyReqId=")) {
-            setTimeout(() => cleanupSnippet(), 300);
-            return;
-          }
-          
-          // Sjekk om bildet er inne i en lenke (1 nivå opp)
-          const parent = target.parentElement;
-          if (parent && parent.tagName === "A") {
-            const href = parent.getAttribute("href") || "";
-            const targetAttr = parent.getAttribute("target");
-            
-            if (targetAttr === "_blank" && 
-                (href.includes("/rekvisisjon/requisition/") || 
-                 href.includes("redit?id=") ||
-                 parent.id === "linkToRequisition")) {
-              setTimeout(() => cleanupSnippet(), 300);
-              return;
-            }
-          }
-        }
-      }, true);
     };
-
-    // Sjekk om et bilde er en slett-knapp
-    const isDeleteButton = (img) => {
-      const onclick = img.getAttribute("onclick");
-      return onclick && (onclick.includes("removeResurs") || onclick.includes("removePaagaaendeOppdrag") || onclick.includes("removeVentendeOppdrag"));
-    };
-
-    // Lukker rek-knapper når følgende funksjoner brukes
-    // Smart-tildel (Alt+S), Tilordning (Alt+T), Avbestill (Alt+K), Hentetid (Alt+E), Bestillingsmodul (Alt+N), Hent rekvisisjon (Alt+H) og Møteplass (Alt+M)
-    const CLEANUP_HOTKEYS = new Set(["s", "t", "k", "e", "n", "h", "m"]);
-    
-    document.addEventListener("keydown", (e) => {
-      if (!window.snippetActive) return;
-      if (!e.altKey) return;
-    
-      const key = e.key.toLowerCase();
-      if (!CLEANUP_HOTKEYS.has(key)) return;
-
-      cleanupSnippet();
-    });
-
-    // ============================================================
-    // LYTTERE FOR FILTER-DROPDOWNS
-    // Kjører cleanup når filter endres
-    // ============================================================
-    const setupFilterListeners = () => {
-      document.addEventListener(
-        "change",
-        (e) => {
-          if (!window.snippetActive) return;
-    
-          const target = e.target;
-          if (
-            target.tagName === "SELECT" &&
-            target.classList.contains("filter")
-          ) {
-            setTimeout(() => cleanupSnippet(), 500);
-          }
-        },
-        true // capture – samme mønster som resten
-      );
-    };
-    setupFilterListeners();
 
     // ============================================================
     // RESET IFRAME
@@ -1046,31 +1028,16 @@
     // ============================================================
     // LUKK MODAL
     // ============================================================
-    // Engangs XHR-interceptor som fyrer callback når openPopp(-1) sitt
-    // AJAX-kall mot /planlegging/ajax-dispatch er ferdig.
+    // Kjører callback når openPopp(-1) sitt AJAX-kall mot /planlegging/ajax-dispatch
+    // er ferdig. Selve XHR-lyttingen ligger i NISSY-fiks (window.__nissyOnceAfterOpenPopp),
+    // slik at XMLHttpRequest.prototype kun patches ett sted. Uten NISSY-fiks
+    // gjettes det på at openPopp er ferdig etter 1,5 s.
     const onceAfterOpenPopp = (callback) => {
-      const originalOpen = XMLHttpRequest.prototype.open;
-      let restored = false;
-
-      const restore = () => {
-        if (!restored) {
-          restored = true;
-          XMLHttpRequest.prototype.open = originalOpen;
-        }
-      };
-
-      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-        if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
-          restore();
-          this.addEventListener('load', function() {
-            callback();
-          }, { once: true });
-        }
-        return originalOpen.call(this, method, url, ...rest);
-      };
-
-      // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
-      setTimeout(restore, 3000);
+      if (typeof window.__nissyOnceAfterOpenPopp === 'function') {
+        window.__nissyOnceAfterOpenPopp(callback);
+      } else {
+        setTimeout(callback, 1500);
+      }
     };
 
     const closeModal = () => {

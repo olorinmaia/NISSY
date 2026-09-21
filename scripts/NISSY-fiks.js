@@ -13,7 +13,7 @@
     return;
   }
   window.__nissyMasterScriptInstalled = true;
-  const SCRIPT_VERSION = '4.9.8'; // Versjonsnummer for debugging og fremtidige oppdateringer
+  const SCRIPT_VERSION = '4.9.9'; // Versjonsnummer for debugging og fremtidige oppdateringer
   window.__nissyScriptVersion = SCRIPT_VERSION;
 
   console.log("🚀 Starter NISSY-fiks-script");
@@ -662,6 +662,46 @@
   // Flag som konsumeres av neste rfilter-XHR når den åpner
   let _rfilterOpenPoppPending = false;
 
+  /* ---------- Engangs-callbacks etter openPopp('-1') ----------
+     Hentetid, Bestillingsmodul, Rek-knapper, Adminmodul og Send-SMS må vite
+     når openPopp('-1') sitt XHR-kall (action=openres&rid=-1) er ferdig for å
+     gjenopprette merking o.l. Tidligere patchet hvert script
+     XMLHttpRequest.prototype.open selv med en midlertidig wrapper og en
+     ubetinget 3 s-tilbakestilling. Overlappet to slike wrappere uten at
+     openPopp rakk å kjøre, ble den innerste liggende igjen permanent og
+     kjørte sin gamle callback ved hver senere oppdatering. Nå registreres
+     callbacks her, og prototypen patches kun ett sted (under).
+
+     Semantikk som før: callbacken kjører på 'load' for første openres&rid=-1
+     som ÅPNES etter registrering. Kommer ikke noe slikt kall innen fristen,
+     forkastes callbacken. Callbacks registrert etter at kallet er åpnet
+     tilhører neste openPopp.
+
+     Fristen er 5 s, ikke 3 s: NISSY sin updateContent har en semafor, og er
+     den opptatt legges openPopp i kø og sendes først etter nøyaktig 3 s
+     ("Systemet er opptatt. Handlingen settes på vent"). Med 3 s frist ville
+     callbacken blitt forkastet rett før kallet faktisk gikk. Feiler også
+     retry-forsøket, dropper NISSY handlingen ("kunne ikke utføres"), så
+     lenger frist enn dette har ingen hensikt. */
+  let _openPoppOnceCallbacks = [];
+
+  window.__nissyOnceAfterOpenPopp = function (callback, timeoutMs = 5000) {
+    if (typeof callback !== 'function') return;
+    const entry = { callback, timer: null };
+    entry.timer = setTimeout(() => {
+      const i = _openPoppOnceCallbacks.indexOf(entry);
+      if (i !== -1) _openPoppOnceCallbacks.splice(i, 1);
+    }, timeoutMs);
+    _openPoppOnceCallbacks.push(entry);
+  };
+
+  function takeOpenPoppCallbacks() {
+    const entries = _openPoppOnceCallbacks;
+    _openPoppOnceCallbacks = [];
+    entries.forEach(e => clearTimeout(e.timer));
+    return entries.map(e => e.callback);
+  }
+
   let columnChangeDebounceTimer = null;
   const COLUMN_CHANGE_DEBOUNCE = 3000; // 3 sekunder debounce
 
@@ -670,6 +710,12 @@
 
   XMLHttpRequest.prototype.open = function(method, url, ...rest) {
     this._requestUrl = url;
+
+    // Ventende engangs-callbacks knyttes til dette kallet (se __nissyOnceAfterOpenPopp)
+    if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
+      const pending = takeOpenPoppCallbacks();
+      if (pending.length) this._openPoppOnce = pending;
+    }
 
     if (url.includes('ajax-dispatch?did=all&')) {
       if (url.includes('rfilter=')) {
@@ -698,6 +744,15 @@
     // så lenge det fortsatt kommer ajax-kall
     if (typeof this._requestUrl === 'string' && this._requestUrl.includes('ajax-dispatch')) {
       this.addEventListener("load", () => scheduleRestore());
+    }
+
+    if (this._openPoppOnce) {
+      const callbacks = this._openPoppOnce;
+      this.addEventListener("load", () => {
+        callbacks.forEach(cb => {
+          try { cb(); } catch (e) { console.warn("⚠️ Callback etter openPopp feilet:", e); }
+        });
+      }, { once: true });
     }
 
     if (this._requestType) {
@@ -1380,7 +1435,8 @@
             code = await fetchManualScriptText(scriptFile);
             MANUAL_SCRIPT_CACHE[scriptFile] = code;
           }
-          eval(code);
+          // sourceURL gir scriptet ekte filnavn i DevTools i stedet for "VM1234"
+          eval(code + '\n//# sourceURL=' + scriptFile);
         } catch (err) {
           console.error(`❌ Feil ved lasting av ${scriptName}:`, err);
 

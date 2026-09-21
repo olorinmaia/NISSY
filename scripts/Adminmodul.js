@@ -512,32 +512,17 @@
     }
 
     /**
-     * Setter opp en engangs XHR-interceptor som fyrer callback når
-     * openPopp(-1) sitt AJAX-kall mot /planlegging/ajax-dispatch er ferdig.
+     * Kjører callback når openPopp(-1) sitt AJAX-kall mot /planlegging/ajax-dispatch
+     * er ferdig. Selve XHR-lyttingen ligger i NISSY-fiks (window.__nissyOnceAfterOpenPopp),
+     * slik at XMLHttpRequest.prototype kun patches ett sted. Uten NISSY-fiks
+     * gjettes det på at openPopp er ferdig etter 1,5 s.
      */
     function onceAfterOpenPopp(callback) {
-        const originalOpen = XMLHttpRequest.prototype.open;
-        let restored = false;
-
-        const restore = () => {
-            if (!restored) {
-                restored = true;
-                XMLHttpRequest.prototype.open = originalOpen;
-            }
-        };
-
-        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-            if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
-                restore();
-                this.addEventListener('load', function() {
-                    callback();
-                }, { once: true });
-            }
-            return originalOpen.call(this, method, url, ...rest);
-        };
-
-        // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
-        setTimeout(restore, 3000);
+        if (typeof window.__nissyOnceAfterOpenPopp === 'function') {
+            window.__nissyOnceAfterOpenPopp(callback);
+        } else {
+            setTimeout(callback, 1500);
+        }
     }
 
     /**
