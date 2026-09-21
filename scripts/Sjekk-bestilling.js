@@ -11,6 +11,12 @@
 // - Retur-tidsfeil: Retur-hentetid lik eller før oppmøtetid på reisen til behandling
 // - Problematiske spesielle behov: Kombinasjoner som ERS+RB som skaper problemer
 // - Tur-datofeil: Turer (pågående oppdrag) med flere bestillinger som har ulik dato
+// - Manglende geokoding: Rødt dollartegn (price-missing.gif) på ventende oppdrag
+//   → bestillingen er ikke rutekalkulert/geokodet, ett eller begge koordinater mangler.
+//   Ikonet vises ikke på pågående oppdrag, så sjekken gjelder kun ventende.
+// - Problematiske ord i adresse: "Hjem", "Hytta" osv. i hente-/leveringsadresse
+//   → rekvirent har skrevet fritekst i stedet for å endre selve adressen.
+//   Konfigurerbart: PROBLEMATIC_ADDRESS_WORDS (eksakt ordmatch foran postnummer)
 //
 // Kolonnevalidering: Alle nødvendige kolonner må finnes
 // ================================================================================
@@ -56,6 +62,43 @@
   // Kontroller hvilke reiseretninger som skal sjekkes for tidsfeil
   const CHECK_TO_TREATMENT = true;    // Sjekk reiser TIL behandling (fra gateadresse)
   const CHECK_FROM_TREATMENT = false;  // Sjekk returreiser FRA behandling (til gateadresse)
+
+  // ============================================================
+  // KONFIGURASJON: PROBLEMATISKE ORD I ADRESSE
+  // Rekvirenter skriver ofte fritekst om hvor pasienten skal hentes
+  // ("Hjem", "Hytta") uten å endre selve adressen (vegnavn og nummer).
+  // Ordene matches som hele ord, uavhengig av store/små bokstaver, mot
+  // teksten foran postnummeret (", 7620 Skogn"). "Sykehjem" gir derfor
+  // ikke treff på "Hjem".
+  // ============================================================
+  const PROBLEMATIC_ADDRESS_WORDS = [
+    'Hjem',
+    'Hjemmet',
+    'Hjemme',
+    'Bosted',
+    'Hytta',
+    'Hytten'
+    // Legg til flere ord her etter behov
+  ];
+
+  // ============================================================
+  // HJELPEFUNKSJON: Finn problematisk ord i adresse
+  // Returnerer ordet fra PROBLEMATIC_ADDRESS_WORDS som traff, eller null
+  // ============================================================
+  function findProblematicAddressWord(address) {
+    if (!address) return null;
+    const clean = cleanAddressSuffixes(
+      address.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ')
+    ).trim();
+    // Kun teksten foran postnummeret: "Bosted, 7970 Kolvereid" → "Bosted"
+    const beforePostal = clean.replace(/,\s*\d{4}\b[\s\S]*$/, '');
+    const words = beforePostal.split(/[^A-Za-zÆØÅæøåÄäÖöÜüÉé]+/).filter(Boolean);
+    for (const word of words) {
+      const hit = PROBLEMATIC_ADDRESS_WORDS.find(w => w.toLowerCase() === word.toLowerCase());
+      if (hit) return hit;
+    }
+    return null;
+  }
 
   // ============================================================
   // HJELPEFUNKSJON: Kutt adresse til maks lengde
@@ -345,6 +388,8 @@
       const adresseCell = cells[fraIndex]?.innerHTML || '';
       const [fra, til] = adresseCell.split('<br>').map(s => s.trim());
       const behov = cells[behovIndex]?.textContent.trim();
+      // Rødt dollartegn (price-missing.gif) = ikke rutekalkulert/geokodet
+      const missingGeocode = !!row.querySelector('img[src*="price-missing"]');
 
       if (navn && hentetid) {
         data.push({
@@ -357,7 +402,8 @@
           til: til || '',
           behov: behov || '',
           type: 'Ventende',
-          status: ''
+          status: '',
+          missingGeocode
         });
       }
     }
@@ -966,6 +1012,105 @@
     return errors;
   }
 
+  // ============================================================
+  // HJELPEFUNKSJONER: Skjulte dollartegn-funn
+  // Dollartegnet blir ofte stående i NISSY selv om koordinatene er på plass.
+  // Brukeren kan derfor skjule et funn (etter å ha sjekket i kartet), og valget
+  // huskes i sessionStorage for resten av fanens levetid. Kun intern rid lagres.
+  // OBS: Lagres som kommaseparert tekst, IKKE JSON. NISSY laster en gammel
+  // Prototype.js som legger toJSON på Array.prototype, slik at
+  // JSON.stringify([..]) gir en streng med array-teksten (dobbelt kodet) –
+  // JSON.parse gir da en streng, ikke et array, og listen ble aldri lest.
+  // ============================================================
+  const GEOCODE_OK_KEY = 'sjekkBestillingGeocodeOk';
+
+  function getGeocodeOkSet() {
+    try {
+      // Plukk ut alle tallsekvenser – tåler også gamle, dobbeltkodede verdier
+      return new Set((sessionStorage.getItem(GEOCODE_OK_KEY) || '').match(/\d+/g) || []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  function addGeocodeOk(rid) {
+    const set = getGeocodeOkSet();
+    set.add(String(rid));
+    try { sessionStorage.setItem(GEOCODE_OK_KEY, [...set].join(',')); } catch (e) {}
+  }
+
+  function clearGeocodeOk() {
+    try { sessionStorage.removeItem(GEOCODE_OK_KEY); } catch (e) {}
+  }
+
+  // ============================================================
+  // SJEKK: Bestillinger som ikke er rutekalkulert/geokodet
+  // Rødt dollartegn (images/price-missing.gif) på ventende oppdrag betyr at
+  // ett eller begge koordinater mangler. Bestillingen vises da ikke riktig i
+  // kartet. Ikonet vises ikke på pågående oppdrag, så kun ventende sjekkes.
+  // Rettes ved å redigere bestillingen med riktige adresser og lagre; da
+  // settes koordinatene. Dollartegnet kan bli stående selv om alt er i orden,
+  // derfor kan funn skjules (se GEOCODE_OK_KEY) – skjulte funn utelates her.
+  // ============================================================
+  function findMissingGeocode() {
+    const ventendeData = extractVentendeData();
+    const okSet = getGeocodeOkSet();
+
+    const errors = [];
+
+    for (const item of ventendeData) {
+      if (!item.missingGeocode) continue;
+      if (okSet.has(String(item.rid))) continue;
+      errors.push({
+        navn: item.navn,
+        items: [item],
+        reason: 'Rødt dollartegn på ventende oppdrag (trolig ikke rutekalkulert/geokodet – ett eller begge koordinater mangler)'
+      });
+    }
+
+    return errors;
+  }
+
+  // Antall dollartegn-funn brukeren har skjult (og som fortsatt ligger på ventende)
+  function countHiddenGeocode() {
+    const okSet = getGeocodeOkSet();
+    if (okSet.size === 0) return 0;
+    return extractVentendeData().filter(item => item.missingGeocode && okSet.has(String(item.rid))).length;
+  }
+
+  // ============================================================
+  // SJEKK: Problematiske ord i adressen (fritekst i stedet for gateadresse)
+  // Rekvirenter skriver ofte "Hjem", "Hytta" osv. i adressefeltet uten å
+  // endre selve adressen. Sjekker teksten foran postnummeret i både
+  // hente- og leveringsadresse på ventende og pågående oppdrag.
+  // Ordlisten er konfigurerbar: PROBLEMATIC_ADDRESS_WORDS
+  // ============================================================
+  function findProblematicAddresses() {
+    const allData = [...extractVentendeData(), ...extractPagaendeData()];
+    const errors = [];
+
+    for (const item of allData) {
+      const fraWord = findProblematicAddressWord(item.fra);
+      const tilWord = findProblematicAddressWord(item.til);
+      if (!fraWord && !tilWord) continue;
+
+      // Brukes av renderDuplicates for å fremheve adressecellen
+      item.addressWordFra = fraWord;
+      item.addressWordTil = tilWord;
+
+      const parts = [];
+      if (fraWord) parts.push(`hentested inneholder «${fraWord}»`);
+      if (tilWord) parts.push(`leveringssted inneholder «${tilWord}»`);
+      errors.push({
+        navn: item.navn,
+        items: [item],
+        reason: `Trolig fritekst fra rekvirent i stedet for gateadresse – ${parts.join(' og ')}`
+      });
+    }
+
+    return errors;
+  }
+
   function searchInPlanning(navn) {
     closeModal();
     
@@ -1034,7 +1179,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -1061,12 +1206,19 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length + missingGeocode.length + problematicAddresses.length;
 
     // Beregn Reknr-bredde én gang basert på alle grupper, slik at alle tabeller er like brede
-    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches];
+    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches, ...missingGeocode, ...problematicAddresses];
     const reknrWidth = allGroups.some(dup => dup.items.some(item => item.status)) ? 165 : 110;
-    
+
+    // Dollartegn-funn brukeren har skjult i denne fanen – vises som lenke for å hente dem frem igjen
+    const hiddenGeocode = countHiddenGeocode();
+    const geocodeSummaryText = n => `💲 ${n} bestilling${n === 1 ? '' : 'er'} på ventende oppdrag med rødt dollartegn (trolig ikke rutekalkulert/geokodet – ett eller begge koordinater mangler)`;
+    const hiddenGeocodeHtml = n => n > 0
+      ? `<div id="geocodeHiddenNote" style="font-size: 12px; color: #666; margin: 4px 0 0;">👁️ <span id="geocodeHiddenCount">${n}</span> skjult${n === 1 ? '' : 'e'} bestilling${n === 1 ? '' : 'er'} med dollartegn – <a href="#" id="geocodeShowHidden" style="color: #0d6efd;">vis igjen</a></div>`
+      : '';
+
     let html = `
       <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 95%; max-height: 90vh; overflow-y: auto; z-index: 9990; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
       <div style="position: sticky; top: 0; background: #007bff; color: white; padding: 16px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; z-index: 1;">
@@ -1081,6 +1233,7 @@
       html += `
         <div style="text-align: center; padding: 40px 20px;">
           <p style="font-size: 16px; color: #28a745; font-weight: 500; margin: 0;">✓ Ingen duplikater eller andre feil funnet</p>
+          ${hiddenGeocodeHtml(hiddenGeocode)}
         </div>
       `;
     } else {
@@ -1108,6 +1261,13 @@
       }
       if (shortTravelTime.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⚡ ${shortTravelTime.length} bestilling${shortTravelTime.length === 1 ? '' : 'er'} med veldig kort reisetid (1–9 minutter)</div>`;
+      }
+      if (problematicAddresses.length > 0) {
+        html += `<div style="background: #e9e3ff; color: #3b0764; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #6610f2;">🏠 ${problematicAddresses.length} bestilling${problematicAddresses.length === 1 ? '' : 'er'} med problematisk ord i adressen (f.eks. «Hjem», «Hytta» – trolig fritekst i stedet for gateadresse)</div>`;
+      }
+      // Dollartegn sist: alle funn kan skjules, så seksjonen bør ikke skyve de andre nedover
+      if (missingGeocode.length > 0) {
+        html += `<div id="geocodeSummary" style="background: #fce4ec; color: #880e4f; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #e83e8c;">${geocodeSummaryText(missingGeocode.length)}</div>`;
       }
       html += '</div>';
       
@@ -1149,6 +1309,27 @@
       if (routeDuplicates.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄 Duplikater med samme fra- eller til-adresse</h3>';
         html += renderDuplicates(routeDuplicates, 'route', reknrWidth);
+      }
+
+      if (problematicAddresses.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🏠 Bestillinger med problematisk ord i adressen</h3>';
+        html += `<div style="background: #e7f3ff; color: #0c4a6e; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; border-left: 4px solid #0d6efd; font-size: 13px; line-height: 1.5;">
+          💡 Rekvirenten har trolig skrevet hvor pasienten skal hentes/leveres som fritekst (${PROBLEMATIC_ADDRESS_WORDS.map(w => `«${w}»`).join(', ')}) uten å endre selve adressen. Sjekk bestillingen og rett til riktig gateadresse.
+        </div>`;
+        html += renderDuplicates(problematicAddresses, 'address', reknrWidth);
+      }
+
+      // Dollartegn sist: alle funn kan skjules, så seksjonen bør ikke skyve de andre nedover
+      if (missingGeocode.length > 0 || hiddenGeocode > 0) {
+        html += '<div id="geocodeSection">';
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">💲 Bestillinger med rødt dollartegn (trolig ikke rutekalkulert/geokodet)</h3>';
+        html += `<div style="background: #e7f3ff; color: #0c4a6e; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; border-left: 4px solid #0d6efd; font-size: 13px; line-height: 1.5;">
+          💡 <b>Vis i kart</b> viser om hente- og leveringssted har koordinater. Mangler noe: <b>Rediger bestilling</b>, kontroller adressene og lagre – sjekk deretter i kartet på nytt.
+          Er begge på plass, trykk <b>Skjul</b> – dollartegnet kan bli stående selv om alt er i orden.
+          ${hiddenGeocodeHtml(hiddenGeocode)}
+        </div>`;
+        html += renderDuplicates(missingGeocode, 'geocode', reknrWidth);
+        html += '</div>';
       }
     }
     
@@ -1206,6 +1387,87 @@
         }
       });
     });
+
+    // Rediger bestilling (dollartegn-funn): åpner redigeringssiden. Bestillingsmodul fanger opp
+    // redit-lenken og viser den i modal over popupen; uten Bestillingsmodul åpnes eget vindu.
+    modalDiv.querySelectorAll('.nissy-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rid = btn.getAttribute('data-rid');
+        if (!rid) { alert('Kunne ikke finne rekvisisjons-ID for denne bestillingen.'); return; }
+        btn.style.background = '#6b7280'; // Grå ut som besøkt
+        window.open(`/rekvisisjon/requisition/redit?id=${rid}&ns=true&noSerial=true`, '_blank', 'width=1200,height=800');
+      });
+    });
+
+    // Vis i kart: åpner Kartvisning for én bestilling (dollartegn-funn) uten å lukke popupen.
+    // Kartvisning varsler selv om hente-/leveringssted mangler koordinater.
+    const kartButtons = modalDiv.querySelectorAll('.nissy-kart-btn');
+    kartButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const rid = btn.getAttribute('data-rid');
+        if (!rid) { alert('Kunne ikke finne rekvisisjons-ID for denne bestillingen.'); return; }
+        if (!window.Kartvisning?.visKartForReqIds) { alert('Kartvisning er ikke lastet inn.'); return; }
+
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '⏳ Henter…';
+        try {
+          const result = await window.Kartvisning.visKartForReqIds([rid]);
+          // Begge koordinater finnes → dollartegnet er trolig bare hengende igjen. Fremhev Skjul-knappen.
+          const d = result?.detaljer?.[0];
+          if (d && d.hentested && d.leveringssted) {
+            const okBtn = btn.closest('[data-geocode-rid]')?.querySelector('.nissy-geocode-ok-btn');
+            if (okBtn) {
+              okBtn.textContent = '✓ Begge koordinater finnes – skjul';
+              okBtn.style.background = '#28a745';
+            }
+          }
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    });
+
+    // Skjul dollartegn-funn: huskes for resten av fanens levetid (sessionStorage)
+    modalDiv.querySelectorAll('.nissy-geocode-ok-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rid = btn.getAttribute('data-rid');
+        if (!rid) return;
+        addGeocodeOk(rid);
+        btn.closest('[data-geocode-rid]')?.remove();
+
+        const remaining = modalDiv.querySelectorAll('[data-geocode-rid]').length;
+        const summary = modalDiv.querySelector('#geocodeSummary');
+        if (summary) {
+          if (remaining > 0) summary.textContent = geocodeSummaryText(remaining);
+          else summary.remove();
+        }
+
+        // Oppdater/opprett "vis igjen"-lenken i hint-boksen
+        const hintBox = modalDiv.querySelector('#geocodeSection > div');
+        const note = modalDiv.querySelector('#geocodeHiddenNote');
+        const nowHidden = countHiddenGeocode();
+        if (note) {
+          note.outerHTML = hiddenGeocodeHtml(nowHidden);
+        } else if (hintBox) {
+          hintBox.insertAdjacentHTML('beforeend', hiddenGeocodeHtml(nowHidden));
+        }
+        bindShowHiddenGeocode();
+      });
+    });
+
+    // "Vis igjen": nullstill skjulte funn og kjør sjekken på nytt
+    function bindShowHiddenGeocode() {
+      const link = modalDiv.querySelector('#geocodeShowHidden');
+      if (!link) return;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearGeocodeOk();
+        runChecks();
+      });
+    }
+    bindShowHiddenGeocode();
   }
 
   function renderDuplicates(duplicates, type, reknrWidth) {
@@ -1220,7 +1482,9 @@
       'timelogic': '#dc3545',
       'returnbeforeout': '#dc3545',
       'shorttravel': '#dc3545',
-      'tripdate': '#fd7e14'
+      'tripdate': '#fd7e14',
+      'geocode': '#e83e8c',
+      'address': '#6610f2'
     };
     
     const color = colorMap[type] || '#6c757d';
@@ -1240,14 +1504,34 @@
         buttonClass = isSingleBooking ? 'nissy-search-reknr-btn' : 'nissy-search-btn';
       }
 
-      // Hent bestillinger gjelder én pasient – på tur-grupper (flere pasienter) får hver rad egen knapp i stedet
-      const hentRid = type === 'tripdate' ? '' : (dup.items.find(it => it.rid)?.rid || '');
+      // Hent bestillinger gjelder én pasient – på tur-grupper (flere pasienter) får hver rad egen knapp i stedet.
+      // Dollartegn-funn har egen Rediger bestilling-knapp, så Hent bestillinger utelates der.
+      const hentRid = (type === 'tripdate' || type === 'geocode') ? '' : (dup.items.find(it => it.rid)?.rid || '');
       const hentButtonHtml = hentRid
         ? `<button class="nissy-hent-btn" data-rid="${hentRid}" style="background: #6f42c1; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">📥 Hent bestillinger</button>`
         : '';
 
+      // Dollartegn-funn: Vis i kart-knapp åpner bestillingen i Kartvisning uten at raden
+      // må merkes, slik at man ser om hente- og leveringssted faktisk har koordinater.
+      const kartRid = type === 'geocode' ? (dup.items[0]?.rid || '') : '';
+      const kartButtonHtml = kartRid
+        ? `<button class="nissy-kart-btn" data-rid="${kartRid}" style="background: #0d6efd; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">🗺️ Vis i kart</button>`
+        : '';
+      // Skjul-knapp for dollartegn-funn som viser seg å ha begge koordinater (dollartegnet henger igjen)
+      const okButtonHtml = kartRid
+        ? `<button class="nissy-geocode-ok-btn" data-rid="${kartRid}" title="Skjul denne bestillingen fra listen for resten av økten" style="background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">✓ Skjul</button>`
+        : '';
+      const cardAttr = kartRid ? ` data-geocode-rid="${kartRid}"` : '';
+
+      // Dollartegn-funn: Rediger bestilling i stedet for Søk i planlegging. Lagres bestillingen
+      // på nytt med riktige adresser, blir koordinatene satt – sjekk deretter i kartet igjen.
+      // Bestillingsmodul fanger opp redit-lenken og åpner den i modal (ellers eget vindu).
+      const searchOrEditHtml = kartRid
+        ? `<button class="nissy-edit-btn" data-rid="${kartRid}" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">✏️ Rediger bestilling</button>`
+        : `<button class="${buttonClass}" ${searchAttr} style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">🔍 Søk i planlegging</button>`;
+
       html += `
-        <div style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
+        <div${cardAttr} style="background: #f8f9fa; border-radius: 4px; padding: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div>
               <div style="font-weight: 600; color: #333; font-size: 15px; margin-bottom: 2px;">${dup.navn} <span style="font-size: 13px; color: #666; font-weight: 400;">(${dup.items.length} bestilling${dup.items.length === 1 ? '' : 'er'})</span></div>
@@ -1255,9 +1539,9 @@
             </div>
             <div style="display: flex; gap: 8px; flex-shrink: 0;">
               ${hentButtonHtml}
-              <button class="${buttonClass}" ${searchAttr} style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
-                🔍 Søk i planlegging
-              </button>
+              ${kartButtonHtml}
+              ${searchOrEditHtml}
+              ${okButtonHtml}
             </div>
           </div>
           <div style="overflow-x: auto;">
@@ -1298,7 +1582,12 @@
           ? 'background: #f8d7da; color: #721c24; font-weight: 600; padding: 4px 6px; border-radius: 3px;' 
           : 'color: #495057;';
         const behovDisplay = item.behov || '-';
-        
+
+        // Fremhev adressecelle med problematisk ord (fritekst i stedet for gateadresse)
+        const addressHighlight = 'background: #e9e3ff; color: #3b0764; font-weight: 600;';
+        const fraStyle = item.addressWordFra ? addressHighlight : 'color: #495057;';
+        const tilStyle = item.addressWordTil ? addressHighlight : 'color: #495057;';
+
         html += `
           <tr style="border-bottom: 1px solid #dee2e6;">
             <td style="padding: 6px 8px;"><span style="background: ${item.type === 'Ventende' ? '#ffc107' : '#17a2b8'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">${item.type}</span></td>
@@ -1306,8 +1595,8 @@
             <td style="padding: 6px 8px; ${hentetidStyle}">${item.hentetid}</td>
             <td style="padding: 6px 8px; ${leveringstidStyle}">${item.leveringstid}</td>
             <td style="padding: 6px 8px; ${behovStyle}">${behovDisplay}</td>
-            <td style="padding: 6px 8px; color: #495057; white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.fra)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
-            <td style="padding: 6px 8px; color: #495057; white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.til)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
+            <td style="padding: 6px 8px; ${fraStyle} white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.fra)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
+            <td style="padding: 6px 8px; ${tilStyle} white-space: nowrap; overflow: hidden;">${(() => { const a = truncateAddress(cleanAddressSuffixes(item.til)); return a.truncated ? `<span title="${a.full}">${a.display}</span>` : a.display; })()}</td>
           </tr>
         `;
       }
@@ -1324,22 +1613,29 @@
 
   // ============================================================
   // HOVEDKJØRING - wrapped i try-catch for kolonnevalidering
+  // Kalles også fra "vis igjen"-lenken for skjulte dollartegn-funn
   // ============================================================
-  try {
-    const { duplicates: countDuplicates, excludedKeys } = findDuplicates();
-    const routeDuplicates = findSameRouteDuplicates(excludedKeys);
-    const dateMismatches = findDateMismatches();
-    const problematicNeeds = findProblematicNeeds();
-    const timeLogicErrors = findTimeLogicErrors();
-    const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
-    const shortTravelTime = findShortTravelTime();
-    const tripDateMismatches = findTripDateMismatches();
-    showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches);
-  } catch (error) {
-    // Feil under kolonnevalidering eller datainnhenting
-    // Feilmelding er allerede vist via showErrorToast()
-    // Frigjør sperre og stopp scriptet
-    console.error('Sjekk-bestilling feilet:', error);
-    window.__sjekkBestillingActive = false;
+  function runChecks() {
+    try {
+      const { duplicates: countDuplicates, excludedKeys } = findDuplicates();
+      const routeDuplicates = findSameRouteDuplicates(excludedKeys);
+      const dateMismatches = findDateMismatches();
+      const problematicNeeds = findProblematicNeeds();
+      const timeLogicErrors = findTimeLogicErrors();
+      const returnBeforeOutbound = findReturnBeforeOutbound(excludedKeys);
+      const shortTravelTime = findShortTravelTime();
+      const tripDateMismatches = findTripDateMismatches();
+      const missingGeocode = findMissingGeocode();
+      const problematicAddresses = findProblematicAddresses();
+      showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses);
+    } catch (error) {
+      // Feil under kolonnevalidering eller datainnhenting
+      // Feilmelding er allerede vist via showErrorToast()
+      // Frigjør sperre og stopp scriptet
+      console.error('Sjekk-bestilling feilet:', error);
+      window.__sjekkBestillingActive = false;
+    }
   }
+
+  runChecks();
 })();

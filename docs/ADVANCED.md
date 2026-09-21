@@ -131,6 +131,7 @@ Navn: `NISSY-Avansert`
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- Mangler en bestilling koordinater på hente- eller leveringssted, vises et oransje varsel nederst med pasient og hvilket sted som ikke kan vises i kartet
 - **Rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted. Punktene kan flyttes med drag-and-drop og fjernes med dobbeltklikk (eller alle via høyreklikkmenyen). Viser estimert passeringstid, og leveringstid/fergeberegning tar hensyn til punktene
 - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md).
 
@@ -221,6 +222,9 @@ Intelligent tildeling som automatisk:
 
 **Tildeling til ressurs/avtale:**
 - Merk også en ressurs eller avtale → tildeles direkte til ressursen/avtalen
+
+**Hvis NISSY avviser tildelingen:**
+- Varsler tydelig hvis NISSY avviser tildelingen (f.eks. deaktivert avtale i oppsettet) – oppgir regel og avtale-ID fra → til, slik at konfigurasjonen er lett å rette
 
 
 ### 📆 Tilordning 2.0 (ALT+T)
@@ -367,10 +371,14 @@ Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikk
 - Returer med tidligere eller lik hentetid enn oppmøtetid for samme behandlingssted
 - Reisetid mellom 1–9 minutter på reiser til behandling
 - Problematisk kombinasjon av spesielle behov (RB+ERS, LB+LF m.fl.)
+- Bestillinger på ventende oppdrag som mangler koordinater (rødt dollartegn). «Vis i kart» viser om hente- og leveringssted er geokodet, «Rediger bestilling» lar deg rette adressene og lagre på nytt, og «Skjul» fjerner funn der alt er i orden selv om dollartegnet blir stående
+- Hente- eller leveringsadresse med fritekst som «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – rekvirenten har skrevet hvor pasienten skal hentes uten å endre selve adressen. Ordlisten kan utvides i scriptet
 - **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten
 
 ### 🚩 Sjekk-Plakat (Alt+3)
 Finn alle røde plakater med fritekst på valgt filter – plakater med flaggede ord vises øverst.
+
+«Fjern fritekst» viser hvilke tekster som fjernes før du bekrefter, og minner om at behov eller adresse i friteksten må legges inn på bestillingen i stedet.
 
 Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
 
@@ -409,6 +417,12 @@ Beregner i en pop-up antall bestillinger på ventende/pågående oppdrag og «sa
 - Sjekk at RB/ERS-reglene stemmer med ditt oppsett
 - Verifiser antall samtidig reisende i toast-meldingen
 - Kontakt @olorinmaia hvis regler må oppdateres
+
+### Smart-tildeling melder «Tildelingen ble avvist av NISSY»
+
+- Avtalen som er mappet opp i oppsettet er trolig deaktivert i NISSY – meldingen oppgir regel (`rb_ers`/`multiple`) og avtale-ID fra → til
+- Sjekk at avtalen er aktiv i NISSY Admin, og oppdater avtalemappingen – se [veiledning for å konfigurere Smart-tildeling](Smart-tildeling_Konfigurasjon.md)
+- Bestillingene er låst i noen minutter før de kommer tilbake på ventende oppdrag
 
 ### Tilordningsstøtte 2.0 feiler
 

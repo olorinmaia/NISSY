@@ -76,6 +76,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - Semi-automatisk tildeling av bestillinger med RB/ERS-regler og passasjertelling uten behov for å velge avtale.
 - Mulighet for å definere regler for Storbil-avtaler når fler enn 3 pas. OBS! Tidspunkt må være nogenlunde korrekt for at den skal telle riktig.
 - Støtter også direkte tildeling til valgt avtale eller ressurs.
+- Varsler tydelig hvis NISSY avviser tildelingen (f.eks. deaktivert avtale i oppsettet) – oppgir regel og avtale-ID fra → til, slik at konfigurasjonen er lett å rette.
 
 #### 📆 Tilordning 2.0 (Alt+T)
 - Forbedret tilordningsstøtte, uendelig antall bestillinger kan merkes og tilordnes. Resultat vises i en diskret pop-up.
@@ -128,6 +129,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Bestillinger med status «Framme» (levert) og "Ikke møtt" skjules automatisk – kan vises igjen via «Utført (X)»-knappen øverst til høyre
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- Mangler en bestilling koordinater på hente- eller leveringssted, vises et oransje varsel nederst med pasient og hvilket sted som ikke kan vises i kartet
 - **Rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted. Punktene kan flyttes med drag-and-drop og fjernes med dobbeltklikk (eller alle via høyreklikkmenyen). Viser estimert passeringstid, og leveringstid/fergeberegning tar hensyn til punktene
 - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](docs/HeiGIT_API_Nokkel.md).
 - <img width="500" alt="image" src="https://github.com/user-attachments/assets/18fe5843-d3a8-4bd6-8c4a-4afa01c9d333" />
@@ -246,11 +248,14 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
   - Om returer som har tidligere eller lik hentetid enn oppmøtetid på reisen til behandling for samme behandlingssted
   - Om reisetid er veldig kort, mellom 1-9 minutter, på reiser til behandling
   - Finner bestillinger med problematisk kombinasjon av spesielle behov. (RB+ERS, LB+LF, flere kombinasjoner kan legges til ved behov)
+  - Om bestillinger på ventende oppdrag mangler koordinater (rødt dollartegn). «Vis i kart» viser om hente- og leveringssted er geokodet, «Rediger bestilling» lar deg rette adressene og lagre på nytt, og «Skjul» fjerner funn der alt er i orden selv om dollartegnet blir stående
+  - Om hente- eller leveringsadressen inneholder fritekst som «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – rekvirenten har skrevet hvor pasienten skal hentes uten å endre selve adressen. Ordlisten kan utvides i scriptet
 - **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten.
 - <img width="400" alt="image" src="https://github.com/user-attachments/assets/aded167b-e24b-49c1-9018-0415f8a2e7d4" />
 
 #### 🚩 Sjekk-Plakat (Alt+3)
 - Finn alle røde plakater med fritekst på valgt filter, problematisk tekst vises først.
+- «Fjern fritekst» viser hvilke tekster som fjernes før du bekrefter, og minner om at behov eller adresse i friteksten må legges inn på bestillingen i stedet.
 - Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
 - <img width="400" alt="image" src="https://github.com/user-attachments/assets/0db4fff8-5d93-432f-84b4-9c6a0de47b1c" />
 
@@ -275,7 +280,7 @@ Scriptene i tabell under har masse automatikk og dedikerte snarveier. De er plas
 Hvis du hard-refresher siden eller lukker nettleser må du aktivere script-pakken på nytt.
 Under er en oversikt over de features som følger med i hver pakke.
 
-| Features | AMK | Basic | Advanced |
+| Features | [AMK](docs/AMK.md) | [Basic](docs/BASIC.md) | [Advanced](docs/ADVANCED.md) |
 |---------|-------|-------|----------|
 | ⌛ NISSY-fiks | ✅ | ✅ | ✅ |
 | 🔔 Overvåk-Ventende | ✅ | ✅ | ✅ |
@@ -306,22 +311,22 @@ Under er en oversikt over de features som følger med i hver pakke.
 ## 🚀 Installasjon
 
 ### Script-pakker 
-Velg mellom **AMK**, **Basic** eller **Advanced**
+Velg mellom **[AMK](docs/AMK.md)**, **[Basic](docs/BASIC.md)** eller **[Advanced](docs/ADVANCED.md)** – klikk på navnet for brukermanualen til pakken.
 
 1. Opprett et nytt bokmerke i nettleseren din
 2. Lim inn følgende kode som URL:
 
-**AMK**
+**[AMK](docs/AMK.md)**
 ```javascript
 javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-amk.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-amk.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
 
-**Basic**
+**[Basic](docs/BASIC.md)**
 ```javascript
 javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-basic.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-basic.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```
 
-**Advanced** (OBS! Trenger konfigurasjon for å virke som tiltenkt. Ta kontakt.)
+**[Advanced](docs/ADVANCED.md)** (OBS! Trenger konfigurasjon for å virke som tiltenkt. Ta kontakt.)
 ```javascript
 javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISSY/main/scripts/loader-advanced.js',j='https://cdn.jsdelivr.net/gh/olorinmaia/NISSY@main/scripts/loader-advanced.js';try{const r=await fetch(g);if(!r.ok)throw 0;eval(await r.text());}catch(e){eval(await(await fetch(j)).text());}})();
 ```

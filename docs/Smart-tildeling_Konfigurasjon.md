@@ -131,6 +131,7 @@ Konfigurasjonen legges inn og aktiveres ved neste oppdatering av scriptet.
 
 - **Alle bestillinger må ha en avtale** før Smart-tildeling kjøres – bestillinger uten avtale hoppes over og du får feilmelding.
 - **Avtale-ID-ene er unike per NISSY-instans** – IDs fra ett kontor vil ikke stemme for et annet.
+- **Avtalene må være aktive i NISSY** – peker en regel til en deaktivert avtale, avviser NISSY tildelingen uten egen feilmelding. Smart-tildeling varsler da med regel og avtale-ID fra → til, og bestillingene er låst i noen minutter før de kommer tilbake på ventende oppdrag.
 - **Passasjertelling** skjer på tvers av alle merkede bestillinger: To bestillinger med henting 10:00 og levering 11:00 teller som 2 samtidige passasjerer.
 - **Ledsagere telles alltid** i tillegg til pasienten – 1 pasient med 2 ledsagere gir 3 i kapasitetsberegningen.
 - **Returer** (lik hentetid og leveringstid) behandles separat og teller ikke som overlappende med andre turer så fremt det ikke er flere returer som skal hentes samtidig eller med 5 minutters mellomrom

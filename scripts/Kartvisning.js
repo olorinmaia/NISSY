@@ -1197,8 +1197,76 @@
               }
             }
           ]
-        }
+        },
         // ── Slutt Pasientreiser St. Olavs hospital HF ────────────────
+
+        // ── Kontoret for pasientreiser, Ålesund ──────────────────────
+        // -- molde-vestnes --
+        {
+          id: 'moldefjorden',
+          crossing_min: 33,
+          leier: [
+            {
+              navn: 'Vestnes', lat: 62.651734, lon: 7.085049,
+              retning: 'Vestnes → Molde',
+              avganger: {
+                'man-fre': [
+                  '00:15','01:45','03:15','04:40','05:10','06:05','06:50','07:10',
+                  '07:30','07:50','08:10','08:30','08:50','09:10','09:30','09:50',
+                  '10:10','10:30','10:50','11:10','11:30','11:50','12:10','12:30',
+                  '12:50','13:10','13:30','13:50','14:10','14:30','14:50','15:10',
+                  '15:30','15:50','16:10','16:30','16:50','17:10','17:30','17:50',
+                  '18:10','18:30','18:50','19:10','19:30','19:50','20:15','21:00',
+                  '21:45','22:45','23:30'
+                ],
+                'lor': [
+                  '00:10','01:40','03:10','04:40','06:05','07:35','08:05','08:35',
+                  '09:05','09:35','10:05','10:35','11:05','11:35','12:05','12:35',
+                  '13:05','13:35','14:05','14:35','15:05','15:35','16:05','16:35',
+                  '17:05','17:35','18:05','18:35','19:05','19:35','20:05','20:35',
+                  '21:00','21:45','22:30','23:25'
+                ],
+                'son': [
+                  '00:10','01:40','03:40','06:05','07:35','08:05','08:35','09:05',
+                  '09:35','10:05','10:35','11:05','11:35','12:05','12:35','13:05',
+                  '13:35','14:05','14:35','15:05','15:35','16:05','16:35','17:05',
+                  '17:35','18:05','18:35','19:05','19:35','20:05','20:35','21:00',
+                  '21:45','22:30','23:25'
+                ]
+              }
+            },
+            {
+              navn: 'Molde', lat: 62.736958, lon: 7.169462,
+              retning: 'Molde → Vestnes',
+              avganger: {
+                'man-fre': [
+                  '01:00','02:30','04:00','04:30','05:20','06:10','06:30','06:50',
+                  '07:10','07:30','07:50','08:10','08:30','08:50','09:10','09:30',
+                  '09:50','10:10','10:30','10:50','11:10','11:30','11:50','12:10',
+                  '12:30','12:50','13:10','13:30','13:50','14:10','14:30','14:50',
+                  '15:10','15:30','15:50','16:10','16:30','16:50','17:10','17:30',
+                  '17:50','18:10','18:30','18:50','19:10','19:30','20:15','21:00',
+                  '21:45','22:45','23:30'
+                ],
+                'lor': [
+                  '00:50','02:25','03:55','05:25','06:50','07:20','07:50','08:20',
+                  '08:50','09:20','09:50','10:20','10:50','11:20','11:50','12:20',
+                  '12:50','13:20','13:50','14:20','14:50','15:20','15:50','16:20',
+                  '16:50','17:20','17:50','18:20','18:50','19:20','19:50','20:20',
+                  '21:00','21:45','22:45','23:15'
+                ],
+                'son': [
+                  '00:50','02:25','05:25','06:50','07:20','07:50','08:20','08:50',
+                  '09:20','09:50','10:20','10:50','11:20','11:50','12:20','12:50',
+                  '13:20','13:50','14:20','14:50','15:20','15:50','16:20','16:50',
+                  '17:20','17:50','18:20','18:50','19:20','19:50','20:20','21:00',
+                  '21:45','22:45','23:15'
+                ]
+              }
+            }
+          ]
+        }
+        // ── Slutt Kontoret for pasientreiser, Ålesund ────────────────
       ];
 
       function tidMin(a) {
@@ -2733,6 +2801,21 @@
     mapWindow.document.close();
   }
 
+  // ── Varsle om bestillinger som mangler koordinater ────────
+  // Hente- eller leveringssted uten geokoordinater får ingen markør i kartet,
+  // og det er lett å overse. Én samlet toast (oransje, 6 s) lister hvem og hva.
+  function warnMissingCoords(allDetails) {
+    const lines = allDetails
+      .filter(d => !d.hentested || !d.leveringssted)
+      .map(d => {
+        const hva = !d.hentested && !d.leveringssted ? 'hente- og leveringssted'
+                  : !d.hentested ? 'hentested' : 'leveringssted';
+        return `${d.pasientNavn || d.reqNr || d.reqId}: ${hva}`;
+      });
+    if (!lines.length) return;
+    _toast(`⚠️ Mangler koordinater og vises ikke i kartet – ${lines.join(' · ')}`, '#e65100', 6000);
+  }
+
   // ── Hovedfunksjon ─────────────────────────────────────────
   async function visKart() {
     const voppIds = getVoppReqIds();
@@ -2770,6 +2853,7 @@
       return;
     }
 
+    warnMissingCoords(allDetails);
     openKartWindow(med);
   }
 
@@ -2784,6 +2868,41 @@
     }
     return _origOpen.call(this, url, target, features);
   };
+
+  // ── Offentlig API for andre script (f.eks. Sjekk-bestilling) ──
+  // Åpner kartet for gitte rekvisisjons-IDer (V-/popp_-id) uten at radene
+  // må være merket i planleggingsbildet. Faller ikke tilbake til NISSY-kartet
+  // ved manglende koordinater – kalleren får beskjed via returverdien.
+  // Returnerer { vist, utenKoordinater, detaljer } der detaljer er
+  // parseReqDetails-resultatet per bestilling (hentested/leveringssted = null
+  // når koordinater mangler).
+  async function visKartForReqIds(reqIds) {
+    const ids = [...new Set((reqIds || []).map(String).filter(Boolean))];
+    if (ids.length === 0) {
+      showError('🗺️ Ingen bestillinger å vise');
+      return { vist: [], utenKoordinater: [], detaljer: [] };
+    }
+    if (ids.length > 16) {
+      showError(`🗺️ For mange bestillinger (${ids.length}/16) – maks 16 støttes`);
+      return { vist: [], utenKoordinater: [], detaljer: [] };
+    }
+
+    const allDetails = await Promise.all(ids.map(id => fetchReqDetails(id)));
+    allDetails.forEach(d => { d.erFramme = false; d.erIkkeMott = false; d.erHiddenByDefault = false; });
+
+    const med  = allDetails.filter(d => d.hentested || d.leveringssted);
+    const uten = allDetails.filter(d => !d.hentested && !d.leveringssted);
+
+    if (med.length === 0) {
+      showError('🗺️ Fant ingen koordinater – verken hente- eller leveringssted er geokodet');
+      return { vist: [], utenKoordinater: uten.map(d => d.reqId), detaljer: allDetails };
+    }
+
+    warnMissingCoords(allDetails);
+    openKartWindow(med);
+    return { vist: med.map(d => d.reqId), utenKoordinater: uten.map(d => d.reqId), detaljer: allDetails };
+  }
+  window.Kartvisning = { visKartForReqIds };
 
   console.log('✅ Kartvisning klar – trykk Vis i kart (Alt+W) med merkede bestillinger');
 })();

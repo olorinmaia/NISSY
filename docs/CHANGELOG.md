@@ -11,6 +11,45 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [4.9.8] - 21.09.2026
+
+### Kartvisning: Fergesambandet Molde–Vestnes lagt til
+
+- 🗺️ **Kartvisning (Alt+W)**
+  - Ruter som krysser Moldefjorden viser nå fergekaiene Molde og Vestnes med rutetider, neste avgang og estimert ankomst
+
+### Sjekk-Bestilling: Finner bestillinger som mangler koordinater
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Ny sjekk som finner bestillinger på ventende oppdrag med rødt dollartegn – ett eller begge koordinater mangler, og bestillingen vises ikke riktig i kartet
+  - **Vis i kart** åpner bestillingen i Kartvisning uten å merke den, og sier fra om hente- eller leveringssted mangler koordinater
+  - **Rediger bestilling** åpner bestillingen så adressene kan rettes og lagres på nytt – da settes koordinatene
+  - **Skjul** fjerner funn der begge koordinater finnes men dollartegnet blir stående. Knappen blir grønn når kartet bekrefter dette, og valget huskes til fanen lukkes («vis igjen»-lenke henter dem frem)
+
+### Kartvisning: Varsler når koordinater mangler
+
+- 🗺️ **Kartvisning (Alt+W)**
+  - Oransje varsel nederst lister pasienter der hente- eller leveringssted mangler koordinater og derfor ikke vises i kartet
+
+### Sjekk-Bestilling: Finner fritekst i adressen («Hjem», «Hytta» m.fl.)
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Ny sjekk som finner bestillinger der hente- eller leveringsadressen inneholder «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – typisk fritekst fra rekvirent uten at selve adressen er endret. Ordlisten kan utvides i scriptet
+
+### Sjekk-Plakat: Tydeligere bekreftelse ved «Fjern fritekst»
+
+- 🚩 **Sjekk-Plakat (Alt+3)**
+  - Bekreftelsesdialogen viser nå selve friteksten som fjernes, og bare de feltene som faktisk har tekst – tidligere ble alle tre felttypene listet uansett
+  - Kort påminnelse om at behov eller adresse som står i friteksten må legges inn som behov/adresse på bestillingen i stedet. Finnes flaggede ord (f.eks. «rullestol»), nevnes de i påminnelsen
+
+### Smart-tildeling: Varsler når tildelingen avvises av NISSY
+
+- 🪄 **Smart-tildeling (Alt+S)**
+  - Fikser at tildelingen så ut til å lykkes selv om NISSY avviste den, f.eks. fordi avtalen i oppsettet er deaktivert. Bestillingene ble da hengende grået ut i noen minutter uten noen feilmelding
+  - Nå vises en tydelig feilmelding. Kom avtalen fra regeloppsettet, oppgis regel og avtale-ID fra → til, slik at konfigurasjonen er lett å finne og rette
+
+---
+
 ## 🔧 [4.9.7] - 11.09.2026
 
 ### Send-SMS: Automatisk utfylling i sjåfør-SMS og nye maler for Helse Bergen

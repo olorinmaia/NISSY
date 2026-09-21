@@ -147,6 +147,7 @@ javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISS
     - Foreslår tidligere hentetidspunkt dersom en tidligere avgang rekker å unngå forsinkelse
 - Trykk på et +/- ikon eller X bestillinger oppe til høyre for å se bestillingslisten og kunne filtrere visningen
 - Hold over et segment for å se reisetid/avstand mellom to hendelser.
+- Mangler en bestilling koordinater på hente- eller leveringssted, vises et oransje varsel nederst med pasient og hvilket sted som ikke kan vises i kartet
 - **Rutepunkter**: høyreklikk i kartet og velg «Legg til rutepunkt her» for å tvinge kjøreruten innom et bestemt sted. Punktene kan flyttes med drag-and-drop og fjernes med dobbeltklikk (eller alle via høyreklikkmenyen). Viser estimert passeringstid, og leveringstid/fergeberegning tar hensyn til punktene
 - **ORS-nøkkel (rutekalkulering)**: Kartvisning bruker OpenRouteService (ORS/OSRM) for ruteberegning. Hvert kontor bør ha minst én API-nøkkel – hyppige brukere anbefales personlig nøkkel. Se [veiledning for oppretting av HeiGIT API-nøkkel](HeiGIT_API_Nokkel.md).
 
@@ -281,10 +282,14 @@ Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikk
 - Returer med tidligere eller lik hentetid enn oppmøtetid for samme behandlingssted
 - Reisetid mellom 1–9 minutter på reiser til behandling
 - Problematisk kombinasjon av spesielle behov (RB+ERS, LB+LF m.fl.)
+- Bestillinger på ventende oppdrag som mangler koordinater (rødt dollartegn). «Vis i kart» viser om hente- og leveringssted er geokodet, «Rediger bestilling» lar deg rette adressene og lagre på nytt, og «Skjul» fjerner funn der alt er i orden selv om dollartegnet blir stående
+- Hente- eller leveringsadresse med fritekst som «Hjem», «Hjemmet», «Hjemme», «Bosted», «Hytta» eller «Hytten» – rekvirenten har skrevet hvor pasienten skal hentes uten å endre selve adressen. Ordlisten kan utvides i scriptet
 - **Hent bestillinger**-knapp per funn åpner Bestillingsmodul direkte over resultatvinduet, slik at bestillingen kan rettes uten å lukke oversikten
 
 ### 🚩 Sjekk-Plakat (Alt+3)
 Finn alle røde plakater med fritekst på valgt filter – plakater med flaggede ord vises øverst.
+
+«Fjern fritekst» viser hvilke tekster som fjernes før du bekrefter, og minner om at behov eller adresse i friteksten må legges inn på bestillingen i stedet.
 
 Flaggede ord: `alenebil`, `smitte`, `hentes`, `adresse`, `framsete`, `rullestol`, `rullator`, `prekestol`, `personbil`, `lav bil`, `høy bil`, `liten bil`, `forsete`, `direkte`, `sitte`, `hjelp`, `yrkesskade`, `følges`, `ledsager`, `pårørende`, `toalett`, `dobesøk`
 
