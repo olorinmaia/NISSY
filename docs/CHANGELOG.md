@@ -11,19 +11,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [4.9.9] - ??.09.2026
+## 🔧 [4.9.9] - 22.09.2026
 
-### Stabilitet: Én felles oppfølging av listeoppdateringer
+### Stabilitet: Tekniske forbedringer
 
-- ⌛ **NISSY-fiks** / 🕐 **Hentetid (ALT+E)** / 📝 **Bestillingsmodul (ALT+N)** / 🔠 **Rek-knapper (ALT+R)** / ⚙️ **Adminmodul (ALT+A)** / 📱 **Send-SMS**
-  - Scriptene som gjenoppretter merking etter at listene er oppdatert (openPopp/F5) koblet seg hver for seg på NISSY sine nettverkskall. Var NISSY opptatt idet to av dem gjorde det samtidig, kunne en gammel oppfølging bli liggende igjen resten av økten og kjøre ved hver senere oppdatering – merkingen kunne da forsvinne eller hoppe tilbake til rader fra en tidligere handling
-  - Nå går alle gjennom én felles mekanisme i NISSY-fiks, og en oppfølging som ikke får noen listeoppdatering innen fem sekunder forkastes i stedet for å bli liggende. Fristen dekker at NISSY selv venter tre sekunder og prøver på nytt når systemet er opptatt
-- 🕐 **Hentetid (ALT+E)** / 📱 **Send-SMS**
-  - Merking gjenopprettes nå bare for rader som fortsatt finnes etter oppdateringen og ikke allerede er merket. Tidligere kunne NISSY få beskjed om å merke en rad som var borte (f.eks. flyttet fra ventende til pågående), eller få merkingen slått av igjen på en rad NISSY selv nettopp hadde merket
-- 🔠 **Rek-knapper (ALT+R)**
-  - Lytterne som lukker knappene ved filterbytte, sletting, rekvisisjonslenker og andre snarveier registreres nå én gang. Tidligere ble de lagt til på nytt for hver Alt+R og aldri fjernet, slik at de hopet seg opp gjennom en lang økt
-- 📡 **Live ressurskart (ALT+Z)** / 📱 **Send-SMS**
-  - Oppslagene mot admin-modulen (posisjoner per ressurs ved kartoppdatering, og sjåførens mobilnummer ved «Send SMS til sjåfør») gjøres nå i bakgrunnen med 20 sekunders tidsavbrudd. Tidligere ble de sendt på en måte som holdt planleggingsvinduet opptatt til svaret kom
+- ⌛ **NISSY-fiks** / 🕐 **Hentetid** / 📝 **Bestillingsmodul** / 🔠 **Rek-knapper** / ⚙️ **Adminmodul** / 📱 **Send-SMS** / 📡 **Live ressurskart**
+  - Flere interne opprydninger som skal gjøre scriptene mer robuste: gjenoppretting av merking etter listeoppdatering går nå gjennom én felles mekanisme, rader som er borte etter oppdateringen hoppes over, lyttere i Rek-knapper legges ikke lenger til på nytt for hver Alt+R, og oppslag mot admin-modulen fra Live ressurskart og Send-SMS gjøres i bakgrunnen med tidsavbrudd
+  - Ingen endring i hvordan funksjonene brukes.
 
 ---
 
