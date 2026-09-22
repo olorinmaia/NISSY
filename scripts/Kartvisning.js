@@ -245,6 +245,11 @@
      44121: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImI5OTA1ZGFmNjhiMTRkMTg4ZDFiNWM2ZmNiODQ0YzIyIiwiaCI6Im11cm11cjY0In0=', // riln
     181040: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjYzZTI3OTc1NTc0MTQ3ZTQ5MGM2YWI3MjYyYmNmZjUzIiwiaCI6Im11cm11cjY0In0=', // vegmje
     180327: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjI2NDc0ZTVlZjQ1NzQ1NzJiNDIxNTlhNjdiMmM1YjEyIiwiaCI6Im11cm11cjY0In0=', // sillar
+    // Pasientreiser Stavanger
+     39307: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6Ijc2ZWIwYmU1MWIxMDRhMTQ5N2QzMGZiOWRlZmQ5OWVlIiwiaCI6Im11cm11cjY0In0=', // krvn
+     36810: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImQzZWI5MzJkZTJiNTRkMzQ5MTE0NjM4M2I2M2IwMGE0IiwiaCI6Im11cm11cjY0In0=', // olph
+     48247: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjQyYTVkZTI2OWVhZTQ2MWJhNmZjNDcwNWM5YTJhMzAxIiwiaCI6Im11cm11cjY0In0=', // biritb
+    170641: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVjODE3OWQzOTQ3ZjQwYWRiNDI0M2ZkYTU0YWRlNmRlIiwiaCI6Im11cm11cjY0In0=', // elinebb
   };
   const _officeMatch = document.querySelector('.topframe_small')?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
   const _currentOffice = _officeMatch?.[1]?.trim() || null;
