@@ -179,6 +179,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 - Lar deg masse-avbestille merkede turer og bestillinger. Ikke mulig og avbestille turer etter 3003 XML.
 - Ny og forbedret pop-up og logikk for ressurser ved trykk på "avbestill/avplanlegg"-kryss på ventende, ressurs og pågående oppdrag.
 - Hindrer bruker fra å gjøre ting som ikke er i henhold til beste-praksis / SUTI-standard, som feks å avbestille bestillinger etter avstigning eller avbestille tur etter 3003.
+- Siste bestilling på en tur med løyvenummer kan likevel avplanlegges fra pågående oppdrag når ressursen har status «Avbrudd avvist».
 - Avvik-registrering (maks 400 tegn) i popup for enkelt- og masseavbestilling av bestillinger; sendes til NISSY etter gjennomført avbestilling
 - <img width="250" alt="image" src="https://github.com/user-attachments/assets/24464cf1-e838-446c-8e4a-69607869bea8" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/8314c5e8-ebf3-4100-95fe-9fb41420d7bf" /><img width="250" alt="image" src="https://github.com/user-attachments/assets/08d00111-24cd-4206-8f27-3d825554a02f" />
 

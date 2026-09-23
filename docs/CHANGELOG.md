@@ -19,6 +19,11 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
   - Flere interne opprydninger som skal gjøre scriptene mer robuste: gjenoppretting av merking etter listeoppdatering går nå gjennom én felles mekanisme, rader som er borte etter oppdateringen hoppes over, lyttere i Rek-knapper legges ikke lenger til på nytt for hver Alt+R, og oppslag mot admin-modulen fra Live ressurskart og Send-SMS gjøres i bakgrunnen med tidsavbrudd
   - Ingen endring i hvordan funksjonene brukes.
 
+### Avbestilling: Avplanlegging tillatt ved «Avbrudd avvist»
+
+- ✖️ **Avbestilling (Alt+K)**
+  - Siste bestilling på en tur i pågående oppdrag kan nå avplanlegges selv om turen har fått løyvenummer, når ressursen har status «Avbrudd avvist». Tidligere ble dette stoppet med melding om å kontakte sjåfør for bomtur
+
 ---
 
 ## 🔧 [4.9.8] - 21.09.2026
