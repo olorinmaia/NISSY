@@ -227,6 +227,14 @@
     'Startet'
     // Legg til flere statuser her etter behov
   ];
+
+  // Ressurs-statuser der siste bestilling på turen kan avplanlegges selv om
+  // turen har fått løyvenummer. Ved "Avbrudd avvist" har transportør avvist
+  // avbestillingen, og bestillingen må kunne flyttes til ny tur.
+  const AVPLANLEGGING_LOYVE_EXEMPT_STATUSES = [
+    'Avbrudd avvist'
+    // Legg til flere statuser her etter behov
+  ];
   
   // Miljø-baserte "Ansvarlig"-koder
   const RESPONSIBILITY_CODES = {
@@ -481,9 +489,18 @@
           // Hent ressursnavn fra kolonne 1 for å validere
           const ressursNavn = allColumns[1]?.textContent.trim() || "";
           
+          // Ressursens egen status (f.eks. "Avbrudd avvist") vises ikke i
+          // pågående oppdrag - der står bestillingens status ("Tildelt").
+          // Slå den opp i Ressurser-tabellen via td#Rxxxstatusxxx{rid}.
+          const ressursStatus = document.getElementById(`Rxxxstatusxxx${rid}`)
+            ?.textContent.trim() ?? "";
+
           // Sjekk om dette er siste bestilling på en tur med løyvenummer
-          // (bil er på vei = !isValidResourceName og ikke samkjørt)
-          if (!erSamkjort && !isValidResourceName(ressursNavn)) {
+          // (bil er på vei = !isValidResourceName og ikke samkjørt).
+          // Unntak: ressurs-statuser i AVPLANLEGGING_LOYVE_EXEMPT_STATUSES
+          // (f.eks. "Avbrudd avvist") - da skal bestillingen kunne avplanlegges.
+          if (!erSamkjort && !isValidResourceName(ressursNavn) &&
+              !AVPLANLEGGING_LOYVE_EXEMPT_STATUSES.includes(ressursStatus)) {
             showErrorToast("⛔ Det er ikke lov å avplanlegge den siste bestillingen på en tur etter mottatt løyvenummer! Kontakt sjåfør for å lage bomtur!");
             return;
           }
