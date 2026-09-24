@@ -124,7 +124,7 @@ javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISS
 3. Google Maps åpnes med rute for alle merkede bestillinger
 
 **Tips:**
-- Bruker adressene som står i NISSY og søker i Google Maps. Adresser som ikke gjenkjennes kan mappes inn – se [veiledning for å sende inn adressemapping](Rutekalkulering_Adresser.md)
+- Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps. Kun koordinater sendes til Google.
 - Fungerer både for ventende og pågående oppdrag
 - Filtrerer automatisk ut bestillinger som er markert som "Framme" og "Ikke møtt"
 

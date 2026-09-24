@@ -102,7 +102,7 @@ All databehandling skjer lokalt i nettleseren og mot NISSY sine egne servere. Un
 
 #### 🧭 Rutekalkulering (Alt+Q)
 - Åpner merkede bestillinger/ressurser for rutekalkulering i Google maps.
-- Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps; adresser slik de står i NISSY benyttes som fallback.
+- Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps. Kun koordinater sendes til Google.
 - Filtrerer automatisk ut bestillinger med status «Framme» og "Ikke møtt".
 
 #### 🗺️ Kartvisning (Alt+W)

@@ -603,12 +603,17 @@
         segments.push(currentSegment);
       }
 
-      // Bygg adresseliste: per segment → alle hente-adresser, så alle lever-adresser
+      // Bygg punktliste: per segment → alle hentesteder, så alle leveringssteder.
+      // Kun koordinater fra NISSY sendes til Google Maps. Adresseteksten brukes
+      // ikke som reserve: en gateadresse er en personopplysning og skal ikke
+      // sendes ut av NISSY. Steder uten koordinater utelates og varsles.
+      const missingCoords = [];
       function _getPoint(booking, type) {
         const ll = booking.reqId && _coordsMap[booking.reqId]?.[type];
         if (ll) return `${ll.lat.toFixed(6)},${ll.lon.toFixed(6)}`;
         const addrs = type === 'fra' ? booking.fromAddresses : booking.toAddresses;
-        return addrs[0] || null;
+        if (addrs.length) missingCoords.push(`${type === 'fra' ? 'hentested' : 'leveringssted'} ${addrs[0]}`);
+        return null;
       }
       const allAddresses = [];
       for (const segment of segments) {
@@ -621,13 +626,17 @@
           if (p) allAddresses.push(p);
         }
       }
-      
+
       // Fjern duplikater som følger etter hverandre
       const finalAddressList = removeConsecutiveDuplicates(allAddresses);
 
-      // Sjekk om vi fant noen adresser
+      if (missingCoords.length) {
+        showErrorToast(`🧭 ${missingCoords.length} sted${missingCoords.length === 1 ? '' : 'er'} mangler koordinater i NISSY og er utelatt fra ruten (rett adressen og lagre bestillingen på nytt): ${missingCoords.join('; ')}`);
+      }
+
+      // Sjekk om vi fant noen koordinater
       if (!finalAddressList.length) {
-        alert("Ingen adresser funnet.");
+        alert("Ingen av de merkede bestillingene har koordinater i NISSY – ruten kan ikke beregnes.");
         return;
       }
 
@@ -656,12 +665,14 @@
         gmWidth = Math.max(minWidth, Math.floor(window.innerWidth / 2));
         gmLeft = 0; gmTop = 0; gmHeight = window.screen.availHeight;
       }
-      const mapsWin = window.open(
+      // noopener,noreferrer: Google får verken vindusreferanse til NISSY eller
+      // Referer-header. window.open returnerer da alltid null, så blokkert popup
+      // kan ikke lenger oppdages her (nettleseren viser selv sitt popup-varsel).
+      window.open(
         googleMapsUrl,
         "_blank",
-        `width=${gmWidth},height=${gmHeight},left=${gmLeft},top=${gmTop},resizable=yes,scrollbars=yes`
+        `width=${gmWidth},height=${gmHeight},left=${gmLeft},top=${gmTop},resizable=yes,scrollbars=yes,noopener,noreferrer`
       );
-      if (!mapsWin) showErrorToast("Popup blokkert – tillat popup og prøv igjen");
   });
 
   console.log("✅ Rutekalkulering-script lastet");
