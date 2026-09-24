@@ -19,6 +19,16 @@
 
   const SELECTED_BG = 'rgb(148, 169, 220)';
 
+  // ── Tredjeparts kartbibliotek ─────────────────────────────
+  // Versjonslåst og verifisert med Subresource Integrity (SRI): nettleseren nekter å
+  // kjøre filen hvis innholdet ikke matcher SHA-384-hashen. jsDelivr leverer identiske
+  // filer og brukes som reserve hvis unpkg feiler. Ved versjonsbytte må hashene
+  // regenereres, f.eks.: curl -sL <url> | openssl dgst -sha384 -binary | openssl base64 -A
+  const LEAFLET_JS = { url: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', alt: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js', sri: 'sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH' };
+  const LEAFLET_CSS = { url: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', alt: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css', sri: 'sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H' };
+  const libLink = (l) => `<link rel="stylesheet" href="${l.url}" integrity="${l.sri}" crossorigin="anonymous" onerror="this.onerror=null;this.href='${l.alt}'">`;
+  // (Selve script-innlastingen skjer i kartvinduets egen loadScript, se buildMapHtml.)
+
   // ── Hent merkede reqIds ───────────────────────────────────
 
   function getVoppReqIds() {
@@ -267,7 +277,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Kartvisning</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  ${libLink(LEAFLET_CSS)}
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { height:100%; }
@@ -354,13 +364,17 @@
         return;
       }
 
-      // Last Leaflet
-      function loadScript(src, cb, onErr) {
-        const s = document.createElement('script');
-        s.src = src; s.crossOrigin = ''; s.onload = cb; s.onerror = onErr;
-        document.head.appendChild(s);
+      // Last Leaflet med SRI-kontroll; prøver jsDelivr hvis unpkg feiler
+      function loadScript(lib, cb, onErr) {
+        const add = function (src, onerror) {
+          const s = document.createElement('script');
+          s.src = src; s.integrity = lib.sri; s.crossOrigin = 'anonymous';
+          s.onload = cb; s.onerror = onerror;
+          document.head.appendChild(s);
+        };
+        add(lib.url, function () { add(lib.alt, onErr); });
       }
-      loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', function () {
+      loadScript(${JSON.stringify(LEAFLET_JS)}, function () {
         initMap(reqDetails).catch(function (err) {
           console.error('[Kartvisning] initMap feilet:', err);
           document.getElementById('status').textContent = '⚠️ Kartvisning feilet – se konsoll';

@@ -18,6 +18,32 @@
   // Sperre for å hindre multiple kjøringer samtidig
   let isRunning = false;
 
+  // ── Tredjeparts kartbibliotek ─────────────────────────────
+  // Versjonslåst og verifisert med Subresource Integrity (SRI): nettleseren nekter å
+  // kjøre filen hvis innholdet ikke matcher SHA-384-hashen. jsDelivr leverer identiske
+  // filer og brukes som reserve hvis unpkg feiler. Ved versjonsbytte må hashene
+  // regenereres, f.eks.: curl -sL <url> | openssl dgst -sha384 -binary | openssl base64 -A
+  const LEAFLET_JS = { url: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', alt: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js', sri: 'sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH' };
+  const LEAFLET_CSS = { url: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', alt: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css', sri: 'sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H' };
+  const MC_JS = { url: 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', alt: 'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', sri: 'sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr' };
+  const MC_CSS = { url: 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css', alt: 'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css', sri: 'sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV' };
+  const MC_DEFAULT_CSS = { url: 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css', alt: 'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css', sri: 'sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+' };
+  const LRM_JS = { url: 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', alt: 'https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', sri: 'sha384-Le/Ab4WG5Ezkdf4RS5P5eZrpmvNgcZ4QcTozVDXGoOsTxGroBLM4e9OSqeh6V26n' };
+  const LRM_CSS = { url: 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css', alt: 'https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css', sri: 'sha384-n6BdBD4Ahcb9IGZDgjgv0hV2a/y2WOCf1n0kEMZDpZySy/Hv1QMAtLIrC3y9oIZD' };
+  const libLink = (l) => `<link rel="stylesheet" href="${l.url}" integrity="${l.sri}" crossorigin="anonymous" onerror="this.onerror=null;this.href='${l.alt}'">`;
+  // Laster et script i gitt dokument med SRI-kontroll; prøver jsDelivr hvis unpkg feiler
+  function loadLib(doc, l) {
+    return new Promise((resolve, reject) => {
+      const add = (src, onerror) => {
+        const s = doc.createElement('script');
+        s.src = src; s.integrity = l.sri; s.crossOrigin = 'anonymous';
+        s.onload = resolve; s.onerror = onerror;
+        doc.head.appendChild(s);
+      };
+      add(l.url, () => add(l.alt, () => reject(new Error('Kunne ikke laste ' + l.url))));
+    });
+  }
+
   // ============================================================
   // KONFIGURASJON
   // ============================================================
@@ -1172,10 +1198,10 @@ async function runResourceInfo() {
       <head>
         <meta charset="UTF-8">
         <title>Kjørerute - ${licensePlate} - ${turId}</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+        ${libLink(LEAFLET_CSS)}
+        ${libLink(MC_CSS)}
+        ${libLink(MC_DEFAULT_CSS)}
+        ${libLink(LRM_CSS)}
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           html, body { height: 100%; }
@@ -1250,20 +1276,10 @@ async function runResourceInfo() {
     
     mapWindow.document.close();
     
-    // Injiser JS-biblioteker dynamisk
-    await new Promise(resolve => {
-      function loadScript(src, onload) {
-        const s = mapWindow.document.createElement('script');
-        s.src = src;
-        s.onload = onload;
-        mapWindow.document.head.appendChild(s);
-      }
-      loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', () => {
-        loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js', () => {
-          loadScript('https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js', resolve);
-        });
-      });
-    });
+    // Injiser JS-biblioteker dynamisk med SRI-kontroll (rekkefølgen er viktig)
+    await loadLib(mapWindow.document, LEAFLET_JS);
+    await loadLib(mapWindow.document, MC_JS);
+    await loadLib(mapWindow.document, LRM_JS);
     
     // Injiser kartlogikk etter at bibliotekene er klare
     const initScript1 = mapWindow.document.createElement('script');
@@ -1760,7 +1776,7 @@ window.reloadRouteData = function() {
       <head>
         <meta charset="UTF-8">
         <title>${eventInfo.title} - ${licensePlate}</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        ${libLink(LEAFLET_CSS)}
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           html, body { height: 100%; }
@@ -1832,13 +1848,8 @@ window.reloadRouteData = function() {
     
     mapWindow.document.close();
     
-    // Injiser Leaflet dynamisk
-    await new Promise(resolve => {
-      const s = mapWindow.document.createElement('script');
-      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      s.onload = resolve;
-      mapWindow.document.head.appendChild(s);
-    });
+    // Injiser Leaflet dynamisk med SRI-kontroll
+    await loadLib(mapWindow.document, LEAFLET_JS);
     
     // Injiser kartlogikk
     const initScript2 = mapWindow.document.createElement('script');
