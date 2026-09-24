@@ -918,8 +918,12 @@
     });
   }
 
+  // Godtar kun norske mobilserier: 4x, 9x, 58x og 59x (8 siffer, mellomrom
+  // ignoreres). Fasttelefonserier (2x, 3x, øvrige 5x, 6x, 7x) avvises, siden
+  // SMS til slike numre ikke kommer frem. Landkode godtas ikke – nummeret
+  // sendes til NISSY nøyaktig slik det står.
   function erGyldigMobil(nr) {
-    return /^[4-9]\d{7}$/.test(nr.replace(/\s/g, ""));
+    return /^(4\d{7}|9\d{7}|5[89]\d{6})$/.test(String(nr || "").replace(/\s/g, ""));
   }
 
   function encodeISO(str) {
@@ -1450,7 +1454,7 @@
     document.getElementById("__smsBtnSend").addEventListener("click", async () => {
       const telefonnr  = document.getElementById("__smsTo").value.trim();
       const meldingTxt = msgArea.value.trim();
-      if (!erGyldigMobil(telefonnr)) { showToast("Ugyldig mobilnummer (8 siffer).", "warning"); return; }
+      if (!erGyldigMobil(telefonnr)) { showToast("Ugyldig mobilnummer (8 siffer som starter på 4, 9, 58 eller 59).", "warning"); return; }
       if (!meldingTxt) return;
       if (meldingTxt.length > MAX_TEGN) {
         showToast(`Meldingen er for lang (maks ${MAX_TEGN} tegn).`, "warning"); return;
