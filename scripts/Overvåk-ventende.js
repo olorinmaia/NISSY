@@ -165,10 +165,15 @@ if (window.ventendeMonitor) {
     if (window.ventendeMonitor.visibilityChangeHandler) {
         document.removeEventListener('visibilitychange', window.ventendeMonitor.visibilityChangeHandler);
     }
-    
+
+    // Fjern refresh-lytteren i NISSY-fiks
+    if (window.ventendeMonitor.refreshResponseHandler && typeof window.__nissyOffRefreshResponse === 'function') {
+        window.__nissyOffRefreshResponse(window.ventendeMonitor.refreshResponseHandler);
+    }
+
     window.ventendeMonitor.newOrders.clear();
     document.title = window.ventendeMonitor.originalTitle;
-    
+
     const link = document.querySelector("link[rel*='icon']");
     if (link) link.href = window.ventendeMonitor.originalFavicon;
     
@@ -265,84 +270,57 @@ class VentendeOppdragMonitor {
     // -------------------------------------------------------------------------
     setupRefreshMonitor() {
         const self = this;
-        
-        // Lagre original send hvis den ikke allerede er lagret
-        if (!window.__originalXHRSend) {
-            window.__originalXHRSend = XMLHttpRequest.prototype.send;
-        }
-        
-        // Lagre original open hvis den ikke allerede er lagret
-        if (!window.__originalXHROpen) {
-            window.__originalXHROpen = XMLHttpRequest.prototype.open;
-        }
-        
-        const originalOpen = window.__originalXHROpen;
-        const originalSend = window.__originalXHRSend;
-        
-        console.log('🔧 Setter opp XHR interceptor...');
-        
-        // Override open for å fange URL
-        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-            this._requestUrl = url;
-            
-            // Sjekk om dette er NISSY sin refresh
-            // 1. Automatisk intern-refresh: ajax-dispatch?did=all (uten &)
-            // 2. Manuell refresh (F5): ajax-dispatch?did=all&action=openres&rid=-1
-            if (url.includes('ajax-dispatch?did=all')) {
-                if (!url.includes('&') || url.includes('action=openres&rid=-1')) {
-                    // Sjekk om monitoren fortsatt kjører før vi gjør noe
-                    if (window.ventendeMonitor && !self.isStopped) {
-                        this._isNissyRefresh = true;
-                        const type = url.includes('action=openres') ? 'manuell' : 'automatisk';
-                        console.log(`🎯 NISSY refresh-request detektert (${type}):`, url);
-                    }
-                }
+
+        // Håndterer responsen fra en NISSY-refresh:
+        // 1. Automatisk intern-refresh: ajax-dispatch?did=all (uten &)
+        // 2. Manuell refresh (F5): ajax-dispatch?did=all&action=openres&rid=-1
+        this.refreshResponseHandler = (responseText, status) => {
+            // Sjekk om monitoren fortsatt kjører før vi prosesserer noe
+            if (!window.ventendeMonitor || self.isStopped) return;
+            if (status !== 200) return;
+            try {
+                // Parse XML-responsen og oppdater currentOrders
+                const newOrders = self.parseOrdersFromXML(responseText);
+                self.currentOrders = newOrders;
+                console.log(`🔄 NISSY refresh detektert (${newOrders.size} bestillinger)`);
+                // Kjør umiddelbar sjekk for endringer
+                self.checkForChanges();
+            } catch (e) {
+                console.error('❌ Feil ved parsing av NISSY respons:', e);
             }
-            
+        };
+
+        // Foretrukket: felles lytter i NISSY-fiks, slik at XMLHttpRequest.prototype
+        // bare patches ett sted. Lytteren fjernes igjen når monitoren stoppes.
+        if (typeof window.__nissyOnRefreshResponse === 'function') {
+            window.__nissyOnRefreshResponse(this.refreshResponseHandler);
+            console.log('🔧 Lytter på NISSY-refresh via NISSY-fiks');
+            return;
+        }
+
+        // Uten NISSY-fiks: patch XMLHttpRequest én gang, og send responsen videre
+        // til den monitoren som er aktiv i øyeblikket. Tidligere ble prototypen
+        // patchet på nytt ved hver start, oppå det andre scripts hadde lagt der.
+        if (window.__ventendeXhrPatched) return;
+        window.__ventendeXhrPatched = true;
+        console.log('🔧 Setter opp XHR interceptor (uten NISSY-fiks)...');
+
+        const originalOpen = XMLHttpRequest.prototype.open;
+        const originalSend = XMLHttpRequest.prototype.send;
+
+        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            this._isNissyRefresh = typeof url === 'string' && url.includes('ajax-dispatch?did=all') &&
+                (!url.includes('&') || url.includes('action=openres&rid=-1'));
             return originalOpen.apply(this, [method, url, ...rest]);
         };
-        
-        // Override send for å lytte på respons
+
         XMLHttpRequest.prototype.send = function(...args) {
             if (this._isNissyRefresh) {
-                // Sjekk om monitoren fortsatt kjører før vi logger
-                if (window.ventendeMonitor && !self.isStopped) {
-                    //console.log('📤 NISSY refresh-request sendt');
-                }
-                
                 this.addEventListener("load", function() {
-                    // Sjekk om monitoren er stoppet før vi logger eller prosesserer noe
-                    if (!window.ventendeMonitor || self.isStopped) {
-                        // Ingen logging - monitoren er stoppet
-                        return;
-                    }
-                    
-                    //console.log('📥 NISSY refresh-respons mottatt, status:', this.status);
-                    
-                    if (this.status === 200) {
-                        try {
-                            // Parse XML-responsen og oppdater currentOrders
-                            const newOrders = self.parseOrdersFromXML(this.responseText);
-                            self.currentOrders = newOrders;
-                            
-                            console.log(`🔄 NISSY refresh detektert (${newOrders.size} bestillinger)`);
-                            
-                            // Kjør umiddelbar sjekk for endringer
-                            self.checkForChanges();
-                        } catch (e) {
-                            console.error('❌ Feil ved parsing av NISSY respons:', e);
-                        }
-                    }
-                });
-                
-                this.addEventListener("error", function() {
-                    // Sjekk om monitoren fortsatt kjører før vi logger
-                    if (window.ventendeMonitor && !self.isStopped) {
-                        console.error('❌ NISSY refresh feilet (nettverksfeil)');
-                    }
+                    const handler = window.ventendeMonitor?.refreshResponseHandler;
+                    if (handler) handler(this.responseText, this.status);
                 });
             }
-            
             return originalSend.apply(this, args);
         };
     }
@@ -913,7 +891,12 @@ window.stopMonitor = function() {
         if (window.ventendeMonitor.visibilityChangeHandler) {
             document.removeEventListener('visibilitychange', window.ventendeMonitor.visibilityChangeHandler);
         }
-        
+
+        // Fjern refresh-lytteren i NISSY-fiks
+        if (window.ventendeMonitor.refreshResponseHandler && typeof window.__nissyOffRefreshResponse === 'function') {
+            window.__nissyOffRefreshResponse(window.ventendeMonitor.refreshResponseHandler);
+        }
+
         window.ventendeMonitor.newOrders.clear();
         document.title = window.ventendeMonitor.originalTitle;
         const link = document.querySelector("link[rel*='icon']");

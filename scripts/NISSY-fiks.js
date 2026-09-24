@@ -702,6 +702,26 @@
     return entries.map(e => e.callback);
   }
 
+  /* ---------- Vedvarende lyttere på NISSY sine refresh-svar ----------
+     Overvåk-ventende må se responsen fra hver NISSY-refresh (automatisk
+     did=all-oppdatering og manuell openPopp('-1')) for å oppdage nye
+     bestillinger. Tidligere patchet det XMLHttpRequest.prototype selv ved
+     hver start/stopp, oppå wrapperen her. Nå registreres lytterne her og
+     fyres på 'load' med (responseText, status, xhr). */
+  const _refreshResponseListeners = new Set();
+
+  window.__nissyOnRefreshResponse = function (callback) {
+    if (typeof callback === 'function') _refreshResponseListeners.add(callback);
+  };
+  window.__nissyOffRefreshResponse = function (callback) {
+    _refreshResponseListeners.delete(callback);
+  };
+
+  function isNissyRefreshUrl(url) {
+    return typeof url === 'string' && url.includes('ajax-dispatch?did=all') &&
+      (!url.includes('&') || (url.includes('action=openres') && url.includes('rid=-1')));
+  }
+
   let columnChangeDebounceTimer = null;
   const COLUMN_CHANGE_DEBOUNCE = 3000; // 3 sekunder debounce
 
@@ -710,6 +730,7 @@
 
   XMLHttpRequest.prototype.open = function(method, url, ...rest) {
     this._requestUrl = url;
+    this._isNissyRefresh = isNissyRefreshUrl(url);
 
     // Ventende engangs-callbacks knyttes til dette kallet (se __nissyOnceAfterOpenPopp)
     if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
@@ -717,7 +738,7 @@
       if (pending.length) this._openPoppOnce = pending;
     }
 
-    if (url.includes('ajax-dispatch?did=all&')) {
+    if (typeof url === 'string' && url.includes('ajax-dispatch?did=all&')) {
       if (url.includes('rfilter=')) {
         this._requestType = 'rfilter';
         this._openPoppAfterLoad = _rfilterOpenPoppPending;
@@ -751,6 +772,15 @@
       this.addEventListener("load", () => {
         callbacks.forEach(cb => {
           try { cb(); } catch (e) { console.warn("⚠️ Callback etter openPopp feilet:", e); }
+        });
+      }, { once: true });
+    }
+
+    // Vedvarende lyttere på refresh-svar (se __nissyOnRefreshResponse)
+    if (this._isNissyRefresh && _refreshResponseListeners.size) {
+      this.addEventListener("load", () => {
+        _refreshResponseListeners.forEach(cb => {
+          try { cb(this.responseText, this.status, this); } catch (e) { console.warn("⚠️ Refresh-lytter feilet:", e); }
         });
       }, { once: true });
     }
