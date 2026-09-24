@@ -423,33 +423,37 @@
     }
 
     // ============================================================
-    // HJELPEFUNKSJON: Engangs XHR-interceptor for openPopp(-1)
-    // Fyrer callback når /planlegging/ajax-dispatch?action=openres&rid=-1 er ferdig
+    // HJELPEFUNKSJON: Engangs-callback etter openPopp(-1)
+    // Fyrer callback når /planlegging/ajax-dispatch?action=openres&rid=-1 er ferdig.
+    // Bruker den felles hooken i NISSY-fiks (__nissyOnceAfterOpenPopp) slik at
+    // XMLHttpRequest.prototype bare patches ett sted. Uten NISSY-fiks brukes en
+    // midlertidig patch som alltid gjenopprettes (også ved timeout).
     // ============================================================
     function onceAfterOpenPopp(callback) {
+      // 50 ms forsinkelse gir NISSY tid til å oppdatere DOM før re-markering
+      const delayed = () => setTimeout(callback, 50);
+
+      if (typeof window.__nissyOnceAfterOpenPopp === 'function') {
+        window.__nissyOnceAfterOpenPopp(delayed, 5000);
+        return;
+      }
+
       const originalOpen = XMLHttpRequest.prototype.open;
-      let restored = false;
-
-      const restore = () => {
-        if (!restored) {
-          restored = true;
-          XMLHttpRequest.prototype.open = originalOpen;
-        }
-      };
-
-      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+      const patchedOpen = function(method, url, ...rest) {
         if (typeof url === 'string' && url.includes('action=openres') && url.includes('rid=-1')) {
           restore();
-          this.addEventListener('load', function() {
-            // 50ms delay for DOM-oppdatering
-            setTimeout(callback, 50);
-          }, { once: true });
+          this.addEventListener('load', delayed, { once: true });
         }
         return originalOpen.call(this, method, url, ...rest);
       };
+      const restore = () => {
+        if (XMLHttpRequest.prototype.open === patchedOpen) XMLHttpRequest.prototype.open = originalOpen;
+      };
+      XMLHttpRequest.prototype.open = patchedOpen;
 
-      // Sikkerhetsnett: restore etter 3s hvis openPopp aldri kalles
-      setTimeout(restore, 3000);
+      // Sikkerhetsnett: gjenopprett etter 5 s hvis openPopp aldri kalles
+      // (NISSY sin semafor kan holde kallet i inntil 3 s)
+      setTimeout(restore, 5000);
     }
 
     // ============================================================

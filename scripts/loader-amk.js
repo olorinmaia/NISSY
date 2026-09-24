@@ -93,16 +93,16 @@
     const officeMatch = officeCell?.textContent.match(/Pasientreisekontor for ([^\n]+)/);
     const office      = officeMatch?.[1]?.trim() || 'Ukjent kontor';
 
-    const gcScript = document.createElement('script');
-    gcScript.async = true;
-    gcScript.src   = '//gc.zgo.at/count.js';
-    gcScript.setAttribute('data-goatcounter', 'https://nissy.goatcounter.com/count');
-    gcScript.setAttribute('data-goatcounter-settings', JSON.stringify({ no_onload: true }));
-    gcScript.onload = () => {
-      window.goatcounter?.count({ path: '/nissy/' + office, title: 'NISSY – ' + office });
-      window.goatcounter?.count({ path: '/nissy-loader/amk', title: 'Loader: amk', event: true });
+    // To enkle bildekall (GoatCounter sin «uten JavaScript»-metode): ingen ekstern kode
+    // kjøres på NISSY-siden, og kun sti/tittel sendes – ikke referrer, URL eller skjermstørrelse.
+    const gcCount = (p, title, event) => {
+      const img = new Image();
+      img.referrerPolicy = 'no-referrer';
+      img.src = 'https://nissy.goatcounter.com/count?p=' + encodeURIComponent(p) +
+                '&t=' + encodeURIComponent(title) + (event ? '&e=true' : '') + '&rnd=' + Date.now();
     };
-    document.head.appendChild(gcScript);
+    gcCount('/nissy/' + office, 'NISSY – ' + office, false);
+    gcCount('/nissy-loader/amk', 'Loader: amk', true);
   } catch (e) {}
   
   // ============================================================

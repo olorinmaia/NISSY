@@ -124,7 +124,7 @@ javascript:(async()=>{const g='https://raw.githubusercontent.com/olorinmaia/NISS
 3. Google Maps åpnes med rute for alle merkede bestillinger
 
 **Tips:**
-- Bruker adressene som står i NISSY og søker i Google Maps. Adresser som ikke gjenkjennes kan mappes inn – se [veiledning for å sende inn adressemapping](Rutekalkulering_Adresser.md)
+- Koordinater hentes automatisk fra NISSY for nøyaktig posisjonering i Google Maps. Kun koordinater sendes til Google.
 - Fungerer både for ventende og pågående oppdrag
 - Filtrerer automatisk ut bestillinger som er markert som "Framme" og "Ikke møtt"
 
@@ -243,6 +243,7 @@ Om du skulle være uheldig og tildele eller avbestille noe feil, så finner du n
 Send SMS til pasienter enkeltvis eller massevis basert på merkede bestillinger på ventende og pågående oppdrag.
 "Send SMS til sjåfør" tilgjengelig ved å høyreklikke på løyve i ressurser, henter mobil fra 3003 automatisk. Fungerer også for ressurser uten løyvenummer (offline-turer), da fylles mobilnummeret inn manuelt.
 - Automatisk utfylling av pasientnavn, adresser og tidspunkt fra bestillingsdata.
+- Kun norske mobilnummer godtas (8 siffer som starter på 4, 9, 58 eller 59). Fasttelefonnummer markeres rødt og får ikke SMS – legg inn mobilnummeret i feltet Mobilnr i kontaktinfoen, eller skriv det inn direkte i SMS-vinduet.
 - Sjåfør-maler fylles ut med turnummer, adresser, hentetid og pasientens initialer fra ressursens tur i pågående oppdrag – alle bestillinger på turen tas med.
 - Vasker adressene før de settes inn i SMS-en: bolig-/bruksenhetsnummer (H0101 / U0101) og sti-prefiks (`./`, `../`, `.../`) i starten av adressen fjernes, f.eks. ".../BVS 1. ort pol, 7030 Trondheim" → "BVS 1. ort pol, 7030 Trondheim".
 - Støtter tre mal-typer: bestilling (med info-variabler), fritekst og sjåfør-SMS.

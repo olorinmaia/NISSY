@@ -29,28 +29,41 @@
     // Aksepterer: 8 siffer, +10 siffer, 8 siffer med mellomrom, +47 + 8 siffer med mellomrom
     const VALID_PHONE_REGEX = /^(\d{8}|[+]\d{10}|\d{2}\s\d{2}\s\d{2}\s\d{2}|[+]\d{2}\s\d{8})$/;
 
-    // Funksjon for å vente på at openPopp AJAX-kallet er ferdig
-    function ventPåOpenPopp() {
+    // Venter på at openPopp('-1') sitt AJAX-kall er ferdig.
+    // Bruker den felles engangs-hooken i NISSY-fiks (__nissyOnceAfterOpenPopp)
+    // i stedet for å patche XMLHttpRequest.prototype selv: den gamle patchen ble
+    // bare gjenopprettet hvis openres-kallet faktisk kom, og kunne klippe bort
+    // andre scripts wrappere. Uten NISSY-fiks brukes en midlertidig patch som
+    // alltid gjenopprettes. Løses uansett etter maks 5 s, slik at kolonnene
+    // ikke blir stående synlige hvis NISSY sin semafor dropper openPopp.
+    function ventPåOpenPopp(timeoutMs = 5000) {
         return new Promise(resolve => {
+            let done = false;
+            const finish = () => { if (!done) { done = true; resolve(); } };
+
+            if (typeof window.__nissyOnceAfterOpenPopp === 'function') {
+                window.__nissyOnceAfterOpenPopp(finish, timeoutMs);
+                setTimeout(finish, timeoutMs);
+                return;
+            }
+
             const originalOpen = XMLHttpRequest.prototype.open;
             const originalSend = XMLHttpRequest.prototype.send;
-
-            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-                this._isOpenPopp = url.includes("action=openres") && url.includes("rid=-1");
+            const patchedOpen = function (method, url, ...rest) {
+                this._isOpenPopp = typeof url === 'string' && url.includes("action=openres") && url.includes("rid=-1");
                 return originalOpen.apply(this, [method, url, ...rest]);
             };
-
-            XMLHttpRequest.prototype.send = function(...args) {
-                if (this._isOpenPopp) {
-                    this.addEventListener("load", () => {
-                        // Gjenopprett originale metoder
-                        XMLHttpRequest.prototype.open = originalOpen;
-                        XMLHttpRequest.prototype.send = originalSend;
-                        resolve(); // openPopp AJAX ferdig
-                    });
-                }
+            const patchedSend = function (...args) {
+                if (this._isOpenPopp) this.addEventListener("load", () => { restore(); finish(); });
                 return originalSend.apply(this, args);
             };
+            const restore = () => {
+                if (XMLHttpRequest.prototype.open === patchedOpen) XMLHttpRequest.prototype.open = originalOpen;
+                if (XMLHttpRequest.prototype.send === patchedSend) XMLHttpRequest.prototype.send = originalSend;
+            };
+            XMLHttpRequest.prototype.open = patchedOpen;
+            XMLHttpRequest.prototype.send = patchedSend;
+            setTimeout(() => { restore(); finish(); }, timeoutMs);
         });
     }
 
