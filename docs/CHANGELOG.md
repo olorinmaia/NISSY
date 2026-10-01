@@ -4,7 +4,6 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ## Planlagt
 - Kontinuerlig forbedring av eksisterende scripts, nye script legges til fortløpende når testet ferdig.
-- Planlegging av vognløp basert på koordinater, tidspunkt og ruting fra ORS.
 - Varsling/overvåking av forsinkelser
 - Integrasjon mot Zisson via API
 - Håndtering av spesiell oppfølging
