@@ -10,6 +10,16 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
+## 🔧 [5.0.0] - ??.11.2026
+
+### Sjekk-Bestilling: Finner bestillinger med samme hente- og leveringssted
+
+- 🔍 **Sjekk-Bestilling (Alt+2)**
+  - Ny sjekk som finner bestillinger der fra- og til-adresse er identiske – reisen går ingen steder. Gjelder både ventende og pågående oppdrag, og adressene fremheves rødt i resultatet. Inngår bestillingen samtidig i et duplikatfunn (mer enn 2 bestillinger, eller samme fra-/til-adresse som en annen bestilling samme dag), vises den kun der, med adressene fremhevet og en merknad i begrunnelsen
+  - Adresser sammenlignes nå uavhengig av store/små bokstaver, doble mellomrom og HTML-koding, også i sjekken for samme fra- eller til-adresse
+
+---
+
 ## 🔧 [4.9.9] - 22.09.2026
 
 ### Stabilitet: Tekniske forbedringer
