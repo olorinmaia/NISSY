@@ -1,3 +1,5 @@
 .claude/settings.local.json
 .vscode/
 .local/
+# Interne testscript - publiseres ikke
+scripts/*-TEST.js
