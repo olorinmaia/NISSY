@@ -329,6 +329,14 @@
       .toLowerCase();
   }
 
+  // Sammenligningsnøkkel for adresser: fjerner bolignummer (H0101/U0101) og
+  // sti-prefiks FØR normalisering, slik at "ANDEBYVEIEN 6A H0101, 7802 NAMSOS"
+  // og "Andebyveien 6A, 7802 Namsos" regnes som samme adresse.
+  // Brukes av alle sjekker som sammenligner to adresser.
+  function addressKey(address) {
+    return normalizeAddress(cleanAddressSuffixes(address));
+  }
+
   function datesAreDifferent(hentetid, leveringstid) {
     // Tomme felt kan ikke sammenlignes
     if (!/\d{1,2}:\d{2}/.test(hentetid || '') || !/\d{1,2}:\d{2}/.test(leveringstid || '')) return false;
@@ -656,9 +664,10 @@
           const pairKey = [item1.reknr, item2.reknr].sort().join('|');
           if (processedPairs.has(pairKey)) continue;
 
-          // Normalisert sammenligning: tåler &amp; vs &, doble mellomrom og ulik bokstavstørrelse
-          const fra1 = normalizeAddress(item1.fra), fra2 = normalizeAddress(item2.fra);
-          const til1 = normalizeAddress(item1.til), til2 = normalizeAddress(item2.til);
+          // Normalisert sammenligning: tåler &amp; vs &, doble mellomrom, ulik
+          // bokstavstørrelse og bolignummer (H0101) på bare én av adressene
+          const fra1 = addressKey(item1.fra), fra2 = addressKey(item2.fra);
+          const til1 = addressKey(item1.til), til2 = addressKey(item2.til);
           const sameFra = fra1 !== '' && fra1 === fra2;
           const sameTil = til1 !== '' && til1 === til2;
           
@@ -728,8 +737,8 @@
   // rødt og en merknad i begrunnelsen.
   // ============================================================
   function isSameFromTo(item) {
-    const fra = normalizeAddress(cleanAddressSuffixes(item.fra));
-    const til = normalizeAddress(cleanAddressSuffixes(item.til));
+    const fra = addressKey(item.fra);
+    const til = addressKey(item.til);
     return !!fra && fra === til;
   }
 
@@ -1026,7 +1035,8 @@
         // Skip hvis denne dag-gruppen allerede er flagget for >2 bestillinger
         if (excludedKeys.has(`${navn}\t${returnDate}`)) continue;
 
-        const location = returnTrip.fra;
+        // Normalisert nøkkel, så bolignummer/bokstavstørrelse ikke skjuler et treff
+        const location = addressKey(returnTrip.fra);
 
         for (const outboundTrip of outboundTrips) {
           const outboundDate = extractDate(outboundTrip.hentetid) || '';
@@ -1034,7 +1044,7 @@
           // Kun sammenlign innen samme dag
           if (returnDate !== outboundDate) continue;
 
-          if (outboundTrip.til === location) {
+          if (location && addressKey(outboundTrip.til) === location) {
             if (returnTrip.parsedPickupTime <= outboundTrip.parsedArrivalTime) {
               errors.push({
                 navn: navn,

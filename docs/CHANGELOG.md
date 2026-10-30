@@ -16,7 +16,7 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 - 🔍 **Sjekk-Bestilling (Alt+2)**
   - Ny sjekk som finner bestillinger der fra- og til-adresse er identiske – reisen går ingen steder. Gjelder både ventende og pågående oppdrag, og adressene fremheves rødt i resultatet. Inngår bestillingen samtidig i et duplikatfunn (mer enn 2 bestillinger, eller samme fra-/til-adresse som en annen bestilling samme dag), vises den kun der, med adressene fremhevet og en merknad i begrunnelsen
-  - Adresser sammenlignes nå uavhengig av store/små bokstaver, doble mellomrom og HTML-koding, også i sjekken for samme fra- eller til-adresse
+  - Adresser sammenlignes nå uavhengig av store/små bokstaver, doble mellomrom, HTML-koding og bolignummer (f.eks. «H0101»), slik at «ANDEBYVEIEN 6A H0101, 7802 NAMSOS» og «Andebyveien 6A, 7802 Namsos» regnes som samme adresse. Gjelder sjekkene for samme fra-/til-adresse og retur før oppmøte
 
 ---
 
