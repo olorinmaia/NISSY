@@ -27,6 +27,13 @@
     style.textContent = `
       /* Fjern NISSY sin max-height på col1/col3 som klipper innhold på enkelte skjermer */
       #col1 div.box, #col3 div.box { max-height: none !important; }
+
+      /* Ressurser/Avtaler: NISSY deler panelhøyden fast (~65/35), så ekstra knapper
+         i Ressurser-panelet spiser av ressurslisten. Faste elementer (header, filter,
+         knapper) får sin høyde først, og resten fordeles 60/40 mellom selve listene. */
+      #col2 .col2-panel--ressurser { flex: 60 1 auto !important; }
+      #col2 .col2-panel--avtaler { flex: 40 1 auto !important; }
+      #col2 .col2-scrollbox { flex: 1 1 0 !important; min-height: 0 !important; }
     `;
     document.head.appendChild(style);
   })();

@@ -10,7 +10,12 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [5.0.0] - ??.11.2026
+## 🔧 [5.0.0] - 04.11.2026
+
+### NISSY-fiks: Tilpasset NISSY 6.11
+
+- ⌛ **NISSY-fiks**
+  - Tilpasset ny layout i NISSY 6.11: Ressurslisten blir ikke lenger mindre av knappene scriptene legger til i Ressurser-panelet. Plassen som er igjen fordeles mellom ressurslisten og avtalelisten, der ressursene får mest
 
 ### Sjekk-Bestilling: Finner bestillinger med samme hente- og leveringssted
 
