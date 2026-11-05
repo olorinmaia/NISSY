@@ -609,32 +609,39 @@
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
-          // Sjekk om det er en loggmelding-div
-          if (node.nodeType === 1 && node.classList && node.classList.contains('logMsg')) {
-            const message = node.textContent;
-            
-            // Sjekk for feilmeldinger
-            if (message.includes("OBS! Handlingen") && message.includes("kunne ikke utføres")) {
-              consecutiveFailures++;
-              console.warn(`⚠️ NISSY-feil detektert (${consecutiveFailures}/${FAILURE_THRESHOLD}): ${message}`);
-              
-              if (consecutiveFailures >= FAILURE_THRESHOLD) {
-                showSessionExpiredWarning();
-              }
-            }
-            // Reset ved suksess-meldinger (ikke feil eller "opptatt")
-            else if (!message.includes("Systemet er opptatt") && !message.includes("OBS!")) {
-              if (consecutiveFailures > 0) {
-                console.log("✅ NISSY-system tilbake til normal - resetter feil-teller");
-                consecutiveFailures = 0;
-              }
+          if (node.nodeType !== 1) return;
+
+          // NISSY 6.11: Hver loggmelding er en <table class="logEntry"> med
+          // ikon i td.logIconCell (red.gif ved feil) og tekst i td.logMsgCell.
+          // Eldre NISSY: <div class="logMsg">. Støtter begge.
+          let message = null;
+          let isError = false;
+          if (node.classList.contains('logEntry')) {
+            const msgCell = node.querySelector('.logMsgCell');
+            if (!msgCell) return;
+            message = msgCell.textContent || '';
+            isError = !!node.querySelector('img.logIcon[src*="red.gif"]') || message.includes("OBS!");
+          } else if (node.classList.contains('logMsg')) {
+            message = node.textContent || '';
+            isError = message.includes("OBS!");
+          }
+          if (message === null) return;
+
+          // Sjekk for feilmeldinger
+          if (isError && message.includes("kunne ikke utføres")) {
+            consecutiveFailures++;
+            console.warn(`⚠️ NISSY-feil detektert (${consecutiveFailures}/${FAILURE_THRESHOLD}): ${message}`);
+
+            if (consecutiveFailures >= FAILURE_THRESHOLD) {
+              showSessionExpiredWarning();
             }
           }
-          
-          // Sjekk også for røde error-ikoner (red.gif)
-          if (node.nodeType === 1 && node.tagName === 'IMG' && node.src && node.src.includes('red.gif')) {
-            // Red.gif vises ved feil - dette er også en indikator
-            console.warn("🔴 Rød feil-ikon detektert i logger");
+          // Reset ved suksess-meldinger (ikke feil eller "opptatt")
+          else if (!isError && !message.includes("Systemet er opptatt")) {
+            if (consecutiveFailures > 0) {
+              console.log("✅ NISSY-system tilbake til normal - resetter feil-teller");
+              consecutiveFailures = 0;
+            }
           }
         });
       });

@@ -10,12 +10,13 @@ Alle viktige endringer i NISSY-scriptene vil bli dokumentert i denne filen.
 
 ---
 
-## 🔧 [5.0.0] - 04.11.2026
+## 🔧 [5.0.0] - 05.11.2026
 
 ### NISSY-fiks: Tilpasset NISSY 6.11
 
 - ⌛ **NISSY-fiks**
   - Tilpasset ny layout i NISSY 6.11: Ressurslisten blir ikke lenger mindre av knappene scriptene legger til i Ressurser-panelet. Plassen som er igjen fordeles mellom ressurslisten og avtalelisten, der ressursene får mest
+  - Tilpasset NISSY 6.11: Varselet om at NISSY ikke svarer eller økten har utløpt (fem «kunne ikke utføres» på rad i loggen) sluttet å virke etter oppgraderingen, fordi loggen fikk ny oppbygging.
 
 ### Sjekk-Bestilling: Finner bestillinger med samme hente- og leveringssted
 
