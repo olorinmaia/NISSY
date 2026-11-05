@@ -347,6 +347,7 @@ Sjekker alle bestillinger på valgt filter og viser funn i en liste du kan klikk
 - Duplikater og turer med mer enn 2 bestillinger
 - Flere bestillinger med samme fra- eller til-adresse
 - Ulik dato på hentetid og leveringstid
+- Hente- og leveringssted er samme adresse
 - Turer på pågående oppdrag med flere bestillinger der datoen på hentetid er ulik
 - Hentetid er senere enn leveringstid (kun til behandling)
 - Returer med tidligere eller lik hentetid enn oppmøtetid for samme behandlingssted

@@ -4,7 +4,8 @@
 // 
 // Funksjonalitet:
 // - Duplikater: Pasienter med mer enn 2 bestillinger
-// - Rute-duplikater: Samme fra- eller til-adresse
+// - Rute-duplikater: Samme fra- eller til-adresse (to bestillinger, samme pasient og dag)
+// - Samme hente- og leveringssted: Fra- og til-adresse er identiske på én bestilling
 // - Datofeil: Hentetid og leveringstid har ulik dato
 // - Tidsfeil: Hentetid er senere enn leveringstid (logisk umulig)
 //   → Konfigurerbart: CHECK_TO_TREATMENT / CHECK_FROM_TREATMENT
@@ -308,6 +309,34 @@
       .replace(/\s+[HU]\d{4}(?=,)/g, '');
   }
 
+  // ============================================================
+  // HJELPEFUNKSJON: Normaliser adresse for sammenligning
+  // Ventende-adresser kommer fra innerHTML (f.eks. "&amp;"), pågående fra
+  // textContent ("&"). Fjerner HTML, dekoder vanlige entiteter, slår sammen
+  // mellomrom og gjør alt til små bokstaver slik at like adresser matcher.
+  // ============================================================
+  function normalizeAddress(address) {
+    if (!address) return '';
+    return address
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  // Sammenligningsnøkkel for adresser: fjerner bolignummer (H0101/U0101) og
+  // sti-prefiks FØR normalisering, slik at "ANDEBYVEIEN 6A H0101, 7802 NAMSOS"
+  // og "Andebyveien 6A, 7802 Namsos" regnes som samme adresse.
+  // Brukes av alle sjekker som sammenligner to adresser.
+  function addressKey(address) {
+    return normalizeAddress(cleanAddressSuffixes(address));
+  }
+
   function datesAreDifferent(hentetid, leveringstid) {
     // Tomme felt kan ikke sammenlignes
     if (!/\d{1,2}:\d{2}/.test(hentetid || '') || !/\d{1,2}:\d{2}/.test(leveringstid || '')) return false;
@@ -588,7 +617,9 @@
           if (timeB === null) return -1;
           return timeA - timeB;
         });
-        duplicates.push({ navn, items, reason: 'Mer enn 2 bestillinger' });
+        const dup = { navn, items, reason: 'Mer enn 2 bestillinger' };
+        appendSameFromToNote(dup); // Duplikatet har prioritet over samme-adresse-sjekken
+        duplicates.push(dup);
         excludedKeys.add(key);
       }
     }
@@ -633,8 +664,12 @@
           const pairKey = [item1.reknr, item2.reknr].sort().join('|');
           if (processedPairs.has(pairKey)) continue;
 
-          const sameFra = item1.fra === item2.fra && item1.fra !== '';
-          const sameTil = item1.til === item2.til && item1.til !== '';
+          // Normalisert sammenligning: tåler &amp; vs &, doble mellomrom, ulik
+          // bokstavstørrelse og bolignummer (H0101) på bare én av adressene
+          const fra1 = addressKey(item1.fra), fra2 = addressKey(item2.fra);
+          const til1 = addressKey(item1.til), til2 = addressKey(item2.til);
+          const sameFra = fra1 !== '' && fra1 === fra2;
+          const sameTil = til1 !== '' && til1 === til2;
           
           if (sameFra || sameTil) {
             processedPairs.add(pairKey);
@@ -685,9 +720,54 @@
         if (timeB === null) return -1;
         return timeA - timeB;
       });
+      appendSameFromToNote(dup); // Duplikatet har prioritet over samme-adresse-sjekken
     }
-    
+
     return duplicates;
+  }
+
+  // ============================================================
+  // SJEKK: Samme hente- og leveringssted
+  // Fra- og til-adresse er identiske på én og samme bestilling – reisen går
+  // ingen steder. Typisk feil ved kopiering eller oppretting av retur.
+  // Gjelder både ventende og pågående oppdrag. Hard feil, kan ikke skjules.
+  // Bestillinger som allerede inngår i et duplikatfunn (mer enn 2 bestillinger,
+  // eller samme fra-/til-adresse som en annen bestilling samme dag) utelates:
+  // duplikatet er den viktigere feilen og vises der, med adressene fremhevet
+  // rødt og en merknad i begrunnelsen.
+  // ============================================================
+  function isSameFromTo(item) {
+    const fra = addressKey(item.fra);
+    const til = addressKey(item.til);
+    return !!fra && fra === til;
+  }
+
+  // Legger til merknad i duplikatgruppens begrunnelse når én eller flere av
+  // bestillingene i gruppen har samme hente- og leveringssted
+  function appendSameFromToNote(dup) {
+    const n = dup.items.filter(isSameFromTo).length;
+    if (n === 0) return;
+    dup.reason += n === 1
+      ? ' – én av bestillingene har samme hente- og leveringssted'
+      : ` – ${n} av bestillingene har samme hente- og leveringssted`;
+  }
+
+  function findSameFromTo(excludeReknr = new Set()) {
+    const allData = [...extractVentendeData(), ...extractPagaendeData()];
+    const errors = [];
+
+    for (const item of allData) {
+      if (!isSameFromTo(item)) continue;
+      if (excludeReknr.has(item.reknr)) continue;
+
+      errors.push({
+        navn: item.navn,
+        items: [item],
+        reason: 'Hente- og leveringssted er samme adresse'
+      });
+    }
+
+    return errors;
   }
 
   function findDateMismatches() {
@@ -955,7 +1035,8 @@
         // Skip hvis denne dag-gruppen allerede er flagget for >2 bestillinger
         if (excludedKeys.has(`${navn}\t${returnDate}`)) continue;
 
-        const location = returnTrip.fra;
+        // Normalisert nøkkel, så bolignummer/bokstavstørrelse ikke skjuler et treff
+        const location = addressKey(returnTrip.fra);
 
         for (const outboundTrip of outboundTrips) {
           const outboundDate = extractDate(outboundTrip.hentetid) || '';
@@ -963,7 +1044,7 @@
           // Kun sammenlign innen samme dag
           if (returnDate !== outboundDate) continue;
 
-          if (outboundTrip.til === location) {
+          if (location && addressKey(outboundTrip.til) === location) {
             if (returnTrip.parsedPickupTime <= outboundTrip.parsedArrivalTime) {
               errors.push({
                 navn: navn,
@@ -1179,7 +1260,7 @@
     }
   }
 
-  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses) {
+  function showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses, sameFromTo) {
     // IKKE kall closeModal() her siden det ville frigjort sperren
     // Fjern bare eksisterende modal uten å frigjøre sperren
     if (overlayDiv && overlayDiv.parentNode) {
@@ -1206,10 +1287,10 @@
     // Lag modal
     modalDiv = document.createElement('div');
     
-    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length + missingGeocode.length + problematicAddresses.length;
+    const totalIssues = countDuplicates.length + routeDuplicates.length + dateMismatches.length + problematicNeeds.length + timeLogicErrors.length + returnBeforeOutbound.length + shortTravelTime.length + tripDateMismatches.length + missingGeocode.length + problematicAddresses.length + sameFromTo.length;
 
     // Beregn Reknr-bredde én gang basert på alle grupper, slik at alle tabeller er like brede
-    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches, ...missingGeocode, ...problematicAddresses];
+    const allGroups = [...countDuplicates, ...routeDuplicates, ...dateMismatches, ...problematicNeeds, ...timeLogicErrors, ...returnBeforeOutbound, ...shortTravelTime, ...tripDateMismatches, ...missingGeocode, ...problematicAddresses, ...sameFromTo];
     const reknrWidth = allGroups.some(dup => dup.items.some(item => item.status)) ? 165 : 110;
 
     // Dollartegn-funn brukeren har skjult i denne fanen – vises som lenke for å hente dem frem igjen
@@ -1259,6 +1340,9 @@
       if (returnBeforeOutbound.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">🔄⏰ ${returnBeforeOutbound.length} pasient${returnBeforeOutbound.length === 1 ? '' : 'er'} hvor retur-hentetid er lik eller før oppmøtetid</div>`;
       }
+      if (sameFromTo.length > 0) {
+        html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">↔️ ${sameFromTo.length} bestilling${sameFromTo.length === 1 ? '' : 'er'} med samme hente- og leveringssted</div>`;
+      }
       if (shortTravelTime.length > 0) {
         html += `<div style="background: #f8d7da; color: #721c24; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; border-left: 4px solid #dc3545;">⚡ ${shortTravelTime.length} bestilling${shortTravelTime.length === 1 ? '' : 'er'} med veldig kort reisetid (1–9 minutter)</div>`;
       }
@@ -1284,6 +1368,11 @@
       if (returnBeforeOutbound.length > 0) {
         html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">🔄⏰ Retur-hentetid lik eller før oppmøtetid</h3>';
         html += renderDuplicates(returnBeforeOutbound, 'returnbeforeout', reknrWidth);
+      }
+
+      if (sameFromTo.length > 0) {
+        html += '<h3 style="color: #333; font-size: 15px; margin: 20px 0 12px 0; font-weight: 600;">↔️ Bestillinger med samme hente- og leveringssted</h3>';
+        html += renderDuplicates(sameFromTo, 'samefromto', reknrWidth);
       }
 
       if (dateMismatches.length > 0) {
@@ -1481,6 +1570,7 @@
       'problematic': '#dc3545',
       'timelogic': '#dc3545',
       'returnbeforeout': '#dc3545',
+      'samefromto': '#dc3545',
       'shorttravel': '#dc3545',
       'tripdate': '#fd7e14',
       'geocode': '#e83e8c',
@@ -1585,8 +1675,12 @@
 
         // Fremhev adressecelle med problematisk ord (fritekst i stedet for gateadresse)
         const addressHighlight = 'background: #e9e3ff; color: #3b0764; font-weight: 600;';
-        const fraStyle = item.addressWordFra ? addressHighlight : 'color: #495057;';
-        const tilStyle = item.addressWordTil ? addressHighlight : 'color: #495057;';
+        // Samme hente- og leveringssted: begge adressecellene fremheves rødt, uansett
+        // hvilken seksjon bestillingen vises i (også som del av et adresseduplikat)
+        const sameFromToHighlight = 'background: #f8d7da; color: #721c24; font-weight: 600;';
+        const sameFromTo = isSameFromTo(item);
+        const fraStyle = sameFromTo ? sameFromToHighlight : item.addressWordFra ? addressHighlight : 'color: #495057;';
+        const tilStyle = sameFromTo ? sameFromToHighlight : item.addressWordTil ? addressHighlight : 'color: #495057;';
 
         html += `
           <tr style="border-bottom: 1px solid #dee2e6;">
@@ -1619,6 +1713,11 @@
     try {
       const { duplicates: countDuplicates, excludedKeys } = findDuplicates();
       const routeDuplicates = findSameRouteDuplicates(excludedKeys);
+      // Duplikatfunn har prioritet: bestillinger som inngår i "mer enn 2" eller
+      // adresseduplikat tas ikke med i samme-adresse-seksjonen, men adressene
+      // fremheves rødt og begrunnelsen får en merknad inne i duplikatgruppen
+      const dupReknr = new Set([...countDuplicates, ...routeDuplicates].flatMap(d => d.items.map(it => it.reknr)));
+      const sameFromTo = findSameFromTo(dupReknr);
       const dateMismatches = findDateMismatches();
       const problematicNeeds = findProblematicNeeds();
       const timeLogicErrors = findTimeLogicErrors();
@@ -1627,7 +1726,7 @@
       const tripDateMismatches = findTripDateMismatches();
       const missingGeocode = findMissingGeocode();
       const problematicAddresses = findProblematicAddresses();
-      showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses);
+      showModal(countDuplicates, routeDuplicates, dateMismatches, problematicNeeds, timeLogicErrors, returnBeforeOutbound, shortTravelTime, tripDateMismatches, missingGeocode, problematicAddresses, sameFromTo);
     } catch (error) {
       // Feil under kolonnevalidering eller datainnhenting
       // Feilmelding er allerede vist via showErrorToast()
